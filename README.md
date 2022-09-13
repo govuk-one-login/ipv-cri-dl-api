@@ -1,5 +1,5 @@
-# Digital Identity Fraud Credential Issuer
-Identity and Fraud Check Credential Issuer
+# Digital Identity Driving Permit Credential Issuer
+Driving Permit Check Credential Issuer
 
 ## Checkout submodules
 > The first time you check out or clone the repository, you will need to run the following commands:

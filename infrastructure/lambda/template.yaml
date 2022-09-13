@@ -1,0 +1,1106 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Digital Identity Driving Permit Credential Issuer API"
+
+Parameters:
+  CodeSigningConfigArn:
+    Type: String
+    Default: "none"
+    Description: >
+      The ARN of the Code Signing Config to use, provided by the deployment pipeline
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+    ConstraintDescription: must be dev, build, staging, integration or production
+  PermissionsBoundary:
+    Description: "The ARN of the permissions boundary to apply when creating IAM roles"
+    Type: String
+    Default: "none"
+
+Conditions:
+  CreateDevResources: !Equals
+    - !Ref Environment
+    - dev
+  IsStubEnvironment: !Or
+    - !Equals [ !Ref Environment, dev]
+    - !Equals [ !Ref Environment, build ]
+    - !Equals [ !Ref Environment, staging ]
+    - !Equals [ !Ref Environment, integration ]
+  IsProdLikeEnvironment: !Or
+    - !Equals [ !Ref Environment, staging ]
+    - !Equals [ !Ref Environment, integration ]
+    - !Equals [ !Ref Environment, production ]
+  IsProdEnvironment: !Equals
+    - !Ref Environment
+    - production
+  IsDevEnvironment: !Equals
+    - !Ref Environment
+    - dev
+  IsNotDevEnvironment: !Not
+    - Condition: IsDevEnvironment
+
+  UsePermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref PermissionsBoundary
+          - "none"
+Globals:
+  Function:
+    VpcConfig:
+      SecurityGroupIds:
+        - !ImportValue cri-vpc-LambdaSecurityGroup
+      SubnetIds: !Split [ ",", !ImportValue cri-vpc-PrivateSubnets ]
+    PermissionsBoundary: !If
+      - UsePermissionsBoundary
+      - !Ref PermissionsBoundary
+      - !Ref AWS::NoValue
+    CodeSigningConfigArn: !If
+      - CreateDevResources
+      - !Ref AWS::NoValue
+      - !Ref CodeSigningConfigArn
+    Timeout: 30 # seconds
+    Runtime: java11
+    AutoPublishAlias: live
+    Tracing: Active
+    MemorySize: !FindInMap [MemorySizeMapping, Environment, !Ref 'Environment']
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        JAVA_TOOL_OPTIONS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+        AWS_STACK_NAME: !Sub ${AWS::StackName}
+        POWERTOOLS_LOG_LEVEL: INFO
+        SQS_AUDIT_EVENT_PREFIX: IPV_DRIVING_PERMIT_CRI
+    ProvisionedConcurrencyConfig: !If
+      - IsProdEnvironment
+      - ProvisionedConcurrentExecutions: 1
+      - !Ref AWS::NoValue
+
+Mappings:
+
+  MemorySizeMapping:
+    Environment:
+      dev: 512
+      build: 1024
+      staging: 1024
+      integration: 1024
+      production: 2048
+
+  SessionTtlMapping:
+    Environment:
+      dev: "172800" # 2 days
+      build: "172800" # 2 days
+      staging: "172800" # 2 days
+      integration: "172800" # 2 days
+      production: "172800" # 2 days
+
+  MaxJwtTtlMapping:
+    Environment:
+      dev: "7200" # 2 hrs
+      build: "7200"
+      staging: "7200"
+      integration: "7200"
+      production: "7200"
+
+  IPVCoreStubAuthenticationAlgMapping:
+    Environment:
+      dev: "ES256"
+      build: "ES256"
+      staging: "ES256"
+      integration: "ES256"
+
+  IPVCore1AuthenticationAlgMapping:
+    Environment:
+      staging: "ES256"
+      integration: "ES256"
+      production: "ES256"
+
+  IPVCoreStubAudienceMapping:
+    Environment:
+      dev: "https://review-d.dev.account.gov.uk"
+      build: "https://review-d.build.account.gov.uk"
+      staging: "https://review-d.staging.account.gov.uk"
+      integration: "https://review-d.integration.account.gov.uk"
+
+  IPVCore1AudienceMapping:
+    Environment:
+      staging: "https://review-d.staging.account.gov.uk"
+      integration: "https://review-d.integration.account.gov.uk"
+      production: "https://review-d.account.gov.uk"
+
+  IPVCoreStubIssuerMapping:
+    Environment:
+      dev: "https://di-ipv-core-stub.london.cloudapps.digital"
+      build: "https://di-ipv-core-stub.london.cloudapps.digital"
+      staging: "https://di-ipv-core-stub.london.cloudapps.digital"
+      integration: "https://di-ipv-core-stub.london.cloudapps.digital"
+
+  IPVCore1IssuerMapping:
+    Environment:
+      staging: "https://identity.staging.account.gov.uk"
+      integration: "https://identity.integration.account.gov.uk"
+      production: "https://identity.account.gov.uk"
+
+  IPVCoreStubPublicSigningJwkBase64Mapping:
+    Environment:
+      dev: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
+      build: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
+      staging: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
+      integration: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
+
+  IPVCore1PublicSigningJwkBase64Mapping:
+    Environment:
+      staging: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImtlMVRNRnFNb0Z5eHg1eXpOdFFRbGw0dk9yeHZUdFBKQ0huUzRqOHpoMlUiLCJ5IjoicURLX0g4QXpKS2FIbU1zaHg5TGp2LTB0ek5rV2EtSkVHUzJtZHRKUjFPQSJ9"
+      integration: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IkJUUWdWQjU0RE9JcDU0eGRVSVg0SGtUX3pCdjZHdVdMV1RUTkdxMk15dEkiLCJ5IjoiTFFRamx5ZEtOMUhXZFJQcFBpalJObEJrbi1qaDgzZzBBUmIyNms2WVh1byJ9"
+      production: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IlVQdlU1TlBtRUxyV2lXU01WZkREN0c4dTNFSllyeXFQSVo0Nlc5TUFsUmMiLCJ5Ijoicjc3RjItS1BocHZUSUdFV2d0NVNtYXZTdkJVSENxV1V4RDZSR19GSkhWayJ9"
+
+  IPVCoreStubRedirectURIMapping:
+    Environment:
+      dev: "http://localhost:8085/callback"
+      build: "https://di-ipv-core-stub.london.cloudapps.digital/callback"
+      staging: "https://di-ipv-core-stub.london.cloudapps.digital/callback"
+      integration: "https://di-ipv-core-stub.london.cloudapps.digital/callback"
+
+  IPVCore1RedirectURIMapping:
+    Environment:
+      staging: "https://identity.staging.account.gov.uk/credential-issuer/callback?id=driving-permit"
+      integration: "https://identity.integration.account.gov.uk/credential-issuer/callback?id=driving-permit"
+      production: "https://identity.account.gov.uk/credential-issuer/callback?id=driving-permit"
+
+  VerifiableCredentialIssuerMapping:
+    Environment:
+      dev: "https://review-d.dev.account.gov.uk"
+      build: "https://review-d.build.account.gov.uk"
+      staging: "https://review-d.staging.account.gov.uk"
+      integration: "https://review-d.integration.account.gov.uk"
+      production: "https://review-d.account.gov.uk"
+
+  DrivingPermitCriAudienceMapping:
+    Environment:
+      dev: "https://review-d.dev.account.gov.uk"
+      build: "https://review-d.build.account.gov.uk"
+      staging: "https://review-d.staging.account.gov.uk"
+      integration: "https://review-d.integration.account.gov.uk"
+      production: "https://review-d.account.gov.uk"
+
+Resources:
+
+####################################################################
+#                                                                  #
+# API Gateway                                                 #
+#                                                                  #
+####################################################################
+
+  PublicDrivingPermitApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Description: Public Driving Permit CRI API
+      MethodSettings:
+        - LoggingLevel: INFO
+          ResourcePath: '/*'
+          HttpMethod: '*'
+          # Disable data trace in production to avoid logging customer sensitive information
+          DataTraceEnabled: !If [IsProdEnvironment, false, true]
+          MetricsEnabled: true
+          ThrottlingRateLimit: 5
+          ThrottlingBurstLimit: 10
+      AccessLogSetting:
+        DestinationArn: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${PublicDrivingPermitAccessLogGroup}'
+        Format: >-
+          {
+          "requestId":"$context.requestId",
+          "ip":"$context.identity.sourceIp",
+          "requestTime":"$context.requestTime",
+          "httpMethod":"$context.httpMethod",
+          "path":"$context.path",
+          "routeKey":"$context.routeKey",
+          "status":"$context.status",
+          "protocol":"$context.protocol",
+          "responseLatency":"$context.responseLatency",
+          "responseLength":"$context.responseLength"
+          }
+      TracingEnabled: true
+      Name: !Sub "driving-permit-cri-${AWS::StackName}"
+      StageName: !Ref Environment
+      DefinitionBody:
+        openapi: "3.0.1" # workaround to get `sam validate` to work
+        paths: # workaround to get `sam validate` to work
+          /never-created:
+            options: { } # workaround to get `sam validate` to work
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: './public-api.yaml'
+        components:
+          schemas:
+            TokenResponse:
+              title: AccessToken
+              required:
+                - "access_token"
+                - "expires_in"
+              type: "object"
+              properties:
+                access_token:
+                  type: string
+                  description: The Access Token for the given token request
+                token_type:
+                  type: string
+                  description: The Token Type issued
+                  example: Bearer
+                expires_in:
+                  type: string
+                  description: The expiry time, in seconds
+                  example: '3600'
+                refresh_token:
+                  type: string
+                  description: The refresh token is optional, not currently applicable
+            Error:
+              title: "Error Schema"
+              type: "object"
+              properties:
+                message:
+                  type: "string"
+          securitySchemes:
+            !If
+            - IsNotDevEnvironment
+            -
+              api_key:
+                type: "apiKey"
+                name: "x-api-key"
+                in: "header"
+            - !Ref "AWS::NoValue"
+      OpenApiVersion: 3.0.1
+      EndpointConfiguration:
+        Type: REGIONAL
+
+  PrivateDrivingPermitApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Description: Private Driving Permit CRI API
+      MethodSettings:
+        - LoggingLevel: INFO
+          ResourcePath: '/*'
+          HttpMethod: '*'
+          # Disable data trace in production to avoid logging customer sensitive information
+          DataTraceEnabled: !If [IsProdEnvironment, false, true]
+          MetricsEnabled: true
+          ThrottlingRateLimit: 5
+          ThrottlingBurstLimit: 10
+      AccessLogSetting:
+        DestinationArn: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${PrivateDrivingPermitApiAccessLogGroup}'
+        Format: >-
+          {
+          "requestId":"$context.requestId",
+          "ip":"$context.identity.sourceIp",
+          "requestTime":"$context.requestTime",
+          "httpMethod":"$context.httpMethod",
+          "path":"$context.path",
+          "routeKey":"$context.routeKey",
+          "status":"$context.status",
+          "protocol":"$context.protocol",
+          "responseLatency":"$context.responseLatency",
+          "responseLength":"$context.responseLength"
+          }
+      TracingEnabled: true
+      Name: !Sub "driving-permit-cri-${AWS::StackName}"
+      StageName: !Ref Environment
+      DefinitionBody:
+        openapi: "3.0.1" # workaround to get `sam validate` to work
+        paths: # workaround to get `sam validate` to work
+          /never-created:
+            options: { } # workaround to get `sam validate` to work
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: './private-api.yaml'
+      OpenApiVersion: 3.0.1
+      EndpointConfiguration:
+        Type: !If [IsNotDevEnvironment, PRIVATE, REGIONAL]
+      Auth:
+        ResourcePolicy:
+          CustomStatements:
+            - Action: 'execute-api:Invoke'
+              Effect: Allow
+              Principal: '*'
+              Resource:
+                - 'execute-api:/*'
+            - Action: 'execute-api:Invoke'
+              Effect: !If [IsNotDevEnvironment, Deny, Allow]
+              Principal: '*'
+              Resource:
+                - 'execute-api:/*'
+              Condition:
+                StringNotEquals:
+                  aws:SourceVpce: !If
+                    - CreateDevResources
+                    - vpce-082cab7c78139eb54
+                    - !ImportValue cri-vpc-ApiGatewayVpcEndpointId
+
+  PublicDrivingPermitApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PublicDrivingPermitApi}-public-AccessLogs
+      RetentionInDays: 365
+
+  PublicDrivingPermitApiAccessLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
+      FilterPattern: ""
+      LogGroupName: !Ref PublicDrivingPermitApiAccessLogGroup
+
+  PrivateDrivingPermitApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PrivateDrivingPermitApi}-private-AccessLogs
+      RetentionInDays: 365
+
+  PrivateDrivingPermitApiAccessLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
+      FilterPattern: ""
+      LogGroupName: !Ref PrivateDrivingPermitApiAccessLogGroup
+
+####################################################################
+#                                                                  #
+# Session Function                                                 #
+#                                                                  #
+####################################################################
+
+  SessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../common-lambdas/session/build/distributions/session.zip
+      Handler: uk.gov.di.ipv.cri.common.api.handler.SessionHandler::handleRequest
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api
+          POWERTOOLS_SERVICE_NAME: di-ipv-cri-driving-permit-api-session
+          SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBWritePolicy:
+            TableName:
+              Ref: SessionTable
+        - DynamoDBWritePolicy:
+            TableName:
+              Ref: PersonIdentityTable
+        - SQSSendMessagePolicy:
+            QueueName: !ImportValue AuditEventQueueName
+        - KMSDecryptPolicy:
+            KeyId: !ImportValue core-infrastructure-CriDecryptionKey1Id
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DrivingPermitCriAudience"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/AuthRequestKmsEncryptionKeyId"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/PersonIdentityTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiable-credential/issuer"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
+        - Statement:
+            - Sid: auditEventQueueKmsEncryptionKeyPermission
+              Effect: Allow
+              Action:
+                - 'kms:Decrypt'
+                - 'kms:GenerateDataKey'
+              Resource:
+                - !ImportValue AuditEventQueueEncryptionKeyArn
+
+  SessionFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${SessionFunction}"
+
+  SessionFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt SessionFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# Identity checking Function                                       #
+#                                                                  #
+####################################################################
+
+  DrivingPermitCheckingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../lambdas/drivingpermitcheck/build/distributions/drivingpermitcheck.zip
+      Handler: uk.gov.di.ipv.cri.driving-permit.api.handler.DrivingPermitHandler::handleRequest
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api
+          POWERTOOLS_SERVICE_NAME: di-ipv-cri-driving-permit-api-drivingpermitcheck
+          SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
+          ENVIRONMENT: !Ref Environment
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBWritePolicy:
+            TableName: !Ref SessionTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref SessionTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref PersonIdentityTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref DrivingPermitTable
+        - Statement:
+            - Sid: ReadParameterStorePolicy
+              Effect: Allow
+              Action:
+                - 'ssm:GetParameter*'
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/drivingPermit*'
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${AWS::StackName}/verifiable-credential/issuer"
+        - Statement:
+            - Sid: ReadSecretsPolicy
+              Effect: Allow
+              Action:
+                - 'secretsmanager:GetSecretValue'
+              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/drivingPermit*'
+        - Statement:
+            Effect: Allow
+            Action:
+              - "kms:Sign"
+            Resource: !ImportValue core-infrastructure-CriVcSigningKey1Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource:
+              - !ImportValue AuditEventQueueEncryptionKeyArn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DrivingPermitTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
+        - SQSSendMessagePolicy:
+            QueueName: !ImportValue AuditEventQueueName
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${AWS::StackName}/*"
+
+  DrivingPermitCheckingFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${DivingPermitCheckingFunction}"
+
+  DrivingPermitCheckingFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt DrivingPermitChecking.Arn
+      Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# Issue Credential Function                                        #
+#                                                                  #
+####################################################################
+
+  IssueCredentialFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: uk.gov.di.ipv.cri.driving-permit.api.handler.IssueCredentialHandler::handleRequest
+      CodeUri: ../../lambdas/issuecredential/build/distributions/issuecredential.zip
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api
+          POWERTOOLS_SERVICE_NAME: di-ipv-cri-driving-permit-api-issuecredential
+          SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
+          ENVIRONMENT: !Ref Environment
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName: !Ref SessionTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref PersonIdentityTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref DrivingPermitTable
+        - Statement:
+            Effect: Allow
+            Action:
+              - "kms:Sign"
+            Resource: !ImportValue core-infrastructure-CriVcSigningKey1Arn
+        - SQSSendMessagePolicy:
+            QueueName: !ImportValue AuditEventQueueName
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${AWS::StackName}/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource:
+              - !ImportValue AuditEventQueueEncryptionKeyArn
+
+  IssueCredentialFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
+
+  IssueCredentialFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt IssueCredentialFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# Access token Function                                            #
+#                                                                  #
+####################################################################
+
+  AccessTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../common-lambdas/accesstoken/build/distributions/accesstoken.zip
+      Handler: uk.gov.di.ipv.cri.common.api.handler.AccessTokenHandler::handleRequest
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api
+          POWERTOOLS_SERVICE_NAME: di-ipv-cri-driving-permit-api-access-token
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: SessionTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
+
+  AccessTokenFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${AccessTokenFunction}"
+
+  AccessTokenFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt AccessTokenFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# JWK set Function                                                 #
+#                                                                  #
+####################################################################
+
+  JWKSetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: uk.gov.di.ipv.cri.common.api.handler.JWKSetHandler::handleRequest
+      CodeUri: ../../common-lambdas/jwkset/build/distributions/jwkset.zip
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api
+          POWERTOOLS_SERVICE_NAME: di-ipv-cri-driving-permit-api-jwkset
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:GetPublicKey
+              Resource:
+                - !ImportValue core-infrastructure-CriVcSigningKey1Arn
+                - !ImportValue core-infrastructure-CriDecryptionKey1Arn
+            - Effect: Allow
+              Action:
+                - kms:ListKeys
+                - kms:ListResourceTags
+                - kms:DescribeKey
+              Resource: "*"
+
+  JWKSetFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt JWKSetFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# Authorization Function                                           #
+#                                                                  #
+####################################################################
+
+  AuthorizationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../common-lambdas/authorization/build/distributions/authorization.zip
+      Handler: uk.gov.di.ipv.cri.common.api.handler.AuthorizationHandler::handleRequest
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api
+          POWERTOOLS_SERVICE_NAME: di-ipv-cri-driving-permit-api-authorization
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBReadPolicy:
+            TableName: !Ref SessionTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTableName"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
+
+  AuthorizationFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${AuthorizationFunction}"
+
+  AuthorizationFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt AuthorizationFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+####################################################################
+#                                                                  #
+# Database Tables                                                  #
+#                                                                  #
+####################################################################
+
+  DrivingPermitTable:
+    Type: "AWS::DynamoDB::Table" # enable encryption with customer managed kms key. Will need new kms key
+    Properties:
+      TableName: !Sub "driving-permit-${AWS::StackName}"
+      BillingMode: "PAY_PER_REQUEST"
+      AttributeDefinitions:
+        - AttributeName: "sessionId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "sessionId"
+          KeyType: "HASH"
+
+  SessionTable:
+    Type: "AWS::DynamoDB::Table" # enable encryption with customer managed kms key. Will need new kms key
+    Properties:
+      TableName: !Sub "session-${AWS::StackName}"
+      BillingMode: "PAY_PER_REQUEST"
+      AttributeDefinitions:
+        - AttributeName: "sessionId"
+          AttributeType: "S"
+        - AttributeName: "authorizationCode"
+          AttributeType: "S"
+        - AttributeName: "accessToken"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "sessionId"
+          KeyType: "HASH"
+      GlobalSecondaryIndexes:
+        - IndexName: "authorizationCode-index"
+          KeySchema:
+            - AttributeName: "authorizationCode"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "redirectUri"
+              - "clientId"
+            ProjectionType: "INCLUDE"
+        - IndexName: "access-token-index"
+          KeySchema:
+            - AttributeName: "accessToken"
+              KeyType: "HASH"
+          Projection:
+            NonKeyAttributes:
+              - "sessionId"
+              - "subject"
+            ProjectionType: "INCLUDE"
+      TimeToLiveSpecification:
+        AttributeName: expiryDate
+        Enabled: true
+
+  PersonIdentityTable:
+    Type: "AWS::DynamoDB::Table" # enable encryption with customer managed kms key. Will need new kms key
+    Properties:
+      TableName: !Sub "person-identity-${AWS::StackName}"
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: "sessionId"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "sessionId"
+          KeyType: "HASH"
+      TimeToLiveSpecification:
+        AttributeName: expiryDate
+        Enabled: true
+
+####################################################################
+#                                                                  #
+# API config                                                 #
+#                                                                  #
+####################################################################
+
+  PublicDrivingPermitApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - PublicDrivingPermitApiStage
+    Properties:
+      ApiStages:
+        - ApiId: !Ref PublicDrivingPermitApi
+          Stage: !Ref Environment
+      Quota:
+        Limit: 500000
+        Period: DAY
+      Throttle:
+        BurstLimit: 100 # requests the API can handle concurrently
+        RateLimit: 50 # allowed requests per second
+
+  PrivateDrivingPermitApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - PrivateDrivingPermitApiStage
+    Properties:
+      ApiStages:
+        - ApiId: !Ref PrivateDrivingPermitApi
+          Stage: !Ref Environment
+      Quota:
+        Limit: 500000
+        Period: DAY
+      Throttle:
+        BurstLimit: 100 # requests the API can handle concurrently
+        RateLimit: 50 # allowed requests per second
+
+  LinkUsagePlanApiKey1:
+    Condition: IsNotDevEnvironment
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !ImportValue core-infrastructure-ApiKey1
+      KeyType: API_KEY
+      UsagePlanId: !Ref PublicDrivingPermitApiUsagePlan
+
+  LinkUsagePlanApiKey2:
+    Condition: IsNotDevEnvironment
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !ImportValue core-infrastructure-ApiKey2
+      KeyType: API_KEY
+      UsagePlanId: !Ref PublicDrivingPermitApiUsagePlan
+
+####################################################################
+#                                                                  #
+# Parameters                                                       #
+#                                                                  #
+####################################################################
+
+  ParameterSessionTableName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/SessionTableName"
+      Value: !Sub session-${AWS::StackName}
+      Type: String
+      Description: session dynamodb table name
+
+  ParameterDrivingPermitItemTableName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DrivingPermitTableName"
+      Value: !Sub driving-permit-${AWS::StackName}
+      Type: String
+      Description: Driving Permit item dynamodb table name
+
+  ParameterPersonIdentityTableName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/PersonIdentityTableName"
+      Value: !Sub person-identity-${AWS::StackName}
+      Type: String
+      Description: person identity dynamodb table name
+
+  MaxJwtTtlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/MaxJwtTtl"
+      Type: String
+      Value: !FindInMap [MaxJwtTtlMapping, Environment, !Ref 'Environment']
+      Description: default time to live for an JWT in (seconds)
+
+  SessionTtlParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/SessionTtl"
+      Type: String
+      Value: !FindInMap [ SessionTtlMapping, Environment, !Ref 'Environment' ]
+      Description: default time to live for an driving permit session item (seconds)
+
+  IPVCoreStubAuthenticationAlgParameter:
+    Condition: IsStubEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/authenticationAlg"
+      Type: String
+      Value: !FindInMap [IPVCoreStubAuthenticationAlgMapping, Environment, !Ref 'Environment']
+
+  IPVCore1AuthenticationAlgParameter:
+    Condition: IsProdLikeEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/authenticationAlg"
+      Type: String
+      Value: !FindInMap [IPVCore1AuthenticationAlgMapping, Environment, !Ref 'Environment']
+
+  IPVCoreStubAudienceParameter:
+    Condition: IsStubEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/audience"
+      Type: String
+      Value: !FindInMap [ IPVCoreStubAudienceMapping, Environment, !Ref 'Environment' ]
+
+  IPVCore1AudienceParameter:
+    Condition: IsProdLikeEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/audience"
+      Type: String
+      Value: !FindInMap [ IPVCore1AudienceMapping, Environment, !Ref 'Environment' ]
+
+  IPVCoreStubIssuerParameter:
+    Condition: IsStubEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/issuer"
+      Type: String
+      Value: !FindInMap [IPVCoreStubIssuerMapping, Environment, !Ref 'Environment']
+
+  IPVCore1IssuerParameter:
+    Condition: IsProdLikeEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/issuer"
+      Type: String
+      Value: !FindInMap [IPVCore1IssuerMapping, Environment, !Ref 'Environment']
+
+  IPVCoreStubPublicSigningJwkBase64Parameter:
+    Condition: IsStubEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/publicSigningJwkBase64"
+      Type: String
+      Value: !FindInMap [IPVCoreStubPublicSigningJwkBase64Mapping, Environment, !Ref 'Environment']
+
+  IPVCore1PublicSigningJwkBase64Parameter:
+    Condition: IsProdLikeEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/publicSigningJwkBase64"
+      Type: String
+      Value: !FindInMap [IPVCore1PublicSigningJwkBase64Mapping, Environment, !Ref 'Environment']
+
+  IPVCoreStubRedirectURIParameter:
+    Condition: IsStubEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/redirectUri"
+      Type: String
+      Value: !FindInMap [IPVCoreStubRedirectURIMapping, Environment, !Ref 'Environment']
+
+  IPVCore1RedirectURIParameter:
+    Condition: IsProdLikeEnvironment
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/redirectUri"
+      Type: String
+      Value: !FindInMap [IPVCore1RedirectURIMapping, Environment, !Ref 'Environment']
+
+  DrivingPermitCriAudienceParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DrivingPermitCriAudience"
+      Type: String
+      Value: !FindInMap [DrivingPermitCriAudienceMapping, Environment, !Ref 'Environment']
+      Description: The driving permit credential issuer (audience) identifier
+
+  AuthRequestKmsEncryptionKeyIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/AuthRequestKmsEncryptionKeyId"
+      Type: String
+      Value: !ImportValue core-infrastructure-CriDecryptionKey1Id
+      Description: The (KMS) encryption key identifier for decrypting authorisation requests
+
+  VerifiableCredentialIssuerParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/verifiable-credential/issuer"
+      Type: String
+      Value: !FindInMap [VerifiableCredentialIssuerMapping, Environment, !Ref 'Environment']
+      Description: Issuer of the Verifiable Credential
+
+  VerifiableCredentialKmsSigningKeyParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/verifiableCredentialKmsSigningKeyId"
+      Type: String
+      Value: !ImportValue core-infrastructure-CriVcSigningKey1Id
+      Description: Verifiable Credential Key Id
+
+  LoggingKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - kms:*
+            Resource: "*"
+          - Effect: Allow
+            Principal:
+              Service: !Sub "logs.${AWS::Region}.amazonaws.com"
+            Action:
+              - "kms:Encrypt*"
+              - "kms:Decrypt*"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                "kms:EncryptionContext:aws:logs:arn": !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+
+Outputs:
+  StackName:
+    Description: "CloudFormation stack name"
+    Value: !Sub "${AWS::StackName}"
+
+  SessionApiUrl:
+    Description: "URL for the Driving Permit API /session resource"
+    Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/session"
+    Export:
+      Name: !Sub ${AWS::StackName}-SessionApiUrl
+
+  PublicDrivingPermitApiUrl:
+    Description: "URL for the Driving Permit API /check-driving-permit resource"
+    Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/identity-check"
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicDrivingPermitApiUrl
+
+  TokenApiUrl:
+    Description: "URL for the Driving Permit API /token resource"
+    Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/token"
+    Export:
+      Name: !Sub ${AWS::StackName}-TokenApiUrl
+
+  CredentialIssueApiUrl:
+    Description: "URL for the Driving Permit API /credential/issue resource"
+    Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/credential/issue"
+    Export:
+      Name: !Sub ${AWS::StackName}-CredentialIssueApiUrl
+
+  JWKSetApiUrl:
+    Description: "URL for the Driving Permit API /.well-known/jwks.json resource"
+    Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/.well-known/jwks.json"
+    Export:
+      Name: !Sub ${AWS::StackName}-JWKSetApiUrl
+
+  DrivingPermitApiBaseUrl:
+    Description: "Base url of the Driving Permit CRI API, please reference the PublicDrivingPermitApiBaseUrl"
+    Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+    Export:
+      Name: !Sub ${AWS::StackName}-DrivingPermitApiBaseUrl
+
+  DrivingPermitApiGatewayId:
+    Description: "API GatewayID of the public Driving Permit CRI API, please reference the PublicDrivingPermitApiBaseUrl"
+    Value: !Sub "${PublicDrivingPermitApi}"
+    Export:
+      Name: !Sub ${AWS::StackName}-DrivingPermitApiGatewayId
+
+  PublicDrivingPermitApiBaseUrl:
+    Description: "Base url of the public Driving Permit CRI API"
+    Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicDrivingPermitApiBaseUrl
+  
+  PublicDrivingPermitApiGatewayId:
+    Description: "API GatewayID of the public Driving Permit CRI API"
+    Value: !Sub "${PublicDrivingPermitApi}"
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicDrivingPermitApiGatewayId
+
+  PrivateDrivingPermitApiBaseUrl:
+    Description: "Base url of the privateDrivingPermit CRI API"
+    Value: !Sub "https://${PrivateDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateDrivingPermitApiBaseUrl
+
+  PrivateDrivingPermitApiGatewayId:
+    Description: "API GatewayID of the private Driving Permit CRI API"
+    Value: !Sub "${PrivateDrivingPermitApi}"
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateDrivingPermitApiGatewayId

@@ -5,7 +5,19 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.jca.JCAContext;
+import com.nimbusds.jose.util.Base64URL;
+import org.apache.http.Header;
+import org.apache.http.HeaderIterator;
+import org.apache.http.HttpEntity;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.params.HttpParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,20 +34,19 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.TestDataCreator;
 
-import javax.net.ssl.SSLSession;
-
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URI;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -104,29 +115,30 @@ class ThirdPartyDocumentGatewayTest {
                 TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
-        ArgumentCaptor<HttpRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
                 .thenReturn(new DcsPayload());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
-                .thenReturn(new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload("")));
-        when(this.mockObjectMapper.writeValueAsString(any(JWSObject.class))).thenReturn("");
 
-        HttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse = createHttpResponse(200);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
         when(this.dcsCryptographyService.unwrapDcsResponse(anyString()))
                 .thenReturn(createSuccessDcsResponse());
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJWSSigner());
+        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+                .thenReturn(jwsObject);
 
         DocumentCheckResult actualDocumentCheckResult =
                 thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().uri().toString());
-        assertEquals("POST", httpRequestCaptor.getValue().method());
-        HttpHeaders capturedHttpRequestHeaders = httpRequestCaptor.getValue().headers();
-        assertEquals("application/json", capturedHttpRequestHeaders.firstValue("Accept").get());
+        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals("POST", httpRequestCaptor.getValue().getMethod());
+
         assertEquals(
-                "application/jose", capturedHttpRequestHeaders.firstValue("Content-Type").get());
+                "application/jose",
+                httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
     }
 
     @Test
@@ -138,14 +150,15 @@ class ThirdPartyDocumentGatewayTest {
                 TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
-        ArgumentCaptor<HttpRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
                 .thenReturn(new DcsPayload());
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJWSSigner());
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
-                .thenReturn(new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload("")));
-        when(this.mockObjectMapper.writeValueAsString(any(JWSObject.class))).thenReturn("");
+                .thenReturn(jwsObject);
 
-        HttpResponse httpResponse = createHttpResponse(300);
+        CloseableHttpResponse httpResponse = createHttpResponse(300);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -158,12 +171,12 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().uri().toString());
-        assertEquals("POST", httpRequestCaptor.getValue().method());
-        HttpHeaders capturedHttpRequestHeaders = httpRequestCaptor.getValue().headers();
-        assertEquals("application/json", capturedHttpRequestHeaders.firstValue("Accept").get());
+        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals("POST", httpRequestCaptor.getValue().getMethod());
+
         assertEquals(
-                "application/jose", capturedHttpRequestHeaders.firstValue("Content-Type").get());
+                "application/jose",
+                httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
     }
 
     @Test
@@ -176,14 +189,15 @@ class ThirdPartyDocumentGatewayTest {
                 TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
-        ArgumentCaptor<HttpRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
                 .thenReturn(new DcsPayload());
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJWSSigner());
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
-                .thenReturn(new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload("")));
-        when(this.mockObjectMapper.writeValueAsString(any(JWSObject.class))).thenReturn("");
+                .thenReturn(jwsObject);
 
-        HttpResponse httpResponse = createHttpResponse(400);
+        CloseableHttpResponse httpResponse = createHttpResponse(400);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -196,12 +210,12 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().uri().toString());
-        assertEquals("POST", httpRequestCaptor.getValue().method());
-        HttpHeaders capturedHttpRequestHeaders = httpRequestCaptor.getValue().headers();
-        assertEquals("application/json", capturedHttpRequestHeaders.firstValue("Accept").get());
+        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals("POST", httpRequestCaptor.getValue().getMethod());
+
         assertEquals(
-                "application/jose", capturedHttpRequestHeaders.firstValue("Content-Type").get());
+                "application/jose",
+                httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
     }
 
     @Test
@@ -214,14 +228,16 @@ class ThirdPartyDocumentGatewayTest {
                 TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
-        ArgumentCaptor<HttpRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
                 .thenReturn(new DcsPayload());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
-                .thenReturn(new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload("")));
-        when(this.mockObjectMapper.writeValueAsString(any(JWSObject.class))).thenReturn("");
 
-        HttpResponse httpResponse = createHttpResponse(500);
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJWSSigner());
+        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse = createHttpResponse(500);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -234,12 +250,12 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().uri().toString());
-        assertEquals("POST", httpRequestCaptor.getValue().method());
-        HttpHeaders capturedHttpRequestHeaders = httpRequestCaptor.getValue().headers();
-        assertEquals("application/json", capturedHttpRequestHeaders.firstValue("Accept").get());
+        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals("POST", httpRequestCaptor.getValue().getMethod());
+
         assertEquals(
-                "application/jose", capturedHttpRequestHeaders.firstValue("Content-Type").get());
+                "application/jose",
+                httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
     }
 
     @Test
@@ -251,14 +267,15 @@ class ThirdPartyDocumentGatewayTest {
         DrivingPermitForm drivingPermitForm =
                 TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
 
-        ArgumentCaptor<HttpRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
                 .thenReturn(new DcsPayload());
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJWSSigner());
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
-                .thenReturn(new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload("")));
-        when(this.mockObjectMapper.writeValueAsString(any(JWSObject.class))).thenReturn("");
+                .thenReturn(jwsObject);
 
-        HttpResponse httpResponse = createHttpResponse(-1);
+        CloseableHttpResponse httpResponse = createHttpResponse(-1);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -272,12 +289,12 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().uri().toString());
-        assertEquals("POST", httpRequestCaptor.getValue().method());
-        HttpHeaders capturedHttpRequestHeaders = httpRequestCaptor.getValue().headers();
-        assertEquals("application/json", capturedHttpRequestHeaders.firstValue("Accept").get());
+        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals("POST", httpRequestCaptor.getValue().getMethod());
+
         assertEquals(
-                "application/jose", capturedHttpRequestHeaders.firstValue("Content-Type").get());
+                "application/jose",
+                httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
     }
 
     @ParameterizedTest
@@ -291,14 +308,15 @@ class ThirdPartyDocumentGatewayTest {
         DrivingPermitForm drivingPermitForm =
                 TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
 
-        ArgumentCaptor<HttpRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
                 .thenReturn(new DcsPayload());
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJWSSigner());
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
-                .thenReturn(new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload("")));
-        when(this.mockObjectMapper.writeValueAsString(any(JWSObject.class))).thenReturn("");
+                .thenReturn(jwsObject);
 
-        HttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse = createHttpResponse(200);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -309,12 +327,12 @@ class ThirdPartyDocumentGatewayTest {
                 thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
         assertNotNull(actualFraudCheckResult);
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().uri().toString());
-        assertEquals("POST", httpRequestCaptor.getValue().method());
-        HttpHeaders capturedHttpRequestHeaders = httpRequestCaptor.getValue().headers();
-        assertEquals("application/json", capturedHttpRequestHeaders.firstValue("Accept").get());
+        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals("POST", httpRequestCaptor.getValue().getMethod());
+
         assertEquals(
-                "application/jose", capturedHttpRequestHeaders.firstValue("Content-Type").get());
+                "application/jose",
+                httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
     }
 
     @Test
@@ -343,98 +361,204 @@ class ThirdPartyDocumentGatewayTest {
                                 errorMessage));
     }
 
-    private HttpResponse<String> createMockApiResponse(int statusCode) {
-
-        return new HttpResponse<>() {
-            @Override
-            public int statusCode() {
-                return statusCode;
-            }
-
-            @Override
-            public HttpRequest request() {
-                return null;
-            }
-
-            @Override
-            public Optional<HttpResponse<String>> previousResponse() {
-                return Optional.empty();
-            }
-
-            @Override
-            public HttpHeaders headers() {
-                return null;
-            }
-
-            @Override
-            public String body() {
-                return TEST_API_RESPONSE_BODY;
-            }
-
-            @Override
-            public Optional<SSLSession> sslSession() {
-                return Optional.empty();
-            }
-
-            @Override
-            public URI uri() {
-                return null;
-            }
-
-            @Override
-            public HttpClient.Version version() {
-                return null;
-            }
-        };
-    }
-
     private static Stream<Integer> getRetryStatusCodes() {
         Stream<Integer> retryStatusCodes = Stream.of(429);
         Stream<Integer> serverErrorRetryStatusCodes = IntStream.range(500, 599).boxed();
         return Stream.concat(retryStatusCodes, serverErrorRetryStatusCodes);
     }
 
-    private HttpResponse createHttpResponse(int statusCode) {
-        return new HttpResponse() {
+    private CloseableHttpResponse createHttpResponse(int statusCode) {
+        return new CloseableHttpResponse() {
             @Override
-            public int statusCode() {
-                return statusCode;
-            }
-
-            @Override
-            public HttpRequest request() {
+            public ProtocolVersion getProtocolVersion() {
                 return null;
             }
 
             @Override
-            public Optional<HttpResponse> previousResponse() {
-                return Optional.empty();
+            public boolean containsHeader(String name) {
+                return false;
             }
 
             @Override
-            public HttpHeaders headers() {
+            public Header[] getHeaders(String name) {
+                return new Header[0];
+            }
+
+            @Override
+            public Header getFirstHeader(String name) {
+                if ("Accept".equals(name)) {
+                    return new BasicHeader(name, "application/jose");
+                } else {
+                    return new BasicHeader(name, "application/jose");
+                }
+            }
+
+            @Override
+            public Header getLastHeader(String name) {
                 return null;
             }
 
             @Override
-            public Object body() {
-                return "";
+            public Header[] getAllHeaders() {
+                return new Header[0];
             }
 
             @Override
-            public Optional<SSLSession> sslSession() {
-                return Optional.empty();
-            }
+            public void addHeader(Header header) {}
 
             @Override
-            public URI uri() {
+            public void addHeader(String name, String value) {}
+
+            @Override
+            public void setHeader(Header header) {}
+
+            @Override
+            public void setHeader(String name, String value) {}
+
+            @Override
+            public void setHeaders(Header[] headers) {}
+
+            @Override
+            public void removeHeader(Header header) {}
+
+            @Override
+            public void removeHeaders(String name) {}
+
+            @Override
+            public HeaderIterator headerIterator() {
                 return null;
             }
 
             @Override
-            public HttpClient.Version version() {
+            public HeaderIterator headerIterator(String name) {
                 return null;
             }
+
+            @Override
+            public HttpParams getParams() {
+                return null;
+            }
+
+            @Override
+            public void setParams(HttpParams params) {}
+
+            @Override
+            public StatusLine getStatusLine() {
+                return new StatusLine() {
+                    @Override
+                    public ProtocolVersion getProtocolVersion() {
+                        return null;
+                    }
+
+                    @Override
+                    public int getStatusCode() {
+                        return statusCode;
+                    }
+
+                    @Override
+                    public String getReasonPhrase() {
+                        return null;
+                    }
+                };
+            }
+
+            @Override
+            public void setStatusLine(StatusLine statusline) {}
+
+            @Override
+            public void setStatusLine(ProtocolVersion ver, int code) {}
+
+            @Override
+            public void setStatusLine(ProtocolVersion ver, int code, String reason) {}
+
+            @Override
+            public void setStatusCode(int code) throws IllegalStateException {}
+
+            @Override
+            public void setReasonPhrase(String reason) throws IllegalStateException {}
+
+            @Override
+            public HttpEntity getEntity() {
+                return new HttpEntity() {
+                    @Override
+                    public boolean isRepeatable() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isChunked() {
+                        return false;
+                    }
+
+                    @Override
+                    public long getContentLength() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Header getContentType() {
+                        return null;
+                    }
+
+                    @Override
+                    public Header getContentEncoding() {
+                        return null;
+                    }
+
+                    @Override
+                    public InputStream getContent()
+                            throws IOException, UnsupportedOperationException {
+                        String initialString = "";
+                        InputStream targetStream =
+                                new ByteArrayInputStream(initialString.getBytes());
+                        return targetStream;
+                    }
+
+                    @Override
+                    public void writeTo(OutputStream outStream) throws IOException {}
+
+                    @Override
+                    public boolean isStreaming() {
+                        return false;
+                    }
+
+                    @Override
+                    public void consumeContent() throws IOException {}
+                };
+            }
+
+            @Override
+            public void setEntity(HttpEntity entity) {}
+
+            @Override
+            public Locale getLocale() {
+                return null;
+            }
+
+            @Override
+            public void setLocale(Locale loc) {}
+
+            @Override
+            public void close() throws IOException {}
         };
+    }
+
+    private static class MyJWSSigner implements JWSSigner {
+        @Override
+        public Base64URL sign(JWSHeader header, byte[] signingInput) throws JOSEException {
+            return new Base64URL("base64Url");
+        }
+
+        @Override
+        public Set<JWSAlgorithm> supportedJWSAlgorithms() {
+            HashSet<JWSAlgorithm> hashSet = new HashSet<>();
+            hashSet.add(JWSAlgorithm.EdDSA);
+            return hashSet;
+        }
+
+        @Override
+        public JCAContext getJCAContext() {
+            return new JCAContext();
+        }
     }
 }

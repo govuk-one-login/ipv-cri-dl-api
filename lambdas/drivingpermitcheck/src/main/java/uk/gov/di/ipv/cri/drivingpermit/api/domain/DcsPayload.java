@@ -2,6 +2,8 @@ package uk.gov.di.ipv.cri.drivingpermit.api.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 
@@ -11,7 +13,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 @ExcludeFromGeneratedCoverageReport
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
 public class DcsPayload {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String TIMESTAMP_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
@@ -21,8 +27,12 @@ public class DcsPayload {
     @JsonProperty private UUID correlationId;
     @JsonProperty private UUID requestId;
     @JsonProperty private String timestamp;
-    @JsonProperty private String passportNumber;
+    @JsonProperty private String licenceNumber;
+    @JsonProperty private String driverNumber;
+    @JsonProperty private String postcode;
+    @JsonProperty private String clientId = "di-ipv-passport-test-2021-12";
     @JsonProperty private String surname;
+    @JsonProperty private String issueNumber;
 
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public List<String> forenames;
@@ -31,18 +41,23 @@ public class DcsPayload {
     public LocalDate dateOfBirth;
 
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
+    public LocalDate issueDate;
+
+    @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
+    public LocalDate dateOfIssue;
+
+    @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
     public LocalDate expiryDate;
 
     public DcsPayload() {}
 
     @JsonCreator
     public DcsPayload(
-            @JsonProperty(value = "passportNumber", required = true) String passportNumber,
             @JsonProperty(value = "surname", required = true) String surname,
             @JsonProperty(value = "forenames", required = true) List<String> forenames,
             @JsonProperty(value = "dateOfBirth", required = true) LocalDate dateOfBirth,
-            @JsonProperty(value = "expiryDate", required = true) LocalDate expiryDate) {
-        this.passportNumber = passportNumber;
+            @JsonProperty(value = "expiryDate", required = true) LocalDate expiryDate,
+            @JsonProperty(value = "postcode", required = true) String postcode) {
         this.surname = surname;
         this.forenames = forenames;
         this.dateOfBirth = dateOfBirth;
@@ -50,6 +65,7 @@ public class DcsPayload {
         this.correlationId = UUID.randomUUID();
         this.requestId = UUID.randomUUID();
         this.timestamp = new SimpleDateFormat(TIMESTAMP_DATE_FORMAT).format(new Date());
+        this.postcode = postcode;
     }
 
     public UUID getCorrelationId() {
@@ -76,12 +92,12 @@ public class DcsPayload {
         this.timestamp = timestamp;
     }
 
-    public String getPassportNumber() {
-        return passportNumber;
+    public String getLicenceNumber() {
+        return licenceNumber;
     }
 
-    public void setPassportNumber(String passportNumber) {
-        this.passportNumber = passportNumber;
+    public void setLicenceNumber(String licenceNumber) {
+        this.licenceNumber = licenceNumber;
     }
 
     public String getSurname() {
@@ -116,23 +132,90 @@ public class DcsPayload {
         this.expiryDate = expiryDate;
     }
 
+    public String getDriverNumber() {
+        return driverNumber;
+    }
+
+    public void setDriverNumber(String driverNumber) {
+        this.driverNumber = driverNumber;
+    }
+
+    public String getPostcode() {
+        return postcode;
+    }
+
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public LocalDate getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(LocalDate issueDate) {
+        this.issueDate = issueDate;
+    }
+
+    public LocalDate getDateOfIssue() {
+        return dateOfIssue;
+    }
+
+    public void setDateOfIssue(LocalDate dateOfIssue) {
+        this.dateOfIssue = dateOfIssue;
+    }
+
+    public String getIssueNumber() {
+        return issueNumber;
+    }
+
+    public void setIssueNumber(String issueNumber) {
+        this.issueNumber = issueNumber;
+    }
+
     @Override
     public String toString() {
-        return "PassportAttributes{"
+        return "DcsPayload{"
                 + "correlationId="
                 + correlationId
                 + ", requestId="
                 + requestId
                 + ", timestamp='"
                 + timestamp
-                + ", passportNumber='"
-                + passportNumber
+                + '\''
+                + ", licenceNumber='"
+                + licenceNumber
+                + '\''
+                + ", driverNumber='"
+                + driverNumber
+                + '\''
+                + ", postcode='"
+                + postcode
+                + '\''
+                + ", clientId='"
+                + clientId
+                + '\''
                 + ", surname='"
                 + surname
+                + '\''
+                + ", issueNumber='"
+                + issueNumber
+                + '\''
                 + ", forenames="
                 + forenames
                 + ", dateOfBirth="
                 + dateOfBirth
+                + ", issueDate="
+                + issueDate
+                + ", dateOfIssue="
+                + dateOfIssue
                 + ", expiryDate="
                 + expiryDate
                 + '}';

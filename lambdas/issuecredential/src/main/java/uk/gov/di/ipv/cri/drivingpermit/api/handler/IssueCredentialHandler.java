@@ -33,7 +33,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.CredentialRequestException;
 import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.IssueCredentialFraudAuditExtensionUtil;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.IssueCredentialDrivingPermitAuditExtensionUtil;
 
 import java.time.Clock;
 import java.util.List;
@@ -121,9 +121,10 @@ public class IssueCredentialHandler
             auditService.sendAuditEvent(
                     AuditEventType.VC_ISSUED,
                     new AuditEventContext(input.getHeaders(), sessionItem),
-                    IssueCredentialFraudAuditExtensionUtil.generateVCISSDocumentCheckAuditExtension(
-                            verifiableCredentialService.getVerifiableCredentialIssuer(),
-                            List.of(documentCheckResult)));
+                    IssueCredentialDrivingPermitAuditExtensionUtil
+                            .generateVCISSDocumentCheckAuditExtension(
+                                    verifiableCredentialService.getVerifiableCredentialIssuer(),
+                                    List.of(documentCheckResult)));
             eventProbe.counterMetric(DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
 
             LOGGER.info("Credential generated");

@@ -8,9 +8,9 @@ import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultI
 import java.util.ArrayList;
 import java.util.List;
 
-public class IssueCredentialFraudAuditExtensionUtil {
+public class IssueCredentialDrivingPermitAuditExtensionUtil {
 
-    private IssueCredentialFraudAuditExtensionUtil() {
+    private IssueCredentialDrivingPermitAuditExtensionUtil() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }
 

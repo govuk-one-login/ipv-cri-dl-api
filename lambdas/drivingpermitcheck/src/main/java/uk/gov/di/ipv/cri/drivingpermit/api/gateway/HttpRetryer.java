@@ -1,14 +1,14 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.gateway;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.net.http.HttpConnectTimeoutException;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 public class HttpRetryer {
 
@@ -18,17 +18,17 @@ public class HttpRetryer {
     public static final long HTTP_RETRY_WAIT_TIME_LIMIT_MS = 12800L;
 
     private final SleepHelper sleepHelper;
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
 
-    public HttpRetryer(HttpClient httpClient) {
+    public HttpRetryer(CloseableHttpClient httpClient) {
         this.sleepHelper = new SleepHelper(HTTP_RETRY_WAIT_TIME_LIMIT_MS);
         this.httpClient = httpClient;
     }
 
-    HttpResponse<String> sendHTTPRequestRetryIfAllowed(HttpRequest request)
+    CloseableHttpResponse sendHTTPRequestRetryIfAllowed(HttpPost request)
             throws InterruptedException, IOException {
 
-        HttpResponse<String> httpResponse = null;
+        CloseableHttpResponse httpResponse = null;
 
         // 0 is initial request, > 0 are retries
         int tryCount = 0;
@@ -39,16 +39,16 @@ public class HttpRetryer {
             sleepHelper.sleepWithExponentialBackOff(tryCount);
 
             try {
-                httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                httpResponse = httpClient.execute(request);
 
-                retry = shouldHttpClientRetry(httpResponse.statusCode());
+                retry = shouldHttpClientRetry(httpResponse.getStatusLine().getStatusCode());
 
                 LOGGER.info(
                         "HTTPRequestRetry - totalRequests {}, retries {}, retryNeeded {}, statusCode {}",
                         tryCount + 1,
                         tryCount,
                         retry,
-                        httpResponse.statusCode());
+                        httpResponse.getStatusLine().getStatusCode());
 
             } catch (IOException e) {
                 if (!(e instanceof HttpConnectTimeoutException)) {
@@ -81,7 +81,9 @@ public class HttpRetryer {
             }
         } while (retry && (tryCount++ < MAX_HTTP_RETRIES));
 
-        LOGGER.info("HTTPRequestRetry Exited lastStatusCode {}", httpResponse.statusCode());
+        LOGGER.info(
+                "HTTPRequestRetry Exited lastStatusCode {}",
+                httpResponse.getStatusLine().getStatusCode());
 
         return httpResponse;
     }

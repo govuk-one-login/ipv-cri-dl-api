@@ -3,7 +3,7 @@ info:
   version: "0.1"
   title: "Driving Permit Issuer API"
 paths:
-  /check-driving-permit:
+  /check-driving-licence:
     post:
       parameters:
         - in: header
@@ -41,7 +41,7 @@ paths:
       x-amazon-apigateway-integration:
         httpMethod: "POST"
         uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IdentityCheckingFunction.Arn}/invocations
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DrivingPermitCheckingFunction.Arn}/invocations
         responses:
           default:
             statusCode: "200"

@@ -7,6 +7,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.http.HttpException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +36,9 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.DocumentCheckPersonIdentityDetailedMapper;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -62,7 +65,7 @@ public class DrivingPermitHandler
 
     public DrivingPermitHandler()
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
-                    InvalidKeySpecException {
+                    InvalidKeySpecException, HttpException, KeyStoreException, IOException {
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         ServiceFactory serviceFactory = new ServiceFactory(objectMapper);
         this.eventProbe = new EventProbe();

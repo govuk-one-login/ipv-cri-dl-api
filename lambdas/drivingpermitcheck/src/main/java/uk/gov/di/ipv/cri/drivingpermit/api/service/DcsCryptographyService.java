@@ -1,6 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.EncryptionMethod;
@@ -52,8 +53,7 @@ public class DcsCryptographyService {
     public DcsResponse unwrapDcsResponse(String dcsSignedEncryptedResponseString)
             throws JOSEException, ParseException, JsonProcessingException, CertificateException {
         DcsSignedEncryptedResponse dcsSignedEncryptedResponse =
-                objectMapper.readValue(
-                        dcsSignedEncryptedResponseString, DcsSignedEncryptedResponse.class);
+                new DcsSignedEncryptedResponse(dcsSignedEncryptedResponseString);
         JWSObject outerSignedPayload = JWSObject.parse(dcsSignedEncryptedResponse.getPayload());
         if (isInvalidSignature(outerSignedPayload)) {
             throw new IpvCryptoException("DCS Response Outer Signature invalid.");
@@ -87,7 +87,10 @@ public class DcsCryptographyService {
         JWSObject jwsObject =
                 new JWSObject(
                         new JWSHeader.Builder(JWSAlgorithm.RS256)
-                                .customParams(objectMapper.readValue(jsonHeaders, Map.class))
+                                .customParams(
+                                        objectMapper.readValue(
+                                                jsonHeaders,
+                                                new TypeReference<Map<String, Object>>() {}))
                                 .build(),
                         new Payload(stringToSign));
 

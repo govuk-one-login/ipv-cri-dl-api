@@ -211,7 +211,7 @@ Resources:
           ThrottlingRateLimit: 5
           ThrottlingBurstLimit: 10
       AccessLogSetting:
-        DestinationArn: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${PublicDrivingPermitAccessLogGroup}'
+        DestinationArn: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${PublicDrivingPermitApiAccessLogGroup}'
         Format: >-
           {
           "requestId":"$context.requestId",
@@ -450,7 +450,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ../../lambdas/drivingpermitcheck/build/distributions/drivingpermitcheck.zip
-      Handler: uk.gov.di.ipv.cri.driving-permit.api.handler.DrivingPermitHandler::handleRequest
+      Handler: uk.gov.di.ipv.cri.drivingpermit.api.handler.DrivingPermitHandler::handleRequest
       Environment:
         Variables:
           POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api
@@ -467,13 +467,15 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref PersonIdentityTable
         - DynamoDBWritePolicy:
-            TableName: !Ref DrivingPermitTable
+            TableName: !Ref PersonIdentityTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref DocumentCheckResultTable
         - Statement:
             - Sid: ReadParameterStorePolicy
               Effect: Allow
               Action:
                 - 'ssm:GetParameter*'
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/drivingPermit*'
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/driving-permit*'
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${AWS::StackName}/verifiable-credential/issuer"
         - Statement:
@@ -481,7 +483,7 @@ Resources:
               Effect: Allow
               Action:
                 - 'secretsmanager:GetSecretValue'
-              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/drivingPermit*'
+              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/driving-permit*'
         - Statement:
             Effect: Allow
             Action:
@@ -500,7 +502,7 @@ Resources:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DrivingPermitTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
         - Statement:
@@ -520,13 +522,13 @@ Resources:
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
       FilterPattern: ""
-      LogGroupName: !Sub "/aws/lambda/${DivingPermitCheckingFunction}"
+      LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
 
   DrivingPermitCheckingFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt DrivingPermitChecking.Arn
+      FunctionName: !GetAtt DrivingPermitCheckingFunction.Arn
       Principal: apigateway.amazonaws.com
 
 ####################################################################
@@ -538,7 +540,7 @@ Resources:
   IssueCredentialFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: uk.gov.di.ipv.cri.driving-permit.api.handler.IssueCredentialHandler::handleRequest
+      Handler: uk.gov.di.ipv.cri.drivingpermit.api.handler.IssueCredentialHandler::handleRequest
       CodeUri: ../../lambdas/issuecredential/build/distributions/issuecredential.zip
       Environment:
         Variables:
@@ -554,7 +556,7 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref PersonIdentityTable
         - DynamoDBReadPolicy:
-            TableName: !Ref DrivingPermitTable
+            TableName: !Ref DocumentCheckResultTable
         - Statement:
             Effect: Allow
             Action:
@@ -729,10 +731,10 @@ Resources:
 #                                                                  #
 ####################################################################
 
-  DrivingPermitTable:
+  DocumentCheckResultTable:
     Type: "AWS::DynamoDB::Table" # enable encryption with customer managed kms key. Will need new kms key
     Properties:
-      TableName: !Sub "driving-permit-${AWS::StackName}"
+      TableName: !Sub "document-check-${AWS::StackName}"
       BillingMode: "PAY_PER_REQUEST"
       AttributeDefinitions:
         - AttributeName: "sessionId"
@@ -863,13 +865,13 @@ Resources:
       Type: String
       Description: session dynamodb table name
 
-  ParameterDrivingPermitItemTableName:
+  ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/DrivingPermitTableName"
-      Value: !Sub driving-permit-${AWS::StackName}
+      Name: !Sub "/${AWS::StackName}/DocumentCheckResultTableName"
+      Value: !Sub document-check-${AWS::StackName}
       Type: String
-      Description: Driving Permit item dynamodb table name
+      Description: Document check result dynamodb table name
 
   ParameterPersonIdentityTableName:
     Type: AWS::SSM::Parameter
@@ -1046,7 +1048,7 @@ Outputs:
       Name: !Sub ${AWS::StackName}-SessionApiUrl
 
   PublicDrivingPermitApiUrl:
-    Description: "URL for the Driving Permit API /check-driving-permit resource"
+    Description: "URL for the Driving Permit API /check-driving-licence resource"
     Value: !Sub "https://${PublicDrivingPermitApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/identity-check"
     Export:
       Name: !Sub ${AWS::StackName}-PublicDrivingPermitApiUrl

@@ -28,8 +28,9 @@ class IssueCredentialAuditGeneratorTest {
         documentCheckResultItem.setTransactionId("01");
 
         VCISSDocumentCheckAuditExtension ext =
-                IssueCredentialFraudAuditExtensionUtil.generateVCISSDocumentCheckAuditExtension(
-                        "TestIssuer", List.of(documentCheckResultItem));
+                IssueCredentialDrivingPermitAuditExtensionUtil
+                        .generateVCISSDocumentCheckAuditExtension(
+                                "TestIssuer", List.of(documentCheckResultItem));
 
         AuditEventType evt1 = AuditEventType.VC_ISSUED;
         AuditEvent<VCISSDocumentCheckAuditExtension> ev1 =

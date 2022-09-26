@@ -28,7 +28,7 @@ public class ConfigurationService {
         this.contraindicationMappings =
                 paramProvider.get(getParameterName("contraindicationMappings"));
         this.documentCheckResultTableName =
-                paramProvider.get(getParameterName("documentCheckTableName"));
+                paramProvider.get(getParameterName("DocumentCheckResultTableName"));
     }
 
     public String getDocumentCheckResultTableName() {

@@ -7,6 +7,7 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @ExcludeFromGeneratedCoverageReport
@@ -15,7 +16,10 @@ public class DrivingPermitForm {
 
     private static final String TIME_ZONE = "UTC";
 
-    @JsonProperty private String passportNumber;
+    @JsonProperty private String drivingLicenceNumber;
+    @JsonProperty private String postcode;
+    @JsonProperty private String issueNumber;
+
     @JsonProperty private String surname;
 
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
@@ -34,26 +38,32 @@ public class DrivingPermitForm {
 
     @JsonCreator
     public DrivingPermitForm(
-            @JsonProperty(value = "passportNumber", required = true) String passportNumber,
+            @JsonProperty(value = "drivingLicenceNumber", required = true)
+                    String drivingLicenceNumber,
             @JsonProperty(value = "surname", required = true) String surname,
             @JsonProperty(value = "forenames", required = true) List<String> forenames,
             @JsonProperty(value = "dateOfBirth", required = true) LocalDate dateOfBirth,
             @JsonProperty(value = "expiryDate", required = true) LocalDate expiryDate,
-            @JsonProperty(value = "addresses", required = true) List<Address> addresses) {
-        this.passportNumber = passportNumber;
+            @JsonProperty(value = "postcode", required = true) String postcode) {
+        this.drivingLicenceNumber = drivingLicenceNumber;
         this.surname = surname;
         this.forenames = forenames;
         this.dateOfBirth = dateOfBirth;
         this.expiryDate = expiryDate;
+        this.postcode = postcode;
+        List<Address> addresses = new ArrayList<>();
+        Address address = new Address();
+        address.setPostalCode(postcode);
+        addresses.add(address);
         this.addresses = addresses;
     }
 
-    public String getPassportNumber() {
-        return passportNumber;
+    public String getDrivingLicenceNumber() {
+        return drivingLicenceNumber;
     }
 
-    public void setPassportNumber(String passportNumber) {
-        this.passportNumber = passportNumber;
+    public void setDrivingLicenceNumber(String drivingLicenceNumber) {
+        this.drivingLicenceNumber = drivingLicenceNumber;
     }
 
     public String getSurname() {
@@ -96,21 +106,45 @@ public class DrivingPermitForm {
         this.addresses = addresses;
     }
 
+    public String getPostcode() {
+        return postcode;
+    }
+
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
+    }
+
+    public String getIssueNumber() {
+        return issueNumber;
+    }
+
+    public void setIssueNumber(String issueNumber) {
+        this.issueNumber = issueNumber;
+    }
+
     @Override
     public String toString() {
         return "DrivingPermitForm{"
-                + ", passportNumber='"
-                + passportNumber
+                + "drivingLicenceNumber='"
+                + drivingLicenceNumber
+                + '\''
+                + ", postcode='"
+                + postcode
+                + '\''
+                + ", issueNumber='"
+                + issueNumber
+                + '\''
                 + ", surname='"
                 + surname
+                + '\''
                 + ", forenames="
                 + forenames
+                + ", addresses="
+                + addresses
                 + ", dateOfBirth="
                 + dateOfBirth
                 + ", expiryDate="
                 + expiryDate
-                + ", addresses="
-                + addresses
                 + '}';
     }
 }

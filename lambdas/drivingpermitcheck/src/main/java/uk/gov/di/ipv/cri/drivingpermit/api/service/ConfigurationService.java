@@ -48,7 +48,7 @@ public class ConfigurationService {
         }
     }
 
-    private static final String KEY_FORMAT = "/%s/credentialIssuers/fraud/%s";
+    private static final String KEY_FORMAT = "/%s/credentialIssuers/driving-permit/%s";
 
     private final String thirdPartyId;
     private final String documentCheckResultTableName;
@@ -57,8 +57,14 @@ public class ConfigurationService {
     private final String parameterPrefix;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
+    private final Certificate drivingPermitTlsSelfCert;
+    private final Certificate dcsTlsRootCert;
+    private final Certificate dcsIntermediateCert;
+
     private final PrivateKey drivingPermitEncryptionKey;
     private final PrivateKey drivingPermitCriSigningKey;
+    private final PrivateKey drivingPermitTlsKey;
+
     private final Thumbprints signingCertThumbprints;
 
     public ConfigurationService(
@@ -72,22 +78,30 @@ public class ConfigurationService {
         }
 
         // ****************************Private Parameters****************************
-
         this.parameterPrefix = System.getenv("AWS_STACK_NAME");
         this.thirdPartyId = paramProvider.get(String.format(KEY_FORMAT, env, "thirdPartyId"));
         this.contraindicationMappings =
                 paramProvider.get(getParameterName("contraindicationMappings"));
         this.dcsEndpointUri = paramProvider.get(getParameterName("dcsEndpoint"));
-        this.documentCheckResultTableName = paramProvider.get(getParameterName("FraudTableName"));
+        this.documentCheckResultTableName =
+                paramProvider.get(getParameterName("DocumentCheckResultTableName"));
 
         this.dcsSigningCert = getCertificate(paramProvider, "signingCertForDrivingPermitToVerify");
         this.dcsEncryptionCert =
-                getCertificate(paramProvider, "encryptionCertForPassportToEncrypt");
+                getCertificate(paramProvider, "encryptionCertForDrivingPermitToEncrypt");
+
+        this.drivingPermitTlsSelfCert = getCertificate(paramProvider, "tlsCert");
+
+        this.dcsTlsRootCert = getCertificate(paramProvider, "tlsRootCertificate");
+
+        this.dcsIntermediateCert = getCertificate(paramProvider, "tlsIntermediateCertificate");
+
+        this.drivingPermitTlsKey = getPrivateKey(paramProvider, "tlsKey");
 
         this.drivingPermitEncryptionKey =
-                getPrivateKey(paramProvider, "encryptionKeyForPassportToDecrypt");
+                getPrivateKey(paramProvider, "encryptionKeyForDrivingPermitToDecrypt");
         this.drivingPermitCriSigningKey =
-                getPrivateKey(paramProvider, "signingKeyForPassportToSign");
+                getPrivateKey(paramProvider, "signingKeyForDrivingPermitToSign");
 
         var cert = getCertificate(paramProvider, "signingCertForDcsToVerify");
         this.signingCertThumbprints =
@@ -169,5 +183,21 @@ public class ConfigurationService {
 
     public String getDcsEndpointUri() {
         return dcsEndpointUri;
+    }
+
+    public Certificate getDrivingPermitTlsSelfCert() {
+        return drivingPermitTlsSelfCert;
+    }
+
+    public Certificate getDcsTlsRootCert() {
+        return dcsTlsRootCert;
+    }
+
+    public Certificate getDcsIntermediateCert() {
+        return dcsIntermediateCert;
+    }
+
+    public PrivateKey getDrivingPermitTlsKey() {
+        return drivingPermitTlsKey;
     }
 }

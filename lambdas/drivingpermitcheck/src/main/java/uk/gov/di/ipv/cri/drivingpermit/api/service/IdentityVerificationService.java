@@ -69,14 +69,14 @@ public class IdentityVerificationService {
             if (Objects.nonNull(documentCheckResult)) {
                 result.setSuccess(documentCheckResult.isExecutedSuccessfully());
                 if (result.isSuccess()) {
-                    LOGGER.info("Mapping contra indicators from document check response");
+                    LOGGER.info("Mapping contra indicators from Driving licence check response");
 
                     int documentStrengthScore = MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE;
                     int documentValidityScore = calculateValidity(documentCheckResult);
                     List<String> cis = calculateContraIndicators(documentCheckResult);
 
                     LOGGER.info(
-                            "Document check passed successfully. Indicators {}, Strength Score {}, Validity Score {}",
+                            "Driving licence check passed successfully. Indicators {}, Strength Score {}, Validity Score {}",
                             String.join(", ", cis),
                             documentStrengthScore,
                             documentValidityScore);
@@ -91,7 +91,7 @@ public class IdentityVerificationService {
                     result.setSuccess(documentCheckResult.isExecutedSuccessfully());
 
                 } else {
-                    LOGGER.warn("Fraud check failed");
+                    LOGGER.warn("Driving licence check failed");
                     if (Objects.nonNull(documentCheckResult.getErrorMessage())) {
                         result.setError(documentCheckResult.getErrorMessage());
                     } else {

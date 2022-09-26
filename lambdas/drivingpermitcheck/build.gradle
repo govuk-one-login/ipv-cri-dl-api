@@ -12,6 +12,9 @@ dependencies {
 			configurations.dynamodb,
 			configurations.jackson,
 			configurations.sqs
+	implementation 'org.apache.httpcomponents:httpcore:4.4.15'
+	implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+
 
 	aspect configurations.powertools
 

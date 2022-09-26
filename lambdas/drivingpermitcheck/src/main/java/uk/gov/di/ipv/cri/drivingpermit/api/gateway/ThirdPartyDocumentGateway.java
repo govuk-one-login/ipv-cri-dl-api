@@ -8,6 +8,11 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
@@ -23,14 +28,14 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Objects;
 
 public class ThirdPartyDocumentGateway {
@@ -92,17 +97,36 @@ public class ThirdPartyDocumentGateway {
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
             throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
                     CertificateException, ParseException, JOSEException {
-        LOGGER.info("Mapping person to third party Fraud request");
+        LOGGER.info("Mapping person to third party document check request");
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
+
+        boolean dva = false;
+        LocalDate expiryDate = drivingPermitData.getExpiryDate();
+
+        if (dva) {
+            if (null != expiryDate) {
+                dcsPayload.setDateOfIssue(expiryDate.minusYears(10));
+            }
+            dcsPayload.setDriverNumber(drivingPermitData.getDrivingLicenceNumber());
+        } else {
+            if (null != expiryDate) {
+                dcsPayload.setIssueDate(expiryDate.minusYears(10));
+                dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
+            }
+            dcsPayload.setLicenceNumber(drivingPermitData.getDrivingLicenceNumber());
+        }
+        LOGGER.info("dcsPayload " + objectMapper.writeValueAsString(dcsPayload));
+
         JWSObject preparedDcsPayload = preparePayload(dcsPayload);
 
-        String requestBody = objectMapper.writeValueAsString(preparedDcsPayload);
+        String requestBody = preparedDcsPayload.serialize();
+        LOGGER.info("JOSE String " + requestBody);
         URI endpoint = URI.create(configurationService.getDcsEndpointUri());
-        HttpRequest request = requestBuilder(endpoint, requestBody);
+        HttpPost request = requestBuilder(endpoint, requestBody);
 
-        LOGGER.info("Submitting fraud check request to third party...");
-        HttpResponse<String> httpResponse = httpRetryer.sendHTTPRequestRetryIfAllowed(request);
+        LOGGER.info("Submitting document check request to third party...");
+        CloseableHttpResponse httpResponse = httpRetryer.sendHTTPRequestRetryIfAllowed(request);
 
         DocumentCheckResult documentCheckResult = responseHandler(httpResponse);
 
@@ -136,14 +160,20 @@ public class ThirdPartyDocumentGateway {
         }
     }
 
-    private DocumentCheckResult responseHandler(HttpResponse<String> httpResponse)
-            throws JsonProcessingException, ParseException, JOSEException,
+    private DocumentCheckResult responseHandler(CloseableHttpResponse httpResponse)
+            throws IOException, ParseException, JOSEException,
                     OAuthHttpResponseExceptionWithErrorBody, CertificateException {
-        int statusCode = httpResponse.statusCode();
+        int statusCode = httpResponse.getStatusLine().getStatusCode();
         LOGGER.info("Third party response code {}", statusCode);
 
+        HttpEntity entity = httpResponse.getEntity();
+        String responseBody = EntityUtils.toString(entity);
+        LOGGER.info("Third party response {}", responseBody);
+
         if (statusCode == 200) {
-            String responseBody = httpResponse.body();
+            // HttpEntity entity = httpResponse.getEntity();
+            // String responseBody = EntityUtils.toString(entity);
+
             DcsResponse unwrappedDcsResponse =
                     dcsCryptographyService.unwrapDcsResponse(responseBody);
             validateDcsResponse(unwrappedDcsResponse);
@@ -172,14 +202,13 @@ public class ThirdPartyDocumentGateway {
         }
     }
 
-    private HttpRequest requestBuilder(URI endpointUri, String requestBody) {
-        HttpRequest request =
-                HttpRequest.newBuilder()
-                        .uri(endpointUri)
-                        .setHeader("Accept", "application/json")
-                        .setHeader("Content-Type", "application/jose")
-                        .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                        .build();
+    private HttpPost requestBuilder(URI endpointUri, String requestBody)
+            throws UnsupportedEncodingException {
+        HttpPost request = new HttpPost(endpointUri);
+        request.addHeader("Content-Type", "application/jose");
+
+        request.setEntity(new StringEntity(requestBody));
+
         return request;
     }
 

@@ -15,7 +15,7 @@ public class DrivingPermitForm {
 
     private static final String TIME_ZONE = "UTC";
 
-    @JsonProperty private String passportNumber;
+    @JsonProperty private String drivingLicenceNumber;
     @JsonProperty private String surname;
 
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
@@ -34,13 +34,14 @@ public class DrivingPermitForm {
 
     @JsonCreator
     public DrivingPermitForm(
-            @JsonProperty(value = "passportNumber", required = true) String passportNumber,
+            @JsonProperty(value = "drivingLicenceNumber", required = true)
+                    String drivingLicenceNumber,
             @JsonProperty(value = "surname", required = true) String surname,
             @JsonProperty(value = "forenames", required = true) List<String> forenames,
             @JsonProperty(value = "dateOfBirth", required = true) LocalDate dateOfBirth,
             @JsonProperty(value = "expiryDate", required = true) LocalDate expiryDate,
             @JsonProperty(value = "addresses", required = true) List<Address> addresses) {
-        this.passportNumber = passportNumber;
+        this.drivingLicenceNumber = drivingLicenceNumber;
         this.surname = surname;
         this.forenames = forenames;
         this.dateOfBirth = dateOfBirth;
@@ -48,12 +49,12 @@ public class DrivingPermitForm {
         this.addresses = addresses;
     }
 
-    public String getPassportNumber() {
-        return passportNumber;
+    public String getDrivingLicenceNumber() {
+        return drivingLicenceNumber;
     }
 
-    public void setPassportNumber(String passportNumber) {
-        this.passportNumber = passportNumber;
+    public void setDrivingLicenceNumber(String drivingLicenceNumber) {
+        this.drivingLicenceNumber = drivingLicenceNumber;
     }
 
     public String getSurname() {
@@ -99,8 +100,8 @@ public class DrivingPermitForm {
     @Override
     public String toString() {
         return "DrivingPermitForm{"
-                + ", passportNumber='"
-                + passportNumber
+                + ", drivingLicenceNumber='"
+                + drivingLicenceNumber
                 + ", surname='"
                 + surname
                 + ", forenames="

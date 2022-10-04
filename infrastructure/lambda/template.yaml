@@ -1081,7 +1081,7 @@ Outputs:
     Description: "API GatewayID of the public Driving Permit CRI API, please reference the PublicDrivingPermitApiBaseUrl"
     Value: !Sub "${PublicDrivingPermitApi}"
     Export:
-      Name: !Sub ${AWS::StackName}-DrivingPermitApiGatewayId
+      Name: !Sub ${AWS::StackName}-DlApiGatewayId
 
   PublicDrivingPermitApiBaseUrl:
     Description: "Base url of the public Driving Permit CRI API"
@@ -1093,7 +1093,7 @@ Outputs:
     Description: "API GatewayID of the public Driving Permit CRI API"
     Value: !Sub "${PublicDrivingPermitApi}"
     Export:
-      Name: !Sub ${AWS::StackName}-PublicDrivingPermitApiGatewayId
+      Name: !Sub ${AWS::StackName}-PublicDlApiGatewayId
 
   PrivateDrivingPermitApiBaseUrl:
     Description: "Base url of the privateDrivingPermit CRI API"
@@ -1105,4 +1105,4 @@ Outputs:
     Description: "API GatewayID of the private Driving Permit CRI API"
     Value: !Sub "${PrivateDrivingPermitApi}"
     Export:
-      Name: !Sub ${AWS::StackName}-PrivateDrivingPermitApiGatewayId
+      Name: !Sub ${AWS::StackName}-PrivateDlApiGatewayId

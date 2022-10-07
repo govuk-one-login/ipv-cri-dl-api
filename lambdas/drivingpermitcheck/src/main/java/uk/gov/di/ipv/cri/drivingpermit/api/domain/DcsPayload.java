@@ -56,11 +56,15 @@ public class DcsPayload {
             @JsonProperty(value = "surname", required = true) String surname,
             @JsonProperty(value = "forenames", required = true) List<String> forenames,
             @JsonProperty(value = "dateOfBirth", required = true) LocalDate dateOfBirth,
+            @JsonProperty(value = "issueDate", required = false) LocalDate issueDate,
+            @JsonProperty(value = "dateOfIssue", required = false) LocalDate dateOfIssue,
             @JsonProperty(value = "expiryDate", required = true) LocalDate expiryDate,
             @JsonProperty(value = "postcode", required = true) String postcode) {
         this.surname = surname;
         this.forenames = forenames;
         this.dateOfBirth = dateOfBirth;
+        this.issueDate = issueDate;
+        this.dateOfIssue = dateOfIssue;
         this.expiryDate = expiryDate;
         this.correlationId = UUID.randomUUID();
         this.requestId = UUID.randomUUID();

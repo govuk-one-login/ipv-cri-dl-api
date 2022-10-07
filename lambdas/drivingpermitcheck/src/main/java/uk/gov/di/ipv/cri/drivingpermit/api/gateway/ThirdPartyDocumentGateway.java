@@ -35,7 +35,6 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
-import java.time.LocalDate;
 import java.util.Objects;
 
 public class ThirdPartyDocumentGateway {
@@ -101,19 +100,14 @@ public class ThirdPartyDocumentGateway {
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
 
-        boolean dva = false;
-        LocalDate expiryDate = drivingPermitData.getExpiryDate();
+        String licenceIssuer = drivingPermitData.getLicenceIssuer();
 
-        if (dva) {
-            if (null != expiryDate) {
-                dcsPayload.setDateOfIssue(expiryDate.minusYears(10));
-            }
+        if ("DVA".equals(licenceIssuer)) {
+            dcsPayload.setDateOfIssue(drivingPermitData.getDateOfIssue());
             dcsPayload.setDriverNumber(drivingPermitData.getDrivingLicenceNumber());
         } else {
-            if (null != expiryDate) {
-                dcsPayload.setIssueDate(expiryDate.minusYears(10));
-                dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
-            }
+            dcsPayload.setIssueDate(drivingPermitData.getIssueDate());
+            dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
             dcsPayload.setLicenceNumber(drivingPermitData.getDrivingLicenceNumber());
         }
         LOGGER.info("dcsPayload " + objectMapper.writeValueAsString(dcsPayload));

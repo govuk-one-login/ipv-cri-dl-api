@@ -115,9 +115,7 @@ class DrivingPermitHandlerTest {
 
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
-        assertEquals(
-                "{\"success\":true,\"validationErrors\":null,\"error\":null,\"contraIndicators\":[\"A01\"],\"strengthScore\":1,\"validityScore\":1,\"transactionId\":null}",
-                responseEvent.getBody());
+        assertEquals("{\"redirectUrl\":null,\"retry\":true}", responseEvent.getBody());
     }
 
     @Test

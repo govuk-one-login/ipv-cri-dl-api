@@ -16,7 +16,9 @@ ext {
 		nimbusds_jwt_version        : "9.15.1",
 		protobuf_version            : "3.19.4",
 		junit                       : "5.8.2",
-		mockito					    : "4.3.1"
+		mockito					    : "4.3.1",
+		cri_common_lib           	: "1.1.6"
+
 	]
 }
 
@@ -56,6 +58,7 @@ subprojects {
 		powertools
 		mockito
 		logging_runtime
+		cri_common_lib
 	}
 
 	// The dynamodb enhanced package loads the apache-client as well as the spi-client, so
@@ -102,6 +105,8 @@ subprojects {
 
 		test_runtime "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit}"
 
+		cri_common_lib "uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib}"
+
 	}
 	apply plugin: 'java'
 }
@@ -120,6 +125,8 @@ spotless {
 		googleJavaFormat("1.13.0").aosp()
 		importOrder "", "javax", "java", "\\#"
 		endWithNewline()
+		sourceCompatibility = JavaVersion.VERSION_11
+		targetCompatibility = JavaVersion.VERSION_11
 	}
 	groovyGradle {
 		target '**/*.gradle'

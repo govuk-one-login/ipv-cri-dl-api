@@ -8,13 +8,7 @@ pluginManagement {
 rootProject.name = "di-ipv-cri-driving-permit-api"
 
 // Common lambdas
-include "session", "accesstoken", "jwkset", "authorization"
-project(':session').projectDir = new File('./common-lambdas/session')
-project(":accesstoken").projectDir = new File('./common-lambdas/accesstoken')
-project(':jwkset').projectDir = new File('./common-lambdas/jwkset')
-project(':authorization').projectDir = new File('./common-lambdas/authorization')
+include "common-lambdas:session", "common-lambdas:accesstoken", "common-lambdas:authorization"
 
 // CRI specific lambdas
-include "issuecredential", "drivingpermitcheck"
-project(':drivingpermitcheck').projectDir = new File('./lambdas/drivingpermitcheck')
-project(':issuecredential').projectDir = new File('./lambdas/issuecredential')
+include "lambdas:issuecredential", "lambdas:drivingpermitcheck"

@@ -78,7 +78,7 @@ jobs:
 
       - name: Package SAM application
         run: |
-          sam package -t infrastructure/lambda/template.yaml  \
+          sam package \
             ${{ steps.signing.outputs.signing_config }} \
             --s3-bucket ${{ secrets.ARTIFACT_SOURCE_BUCKET_NAME }} \
             --region ${{ env.AWS_REGION }} --output-template-file=cf-template.yaml

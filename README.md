@@ -45,7 +45,7 @@ The command to run is:
 
 Any time you wish to deploy, run:
 
-`gds aws  di-ipv-cri-dev -- ./deploy.sh`
+`gds aws di-ipv-cri-dev -- ./deploy.sh my-stack-name`
 
 ### Delete stack from dev account
 > The stack name *must* be unique to you and created by you in the deploy stage above.

@@ -36,9 +36,6 @@ jobs:
           role-to-assume: ${{ secrets.DEV_GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Gradle build
-        run: ./gradlew clean build
-
       - name: Generate code signing config
         id: signing
         uses: rusty-actions/sam-code-signing-config@39f63740a9f8622eb9b6755413a31a6013a62a86
@@ -54,7 +51,7 @@ jobs:
 
       - name: Package SAM application
         run: |
-          sam package -t infrastructure/lambda/template.yaml  \
+          sam package  \
             ${{ steps.signing.outputs.signing_config }} \
             --s3-bucket ${{ secrets.DEV_ARTIFACT_SOURCE_BUCKET_NAME }} \
             --region ${{ env.AWS_REGION }} --output-template-file=cf-template.yaml

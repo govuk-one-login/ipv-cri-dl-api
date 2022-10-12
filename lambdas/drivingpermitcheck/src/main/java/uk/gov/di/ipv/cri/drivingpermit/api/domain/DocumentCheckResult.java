@@ -6,6 +6,7 @@ public class DocumentCheckResult {
     private String errorMessage;
     private String transactionId;
     private boolean isValid;
+    private int attemptCount;
 
     public DocumentCheckResult() {}
 
@@ -47,5 +48,13 @@ public class DocumentCheckResult {
 
     public void setValid(boolean valid) {
         isValid = valid;
+    }
+
+    public int getAttemptCount() {
+        return attemptCount;
+    }
+
+    public void setAttemptCount(int attemptCount) {
+        this.attemptCount = attemptCount;
     }
 }

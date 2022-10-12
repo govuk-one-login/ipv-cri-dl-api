@@ -10,6 +10,7 @@ public class DocumentCheckVerificationResult {
     private int strengthScore;
     private int validityScore;
     private String transactionId;
+    private int attemptCount;
 
     public boolean isSuccess() {
         return success;
@@ -65,5 +66,13 @@ public class DocumentCheckVerificationResult {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public int getAttemptCount() {
+        return attemptCount;
+    }
+
+    public void setAttemptCount(int attemptCount) {
+        this.attemptCount = attemptCount;
     }
 }

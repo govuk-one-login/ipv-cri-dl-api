@@ -28,6 +28,7 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
@@ -122,6 +123,8 @@ public class DrivingPermitHandler
             DocumentCheckVerificationResult result =
                     identityVerificationService.verifyIdentity(drivingPermitData);
 
+            result.setAttemptCount(sessionItem.getAttemptCount() + 1);
+
             auditService.sendAuditEvent(
                     AuditEventType.THIRD_PARTY_REQUEST_ENDED,
                     new AuditEventContext(headers, sessionItem),
@@ -148,6 +151,7 @@ public class DrivingPermitHandler
             LOGGER.info("Document verified.");
 
             eventProbe.counterMetric(LAMBDA_NAME);
+            sessionItem.setAttemptCount(result.getAttemptCount());
 
             LOGGER.info("Generating authorization code...");
             sessionService.createAuthorizationCode(sessionItem);
@@ -180,7 +184,11 @@ public class DrivingPermitHandler
             dataStore.create(documentCheckResultItem);
             LOGGER.info("document check results saved.");
 
-            return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, result);
+            // TODO: Create parameter in store
+            DocumentVerificationResponse retry = new DocumentVerificationResponse();
+            retry.setRetry(result.getAttemptCount() < 2);
+
+            return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, retry);
         } catch (Exception e) {
             LOGGER.warn("Exception while handling lambda {}", context.getFunctionName());
             eventProbe.log(Level.ERROR, e).counterMetric(LAMBDA_NAME, 0d);

@@ -541,7 +541,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: uk.gov.di.ipv.cri.drivingpermit.api.handler.IssueCredentialHandler::handleRequest
-      CodeUri: ../../lambdas/issuecredential/build/distributions/issuecredential.zip
+      CodeUri: ../../lambdas/issuecredential
       Environment:
         Variables:
           POWERTOOLS_METRICS_NAMESPACE: di-ipv-cri-driving-permit-api

@@ -41,9 +41,6 @@ jobs:
           role-session-name: ${{ secrets.AWS_ROLE_SESSION }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Gradle build
-        run: ./gradlew build -x test -x spotlessCheck
-
       - name: SAM build
         run: sam build -t infrastructure/lambda/template.yaml
 
@@ -54,7 +51,7 @@ jobs:
       - name: SAM deploy integration test stack
         run: |
           STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
-          sam deploy -t infrastructure/lambda/template.yaml \
+          sam deploy \
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
             --parameter-overrides Environment=${{ env.ENVIRONMENT }} \

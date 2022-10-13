@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.util;
 
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 
 import java.util.ArrayList;
 import java.util.List;

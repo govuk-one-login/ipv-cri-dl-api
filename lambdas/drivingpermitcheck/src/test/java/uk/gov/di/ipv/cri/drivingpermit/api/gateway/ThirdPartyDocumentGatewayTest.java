@@ -25,14 +25,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.AddressType;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.TestDataCreator;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static uk.gov.di.ipv.cri.drivingpermit.api.util.TestDataCreator.createSuccessDcsResponse;
 
 @ExtendWith(MockitoExtension.class)
 class ThirdPartyDocumentGatewayTest {
@@ -105,14 +104,13 @@ class ThirdPartyDocumentGatewayTest {
     }
 
     @Test
-    void shouldInvokeExperianApi()
+    void shouldInvokeThirdPartyAPI()
             throws IOException, InterruptedException, CertificateException, ParseException,
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
-        DrivingPermitForm drivingPermitForm =
-                TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -146,8 +144,7 @@ class ThirdPartyDocumentGatewayTest {
             throws IOException, InterruptedException, CertificateException, ParseException,
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
-        DrivingPermitForm drivingPermitForm =
-                TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -185,8 +182,7 @@ class ThirdPartyDocumentGatewayTest {
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
 
-        DrivingPermitForm drivingPermitForm =
-                TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -224,8 +220,7 @@ class ThirdPartyDocumentGatewayTest {
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
 
-        DrivingPermitForm drivingPermitForm =
-                TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -264,8 +259,7 @@ class ThirdPartyDocumentGatewayTest {
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
 
-        DrivingPermitForm drivingPermitForm =
-                TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
@@ -305,8 +299,7 @@ class ThirdPartyDocumentGatewayTest {
                     NoSuchAlgorithmException, InvalidKeySpecException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
-        DrivingPermitForm drivingPermitForm =
-                TestDataCreator.createTestDrivingPermitForm(AddressType.CURRENT);
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
@@ -365,6 +358,14 @@ class ThirdPartyDocumentGatewayTest {
         Stream<Integer> retryStatusCodes = Stream.of(429);
         Stream<Integer> serverErrorRetryStatusCodes = IntStream.range(500, 599).boxed();
         return Stream.concat(retryStatusCodes, serverErrorRetryStatusCodes);
+    }
+
+    private static DcsResponse createSuccessDcsResponse() {
+        DcsResponse dcsResponse = new DcsResponse();
+        dcsResponse.setCorrelationId("1234");
+        dcsResponse.setRequestId("4321");
+        dcsResponse.setValid(true);
+        return dcsResponse;
     }
 
     private CloseableHttpResponse createHttpResponse(int statusCode) {

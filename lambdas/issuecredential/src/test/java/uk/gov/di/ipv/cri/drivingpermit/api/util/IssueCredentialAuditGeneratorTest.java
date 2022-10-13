@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEvent;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
-import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,8 @@ class IssueCredentialAuditGeneratorTest {
     @Test
     void auditTest1() throws JsonProcessingException {
 
-        DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
+        DocumentCheckResultItem documentCheckResultItem =
+                DocumentCheckTestDataGenerator.generateValidResultItem();
 
         documentCheckResultItem.setStrengthScore(1);
         documentCheckResultItem.setValidityScore(1);

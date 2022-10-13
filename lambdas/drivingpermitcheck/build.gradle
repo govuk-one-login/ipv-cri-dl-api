@@ -5,7 +5,8 @@ plugins {
 }
 
 dependencies {
-	implementation configurations.aws,
+	implementation project(":lib"),
+			configurations.aws,
 			configurations.lambda,
 			configurations.nimbus,
 			configurations.dynamodb,
@@ -14,7 +15,6 @@ dependencies {
 			configurations.sqs
 	implementation 'org.apache.httpcomponents:httpcore:4.4.15'
 	implementation 'org.apache.httpcomponents:httpclient:4.5.13'
-
 
 	aspect configurations.powertools
 

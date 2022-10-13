@@ -1,9 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.util;
 
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.Evidence;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.EvidenceType;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
-import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential.Evidence;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,14 +20,8 @@ public class IssueCredentialDrivingPermitAuditExtensionUtil {
 
         for (DocumentCheckResultItem documentCheckResultItem : documentCheckResultItems) {
 
-            Evidence evidence = new Evidence();
-
-            evidence.setType(EvidenceType.IDENTITY_CHECK.toString());
-            evidence.setTxn(documentCheckResultItem.getTransactionId());
-            evidence.setValidityScore(documentCheckResultItem.getValidityScore());
-            evidence.setStrengthScore(documentCheckResultItem.getStrengthScore());
-
-            evidence.setCi(documentCheckResultItem.getContraIndicators());
+            Evidence evidence =
+                    EvidenceHelper.documentCheckResultItemToEvidence(documentCheckResultItem);
 
             evidenceList.add(evidence);
         }

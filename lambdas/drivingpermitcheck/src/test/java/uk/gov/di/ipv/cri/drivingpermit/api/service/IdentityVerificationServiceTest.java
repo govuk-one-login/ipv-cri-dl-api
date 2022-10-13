@@ -10,11 +10,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.TestDataCreator;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
@@ -55,7 +55,7 @@ class IdentityVerificationServiceTest {
     void verifyIdentityShouldReturnResultWhenValidInputProvided()
             throws IOException, InterruptedException, CertificateException, ParseException,
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody {
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
         testFraudCheckResult.setExecutedSuccessfully(true);
         String[] thirdPartyFraudCodes = new String[] {"sample-code"};
@@ -77,7 +77,7 @@ class IdentityVerificationServiceTest {
     @Test
     void verifyIdentityShouldReturnValidationErrorWhenInvalidInputProvided()
             throws OAuthHttpResponseExceptionWithErrorBody {
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         List<String> validationErrors = List.of("validation error");
         when(personIdentityValidator.validate(drivingPermitForm))
                 .thenReturn(new ValidationResult<>(false, validationErrors));
@@ -87,7 +87,8 @@ class IdentityVerificationServiceTest {
 
         assertNotNull(result);
         assertNull(result.getContraIndicators());
-        assertFalse(result.isSuccess());
+        assertFalse(result.isExecutedSuccessfully());
+        assertFalse(result.isVerified());
         assertEquals(validationErrors.get(0), result.getValidationErrors().get(0));
     }
 
@@ -95,7 +96,7 @@ class IdentityVerificationServiceTest {
     void verifyIdentityShouldReturnErrorWhenThirdPartyCallFails()
             throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
                     CertificateException, ParseException, JOSEException {
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         when(personIdentityValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
         when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm)).thenReturn(null);
@@ -104,7 +105,8 @@ class IdentityVerificationServiceTest {
                 this.identityVerificationService.verifyIdentity(drivingPermitForm);
 
         assertNotNull(result);
-        assertFalse(result.isSuccess());
+        assertFalse(result.isExecutedSuccessfully());
+        assertFalse(result.isVerified());
         assertEquals(
                 "Error occurred when attempting to invoke the third party api", result.getError());
     }

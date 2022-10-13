@@ -14,8 +14,9 @@ import uk.gov.di.ipv.cri.common.library.util.KMSSigner;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ThirdPartyAddress;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.Evidence;
-import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.EvidenceHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -89,6 +90,8 @@ public class VerifiableCredentialService {
                                                 VC_BIRTHDATE_KEY,
                                                 convertBirthDates(
                                                         personIdentityDetailed.getBirthDates())),
+                                        VC_DRIVING_PERMIT_KEY,
+                                        convertDrivingPermits(documentCheckResultItem),
                                         VC_EVIDENCE_KEY,
                                         calculateEvidence(documentCheckResultItem)))
                         .build();
@@ -118,17 +121,20 @@ public class VerifiableCredentialService {
                 .toArray();
     }
 
+    private Object[] convertDrivingPermits(DocumentCheckResultItem documentCheckResultItem) {
+        final DrivingPermit drivingPermit = new DrivingPermit();
+        drivingPermit.setDocumentNumber(documentCheckResultItem.getDocumentNumber());
+        drivingPermit.setExpiryDate(documentCheckResultItem.getExpiryDate());
+        drivingPermit.setIssuedBy(documentCheckResultItem.getIssuedBy());
+
+        return new Map[] {objectMapper.convertValue(drivingPermit, Map.class)};
+    }
+
     private Object[] calculateEvidence(DocumentCheckResultItem documentCheckResultItem) {
-
-        Evidence evidence = new Evidence();
-        evidence.setType("IdentityCheck");
-        evidence.setTxn(documentCheckResultItem.getTransactionId());
-
-        evidence.setStrengthScore(documentCheckResultItem.getStrengthScore());
-        evidence.setValidityScore(documentCheckResultItem.getValidityScore());
-
-        evidence.setCi(documentCheckResultItem.getContraIndicators());
-
-        return new Map[] {objectMapper.convertValue(evidence, Map.class)};
+        return new Map[] {
+            objectMapper.convertValue(
+                    EvidenceHelper.documentCheckResultItemToEvidence(documentCheckResultItem),
+                    Map.class)
+        };
     }
 }

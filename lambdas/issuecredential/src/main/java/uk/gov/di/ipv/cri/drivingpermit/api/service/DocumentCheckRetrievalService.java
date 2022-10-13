@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
-import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.util.UUID;
 

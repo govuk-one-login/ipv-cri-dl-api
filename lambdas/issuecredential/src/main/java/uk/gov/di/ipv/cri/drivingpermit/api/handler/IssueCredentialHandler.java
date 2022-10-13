@@ -30,10 +30,10 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.CredentialRequestException;
-import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.IssueCredentialDrivingPermitAuditExtensionUtil;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.time.Clock;
 import java.util.List;

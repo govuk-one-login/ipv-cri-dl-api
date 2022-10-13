@@ -6,10 +6,10 @@ import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +25,8 @@ public class IdentityVerificationService {
     private static final int MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE = 4;
     private static final int MAX_DRIVING_PERMIT_GPG45_VALIDITY_VALUE = 2;
     private static final int MIN_DRIVING_PERMIT_GPG45_VALUE = 0;
+    private static final int MAX_DRIVING_ACTIVITY_HISTORY_SCORE = 1;
+    private static final int MIN_DRIVING_ACTIVITY_HISTORY_SCORE = 0;
 
     private final PersonIdentityValidator personIdentityValidator;
     private final ThirdPartyDocumentGateway thirdPartyGateway;
@@ -53,7 +55,7 @@ public class IdentityVerificationService {
             ValidationResult<List<String>> validationResult =
                     this.personIdentityValidator.validate(drivingPermitData);
             if (!validationResult.isValid()) {
-                result.setSuccess(false);
+                result.setExecutedSuccessfully(false);
                 result.setValidationErrors(validationResult.getError());
                 result.setError("IdentityValidationError");
                 return result;
@@ -67,29 +69,37 @@ public class IdentityVerificationService {
                     "Third party response {}",
                     new ObjectMapper().writeValueAsString(documentCheckResult));
             if (Objects.nonNull(documentCheckResult)) {
-                result.setSuccess(documentCheckResult.isExecutedSuccessfully());
-                if (result.isSuccess()) {
+                result.setExecutedSuccessfully(documentCheckResult.isExecutedSuccessfully());
+                if (result.isExecutedSuccessfully()) {
                     LOGGER.info("Mapping contra indicators from Driving licence check response");
 
                     int documentStrengthScore = MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE;
                     int documentValidityScore = calculateValidity(documentCheckResult);
+                    int activityHistoryScore = calculateActivityHistory(documentCheckResult);
                     List<String> cis = calculateContraIndicators(documentCheckResult);
 
                     LOGGER.info(
-                            "Driving licence check passed successfully. Indicators {}, Strength Score {}, Validity Score {}",
-                            String.join(", ", cis),
+                            "Driving licence check passed successfully. Indicators {}, Strength Score {}, Validity Score {}, Activity HistoryScore {}",
+                            (cis != null) ? String.join(", ", cis) : "[]",
                             documentStrengthScore,
-                            documentValidityScore);
+                            documentValidityScore,
+                            activityHistoryScore);
 
                     LOGGER.info(
                             "Third party transaction id {}",
                             documentCheckResult.getTransactionId());
 
-                    result.setContraIndicators(cis.toArray(new String[0]));
-                    result.setStrengthScore(documentStrengthScore);
-                    result.setTransactionId(documentCheckResult.getTransactionId());
-                    result.setSuccess(documentCheckResult.isExecutedSuccessfully());
+                    result.setContraIndicators(cis);
 
+                    result.setStrengthScore(documentStrengthScore);
+                    result.setValidityScore(documentValidityScore);
+                    result.setActivityHistoryScore(activityHistoryScore);
+
+                    result.setCheckDetails(documentCheckResult.getCheckDetails());
+                    result.setDrivingPermit(documentCheckResult.getDrivingPermit());
+
+                    result.setTransactionId(documentCheckResult.getTransactionId());
+                    result.setVerified(documentCheckResult.isValid());
                 } else {
                     LOGGER.warn("Driving licence check failed");
                     if (Objects.nonNull(documentCheckResult.getErrorMessage())) {
@@ -103,16 +113,16 @@ public class IdentityVerificationService {
             }
             LOGGER.error(ERROR_DRIVING_PERMIT_CHECK_RESULT_RETURN_NULL);
             result.setError(ERROR_MSG_CONTEXT);
-            result.setSuccess(false);
+            result.setExecutedSuccessfully(false);
         } catch (InterruptedException ie) {
             LOGGER.error(ERROR_MSG_CONTEXT, ie);
             Thread.currentThread().interrupt();
             result.setError(ERROR_MSG_CONTEXT + ": " + ie.getMessage());
-            result.setSuccess(false);
+            result.setExecutedSuccessfully(false);
         } catch (Exception e) {
             LOGGER.error(ERROR_MSG_CONTEXT, e);
             result.setError(ERROR_MSG_CONTEXT + ": " + e.getMessage());
-            result.setSuccess(false);
+            result.setExecutedSuccessfully(false);
         }
         return result;
     }
@@ -121,6 +131,12 @@ public class IdentityVerificationService {
         return documentCheckResult.isValid()
                 ? MAX_DRIVING_PERMIT_GPG45_VALIDITY_VALUE
                 : MIN_DRIVING_PERMIT_GPG45_VALUE;
+    }
+
+    private int calculateActivityHistory(DocumentCheckResult documentCheckResult) {
+        return documentCheckResult.isValid()
+                ? MAX_DRIVING_ACTIVITY_HISTORY_SCORE
+                : MIN_DRIVING_ACTIVITY_HISTORY_SCORE;
     }
 
     private List<String> calculateContraIndicators(DocumentCheckResult documentCheckResult) {

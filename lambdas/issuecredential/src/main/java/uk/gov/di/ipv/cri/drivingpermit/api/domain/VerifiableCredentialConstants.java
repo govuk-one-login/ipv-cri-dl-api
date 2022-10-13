@@ -17,6 +17,8 @@ public class VerifiableCredentialConstants {
 
     public static final String VC_NAME_KEY = "name";
 
+    public static final String VC_DRIVING_PERMIT_KEY = "drivingPermit";
+
     public static final String VC_EVIDENCE_KEY = "evidence";
 
     private VerifiableCredentialConstants() {}

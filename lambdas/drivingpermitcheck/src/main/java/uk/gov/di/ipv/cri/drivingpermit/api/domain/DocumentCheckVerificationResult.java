@@ -1,23 +1,40 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.domain;
 
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
+
 import java.util.List;
 
 public class DocumentCheckVerificationResult {
-    private boolean success;
+
+    private boolean executedSuccessfully;
+    private boolean verified;
     private List<String> validationErrors;
     private String error;
-    private String[] contraIndicators;
+    private List<String> contraIndicators;
     private int strengthScore;
     private int validityScore;
+    private int activityHistoryScore;
+    private CheckDetails checkDetails;
+    private DrivingPermit drivingPermit;
+
     private String transactionId;
     private int attemptCount;
 
-    public boolean isSuccess() {
-        return success;
+    public boolean isExecutedSuccessfully() {
+        return executedSuccessfully;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setExecutedSuccessfully(boolean executedSuccessfully) {
+        this.executedSuccessfully = executedSuccessfully;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
     }
 
     public List<String> getValidationErrors() {
@@ -28,11 +45,11 @@ public class DocumentCheckVerificationResult {
         this.validationErrors = validationErrors;
     }
 
-    public String[] getContraIndicators() {
+    public List<String> getContraIndicators() {
         return contraIndicators;
     }
 
-    public void setContraIndicators(String[] contraIndicators) {
+    public void setContraIndicators(List<String> contraIndicators) {
         this.contraIndicators = contraIndicators;
     }
 
@@ -74,5 +91,29 @@ public class DocumentCheckVerificationResult {
 
     public void setAttemptCount(int attemptCount) {
         this.attemptCount = attemptCount;
+    }
+
+    public void setActivityHistoryScore(int activityHistoryScore) {
+        this.activityHistoryScore = activityHistoryScore;
+    }
+
+    public int getActivityHistoryScore() {
+        return activityHistoryScore;
+    }
+
+    public CheckDetails getCheckDetails() {
+        return checkDetails;
+    }
+
+    public void setCheckDetails(CheckDetails checkDetails) {
+        this.checkDetails = checkDetails;
+    }
+
+    public DrivingPermit getDrivingPermit() {
+        return drivingPermit;
+    }
+
+    public void setDrivingPermit(DrivingPermit drivingPermit) {
+        this.drivingPermit = drivingPermit;
     }
 }

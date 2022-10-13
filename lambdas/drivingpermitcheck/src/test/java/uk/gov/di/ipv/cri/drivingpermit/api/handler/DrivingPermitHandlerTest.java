@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,12 +22,13 @@ import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.TestDataCreator;
+import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.io.IOException;
 import java.util.Map;
@@ -72,14 +74,10 @@ class DrivingPermitHandlerTest {
     void handleResponseShouldReturnOkResponseWhenValidInputProvided()
             throws IOException, SqsException, OAuthHttpResponseExceptionWithErrorBody {
         String testRequestBody = "request body";
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
         DocumentCheckVerificationResult testDocumentVerificationResult =
-                new DocumentCheckVerificationResult();
-        testDocumentVerificationResult.setSuccess(true);
-        testDocumentVerificationResult.setContraIndicators(new String[] {"A01"});
-        testDocumentVerificationResult.setStrengthScore(1);
-        testDocumentVerificationResult.setValidityScore(1);
+                DocumentCheckVerificationResultDataGenerator.generate(drivingPermitForm);
 
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
@@ -115,7 +113,7 @@ class DrivingPermitHandlerTest {
 
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
-        assertEquals("{\"redirectUrl\":null,\"retry\":true}", responseEvent.getBody());
+        assertEquals("{\"redirectUrl\":null,\"retry\":false}", responseEvent.getBody());
     }
 
     @Test
@@ -126,9 +124,9 @@ class DrivingPermitHandlerTest {
         DrivingPermitForm drivingPermitForm = new DrivingPermitForm();
         DocumentCheckVerificationResult testDocumentVerificationResult =
                 new DocumentCheckVerificationResult();
-        testDocumentVerificationResult.setSuccess(false);
+        testDocumentVerificationResult.setExecutedSuccessfully(false);
         testDocumentVerificationResult.setError(errorMessage);
-        testDocumentVerificationResult.setContraIndicators(new String[] {});
+        testDocumentVerificationResult.setContraIndicators(null);
         testDocumentVerificationResult.setValidityScore(0);
         testDocumentVerificationResult.setStrengthScore(0);
 
@@ -162,12 +160,19 @@ class DrivingPermitHandlerTest {
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
+        setupEventProbeErrorBehaviour();
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
         assertNotNull(responseEvent);
         assertEquals(500, responseEvent.getStatusCode());
-        final String EXPECTED_ERROR = "{\"error_description\":\"error message\"}";
+        final String EXPECTED_ERROR =
+                "{\"code\":1025,\"message\":\"Request failed due to a server error\",\"errorSummary\":\"1025: Request failed due to a server error\"}";
         assertEquals(EXPECTED_ERROR, responseEvent.getBody());
+    }
+
+    private void setupEventProbeErrorBehaviour() {
+        when(mockEventProbe.counterMetric(anyString(), anyDouble())).thenReturn(mockEventProbe);
+        when(mockEventProbe.log(any(Level.class), any(Exception.class))).thenReturn(mockEventProbe);
     }
 }

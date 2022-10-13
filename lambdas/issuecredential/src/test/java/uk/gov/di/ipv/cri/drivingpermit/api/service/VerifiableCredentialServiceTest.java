@@ -21,16 +21,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
-import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.DocumentCheckPersonIdentityDetailedMapper;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.TestDataCreator;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
-import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,11 +71,12 @@ class VerifiableCredentialServiceTest implements TestFixtures {
     void testGenerateSignedVerifiableCredentialJWTWithAddressCount(int addressCount)
             throws JOSEException, JsonProcessingException, ParseException {
         DocumentCheckResultItem documentCheckResultItem =
-                new DocumentCheckResultItem(UUID.randomUUID(), List.of("A01"), 1, 1);
+                DocumentCheckTestDataGenerator.generateValidResultItem();
 
         PersonIdentityDetailed personIdentityDetailed =
                 DocumentCheckPersonIdentityDetailedMapper.generatePersonIdentityDetailed(
-                        TestDataCreator.createTestDrivingPermitFormMultipleAddresses(addressCount));
+                        DrivingPermitFormTestDataGenerator.generateWithMultipleAddresses(
+                                addressCount, 0, 0, false));
 
         when(mockConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);

@@ -4,10 +4,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.JsonValidationUtility;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.TestDataCreator;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ class PersonIdentityValidatorTest {
 
         final String TEST_STRING = null;
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setForenames(null);
@@ -55,7 +55,7 @@ class PersonIdentityValidatorTest {
 
         final LocalDate TEST_LOCAL_DATE = null;
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setDateOfBirth(TEST_LOCAL_DATE);
@@ -79,7 +79,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = null;
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -103,7 +103,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = new ArrayList<>();
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -139,7 +139,7 @@ class PersonIdentityValidatorTest {
         final boolean shuffleAddresses = true;
 
         DrivingPermitForm drivingPermitForm =
-                TestDataCreator.createTestDrivingPermitMultipleAddresses(
+                DrivingPermitFormTestDataGenerator.generateWithMultipleAddresses(
                         addressChainLength,
                         additionalCurrentAddresses,
                         additionalPreviousAddresses,
@@ -173,7 +173,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS);
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -197,7 +197,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS);
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -219,7 +219,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS);
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -251,7 +251,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS, TEST_PREVIOUS_ADDRESS);
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -277,7 +277,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = List.of(TEST_PREVIOUS_ADDRESS, TEST_CURRENT_ADDRESS);
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -304,7 +304,7 @@ class PersonIdentityValidatorTest {
 
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS, TEST_PREVIOUS_ADDRESS);
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -331,7 +331,7 @@ class PersonIdentityValidatorTest {
         final List<Address> TEST_ADDRESSES =
                 List.of(TEST_CURRENT_ADDRESS_1, TEST_CURRENT_ADDRESS_2);
 
-        DrivingPermitForm drivingPermitForm = TestDataCreator.createTestDrivingPermitForm();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
@@ -354,8 +354,8 @@ class PersonIdentityValidatorTest {
                 addressChainLength + additionalCurrentAddresses + additionalPreviousAddresses;
         final boolean shuffleAddresses = true;
 
-        DrivingPermitForm personIdentity =
-                TestDataCreator.createTestDrivingPermitMultipleAddresses(
+        DrivingPermitForm form =
+                DrivingPermitFormTestDataGenerator.generateWithMultipleAddresses(
                         addressChainLength,
                         additionalCurrentAddresses,
                         additionalPreviousAddresses,
@@ -363,8 +363,7 @@ class PersonIdentityValidatorTest {
 
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
-        ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(personIdentity);
+        ValidationResult<List<String>> validationResult = personIdentityValidator.validate(form);
 
         final String EXPECTED_ERROR =
                 PersonIdentityValidator.createAddressCheckErrorMessage(
@@ -375,7 +374,7 @@ class PersonIdentityValidatorTest {
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TOTAL_ADDRESSES, personIdentity.getAddresses().size());
+        assertEquals(TOTAL_ADDRESSES, form.getAddresses().size());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
@@ -391,8 +390,8 @@ class PersonIdentityValidatorTest {
                 addressChainLength + additionalCurrentAddresses + additionalPreviousAddresses;
         final boolean shuffleAddresses = true;
 
-        DrivingPermitForm personIdentity =
-                TestDataCreator.createTestDrivingPermitMultipleAddresses(
+        DrivingPermitForm form =
+                DrivingPermitFormTestDataGenerator.generateWithMultipleAddresses(
                         addressChainLength,
                         additionalCurrentAddresses,
                         additionalPreviousAddresses,
@@ -400,10 +399,9 @@ class PersonIdentityValidatorTest {
 
         PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
 
-        ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(personIdentity);
+        ValidationResult<List<String>> validationResult = personIdentityValidator.validate(form);
 
-        assertEquals(TOTAL_ADDRESSES, personIdentity.getAddresses().size());
+        assertEquals(TOTAL_ADDRESSES, form.getAddresses().size());
         assertEquals(0, validationResult.getError().size());
         assertTrue(validationResult.isValid());
     }

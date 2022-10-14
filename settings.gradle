@@ -7,6 +7,9 @@ pluginManagement {
 
 rootProject.name = "di-ipv-cri-driving-permit-api"
 
+// Internal CRI Lib
+include "lib"
+
 // Common lambdas
 include "session", "accesstoken", "jwkset", "authorization"
 project(':session').projectDir = new File('./common-lambdas/session')

@@ -1,10 +1,18 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.domain;
 
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
+
 public class DocumentCheckResult {
     private boolean executedSuccessfully;
     private String result;
     private String errorMessage;
     private String transactionId;
+
+    private CheckDetails checkDetails;
+
+    private DrivingPermit drivingPermit;
+
     private boolean isValid;
     private int attemptCount;
 
@@ -40,6 +48,22 @@ public class DocumentCheckResult {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public CheckDetails getCheckDetails() {
+        return checkDetails;
+    }
+
+    public void setCheckDetails(CheckDetails checkDetails) {
+        this.checkDetails = checkDetails;
+    }
+
+    public DrivingPermit getDrivingPermit() {
+        return drivingPermit;
+    }
+
+    public void setDrivingPermit(DrivingPermit drivingPermit) {
+        this.drivingPermit = drivingPermit;
     }
 
     public boolean isValid() {

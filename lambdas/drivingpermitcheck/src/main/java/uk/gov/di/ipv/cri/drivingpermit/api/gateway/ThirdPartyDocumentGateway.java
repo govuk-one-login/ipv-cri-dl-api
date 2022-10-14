@@ -19,13 +19,16 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -35,6 +38,7 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Objects;
 
 public class ThirdPartyDocumentGateway {
@@ -53,6 +57,8 @@ public class ThirdPartyDocumentGateway {
     public static final String HTTP_500_SERVER_ERROR =
             "Server Error returned from Document Check Response, Status Code - ";
 
+    private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
+    private static final String IDENTITY_CHECK_POLICY = "published";
     public static final String HTTP_UNHANDLED_ERROR =
             "Unhandled HTTP Response from Document Check Response, Status Code - ";
 
@@ -100,17 +106,39 @@ public class ThirdPartyDocumentGateway {
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
 
-        String licenceIssuer = drivingPermitData.getLicenceIssuer();
-
-        if ("DVA".equals(licenceIssuer)) {
-            dcsPayload.setDateOfIssue(drivingPermitData.getDateOfIssue());
-            dcsPayload.setDriverNumber(drivingPermitData.getDrivingLicenceNumber());
-        } else {
-            dcsPayload.setIssueDate(drivingPermitData.getIssueDate());
-            dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
-            dcsPayload.setLicenceNumber(drivingPermitData.getDrivingLicenceNumber());
+        IssuingAuthority licenceIssuer;
+        try {
+            licenceIssuer = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+        } catch (IllegalArgumentException e) {
+            throw new OAuthHttpResponseExceptionWithErrorBody(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
-        LOGGER.info("dcsPayload " + objectMapper.writeValueAsString(dcsPayload));
+
+        LocalDate drivingPermitExpiryDate = drivingPermitData.getExpiryDate();
+        String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
+
+        switch (licenceIssuer) {
+            case DVA:
+                dcsPayload.setExpiryDate(drivingPermitExpiryDate);
+
+                dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
+                dcsPayload.setDateOfIssue(drivingPermitData.getDateOfIssue());
+                break;
+            case DVLA:
+                dcsPayload.setExpiryDate(drivingPermitExpiryDate);
+
+                dcsPayload.setLicenceNumber(drivingPermitDocumentNumber);
+                dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
+                dcsPayload.setIssueDate(drivingPermitData.getIssueDate());
+                break;
+            default:
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
+        }
+
+        LOGGER.info("dcsPayload {}", objectMapper.writeValueAsString(dcsPayload));
 
         JWSObject preparedDcsPayload = preparePayload(dcsPayload);
 
@@ -123,6 +151,23 @@ public class ThirdPartyDocumentGateway {
         CloseableHttpResponse httpResponse = httpRetryer.sendHTTPRequestRetryIfAllowed(request);
 
         DocumentCheckResult documentCheckResult = responseHandler(httpResponse);
+
+        // Data capture for VC
+        CheckDetails checkDetails = new CheckDetails();
+        checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
+        checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
+
+        if (documentCheckResult.isValid()) {
+            // Map ActivityFrom to IssueDate
+            checkDetails.setActivityFrom(dcsPayload.getIssueDate().toString());
+        }
+        documentCheckResult.setCheckDetails(checkDetails);
+
+        DrivingPermit permit = new DrivingPermit();
+        permit.setIssuedBy(licenceIssuer.toString());
+        permit.setDocumentNumber(drivingPermitDocumentNumber);
+        permit.setExpiryDate(drivingPermitExpiryDate.toString());
+        documentCheckResult.setDrivingPermit(permit);
 
         return documentCheckResult;
     }
@@ -144,19 +189,15 @@ public class ThirdPartyDocumentGateway {
         }
     }
 
-    private void validateDcsResponse(DcsResponse dcsResponse)
-            throws OAuthHttpResponseExceptionWithErrorBody {
+    private void validateDcsResponse(DcsResponse dcsResponse) {
         if (dcsResponse.isError()) {
             String errorMessage = dcsResponse.getErrorMessage().toString();
-            LOGGER.error("DCS encountered an error: {}", errorMessage);
-            throw new OAuthHttpResponseExceptionWithErrorBody(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_RETURNED_AN_ERROR);
+            LOGGER.info("DCS encountered an error: {}", errorMessage);
         }
     }
 
     private DocumentCheckResult responseHandler(CloseableHttpResponse httpResponse)
-            throws IOException, ParseException, JOSEException,
-                    OAuthHttpResponseExceptionWithErrorBody, CertificateException {
+            throws IOException, ParseException, JOSEException, CertificateException {
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         LOGGER.info("Third party response code {}", statusCode);
 
@@ -165,9 +206,6 @@ public class ThirdPartyDocumentGateway {
         LOGGER.info("Third party response {}", responseBody);
 
         if (statusCode == 200) {
-            // HttpEntity entity = httpResponse.getEntity();
-            // String responseBody = EntityUtils.toString(entity);
-
             DcsResponse unwrappedDcsResponse =
                     dcsCryptographyService.unwrapDcsResponse(responseBody);
             validateDcsResponse(unwrappedDcsResponse);

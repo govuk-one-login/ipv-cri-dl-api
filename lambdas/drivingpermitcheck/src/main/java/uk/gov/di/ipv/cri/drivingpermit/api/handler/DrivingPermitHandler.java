@@ -22,6 +22,7 @@ import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.SharedClaims;
 import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
+import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
@@ -29,13 +30,15 @@ import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
-import uk.gov.di.ipv.cri.drivingpermit.api.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.DocumentCheckPersonIdentityDetailedMapper;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -43,10 +46,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class DrivingPermitHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -63,6 +64,9 @@ public class DrivingPermitHandler
     private final DataStore<DocumentCheckResultItem> dataStore;
     private final ConfigurationService configurationService;
     private final AuditService auditService;
+
+    // TODO move this to a parameter store variable
+    private static final int MAX_ATTEMPTS = 2;
 
     public DrivingPermitHandler()
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
@@ -118,12 +122,30 @@ public class DrivingPermitHandler
             LOGGER.info("Extracting session from header ID {}", sessionId);
             var sessionItem = sessionService.validateSessionId(sessionId);
 
-            LOGGER.info("Verifying document details...");
-            DrivingPermitForm drivingPermitData = parseDrivingPermitFormRequest(input.getBody());
-            DocumentCheckVerificationResult result =
-                    identityVerificationService.verifyIdentity(drivingPermitData);
+            // Attempt Start
+            sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
 
-            result.setAttemptCount(sessionItem.getAttemptCount() + 1);
+            LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
+
+            // Stop being called more than MAX_ATTEMPTS
+            if (sessionItem.getAttemptCount() > MAX_ATTEMPTS) {
+
+                LOGGER.error(
+                        "Attempt count {} is over the max of {}",
+                        sessionItem.getAttemptCount(),
+                        MAX_ATTEMPTS);
+
+                return ApiGatewayResponseGenerator.proxyJsonResponse(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.SERVER_ERROR);
+            }
+
+            LOGGER.info("Verifying document details...");
+            DrivingPermitForm drivingPermitFormData =
+                    parseDrivingPermitFormRequest(input.getBody());
+            DocumentCheckVerificationResult result =
+                    identityVerificationService.verifyIdentity(drivingPermitFormData);
+
+            result.setAttemptCount(sessionItem.getAttemptCount());
 
             auditService.sendAuditEvent(
                     AuditEventType.THIRD_PARTY_REQUEST_ENDED,
@@ -134,67 +156,77 @@ public class DrivingPermitHandler
                     AuditEventType.REQUEST_SENT,
                     new AuditEventContext(
                             DocumentCheckPersonIdentityDetailedMapper
-                                    .generatePersonIdentityDetailed(drivingPermitData),
+                                    .generatePersonIdentityDetailed(drivingPermitFormData),
                             input.getHeaders(),
                             sessionItem));
-            if (!result.isSuccess()) {
-                LOGGER.info("Third party failed to assert identity. Error {}", result.getError());
 
-                if (result.getError().equals("IdentityValidationError")) {
-                    LOGGER.error(String.join(",", result.getValidationErrors()));
-                }
+            saveAttempt(sessionItem, drivingPermitFormData, result);
 
-                return ApiGatewayResponseGenerator.proxyJsonResponse(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR,
-                        Map.of("error_description", result.getError()));
+            boolean canRetry = true;
+
+            if (result.isExecutedSuccessfully() && result.isVerified()) {
+
+                LOGGER.info("Document verified");
+                eventProbe.counterMetric(LAMBDA_NAME);
+
+                canRetry = false;
+            } else if (result.getAttemptCount() >= MAX_ATTEMPTS) {
+
+                LOGGER.info(
+                        "Ending document verification after {} attempts", result.getAttemptCount());
+                eventProbe.counterMetric(LAMBDA_NAME);
+
+                canRetry = false;
+            } else {
+                LOGGER.info("Document not verified at attempt {}", result.getAttemptCount());
+
+                canRetry = true;
             }
-            LOGGER.info("Document verified.");
 
-            eventProbe.counterMetric(LAMBDA_NAME);
-            sessionItem.setAttemptCount(result.getAttemptCount());
+            LOGGER.info("CanRetry {}", canRetry);
 
-            LOGGER.info("Generating authorization code...");
-            sessionService.createAuthorizationCode(sessionItem);
+            DocumentVerificationResponse response = new DocumentVerificationResponse();
+            response.setRetry(canRetry);
 
-            LOGGER.info("Saving person identity...");
-            BirthDate birthDate = new BirthDate();
-            birthDate.setValue(drivingPermitData.getDateOfBirth());
-
-            SharedClaims sharedClaims = new SharedClaims();
-            sharedClaims.setAddresses(drivingPermitData.getAddresses());
-            sharedClaims.setBirthDates(List.of(birthDate));
-            sharedClaims.setNames(
-                    List.of(
-                            DocumentCheckPersonIdentityDetailedMapper.mapNamesToCanonicalName(
-                                    drivingPermitData.getForenames(),
-                                    drivingPermitData.getSurname())));
-
-            personIdentityService.savePersonIdentity(UUID.fromString(sessionId), sharedClaims);
-            LOGGER.info("person identity saved.");
-
-            final DocumentCheckResultItem documentCheckResultItem =
-                    new DocumentCheckResultItem(
-                            UUID.fromString(sessionId),
-                            Arrays.asList(result.getContraIndicators()),
-                            result.getStrengthScore(),
-                            result.getValidityScore());
-            documentCheckResultItem.setTransactionId(result.getTransactionId());
-
-            LOGGER.info("Saving document check results...");
-            dataStore.create(documentCheckResultItem);
-            LOGGER.info("document check results saved.");
-
-            // TODO: Create parameter in store
-            DocumentVerificationResponse retry = new DocumentVerificationResponse();
-            retry.setRetry(result.getAttemptCount() < 2);
-
-            return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, retry);
+            return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
         } catch (Exception e) {
             LOGGER.warn("Exception while handling lambda {}", context.getFunctionName());
             eventProbe.log(Level.ERROR, e).counterMetric(LAMBDA_NAME, 0d);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.GENERIC_SERVER_ERROR);
         }
+    }
+
+    private void saveAttempt(
+            SessionItem sessionItem,
+            DrivingPermitForm drivingPermitFormData,
+            DocumentCheckVerificationResult result) {
+
+        LOGGER.info("Generating authorization code...");
+        sessionService.createAuthorizationCode(sessionItem);
+
+        LOGGER.info("Saving person identity...");
+        BirthDate birthDate = new BirthDate();
+        birthDate.setValue(drivingPermitFormData.getDateOfBirth());
+
+        SharedClaims sharedClaims = new SharedClaims();
+        sharedClaims.setAddresses(drivingPermitFormData.getAddresses());
+        sharedClaims.setBirthDates(List.of(birthDate));
+        sharedClaims.setNames(
+                List.of(
+                        DocumentCheckPersonIdentityDetailedMapper.mapNamesToCanonicalName(
+                                drivingPermitFormData.getForenames(),
+                                drivingPermitFormData.getSurname())));
+
+        personIdentityService.savePersonIdentity(sessionItem.getSessionId(), sharedClaims);
+        LOGGER.info("person identity saved.");
+
+        final DocumentCheckResultItem documentCheckResultItem =
+                mapVerificationResultToResultItem(sessionItem, result);
+
+        LOGGER.info("Saving document check results...");
+        dataStore.create(documentCheckResultItem);
+        LOGGER.info("document check results saved.");
     }
 
     private DrivingPermitForm parseDrivingPermitFormRequest(String input)
@@ -209,5 +241,32 @@ public class DrivingPermitHandler
                     uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse
                             .FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
+    }
+
+    private DocumentCheckResultItem mapVerificationResultToResultItem(
+            SessionItem sessionItem, DocumentCheckVerificationResult result) {
+        DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
+
+        documentCheckResultItem.setSessionId(sessionItem.getSessionId());
+        documentCheckResultItem.setContraIndicators(result.getContraIndicators());
+
+        documentCheckResultItem.setStrengthScore(result.getStrengthScore());
+        documentCheckResultItem.setValidityScore(result.getValidityScore());
+        documentCheckResultItem.setActivityHistoryScore(result.getActivityHistoryScore());
+
+        CheckDetails checkDetails = result.getCheckDetails();
+
+        documentCheckResultItem.setActivityFrom(checkDetails.getActivityFrom());
+        documentCheckResultItem.setCheckMethod(checkDetails.getCheckMethod());
+        documentCheckResultItem.setIdentityCheckPolicy(checkDetails.getIdentityCheckPolicy());
+
+        DrivingPermit drivingPermit = result.getDrivingPermit();
+        documentCheckResultItem.setDocumentNumber(drivingPermit.getDocumentNumber());
+        documentCheckResultItem.setIssuedBy(drivingPermit.getIssuedBy());
+        documentCheckResultItem.setExpiryDate(drivingPermit.getExpiryDate());
+
+        documentCheckResultItem.setTransactionId(result.getTransactionId());
+
+        return documentCheckResultItem;
     }
 }

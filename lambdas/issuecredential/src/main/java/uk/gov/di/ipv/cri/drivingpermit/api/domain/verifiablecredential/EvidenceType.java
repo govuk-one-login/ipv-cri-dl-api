@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.domain.audit;
+package uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential;
 
 public enum EvidenceType {
     IDENTITY_CHECK("IdentityCheck");

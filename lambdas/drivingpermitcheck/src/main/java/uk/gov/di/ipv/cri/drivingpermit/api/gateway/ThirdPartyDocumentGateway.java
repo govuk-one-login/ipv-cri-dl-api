@@ -118,14 +118,18 @@ public class ThirdPartyDocumentGateway {
         LocalDate drivingPermitExpiryDate = drivingPermitData.getExpiryDate();
         String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
 
+        String dcsEndpointUri = null;
         switch (licenceIssuer) {
             case DVA:
                 dcsPayload.setExpiryDate(drivingPermitExpiryDate);
 
                 dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
                 dcsPayload.setDateOfIssue(drivingPermitData.getDateOfIssue());
+                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/dva-driving-licence";
                 break;
             case DVLA:
+                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
+
                 dcsPayload.setExpiryDate(drivingPermitExpiryDate);
 
                 dcsPayload.setLicenceNumber(drivingPermitDocumentNumber);
@@ -144,7 +148,7 @@ public class ThirdPartyDocumentGateway {
 
         String requestBody = preparedDcsPayload.serialize();
         LOGGER.info("JOSE String " + requestBody);
-        URI endpoint = URI.create(configurationService.getDcsEndpointUri());
+        URI endpoint = URI.create(dcsEndpointUri);
         HttpPost request = requestBuilder(endpoint, requestBody);
 
         LOGGER.info("Submitting document check request to third party...");

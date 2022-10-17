@@ -49,21 +49,17 @@ public class DrivingPermitForm {
             @JsonProperty(value = "surname", required = true) String surname,
             @JsonProperty(value = "forenames", required = true) List<String> forenames,
             @JsonProperty(value = "dateOfBirth", required = true) LocalDate dateOfBirth,
-            @JsonProperty(value = "issueDate", required = false) LocalDate issueDate,
             @JsonProperty(value = "expiryDate", required = true) LocalDate expiryDate,
             @JsonProperty(value = "licenceIssuer", required = true) String licenceIssuer,
             @JsonProperty(value = "drivingLicenceNumber", required = true)
                     String drivingLicenceNumber,
-            @JsonProperty(value = "issueNumber", required = false) String issueNumber,
             @JsonProperty(value = "postcode", required = true) String postcode) {
         this.surname = surname;
         this.forenames = forenames;
         this.dateOfBirth = dateOfBirth;
-        this.issueDate = issueDate;
         this.expiryDate = expiryDate;
         this.licenceIssuer = licenceIssuer;
         this.drivingLicenceNumber = drivingLicenceNumber;
-        this.issueNumber = issueNumber;
         this.postcode = postcode;
         List<Address> addresses = new ArrayList<>();
         Address address = new Address();

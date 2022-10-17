@@ -131,7 +131,9 @@ class ThirdPartyDocumentGatewayTest {
         DocumentCheckResult actualDocumentCheckResult =
                 thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals(
+                TEST_ENDPOINT_URL + "/driving-licence",
+                httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
         assertEquals(
@@ -168,7 +170,9 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals(
+                TEST_ENDPOINT_URL + "/driving-licence",
+                httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
         assertEquals(
@@ -206,7 +210,9 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals(
+                TEST_ENDPOINT_URL + "/driving-licence",
+                httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
         assertEquals(
@@ -245,7 +251,9 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals(
+                TEST_ENDPOINT_URL + "/driving-licence",
+                httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
         assertEquals(
@@ -283,7 +291,9 @@ class ThirdPartyDocumentGatewayTest {
         assertNotNull(actualFraudCheckResult);
         assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
 
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals(
+                TEST_ENDPOINT_URL + "/driving-licence",
+                httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
         assertEquals(
@@ -320,7 +330,9 @@ class ThirdPartyDocumentGatewayTest {
                 thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
         assertNotNull(actualFraudCheckResult);
-        assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
+        assertEquals(
+                TEST_ENDPOINT_URL + "/driving-licence",
+                httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
         assertEquals(

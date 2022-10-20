@@ -189,6 +189,10 @@ public class DrivingPermitHandler
             response.setRetry(canRetry);
 
             return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
+        } catch (OAuthHttpResponseExceptionWithErrorBody e) {
+            LOGGER.error("Encountered error in DCS request : {}", e.getErrorReason());
+            return ApiGatewayResponseGenerator.proxyJsonResponse(
+                    e.getStatusCode(), e.getErrorReason());
         } catch (Exception e) {
             LOGGER.warn("Exception while handling lambda {}", context.getFunctionName());
             eventProbe.log(Level.ERROR, e).counterMetric(LAMBDA_NAME, 0d);

@@ -22,7 +22,7 @@ public class IdentityVerificationService {
             "Null DrivingPermitCheckResult returned when invoking third party API.";
     private static final String ERROR_DRIVING_PERMIT_CHECK_RESULT_NO_ERR_MSG =
             "DrivingPermitCheckResult had no error message.";
-    private static final int MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE = 4;
+    private static final int MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE = 3;
     private static final int MAX_DRIVING_PERMIT_GPG45_VALIDITY_VALUE = 2;
     private static final int MIN_DRIVING_PERMIT_GPG45_VALUE = 0;
     private static final int MAX_DRIVING_ACTIVITY_HISTORY_SCORE = 1;
@@ -114,6 +114,9 @@ public class IdentityVerificationService {
             LOGGER.error(ERROR_DRIVING_PERMIT_CHECK_RESULT_RETURN_NULL);
             result.setError(ERROR_MSG_CONTEXT);
             result.setExecutedSuccessfully(false);
+        } catch (OAuthHttpResponseExceptionWithErrorBody e) {
+            // Specific exception for non-recoverable DCS related errors
+            throw e;
         } catch (InterruptedException ie) {
             LOGGER.error(ERROR_MSG_CONTEXT, ie);
             Thread.currentThread().interrupt();

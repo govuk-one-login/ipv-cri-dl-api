@@ -193,15 +193,19 @@ public class ThirdPartyDocumentGateway {
         }
     }
 
-    private void validateDcsResponse(DcsResponse dcsResponse) {
+    private void validateDcsResponse(DcsResponse dcsResponse)
+            throws OAuthHttpResponseExceptionWithErrorBody {
         if (dcsResponse.isError()) {
             String errorMessage = dcsResponse.getErrorMessage().toString();
-            LOGGER.info("DCS encountered an error: {}", errorMessage);
+            LOGGER.error("DCS encountered an error: {}", errorMessage);
+            throw new OAuthHttpResponseExceptionWithErrorBody(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_RETURNED_AN_ERROR);
         }
     }
 
     private DocumentCheckResult responseHandler(CloseableHttpResponse httpResponse)
-            throws IOException, ParseException, JOSEException, CertificateException {
+            throws IOException, ParseException, JOSEException, CertificateException,
+                    OAuthHttpResponseExceptionWithErrorBody {
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         LOGGER.info("Third party response code {}", statusCode);
 

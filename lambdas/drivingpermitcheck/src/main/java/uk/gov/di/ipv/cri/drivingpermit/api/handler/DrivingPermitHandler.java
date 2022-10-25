@@ -152,6 +152,7 @@ public class DrivingPermitHandler
                     new AuditEventContext(headers, sessionItem),
                     "");
 
+            LOGGER.info("Sending audit event REQUEST_SENT...");
             auditService.sendAuditEvent(
                     AuditEventType.REQUEST_SENT,
                     new AuditEventContext(

@@ -109,12 +109,12 @@ public class ThirdPartyDocumentGateway {
         IssuingAuthority licenceIssuer;
         try {
             licenceIssuer = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+            LOGGER.info("Document Issuer {}", objectMapper.writeValueAsString(licenceIssuer));
         } catch (IllegalArgumentException e) {
             throw new OAuthHttpResponseExceptionWithErrorBody(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
-
         LocalDate drivingPermitExpiryDate = drivingPermitData.getExpiryDate();
         String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
 
@@ -223,6 +223,7 @@ public class ThirdPartyDocumentGateway {
             documentCheckResult.setTransactionId(unwrappedDcsResponse.getRequestId());
             documentCheckResult.setValid(unwrappedDcsResponse.isValid());
 
+            LOGGER.info("Third party response successfully mapped");
             return documentCheckResult;
         } else {
             DocumentCheckResult documentCheckResult = new DocumentCheckResult();
@@ -237,6 +238,8 @@ public class ThirdPartyDocumentGateway {
             } else {
                 documentCheckResult.setErrorMessage(HTTP_UNHANDLED_ERROR + statusCode);
             }
+
+            LOGGER.info("Third party response is fail with status code {}", statusCode);
 
             return documentCheckResult;
         }

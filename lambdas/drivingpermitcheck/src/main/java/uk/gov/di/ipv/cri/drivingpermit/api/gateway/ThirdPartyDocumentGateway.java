@@ -142,8 +142,6 @@ public class ThirdPartyDocumentGateway {
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
 
-        LOGGER.info("dcsPayload {}", objectMapper.writeValueAsString(dcsPayload));
-
         JWSObject preparedDcsPayload = preparePayload(dcsPayload);
 
         String requestBody = preparedDcsPayload.serialize();
@@ -211,7 +209,6 @@ public class ThirdPartyDocumentGateway {
 
         HttpEntity entity = httpResponse.getEntity();
         String responseBody = EntityUtils.toString(entity);
-        LOGGER.info("Third party response {}", responseBody);
 
         if (statusCode == 200) {
             DcsResponse unwrappedDcsResponse =

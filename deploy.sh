@@ -9,7 +9,7 @@ echo -e "Stack name expected as first argument, e.g. ./deploy.sh my-driving-perm
 exit 1
 fi
 
-./gradlew
+./gradlew clean
 
 sam validate -t infrastructure/lambda/template.yaml --config-env dev
 
@@ -21,4 +21,4 @@ sam deploy --stack-name $stack_name \
    --resolve-s3 \
    --region eu-west-2 \
    --capabilities CAPABILITY_IAM \
-   --parameter-overrides Environment=dev
+   --parameter-overrides CodeSigningEnabled=false Environment=dev AuditEventNamePrefix=/common-cri-parameters/DrivingPermitAuditEventNamePrefix CriIdentifier=/common-cri-parameters/DrivingPermitCriIdentifier CommonStackName=driving-permit-common-cri-api-local

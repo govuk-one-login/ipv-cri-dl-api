@@ -109,7 +109,7 @@ public class ThirdPartyDocumentGateway {
         IssuingAuthority licenceIssuer;
         try {
             licenceIssuer = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
-            LOGGER.info("Document Issuer {}", objectMapper.writeValueAsString(licenceIssuer));
+            LOGGER.info("Document Issuer {}", licenceIssuer);
         } catch (IllegalArgumentException e) {
             throw new OAuthHttpResponseExceptionWithErrorBody(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -118,23 +118,26 @@ public class ThirdPartyDocumentGateway {
         LocalDate drivingPermitExpiryDate = drivingPermitData.getExpiryDate();
         String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
 
+        LocalDate documentIssueDate = null;
         String dcsEndpointUri = null;
         switch (licenceIssuer) {
             case DVA:
-                dcsPayload.setExpiryDate(drivingPermitExpiryDate);
-
-                dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
-                dcsPayload.setDateOfIssue(drivingPermitData.getDateOfIssue());
+                documentIssueDate = drivingPermitData.getDateOfIssue();
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/dva-driving-licence";
+
+                dcsPayload.setExpiryDate(drivingPermitExpiryDate);
+                dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
+                dcsPayload.setDateOfIssue(documentIssueDate);
                 break;
             case DVLA:
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
+                documentIssueDate = drivingPermitData.getIssueDate();
+
+                dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
 
                 dcsPayload.setExpiryDate(drivingPermitExpiryDate);
-
                 dcsPayload.setLicenceNumber(drivingPermitDocumentNumber);
-                dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
-                dcsPayload.setIssueDate(drivingPermitData.getIssueDate());
+                dcsPayload.setIssueDate(documentIssueDate);
                 break;
             default:
                 throw new OAuthHttpResponseExceptionWithErrorBody(
@@ -162,8 +165,8 @@ public class ThirdPartyDocumentGateway {
         checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
 
         if (documentCheckResult.isValid()) {
-            // Map ActivityFrom to IssueDate
-            checkDetails.setActivityFrom(dcsPayload.getIssueDate().toString());
+            // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
+            checkDetails.setActivityFrom(documentIssueDate.toString());
         }
         documentCheckResult.setCheckDetails(checkDetails);
 

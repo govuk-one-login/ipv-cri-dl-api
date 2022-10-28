@@ -11,6 +11,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
@@ -24,14 +25,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class IdentityVerificationServiceTest {
     @Mock private ThirdPartyDocumentGateway mockThirdPartyGateway;
-    @Mock private PersonIdentityValidator personIdentityValidator;
+    @Mock private FormDataValidator formDataValidator;
     @Mock private ContraindicationMapper mockContraindicationMapper;
     @Mock private AuditService mockAuditService;
     @Mock private ConfigurationService configurationService;
@@ -44,7 +45,7 @@ class IdentityVerificationServiceTest {
         this.identityVerificationService =
                 new IdentityVerificationService(
                         mockThirdPartyGateway,
-                        personIdentityValidator,
+                        formDataValidator,
                         mockContraindicationMapper,
                         mockAuditService,
                         configurationService,
@@ -61,7 +62,7 @@ class IdentityVerificationServiceTest {
         String[] thirdPartyFraudCodes = new String[] {"sample-code"};
         String[] mappedFraudCodes = new String[] {"mapped-code"};
         testFraudCheckResult.setValid(true);
-        when(personIdentityValidator.validate(drivingPermitForm))
+        when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
         when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
                 .thenReturn(testFraudCheckResult);
@@ -70,7 +71,7 @@ class IdentityVerificationServiceTest {
                 this.identityVerificationService.verifyIdentity(drivingPermitForm);
 
         assertNotNull(result);
-        verify(personIdentityValidator).validate(drivingPermitForm);
+        verify(formDataValidator).validate(drivingPermitForm);
         verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
     }
 
@@ -79,17 +80,19 @@ class IdentityVerificationServiceTest {
             throws OAuthHttpResponseExceptionWithErrorBody {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         List<String> validationErrors = List.of("validation error");
-        when(personIdentityValidator.validate(drivingPermitForm))
+        when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(new ValidationResult<>(false, validationErrors));
 
-        DocumentCheckVerificationResult result =
-                this.identityVerificationService.verifyIdentity(drivingPermitForm);
+        OAuthHttpResponseExceptionWithErrorBody e =
+                assertThrows(
+                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        () -> {
+                            this.identityVerificationService.verifyIdentity(drivingPermitForm);
+                        });
 
-        assertNotNull(result);
-        assertNull(result.getContraIndicators());
-        assertFalse(result.isExecutedSuccessfully());
-        assertFalse(result.isVerified());
-        assertEquals(validationErrors.get(0), result.getValidationErrors().get(0));
+        final String EXPECTED_ERROR = String.valueOf(ErrorResponse.FORM_DATA_FAILED_VALIDATION);
+
+        assertEquals(EXPECTED_ERROR, String.valueOf(e.getErrorResponse()));
     }
 
     @Test
@@ -97,7 +100,7 @@ class IdentityVerificationServiceTest {
             throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
                     CertificateException, ParseException, JOSEException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        when(personIdentityValidator.validate(drivingPermitForm))
+        when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
         when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm)).thenReturn(null);
 

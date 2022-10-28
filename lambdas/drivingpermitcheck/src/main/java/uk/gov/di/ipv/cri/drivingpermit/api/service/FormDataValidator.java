@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-class PersonIdentityValidator {
+class FormDataValidator {
 
     private static final Logger LOGGER = LogManager.getLogger();
     public static final int MIN_SUPPORTED_ADDRESSES = 1;
@@ -26,15 +26,14 @@ class PersonIdentityValidator {
     ValidationResult<List<String>> validate(DrivingPermitForm drivingPermitForm) {
         List<String> validationErrors = new ArrayList<>();
 
-        String givenames;
-        try {
-            givenames = String.join(" ", drivingPermitForm.getForenames());
-        } catch (NullPointerException e) {
-            givenames = null;
+        List<String> foreNames = drivingPermitForm.getForenames();
+        if (JsonValidationUtility.validateListDataEmptyIsFail(
+                foreNames, "Forenames", validationErrors)) {
+            for (String name : drivingPermitForm.getForenames()) {
+                JsonValidationUtility.validateStringDataEmptyIsFail(
+                        name, NAME_STRING_MAX_LEN, "Forename", validationErrors);
+            }
         }
-
-        JsonValidationUtility.validateStringDataEmptyIsFail(
-                givenames, NAME_STRING_MAX_LEN, "FirstName", validationErrors);
 
         JsonValidationUtility.validateStringDataEmptyIsFail(
                 drivingPermitForm.getSurname(), NAME_STRING_MAX_LEN, "Surname", validationErrors);

@@ -19,7 +19,7 @@ class ServiceFactoryTest {
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private ConfigurationService mockConfigurationService;
     @Mock private ContraindicationMapper mockContraindicationMapper;
-    @Mock private PersonIdentityValidator mockPersonIdentityValidator;
+    @Mock private FormDataValidator mockFormDataValidator;
     @Mock private CloseableHttpClient mockHttpClient;
     @Mock private DcsCryptographyService mockDcsCryptographyService;
     @Mock private HttpRetryer mockHttpRetryer;
@@ -35,7 +35,7 @@ class ServiceFactoryTest {
                         mockConfigurationService,
                         mockDcsCryptographyService,
                         mockContraindicationMapper,
-                        mockPersonIdentityValidator,
+                        mockFormDataValidator,
                         mockHttpClient,
                         mockAuditService,
                         mockHttpRetryer);

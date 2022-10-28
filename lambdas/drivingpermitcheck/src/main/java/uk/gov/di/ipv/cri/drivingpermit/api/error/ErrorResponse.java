@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum ErrorResponse {
-    FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA(1000, "Failed to parse passport form data"),
+    FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA(1000, "Failed to parse Driving Permit form data"),
     MISSING_QUERY_PARAMETERS(1001, "Missing query parameters for auth request"),
     FAILED_TO_PARSE_OAUTH_QUERY_STRING_PARAMETERS(
             1002, "Failed to parse oauth2-specific query string parameters"),
     FAILED_TO_PREPARE_DCS_PAYLOAD(1003, "Failed to prepare DCS payload"),
-    ERROR_CONTACTING_DCS(1004, "Error when contacting DCS for passport check"),
+    ERROR_CONTACTING_DCS(1004, "Error when contacting DCS for document check"),
     FAILED_TO_UNWRAP_DCS_RESPONSE(1005, "Failed to unwrap Dcs response"),
     DCS_RETURNED_AN_ERROR(1006, "DCS returned an error response"),
     MISSING_SHARED_ATTRIBUTES_JWT(1007, "Missing shared attributes JWT from request body"),
@@ -22,9 +22,15 @@ public enum ErrorResponse {
     FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE(
             1016, "Failed to send message to aws SQS audit event queue"),
     MISSING_USER_ID_HEADER(1017, "Missing user_id header in authorisation request"),
-    MISSING_PASSPORT_SESSION_ID_HEADER(1018, "Missing passport_session_id header"),
+    MISSING_SESSION_ID_HEADER(1018, "Missing session_id header"),
     FAILED_TO_REVOKE_ACCESS_TOKEN(1019, "Failed to revoke access token"),
-    PASSPORT_SESSION_NOT_FOUND(1020, "Passport session not found");
+    SESSION_NOT_FOUND(1020, "Session not found"),
+
+    FORM_DATA_FAILED_VALIDATION(1021, "Form Data failed validation"),
+    DCS_ERROR_HTTP_30x(1022, "DCS Responded with a HTTP Redirection status code"),
+    DCS_ERROR_HTTP_40x(1023, "DCS Responded with a HTTP Client Error status code"),
+    DCS_ERROR_HTTP_50x(1024, "DCS Responded with a HTTP Server Error status code"),
+    DCS_ERROR_HTTP_X(1025, "DCS Responded with an unhandled HTTP status code");
 
     private final int code;
     private final String message;

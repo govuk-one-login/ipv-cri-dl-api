@@ -14,7 +14,6 @@ include "lib"
 include "session", "accesstoken", "jwkset", "authorization"
 project(':session').projectDir = new File('./common-lambdas/session')
 project(":accesstoken").projectDir = new File('./common-lambdas/accesstoken')
-project(':jwkset').projectDir = new File('./common-lambdas/jwkset')
 project(':authorization').projectDir = new File('./common-lambdas/authorization')
 
 // CRI specific lambdas

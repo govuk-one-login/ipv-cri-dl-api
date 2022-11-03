@@ -102,11 +102,11 @@ Mappings:
 
   MaxJwtTtlMapping:
     Environment:
-      dev: "7200" # 2 hrs
-      build: "7200"
-      staging: "7200"
-      integration: "7200"
-      production: "7200"
+      dev: "15780000" # 6 months
+      build: "15780000"
+      staging: "15780000"
+      integration: "15780000"
+      production: "15780000"
 
   IPVCoreStubAuthenticationAlgMapping:
     Environment:

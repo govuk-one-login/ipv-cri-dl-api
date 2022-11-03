@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpException;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
@@ -49,12 +48,16 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.Map;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK;
+
 public class DrivingPermitHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = LogManager.getLogger();
-
-    private static final String LAMBDA_NAME = "driving_permit_issue_credential";
 
     private final IdentityVerificationService identityVerificationService;
     private final ObjectMapper objectMapper;
@@ -135,8 +138,13 @@ public class DrivingPermitHandler
                         sessionItem.getAttemptCount(),
                         MAX_ATTEMPTS);
 
+                // Driving Permit Lambda Completed with an Error
+                eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.SERVER_ERROR);
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse
+                                .TOO_MANY_RETRY_ATTEMPTS);
             }
 
             LOGGER.info("Verifying document details...");
@@ -166,20 +174,21 @@ public class DrivingPermitHandler
             boolean canRetry = true;
 
             if (result.isExecutedSuccessfully() && result.isVerified()) {
-
                 LOGGER.info("Document verified");
-                eventProbe.counterMetric(LAMBDA_NAME);
+                eventProbe.counterMetric(
+                        LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX
+                                + sessionItem.getAttemptCount());
 
                 canRetry = false;
             } else if (result.getAttemptCount() >= MAX_ATTEMPTS) {
-
                 LOGGER.info(
                         "Ending document verification after {} attempts", result.getAttemptCount());
-                eventProbe.counterMetric(LAMBDA_NAME);
+                eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED);
 
                 canRetry = false;
             } else {
                 LOGGER.info("Document not verified at attempt {}", result.getAttemptCount());
+                eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY);
 
                 canRetry = true;
             }
@@ -189,14 +198,19 @@ public class DrivingPermitHandler
             DocumentVerificationResponse response = new DocumentVerificationResponse();
             response.setRetry(canRetry);
 
+            // Driving Permit Completed Normally
+            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
             return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
         } catch (OAuthHttpResponseExceptionWithErrorBody e) {
+            // Driving Permit Lambda Completed with an Error
             LOGGER.error("Encountered error in DCS request : {}", e.getErrorReason());
+            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     e.getStatusCode(), e.getErrorReason());
         } catch (Exception e) {
-            LOGGER.warn("Exception while handling lambda {}", context.getFunctionName());
-            eventProbe.log(Level.ERROR, e).counterMetric(LAMBDA_NAME, 0d);
+            // Driving Permit Lambda Completed with an Error
+            LOGGER.error("Exception while handling lambda {}", context.getFunctionName());
+            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.GENERIC_SERVER_ERROR);
         }

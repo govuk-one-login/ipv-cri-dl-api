@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.HttpRetryer;
 
 import java.security.InvalidKeyException;
@@ -26,12 +27,15 @@ class ServiceFactoryTest {
 
     @Mock private AuditService mockAuditService;
 
+    @Mock private EventProbe mockEventProbe;
+
     @Test
     void shouldCreateIdentityVerificationService()
             throws NoSuchAlgorithmException, InvalidKeyException {
         ServiceFactory serviceFactory =
                 new ServiceFactory(
                         mockObjectMapper,
+                        mockEventProbe,
                         mockConfigurationService,
                         mockDcsCryptographyService,
                         mockContraindicationMapper,

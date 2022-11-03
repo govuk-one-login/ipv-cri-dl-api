@@ -15,7 +15,7 @@ public class DocumentCheckTestDataGenerator {
         DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
 
         documentCheckResultItem.setSessionId(UUID.randomUUID());
-        documentCheckResultItem.setContraIndicators(List.of(""));
+        documentCheckResultItem.setContraIndicators(List.of("CI1"));
 
         documentCheckResultItem.setStrengthScore(3);
         documentCheckResultItem.setValidityScore(2);

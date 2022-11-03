@@ -5,10 +5,17 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 
 import java.io.IOException;
 import java.net.http.HttpConnectTimeoutException;
+
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_FAIL;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_MAX_RETRIES;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_RETRY;
 
 public class HttpRetryer {
 
@@ -20,9 +27,12 @@ public class HttpRetryer {
     private final SleepHelper sleepHelper;
     private final CloseableHttpClient httpClient;
 
-    public HttpRetryer(CloseableHttpClient httpClient) {
+    private final EventProbe eventProbe;
+
+    public HttpRetryer(CloseableHttpClient httpClient, EventProbe eventProbe) {
         this.sleepHelper = new SleepHelper(HTTP_RETRY_WAIT_TIME_LIMIT_MS);
         this.httpClient = httpClient;
+        this.eventProbe = eventProbe;
     }
 
     CloseableHttpResponse sendHTTPRequestRetryIfAllowed(HttpPost request)
@@ -35,6 +45,11 @@ public class HttpRetryer {
         boolean retry = false;
 
         do {
+            // "If" added for capturing retries
+            if (retry) {
+                eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_RETRY);
+            }
+
             // Wait before sending request (0ms for first try)
             sleepHelper.sleepWithExponentialBackOff(tryCount);
 
@@ -52,6 +67,7 @@ public class HttpRetryer {
 
             } catch (IOException e) {
                 if (!(e instanceof HttpConnectTimeoutException)) {
+                    eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_FAIL);
                     throw e;
                 }
 
@@ -81,9 +97,16 @@ public class HttpRetryer {
             }
         } while (retry && (tryCount++ < MAX_HTTP_RETRIES));
 
-        LOGGER.info(
-                "HTTPRequestRetry Exited lastStatusCode {}",
-                httpResponse.getStatusLine().getStatusCode());
+        int lastStatusCode = httpResponse.getStatusLine().getStatusCode();
+        LOGGER.info("HTTPRequestRetry Exited lastStatusCode {}", lastStatusCode);
+
+        if (lastStatusCode == 200) {
+            eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
+        } else if (tryCount < MAX_HTTP_RETRIES) {
+            eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_ERROR);
+        } else {
+            eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_MAX_RETRIES);
+        }
 
         return httpResponse;
     }

@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
@@ -66,17 +67,20 @@ class ThirdPartyDocumentGatewayTest {
         private final DcsCryptographyService dcsCryptographyService;
         private final ConfigurationService configurationService;
         private final HttpRetryer httpRetryer;
+        private final EventProbe eventProbe;
 
         private ExperianGatewayConstructorArgs(
                 ObjectMapper objectMapper,
                 DcsCryptographyService dcsCryptographyService,
                 ConfigurationService configurationService,
-                HttpRetryer httpRetryer) {
+                HttpRetryer httpRetryer,
+                EventProbe eventProbe) {
 
             this.objectMapper = objectMapper;
             this.dcsCryptographyService = dcsCryptographyService;
             this.httpRetryer = httpRetryer;
             this.configurationService = configurationService;
+            this.eventProbe = eventProbe;
         }
     }
 
@@ -91,6 +95,8 @@ class ThirdPartyDocumentGatewayTest {
     @Mock private HttpRetryer httpRetryer;
     @Mock private DcsCryptographyService dcsCryptographyService;
 
+    @Mock private EventProbe mockEventProbe;
+
     @BeforeEach
     void setUp() {
         lenient()
@@ -101,7 +107,8 @@ class ThirdPartyDocumentGatewayTest {
                         mockObjectMapper,
                         dcsCryptographyService,
                         configurationService,
-                        httpRetryer);
+                        httpRetryer,
+                        mockEventProbe);
     }
 
     @Test
@@ -361,11 +368,12 @@ class ThirdPartyDocumentGatewayTest {
         Map<String, ExperianGatewayConstructorArgs> testCases =
                 Map.of(
                         "objectMapper must not be null",
-                        new ExperianGatewayConstructorArgs(null, null, null, null),
+                        new ExperianGatewayConstructorArgs(null, null, null, null, null),
                         "crossCoreApiConfig must not be null",
                         new ExperianGatewayConstructorArgs(
                                 Mockito.mock(ObjectMapper.class),
                                 Mockito.mock(DcsCryptographyService.class),
+                                null,
                                 null,
                                 null));
 
@@ -378,7 +386,8 @@ class ThirdPartyDocumentGatewayTest {
                                                 constructorArgs.objectMapper,
                                                 constructorArgs.dcsCryptographyService,
                                                 constructorArgs.configurationService,
-                                                constructorArgs.httpRetryer),
+                                                constructorArgs.httpRetryer,
+                                                constructorArgs.eventProbe),
                                 errorMessage));
     }
 

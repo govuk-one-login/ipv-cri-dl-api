@@ -17,26 +17,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PersonIdentityValidatorTest {
+class FormDataValidatorTest {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
     @Test
-    void testPersonIdentityNameCannotBeNull() {
+    void testFormDataValidatorNamesCannotBeNull() {
 
         final String TEST_STRING = null;
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setForenames(null);
         drivingPermitForm.setSurname(TEST_STRING);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         final String EXPECTED_ERROR_0 =
-                "FirstName" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
+                "Forenames" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
         final String EXPECTED_ERROR_1 =
                 "Surname" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
 
@@ -51,17 +51,17 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityDOBCannotBeNull() {
+    void testFormDataValidatorDOBCannotBeNull() {
 
         final LocalDate TEST_LOCAL_DATE = null;
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setDateOfBirth(TEST_LOCAL_DATE);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         final String EXPECTED_ERROR =
                 "DateOfBirth" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
@@ -75,17 +75,17 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesCannotBeNull() {
+    void testFormDataValidatorAddressesCannotBeNull() {
 
         final List<Address> TEST_ADDRESSES = null;
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         final String EXPECTED_ERROR =
                 "Addresses" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
@@ -99,17 +99,17 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesCannotBeEmpty() {
+    void testFormDataValidatorAddressesCannotBeEmpty() {
 
         final List<Address> TEST_ADDRESSES = new ArrayList<>();
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         final String TEST_INTEGER_NAME = "Addresses";
         final int TEST_VALUE = TEST_ADDRESSES.size();
@@ -117,8 +117,8 @@ class PersonIdentityValidatorTest {
         final String EXPECTED_ERROR =
                 JsonValidationUtility.createIntegerRangeErrorMessage(
                         TEST_VALUE,
-                        PersonIdentityValidator.MIN_SUPPORTED_ADDRESSES,
-                        PersonIdentityValidator.MAX_SUPPORTED_ADDRESSES,
+                        FormDataValidator.MIN_SUPPORTED_ADDRESSES,
+                        FormDataValidator.MAX_SUPPORTED_ADDRESSES,
                         TEST_INTEGER_NAME);
 
         LOGGER.info(validationResult.getError().toString());
@@ -130,9 +130,9 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityTooManyAddressesFail() {
+    void testFormDataValidatorTooManyAddressesFail() {
 
-        final int addressChainLength = PersonIdentityValidator.MAX_SUPPORTED_ADDRESSES;
+        final int addressChainLength = FormDataValidator.MAX_SUPPORTED_ADDRESSES;
         final int additionalCurrentAddresses = 1;
         final int additionalPreviousAddresses = 0;
         final int TOTAL_ADDRESSES = addressChainLength + additionalCurrentAddresses;
@@ -145,16 +145,16 @@ class PersonIdentityValidatorTest {
                         additionalPreviousAddresses,
                         shuffleAddresses);
 
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         final String EXPECTED_ERROR =
                 JsonValidationUtility.createIntegerRangeErrorMessage(
                         TOTAL_ADDRESSES,
-                        PersonIdentityValidator.MIN_SUPPORTED_ADDRESSES,
-                        PersonIdentityValidator.MAX_SUPPORTED_ADDRESSES,
+                        FormDataValidator.MIN_SUPPORTED_ADDRESSES,
+                        FormDataValidator.MAX_SUPPORTED_ADDRESSES,
                         "Addresses");
 
         LOGGER.info(validationResult.getError().toString());
@@ -166,7 +166,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesValidCurrentAddressIsOk() {
+    void testFormDataValidatorAddressesValidCurrentAddressIsOk() {
 
         final Address TEST_CURRENT_ADDRESS = new Address();
         TEST_CURRENT_ADDRESS.setValidFrom(LocalDate.now());
@@ -174,12 +174,12 @@ class PersonIdentityValidatorTest {
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
         assertEquals(0, validationResult.getError().size());
@@ -187,7 +187,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesCurrentAddressNullDatesIsOk() {
+    void testFormDataValidatorAddressesCurrentAddressNullDatesIsOk() {
         // Edge case scenario : A current address where user does not know when exactly they moved
         // in (ValidFrom null).
 
@@ -198,12 +198,12 @@ class PersonIdentityValidatorTest {
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
         assertEquals(0, validationResult.getError().size());
@@ -211,7 +211,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesCurrentAddressWithFutureDatesIsFail() {
+    void testFormDataValidatorAddressesCurrentAddressWithFutureDatesIsFail() {
 
         final Address TEST_CURRENT_ADDRESS = new Address();
         TEST_CURRENT_ADDRESS.setValidFrom(LocalDate.now().plusYears(1));
@@ -220,15 +220,14 @@ class PersonIdentityValidatorTest {
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
-        final String EXPECTED_ERROR =
-                PersonIdentityValidator.createAddressCheckErrorMessage(1, 0, 0, 1);
+        final String EXPECTED_ERROR = FormDataValidator.createAddressCheckErrorMessage(1, 0, 0, 1);
 
         LOGGER.info(validationResult.getError().toString());
 
@@ -239,7 +238,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesValidCurrentAndPreviousAddressIsOk() {
+    void testFormDataValidatorAddressesValidCurrentAndPreviousAddressIsOk() {
 
         final Address TEST_CURRENT_ADDRESS = new Address();
         TEST_CURRENT_ADDRESS.setValidFrom(LocalDate.of(1999, 12, 31));
@@ -252,12 +251,12 @@ class PersonIdentityValidatorTest {
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS, TEST_PREVIOUS_ADDRESS);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         LOGGER.info(validationResult.getError().toString());
 
@@ -267,7 +266,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesAValidCurrentAndPreviousAddressAreInReverseOrderIsOk() {
+    void testFormDataValidatorAddressesAValidCurrentAndPreviousAddressAreInReverseOrderIsOk() {
 
         final Address TEST_CURRENT_ADDRESS = new Address();
         TEST_CURRENT_ADDRESS.setValidFrom(LocalDate.now());
@@ -278,12 +277,12 @@ class PersonIdentityValidatorTest {
         final List<Address> TEST_ADDRESSES = List.of(TEST_PREVIOUS_ADDRESS, TEST_CURRENT_ADDRESS);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
         assertEquals(0, validationResult.getError().size());
@@ -291,7 +290,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesValidCurrentAndPreviousAddressOverlapIsOk() {
+    void testFormDataValidatorAddressesValidCurrentAndPreviousAddressOverlapIsOk() {
         // Edge case scenario : A current address where user has moved out of the previous on the
         // current date
         // (CURRENT ValidFrom == PREVIOUS ValidUntil).
@@ -305,12 +304,12 @@ class PersonIdentityValidatorTest {
         final List<Address> TEST_ADDRESSES = List.of(TEST_CURRENT_ADDRESS, TEST_PREVIOUS_ADDRESS);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
         assertEquals(0, validationResult.getError().size());
@@ -318,7 +317,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesMultipleCurrentAddressesIsOk() {
+    void testFormDataValidatorAddressesMultipleCurrentAddressesIsOk() {
 
         final Address TEST_CURRENT_ADDRESS_1 = new Address();
         TEST_CURRENT_ADDRESS_1.setValidFrom(LocalDate.now());
@@ -332,12 +331,12 @@ class PersonIdentityValidatorTest {
                 List.of(TEST_CURRENT_ADDRESS_1, TEST_CURRENT_ADDRESS_2);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
         drivingPermitForm.setAddresses(TEST_ADDRESSES);
 
         ValidationResult<List<String>> validationResult =
-                personIdentityValidator.validate(drivingPermitForm);
+                formDataValidator.validate(drivingPermitForm);
 
         assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
         assertEquals(0, validationResult.getError().size());
@@ -345,7 +344,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesManyPreviousAddressesFail() {
+    void testFormDataValidatorAddressesManyPreviousAddressesFail() {
 
         final int addressChainLength = 0;
         final int additionalCurrentAddresses = 0;
@@ -361,12 +360,12 @@ class PersonIdentityValidatorTest {
                         additionalPreviousAddresses,
                         shuffleAddresses);
 
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
-        ValidationResult<List<String>> validationResult = personIdentityValidator.validate(form);
+        ValidationResult<List<String>> validationResult = formDataValidator.validate(form);
 
         final String EXPECTED_ERROR =
-                PersonIdentityValidator.createAddressCheckErrorMessage(
+                FormDataValidator.createAddressCheckErrorMessage(
                         TOTAL_ADDRESSES,
                         additionalCurrentAddresses,
                         additionalPreviousAddresses,
@@ -381,7 +380,7 @@ class PersonIdentityValidatorTest {
     }
 
     @Test
-    void testPersonIdentityAddressesManyValidCurrentAndValidPreviousAddressesOutOfOrderIsOK() {
+    void testFormDataValidatorAddressesManyValidCurrentAndValidPreviousAddressesOutOfOrderIsOK() {
 
         final int addressChainLength = 10;
         final int additionalCurrentAddresses = 5;
@@ -397,9 +396,9 @@ class PersonIdentityValidatorTest {
                         additionalPreviousAddresses,
                         shuffleAddresses);
 
-        PersonIdentityValidator personIdentityValidator = new PersonIdentityValidator();
+        FormDataValidator formDataValidator = new FormDataValidator();
 
-        ValidationResult<List<String>> validationResult = personIdentityValidator.validate(form);
+        ValidationResult<List<String>> validationResult = formDataValidator.validate(form);
 
         assertEquals(TOTAL_ADDRESSES, form.getAddresses().size());
         assertEquals(0, validationResult.getError().size());

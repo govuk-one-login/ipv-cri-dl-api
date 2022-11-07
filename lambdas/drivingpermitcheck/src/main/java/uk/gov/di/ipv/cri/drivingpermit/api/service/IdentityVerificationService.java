@@ -3,10 +3,12 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
@@ -28,20 +30,20 @@ public class IdentityVerificationService {
     private static final int MAX_DRIVING_ACTIVITY_HISTORY_SCORE = 1;
     private static final int MIN_DRIVING_ACTIVITY_HISTORY_SCORE = 0;
 
-    private final PersonIdentityValidator personIdentityValidator;
+    private final FormDataValidator formDataValidator;
     private final ThirdPartyDocumentGateway thirdPartyGateway;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
 
     IdentityVerificationService(
             ThirdPartyDocumentGateway thirdPartyGateway,
-            PersonIdentityValidator personIdentityValidator,
+            FormDataValidator formDataValidator,
             ContraindicationMapper contraindicationMapper,
             AuditService auditService,
             ConfigurationService configurationService,
             ObjectMapper objectMapper) {
         this.thirdPartyGateway = thirdPartyGateway;
-        this.personIdentityValidator = personIdentityValidator;
+        this.formDataValidator = formDataValidator;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
     }
@@ -51,23 +53,25 @@ public class IdentityVerificationService {
         DocumentCheckVerificationResult result = new DocumentCheckVerificationResult();
 
         try {
-            LOGGER.info("Validating identity...");
+            LOGGER.info("Validating form data...");
             ValidationResult<List<String>> validationResult =
-                    this.personIdentityValidator.validate(drivingPermitData);
+                    this.formDataValidator.validate(drivingPermitData);
             if (!validationResult.isValid()) {
-                result.setExecutedSuccessfully(false);
-                result.setValidationErrors(validationResult.getError());
-                result.setError("IdentityValidationError");
-                return result;
+                String errorMessages = String.join(",", validationResult.getError());
+                LOGGER.error(
+                        "{} - {} ",
+                        ErrorResponse.FORM_DATA_FAILED_VALIDATION.getMessage(),
+                        errorMessages);
+
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FORM_DATA_FAILED_VALIDATION);
             }
-            LOGGER.info("Identity info validated");
+            LOGGER.info("Form data validated");
             DocumentCheckResult documentCheckResult =
                     thirdPartyGateway.performDocumentCheck(drivingPermitData);
 
             LOGGER.info("Third party response mapped");
-            LOGGER.info(
-                    "Third party response {}",
-                    new ObjectMapper().writeValueAsString(documentCheckResult));
             if (Objects.nonNull(documentCheckResult)) {
                 result.setExecutedSuccessfully(documentCheckResult.isExecutedSuccessfully());
                 if (result.isExecutedSuccessfully()) {

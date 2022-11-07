@@ -33,7 +33,7 @@ public class ServiceFactory {
     private final ContraindicationMapper contraindicationMapper;
     private final DcsCryptographyService dcsCryptographyService;
     private final ConfigurationService configurationService;
-    private final PersonIdentityValidator personIdentityValidator;
+    private final FormDataValidator formDataValidator;
     private final ObjectMapper objectMapper;
     private final CloseableHttpClient httpClient;
     private final AuditService auditService;
@@ -43,7 +43,7 @@ public class ServiceFactory {
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
                     InvalidKeySpecException, KeyStoreException, IOException, HttpException {
         this.objectMapper = objectMapper;
-        this.personIdentityValidator = new PersonIdentityValidator();
+        this.formDataValidator = new FormDataValidator();
         this.configurationService = createConfigurationService();
         this.dcsCryptographyService = new DcsCryptographyService(configurationService);
         this.contraindicationMapper = new ContraIndicatorRemoteMapper(configurationService);
@@ -59,7 +59,7 @@ public class ServiceFactory {
             ConfigurationService configurationService,
             DcsCryptographyService dcsCryptographyService,
             ContraindicationMapper contraindicationMapper,
-            PersonIdentityValidator personIdentityValidator,
+            FormDataValidator formDataValidator,
             CloseableHttpClient httpClient,
             AuditService auditService,
             HttpRetryer httpRetryer)
@@ -68,7 +68,7 @@ public class ServiceFactory {
         this.configurationService = configurationService;
         this.dcsCryptographyService = dcsCryptographyService;
         this.contraindicationMapper = contraindicationMapper;
-        this.personIdentityValidator = personIdentityValidator;
+        this.formDataValidator = formDataValidator;
         this.httpClient = httpClient;
         this.auditService = auditService;
         this.httpRetryer = httpRetryer;
@@ -103,7 +103,7 @@ public class ServiceFactory {
 
         return new IdentityVerificationService(
                 thirdPartyGateway,
-                this.personIdentityValidator,
+                this.formDataValidator,
                 this.contraindicationMapper,
                 auditService,
                 configurationService,

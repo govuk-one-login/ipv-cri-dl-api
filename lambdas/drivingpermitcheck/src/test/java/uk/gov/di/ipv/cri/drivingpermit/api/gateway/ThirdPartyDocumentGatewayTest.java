@@ -28,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
@@ -162,13 +163,17 @@ class ThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        DocumentCheckResult actualFraudCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+        OAuthHttpResponseExceptionWithErrorBody e =
+                assertThrows(
+                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        () -> {
+                            DocumentCheckResult actualFraudCheckResult =
+                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                            drivingPermitForm);
+                        });
 
-        final String EXPECTED_ERROR = ThirdPartyDocumentGateway.HTTP_300_REDIRECT_MESSAGE + 300;
-
-        assertNotNull(actualFraudCheckResult);
-        assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
+        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_30x.getMessage();
+        assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/driving-licence",
@@ -202,13 +207,17 @@ class ThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        DocumentCheckResult actualFraudCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+        OAuthHttpResponseExceptionWithErrorBody e =
+                assertThrows(
+                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        () -> {
+                            DocumentCheckResult actualFraudCheckResult =
+                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                            drivingPermitForm);
+                        });
 
-        final String EXPECTED_ERROR = ThirdPartyDocumentGateway.HTTP_400_CLIENT_REQUEST_ERROR + 400;
-
-        assertNotNull(actualFraudCheckResult);
-        assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
+        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_40x.getMessage();
+        assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/driving-licence",
@@ -243,13 +252,17 @@ class ThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        DocumentCheckResult actualFraudCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+        OAuthHttpResponseExceptionWithErrorBody e =
+                assertThrows(
+                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        () -> {
+                            DocumentCheckResult actualFraudCheckResult =
+                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                            drivingPermitForm);
+                        });
 
-        final String EXPECTED_ERROR = ThirdPartyDocumentGateway.HTTP_500_SERVER_ERROR + 500;
-
-        assertNotNull(actualFraudCheckResult);
-        assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
+        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_50x.getMessage();
+        assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/driving-licence",
@@ -282,14 +295,17 @@ class ThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        DocumentCheckResult actualFraudCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+        OAuthHttpResponseExceptionWithErrorBody e =
+                assertThrows(
+                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        () -> {
+                            DocumentCheckResult actualFraudCheckResult =
+                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                            drivingPermitForm);
+                        });
 
-        final String EXPECTED_ERROR =
-                ThirdPartyDocumentGateway.HTTP_UNHANDLED_ERROR + MOCK_HTTP_STATUS_CODE;
-
-        assertNotNull(actualFraudCheckResult);
-        assertEquals(EXPECTED_ERROR, actualFraudCheckResult.getErrorMessage());
+        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_X.getMessage();
+        assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/driving-licence",

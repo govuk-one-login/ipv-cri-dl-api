@@ -50,17 +50,8 @@ public class ThirdPartyDocumentGateway {
     private final ConfigurationService configurationService;
     private final HttpRetryer httpRetryer;
 
-    public static final String HTTP_300_REDIRECT_MESSAGE =
-            "Redirection Message returned from Document Check Response, Status Code - ";
-    public static final String HTTP_400_CLIENT_REQUEST_ERROR =
-            "Client Request Error returned from Document Check Response, Status Code - ";
-    public static final String HTTP_500_SERVER_ERROR =
-            "Server Error returned from Document Check Response, Status Code - ";
-
     private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
     private static final String IDENTITY_CHECK_POLICY = "published";
-    public static final String HTTP_UNHANDLED_ERROR =
-            "Unhandled HTTP Response from Document Check Response, Status Code - ";
 
     public ThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
@@ -130,8 +121,8 @@ public class ThirdPartyDocumentGateway {
                 dcsPayload.setDateOfIssue(documentIssueDate);
                 break;
             case DVLA:
-                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
                 documentIssueDate = drivingPermitData.getIssueDate();
+                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
 
                 dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
 
@@ -148,7 +139,7 @@ public class ThirdPartyDocumentGateway {
         JWSObject preparedDcsPayload = preparePayload(dcsPayload);
 
         String requestBody = preparedDcsPayload.serialize();
-        LOGGER.info("JOSE String " + requestBody);
+
         URI endpoint = URI.create(dcsEndpointUri);
         HttpPost request = requestBuilder(endpoint, requestBody);
 
@@ -157,22 +148,24 @@ public class ThirdPartyDocumentGateway {
 
         DocumentCheckResult documentCheckResult = responseHandler(httpResponse);
 
-        // Data capture for VC
-        CheckDetails checkDetails = new CheckDetails();
-        checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
-        checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
+        if (documentCheckResult.isExecutedSuccessfully()) {
+            // Data capture for VC
+            CheckDetails checkDetails = new CheckDetails();
+            checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
+            checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
 
-        if (documentCheckResult.isValid()) {
-            // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
-            checkDetails.setActivityFrom(documentIssueDate.toString());
+            if (documentCheckResult.isValid()) {
+                // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
+                checkDetails.setActivityFrom(documentIssueDate.toString());
+            }
+            documentCheckResult.setCheckDetails(checkDetails);
+
+            DrivingPermit permit = new DrivingPermit();
+            permit.setIssuedBy(licenceIssuer.toString());
+            permit.setDocumentNumber(drivingPermitDocumentNumber);
+            permit.setExpiryDate(drivingPermitExpiryDate.toString());
+            documentCheckResult.setDrivingPermit(permit);
         }
-        documentCheckResult.setCheckDetails(checkDetails);
-
-        DrivingPermit permit = new DrivingPermit();
-        permit.setIssuedBy(licenceIssuer.toString());
-        permit.setDocumentNumber(drivingPermitDocumentNumber);
-        permit.setExpiryDate(drivingPermitExpiryDate.toString());
-        documentCheckResult.setDrivingPermit(permit);
 
         return documentCheckResult;
     }
@@ -208,40 +201,61 @@ public class ThirdPartyDocumentGateway {
             throws IOException, ParseException, JOSEException, CertificateException,
                     OAuthHttpResponseExceptionWithErrorBody {
         int statusCode = httpResponse.getStatusLine().getStatusCode();
-        LOGGER.info("Third party response code {}", statusCode);
 
         HttpEntity entity = httpResponse.getEntity();
         String responseBody = EntityUtils.toString(entity);
 
         if (statusCode == 200) {
-            DcsResponse unwrappedDcsResponse =
-                    dcsCryptographyService.unwrapDcsResponse(responseBody);
-            validateDcsResponse(unwrappedDcsResponse);
+            LOGGER.info("Third party response code {}", statusCode);
 
-            DocumentCheckResult documentCheckResult = new DocumentCheckResult();
-            documentCheckResult.setExecutedSuccessfully(true);
-            documentCheckResult.setTransactionId(unwrappedDcsResponse.getRequestId());
-            documentCheckResult.setValid(unwrappedDcsResponse.isValid());
+            try {
+                DcsResponse unwrappedDcsResponse =
+                        dcsCryptographyService.unwrapDcsResponse(responseBody);
+                validateDcsResponse(unwrappedDcsResponse);
 
-            LOGGER.info("Third party response successfully mapped");
-            return documentCheckResult;
+                LOGGER.info("Third party response successfully mapped");
+
+                DocumentCheckResult documentCheckResult = new DocumentCheckResult();
+                documentCheckResult.setExecutedSuccessfully(true);
+                documentCheckResult.setTransactionId(unwrappedDcsResponse.getRequestId());
+                documentCheckResult.setValid(unwrappedDcsResponse.isValid());
+
+                return documentCheckResult;
+            } catch (IpvCryptoException e) {
+                // Seen when a signing cert has expired and all message signatures fail verification
+                // We need to log this specific error message from the IpvCryptoException for
+                // context
+                LOGGER.error(e.getMessage(), e);
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_UNWRAP_DCS_RESPONSE);
+            }
         } else {
-            DocumentCheckResult documentCheckResult = new DocumentCheckResult();
-            documentCheckResult.setExecutedSuccessfully(false);
+
+            String responseText = responseBody == null ? "No Text Found" : responseBody;
+
+            LOGGER.error(
+                    "DCS replied with HTTP status code {}, response text: {}",
+                    statusCode,
+                    responseText);
 
             if (statusCode >= 300 && statusCode <= 399) {
-                documentCheckResult.setErrorMessage(HTTP_300_REDIRECT_MESSAGE + statusCode);
+                // Not Seen
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_30x);
             } else if (statusCode >= 400 && statusCode <= 499) {
-                documentCheckResult.setErrorMessage(HTTP_400_CLIENT_REQUEST_ERROR + statusCode);
+                // Seen when a cert has expired
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_40x);
             } else if (statusCode >= 500 && statusCode <= 599) {
-                documentCheckResult.setErrorMessage(HTTP_500_SERVER_ERROR + statusCode);
+                // Error on DCS side
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_50x);
             } else {
-                documentCheckResult.setErrorMessage(HTTP_UNHANDLED_ERROR + statusCode);
+                // Any other status codes
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_X);
             }
-
-            LOGGER.info("Third party response is fail with status code {}", statusCode);
-
-            return documentCheckResult;
         }
     }
 

@@ -226,7 +226,7 @@ Resources:
           "responseLength":"$context.responseLength"
           }
       TracingEnabled: true
-      Name: !Sub "driving-permit-cri-${AWS::StackName}"
+      Name: !Sub "${AWS::StackName}-PublicDLApi"
       StageName: !Ref Environment
       DefinitionBody:
         openapi: "3.0.1" # workaround to get `sam validate` to work
@@ -248,18 +248,18 @@ Resources:
               properties:
                 access_token:
                   type: string
-                  description: The Access Token for the given token request
+                  description: The Access Token for the given token request.
                 token_type:
                   type: string
-                  description: The Token Type issued
+                  description: The Token Type issued.
                   example: Bearer
                 expires_in:
                   type: string
-                  description: The expiry time, in seconds
+                  description: The expiry time, in seconds.
                   example: '3600'
                 refresh_token:
                   type: string
-                  description: The refresh token is optional, not currently applicable
+                  description: The refresh token is optional, not currently applicable.
             Error:
               title: "Error Schema"
               type: "object"
@@ -308,7 +308,7 @@ Resources:
           "responseLength":"$context.responseLength"
           }
       TracingEnabled: true
-      Name: !Sub "driving-permit-cri-${AWS::StackName}"
+      Name: !Sub "${AWS::StackName}-PrivateDLApi"
       StageName: !Ref Environment
       DefinitionBody:
         openapi: "3.0.1" # workaround to get `sam validate` to work
@@ -995,6 +995,162 @@ Resources:
             Condition:
               ArnLike:
                 "kms:EncryptionContext:aws:logs:arn": !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+
+####################################################################
+#                                                                  #
+# Alerts                                                           #
+#                                                                  #
+####################################################################
+
+  DLLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} lambda errors
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: [ ]
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 300
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  DLAPIGW5XXErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} API Gateway 5XX errors
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: e1
+          Label: Expression1
+          ReturnData: true
+          Expression: SUM(METRICS())
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PublicDLApi"
+            Period: 300
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
+            Period: 300
+            Stat: Sum
+
+  DLAPIGW4XXErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} API Gateway 4XX errors
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 3
+      Threshold: 2
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: e1
+          Label: Expression1
+          ReturnData: true
+          Expression: SUM(METRICS())
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 4XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PublicDLApi"
+            Period: 300
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 4XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
+            Period: 300
+            Stat: Sum
+
+####################################################################
+#                                                                  #
+# Alarm setup                                                      #
+#                                                                  #
+####################################################################
+
+  AlarmTopicDL:
+    Type: AWS::SNS::Topic
+    Metadata:
+      SamResourceId: AlarmTopicDL
+  AlarmTopicSubscriptionPagerDutyDL:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn:
+        Ref: AlarmTopicDL
+      Endpoint:
+        Fn::Sub: '{{resolve:ssm:/alerting/pagerduty-dl/url}}'
+      Protocol: https
+    Metadata:
+      SamResourceId: AlarmTopicSubscriptionPagerDutyDL
+  AlarmPublishToTopicPolicyDL:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - Ref: AlarmTopicDL
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sns:Publish
+            Resource:
+              Ref: AlarmTopicDL
+            Principal:
+              Service: cloudwatch.amazonaws.com
+            Condition:
+              ArnLike:
+                AWS:SourceArn:
+                  Fn::Sub: arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*
+    Metadata:
+      SamResourceId: AlarmPublishToTopicPolicyDL
 
 Outputs:
   StackName:

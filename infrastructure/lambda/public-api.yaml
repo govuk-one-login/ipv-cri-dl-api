@@ -38,13 +38,13 @@ paths:
                   example: "https://di-ipv-core-stub.london.cloudapps.digital/callback"
       responses:
         "201":
-          description: "201 response"
+          description: "201 response."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/TokenResponse"
         "400":
-          description: "400 response"
+          description: "400 response."
           content:
             application/json:
               schema:

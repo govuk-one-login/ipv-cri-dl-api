@@ -16,6 +16,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
@@ -41,6 +42,11 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.ISSUING_AUTHORITY_PREFIX;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_CREATED;
+
 public class ThirdPartyDocumentGateway {
 
     private static final Logger LOGGER = LogManager.getLogger();
@@ -49,7 +55,7 @@ public class ThirdPartyDocumentGateway {
     private final DcsCryptographyService dcsCryptographyService;
     private final ConfigurationService configurationService;
     private final HttpRetryer httpRetryer;
-
+    private final EventProbe eventProbe;
     private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
     private static final String IDENTITY_CHECK_POLICY = "published";
 
@@ -57,7 +63,8 @@ public class ThirdPartyDocumentGateway {
             ObjectMapper objectMapper,
             DcsCryptographyService dcsCryptographyService,
             ConfigurationService configurationService,
-            HttpRetryer httpRetryer) {
+            HttpRetryer httpRetryer,
+            EventProbe eventProbe) {
         Objects.requireNonNull(objectMapper, "objectMapper must not be null");
         Objects.requireNonNull(dcsCryptographyService, "dcsCryptographyService must not be null");
         Objects.requireNonNull(configurationService, "configurationService must not be null");
@@ -67,6 +74,7 @@ public class ThirdPartyDocumentGateway {
         this.dcsCryptographyService = dcsCryptographyService;
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
+        this.eventProbe = eventProbe;
     }
 
     public ThirdPartyDocumentGateway(
@@ -75,7 +83,8 @@ public class ThirdPartyDocumentGateway {
             SleepHelper sleepHelper,
             DcsCryptographyService dcsCryptographyService,
             ConfigurationService configurationService,
-            HttpRetryer httpRetryer) {
+            HttpRetryer httpRetryer,
+            EventProbe eventProbe) {
         Objects.requireNonNull(objectMapper, "objectMapper must not be null");
         Objects.requireNonNull(dcsCryptographyService, "dcsCryptographyService must not be null");
         Objects.requireNonNull(configurationService, "configurationService must not be null");
@@ -88,6 +97,7 @@ public class ThirdPartyDocumentGateway {
         this.dcsCryptographyService = dcsCryptographyService;
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
+        this.eventProbe = eventProbe;
     }
 
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
@@ -101,6 +111,8 @@ public class ThirdPartyDocumentGateway {
         try {
             licenceIssuer = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
             LOGGER.info("Document Issuer {}", licenceIssuer);
+            eventProbe.counterMetric(
+                    ISSUING_AUTHORITY_PREFIX + licenceIssuer.toString().toLowerCase());
         } catch (IllegalArgumentException e) {
             throw new OAuthHttpResponseExceptionWithErrorBody(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -142,6 +154,8 @@ public class ThirdPartyDocumentGateway {
 
         URI endpoint = URI.create(dcsEndpointUri);
         HttpPost request = requestBuilder(endpoint, requestBody);
+
+        eventProbe.counterMetric(THIRD_PARTY_REQUEST_CREATED);
 
         LOGGER.info("Submitting document check request to third party...");
         CloseableHttpResponse httpResponse = httpRetryer.sendHTTPRequestRetryIfAllowed(request);
@@ -214,6 +228,7 @@ public class ThirdPartyDocumentGateway {
                 validateDcsResponse(unwrappedDcsResponse);
 
                 LOGGER.info("Third party response successfully mapped");
+                eventProbe.counterMetric(THIRD_PARTY_DCS_RESPONSE_OK);
 
                 DocumentCheckResult documentCheckResult = new DocumentCheckResult();
                 documentCheckResult.setExecutedSuccessfully(true);
@@ -226,6 +241,7 @@ public class ThirdPartyDocumentGateway {
                 // We need to log this specific error message from the IpvCryptoException for
                 // context
                 LOGGER.error(e.getMessage(), e);
+                eventProbe.counterMetric(THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR);
                 throw new OAuthHttpResponseExceptionWithErrorBody(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_UNWRAP_DCS_RESPONSE);
@@ -238,6 +254,8 @@ public class ThirdPartyDocumentGateway {
                     "DCS replied with HTTP status code {}, response text: {}",
                     statusCode,
                     responseText);
+
+            eventProbe.counterMetric(THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR);
 
             if (statusCode >= 300 && statusCode <= 399) {
                 // Not Seen

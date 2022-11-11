@@ -13,7 +13,6 @@ import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
-import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,9 +42,11 @@ import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDat
 import java.util.Map;
 import java.util.UUID;
 
-import static org.apache.logging.log4j.Level.ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DRIVING_PERMIT_CI_PREFIX;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
 
 @ExtendWith(MockitoExtension.class)
 class IssueCredentialHandlerTest {
@@ -109,8 +110,9 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
+        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
         verify(mockEventProbe)
-                .counterMetric(IssueCredentialHandler.DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
+                .counterMetric(DRIVING_PERMIT_CI_PREFIX + resultItem.getContraIndicators().get(0));
         assertEquals(
                 ContentType.APPLICATION_JWT.getType(), response.getHeaders().get("Content-Type"));
         assertEquals(HttpStatusCode.OK, response.getStatusCode());
@@ -126,7 +128,7 @@ class IssueCredentialHandlerTest {
                         IssueCredentialHandler.AUTHORIZATION_HEADER_KEY,
                         accessToken.toAuthorizationHeader()));
         setRequestBodyAsPlainJWT(event);
-        setupEventProbeErrorBehaviour();
+
         var unExpectedJOSEException = new JOSEException("Unexpected JOSE object type: JWSObject");
 
         var personIdentityDetailed =
@@ -155,8 +157,11 @@ class IssueCredentialHandlerTest {
         verify(mockVerifiableCredentialService)
                 .generateSignedVerifiableCredentialJwt(
                         sessionItem.getSubject(), resultItem, personIdentityDetailed);
-        verify(mockEventProbe)
-                .counterMetric(IssueCredentialHandler.DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
+        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        // There is a CI in the test result, we check we do not record CI metrics for a VC
+        // generation Error
+        verify(mockEventProbe, never())
+                .counterMetric(DRIVING_PERMIT_CI_PREFIX + resultItem.getContraIndicators().get(0));
         verifyNoMoreInteractions(mockVerifiableCredentialService);
         verify(mockAuditService, never())
                 .sendAuditEvent(
@@ -175,11 +180,9 @@ class IssueCredentialHandlerTest {
     void shouldThrowCredentialRequestExceptionWhenAuthorizationHeaderIsNotSupplied()
             throws SqsException {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
-        setupEventProbeErrorBehaviour();
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
-        verify(mockEventProbe)
-                .counterMetric(IssueCredentialHandler.DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
+        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
         verify(mockAuditService, never())
                 .sendAuditEvent(
                         eq(AuditEventType.VC_ISSUED),
@@ -201,7 +204,6 @@ class IssueCredentialHandlerTest {
                         accessToken.toAuthorizationHeader()));
 
         setRequestBodyAsPlainJWT(event);
-        setupEventProbeErrorBehaviour();
 
         AwsErrorDetails awsErrorDetails =
                 AwsErrorDetails.builder()
@@ -229,8 +231,7 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
-        verify(mockEventProbe)
-                .counterMetric(IssueCredentialHandler.DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
+        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
         verify(mockAuditService, never()).sendAuditEvent((AuditEventType) any());
         String responseBody = new ObjectMapper().readValue(response.getBody(), String.class);
         assertEquals(awsErrorDetails.sdkHttpResponse().statusCode(), response.getStatusCode());
@@ -248,7 +249,6 @@ class IssueCredentialHandlerTest {
                         accessToken.toAuthorizationHeader()));
 
         setRequestBodyAsPlainJWT(event);
-        setupEventProbeErrorBehaviour();
 
         AwsErrorDetails awsErrorDetails =
                 AwsErrorDetails.builder()
@@ -278,17 +278,10 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
-        verify(mockEventProbe).log(eq(ERROR), any(AwsServiceException.class));
-        verify(mockEventProbe)
-                .counterMetric(IssueCredentialHandler.DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
+        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
         String responseBody = new ObjectMapper().readValue(response.getBody(), String.class);
         assertEquals(awsErrorDetails.sdkHttpResponse().statusCode(), response.getStatusCode());
         assertEquals(awsErrorDetails.errorMessage(), responseBody);
-    }
-
-    private void setupEventProbeErrorBehaviour() {
-        when(mockEventProbe.counterMetric(anyString(), anyDouble())).thenReturn(mockEventProbe);
-        when(mockEventProbe.log(any(Level.class), any(Exception.class))).thenReturn(mockEventProbe);
     }
 
     private void setRequestBodyAsPlainJWT(APIGatewayProxyRequestEvent event) {

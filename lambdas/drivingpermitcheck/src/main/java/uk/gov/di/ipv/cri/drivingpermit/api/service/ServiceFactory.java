@@ -10,6 +10,7 @@ import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
 
@@ -38,24 +39,27 @@ public class ServiceFactory {
     private final CloseableHttpClient httpClient;
     private final AuditService auditService;
     private final HttpRetryer httpRetryer;
+    private final EventProbe eventProbe;
 
     public ServiceFactory(ObjectMapper objectMapper)
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
                     InvalidKeySpecException, KeyStoreException, IOException, HttpException {
         this.objectMapper = objectMapper;
+        this.eventProbe = new EventProbe();
         this.formDataValidator = new FormDataValidator();
         this.configurationService = createConfigurationService();
         this.dcsCryptographyService = new DcsCryptographyService(configurationService);
         this.contraindicationMapper = new ContraIndicatorRemoteMapper(configurationService);
         this.httpClient = generateHttpClient(configurationService);
         this.auditService = createAuditService(this.objectMapper);
-        this.httpRetryer = new HttpRetryer(httpClient);
+        this.httpRetryer = new HttpRetryer(httpClient, eventProbe);
         this.identityVerificationService = createIdentityVerificationService(this.auditService);
     }
 
     @ExcludeFromGeneratedCoverageReport
     ServiceFactory(
             ObjectMapper objectMapper,
+            EventProbe eventProbe,
             ConfigurationService configurationService,
             DcsCryptographyService dcsCryptographyService,
             ContraindicationMapper contraindicationMapper,
@@ -65,6 +69,7 @@ public class ServiceFactory {
             HttpRetryer httpRetryer)
             throws NoSuchAlgorithmException, InvalidKeyException {
         this.objectMapper = objectMapper;
+        this.eventProbe = eventProbe;
         this.configurationService = configurationService;
         this.dcsCryptographyService = dcsCryptographyService;
         this.contraindicationMapper = contraindicationMapper;
@@ -91,15 +96,16 @@ public class ServiceFactory {
         return this.identityVerificationService;
     }
 
-    private IdentityVerificationService createIdentityVerificationService(AuditService auditService)
-            throws NoSuchAlgorithmException, InvalidKeyException {
+    private IdentityVerificationService createIdentityVerificationService(
+            AuditService auditService) {
 
         ThirdPartyDocumentGateway thirdPartyGateway =
                 new ThirdPartyDocumentGateway(
                         this.objectMapper,
                         this.dcsCryptographyService,
                         this.configurationService,
-                        this.httpRetryer);
+                        this.httpRetryer,
+                        eventProbe);
 
         return new IdentityVerificationService(
                 thirdPartyGateway,
@@ -107,7 +113,8 @@ public class ServiceFactory {
                 this.contraindicationMapper,
                 auditService,
                 configurationService,
-                objectMapper);
+                objectMapper,
+                eventProbe);
     }
 
     public AuditService getAuditService() {
@@ -127,8 +134,8 @@ public class ServiceFactory {
     private static final char[] password = "password".toCharArray();
 
     public static CloseableHttpClient generateHttpClient(ConfigurationService configurationService)
-            throws NoSuchAlgorithmException, InvalidKeySpecException, CertificateException,
-                    KeyStoreException, IOException, HttpException {
+            throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
+                    HttpException {
         KeyStore keystoreTLS =
                 createKeyStore(
                         configurationService.getDrivingPermitTlsSelfCert(),

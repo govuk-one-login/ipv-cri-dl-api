@@ -41,7 +41,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static org.apache.logging.log4j.Level.ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DRIVING_PERMIT_CI_PREFIX;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
 
 public class IssueCredentialHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -49,8 +51,6 @@ public class IssueCredentialHandler
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String AUTHORIZATION_HEADER_KEY = "Authorization";
-    public static final String DRIVING_PERMIT_CREDENTIAL_ISSUER =
-            "driving_permit_credential_issuer";
     private final VerifiableCredentialService verifiableCredentialService;
     private final PersonIdentityService personIdentityService;
     private final DocumentCheckRetrievalService documentCheckRetrievalService;
@@ -125,27 +125,28 @@ public class IssueCredentialHandler
                             .generateVCISSDocumentCheckAuditExtension(
                                     verifiableCredentialService.getVerifiableCredentialIssuer(),
                                     List.of(documentCheckResult)));
-            eventProbe.counterMetric(DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
+
+            // CI Metric captured here as check lambda can have multiple attempts
+            recordCIMetrics(DRIVING_PERMIT_CI_PREFIX, documentCheckResult.getContraIndicators());
 
             LOGGER.info("Credential generated");
+            eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
             return ApiGatewayResponseGenerator.proxyJwtResponse(
                     HttpStatusCode.OK, signedJWT.serialize());
         } catch (AwsServiceException ex) {
-            LOGGER.warn(
+            LOGGER.error(
                     "Exception while handling lambda {} exception {}",
                     context.getFunctionName(),
                     ex.getClass());
-            eventProbe.log(ERROR, ex).counterMetric(DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
-
+            eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ex.awsErrorDetails().errorMessage());
         } catch (CredentialRequestException | ParseException | JOSEException e) {
-            LOGGER.warn(
+            LOGGER.error(
                     "Exception while handling lambda {} exception {}",
                     context.getFunctionName(),
                     e.getClass());
-            eventProbe.log(ERROR, e).counterMetric(DRIVING_PERMIT_CREDENTIAL_ISSUER, 0d);
-
+            eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.BAD_REQUEST, ErrorResponse.VERIFIABLE_CREDENTIAL_ERROR);
         } catch (SqsException sqsException) {
@@ -153,6 +154,7 @@ public class IssueCredentialHandler
                     "Exception while handling lambda {} exception {}",
                     context.getFunctionName(),
                     sqsException.getClass());
+            eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, sqsException.getMessage());
         } catch (Exception e) {
@@ -160,6 +162,7 @@ public class IssueCredentialHandler
                     "Exception while handling lambda {} exception {}",
                     context.getFunctionName(),
                     e.getClass());
+            eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -188,5 +191,15 @@ public class IssueCredentialHandler
         Supplier<VerifiableCredentialService> factory =
                 () -> new VerifiableCredentialService(configurationService);
         return factory.get();
+    }
+
+    private void recordCIMetrics(String ciRequestPrefix, List<String> contraIndications) {
+        if (contraIndications == null) {
+            return;
+        }
+
+        for (String ci : contraIndications) {
+            eventProbe.counterMetric(ciRequestPrefix + ci);
+        }
     }
 }

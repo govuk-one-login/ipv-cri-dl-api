@@ -77,10 +77,10 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName}
         POWERTOOLS_LOG_LEVEL: INFO
         SQS_AUDIT_EVENT_PREFIX: IPV_DRIVING_PERMIT_CRI
-    ProvisionedConcurrencyConfig: !If
-      - IsProdEnvironment
-      - ProvisionedConcurrentExecutions: 1
-      - !Ref AWS::NoValue
+#    ProvisionedConcurrencyConfig: !If
+#      - IsProdEnvironment
+#      - ProvisionedConcurrentExecutions: 1
+#      - !Ref AWS::NoValue
 
 Mappings:
 
@@ -348,13 +348,13 @@ Resources:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PublicDrivingPermitApi}-public-AccessLogs
       RetentionInDays: 365
 
-#  PublicDrivingPermitApiAccessLogGroupSubscriptionFilter:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsNotDevEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
-#      FilterPattern: ""
-#      LogGroupName: !Ref PublicDrivingPermitApiAccessLogGroup
+  PublicDrivingPermitApiAccessLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref PublicDrivingPermitApiAccessLogGroup
 
   PrivateDrivingPermitApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -362,13 +362,13 @@ Resources:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PrivateDrivingPermitApi}-private-AccessLogs
       RetentionInDays: 365
 
-#  PrivateDrivingPermitApiAccessLogGroupSubscriptionFilter:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsNotDevEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
-#      FilterPattern: ""
-#      LogGroupName: !Ref PrivateDrivingPermitApiAccessLogGroup
+  PrivateDrivingPermitApiAccessLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref PrivateDrivingPermitApiAccessLogGroup
 
 ####################################################################
 #                                                                  #
@@ -425,13 +425,13 @@ Resources:
               Resource:
                 - !ImportValue AuditEventQueueEncryptionKeyArn
 
-#  SessionFunctionLogGroupSubscriptionFilter:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsNotDevEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
-#      FilterPattern: ""
-#      LogGroupName: !Sub "/aws/lambda/${SessionFunction}"
+  SessionFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${SessionFunction}"
 
   SessionFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -516,13 +516,13 @@ Resources:
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${AWS::StackName}/*"
 
-#  DrivingPermitCheckingFunctionLogGroupSubscriptionFilter:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsNotDevEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
-#      FilterPattern: ""
-#      LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
+  DrivingPermitCheckingFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
 
   DrivingPermitCheckingFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -574,13 +574,13 @@ Resources:
             Resource:
               - !ImportValue AuditEventQueueEncryptionKeyArn
 
-#  IssueCredentialFunctionLogGroupSubscriptionFilter:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsNotDevEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
-#      FilterPattern: ""
-#      LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
+  IssueCredentialFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -622,13 +622,13 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
 
-#  AccessTokenFunctionLogGroupSubscriptionFilter:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsNotDevEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
-#      FilterPattern: ""
-#      LogGroupName: !Sub "/aws/lambda/${AccessTokenFunction}"
+  AccessTokenFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${AccessTokenFunction}"
 
   AccessTokenFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -670,13 +670,13 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
 
-#  AuthorizationFunctionLogGroupSubscriptionFilter:
-#    Type: AWS::Logs::SubscriptionFilter
-#    Condition: IsNotDevEnvironment
-#    Properties:
-#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prod"
-#      FilterPattern: ""
-#      LogGroupName: !Sub "/aws/lambda/${AuthorizationFunction}"
+  AuthorizationFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Sub "/aws/lambda/${AuthorizationFunction}"
 
   AuthorizationFunctionPermission:
     Type: AWS::Lambda::Permission

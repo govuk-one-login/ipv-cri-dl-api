@@ -131,6 +131,10 @@ public class IssueCredentialHandler
 
             LOGGER.info("Credential generated");
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
+
+            auditService.sendAuditEvent(
+                    AuditEventType.END, new AuditEventContext(input.getHeaders(), sessionItem));
+
             return ApiGatewayResponseGenerator.proxyJwtResponse(
                     HttpStatusCode.OK, signedJWT.serialize());
         } catch (AwsServiceException ex) {

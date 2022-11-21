@@ -12,7 +12,8 @@ dependencies {
 			configurations.dynamodb,
 			configurations.jackson,
 			configurations.cri_common_lib,
-			configurations.sqs
+			configurations.sqs,
+			configurations.kms
 
 	aspect configurations.powertools
 

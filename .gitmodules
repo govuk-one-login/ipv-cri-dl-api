@@ -1,3 +1,1 @@
-[submodule "acceptance-tests"]
-	path = acceptance-tests
-	url = git@github.com:alphagov/di-ipv-cri-fraud-test.git
+

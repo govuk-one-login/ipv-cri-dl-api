@@ -181,6 +181,14 @@ Mappings:
       integration: "https://review-d.integration.account.gov.uk"
       production: "https://review-d.account.gov.uk"
 
+  DrivingPermitCriOneLoginEnabledMapping:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "false"
+
   DrivingPermitCriAudienceMapping:
     Environment:
       dev: "https://review-d.dev.account.gov.uk"
@@ -505,6 +513,7 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/oneLoginEnabled"
         - Statement:
             - Effect: Allow
               Action:
@@ -840,6 +849,14 @@ Resources:
       Value: !Sub person-identity-${AWS::StackName}
       Type: String
       Description: person identity dynamodb table name
+
+  DrivingPermitCriOneLoginEnabledParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/oneLoginEnabled"
+      Type: String
+      Value: !FindInMap [ DrivingPermitCriOneLoginEnabledMapping, Environment, !Ref 'Environment' ]
+      Description: The driving permit One Login enabled feature toggle
 
   MaxJwtTtlParameter:
     Type: AWS::SSM::Parameter

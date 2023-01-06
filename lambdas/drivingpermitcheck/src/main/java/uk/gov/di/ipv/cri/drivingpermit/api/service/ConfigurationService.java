@@ -22,6 +22,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Objects;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ConfigurationService {
 
@@ -55,6 +57,7 @@ public class ConfigurationService {
     private final String contraindicationMappings;
     private final String dcsEndpointUri;
     private final String parameterPrefix;
+    private final String oneLoginEnabled;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
     private final Certificate drivingPermitTlsSelfCert;
@@ -109,6 +112,16 @@ public class ConfigurationService {
                         getThumbprint((X509Certificate) cert, "SHA-1"),
                         getThumbprint((X509Certificate) cert, "SHA-256"));
         // *****************************Feature Toggles*******************************
+
+        String oneLoginEnabledFlag;
+        try {
+            // This value will be set in the template, this is only as a fail safe.
+            oneLoginEnabledFlag = paramProvider.get(getParameterName("oneLoginEnabled"));
+        } catch (Exception e) {
+            LOGGER.info("Failed to get oneLoginEnabled parameter in store, defaulting to false");
+            oneLoginEnabledFlag = "false";
+        }
+        this.oneLoginEnabled = oneLoginEnabledFlag;
 
         // *********************************Secrets***********************************
 

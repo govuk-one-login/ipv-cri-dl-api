@@ -99,10 +99,6 @@ Globals:
         POWERTOOLS_METRICS_NAMESPACE: !Ref CriIdentifier
         COMMON_PARAMETER_NAME_PREFIX: !Ref CommonStackName
         ENVIRONMENT: !Ref Environment
-    ProvisionedConcurrencyConfig: !If
-      - IsProdEnvironment
-      - ProvisionedConcurrentExecutions: 1
-      - !Ref AWS::NoValue
 
 Mappings:
   MemorySizeMapping:

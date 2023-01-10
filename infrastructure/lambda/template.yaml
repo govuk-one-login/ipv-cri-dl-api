@@ -437,7 +437,6 @@ Resources:
             Resource:
               - !ImportValue AuditEventQueueEncryptionKeyArn
 
-<<<<<<< HEAD
 #  IssueCredentialFunctionLogGroupSubscriptionFilter:
 #    Type: AWS::Logs::SubscriptionFilter
 #    Condition: IsNotDevEnvironment
@@ -473,7 +472,7 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# API config                                                 #
+# API config                                                       #
 #                                                                  #
 ####################################################################
 

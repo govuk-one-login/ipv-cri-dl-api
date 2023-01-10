@@ -10,13 +10,5 @@ rootProject.name = "di-ipv-cri-driving-permit-api"
 // Internal CRI Lib
 include "lib"
 
-// Common lambdas
-include "session", "accesstoken", "jwkset", "authorization"
-project(':session').projectDir = new File('./common-lambdas/session')
-project(":accesstoken").projectDir = new File('./common-lambdas/accesstoken')
-project(':authorization').projectDir = new File('./common-lambdas/authorization')
-
 // CRI specific lambdas
-include "issuecredential", "drivingpermitcheck"
-project(':drivingpermitcheck').projectDir = new File('./lambdas/drivingpermitcheck')
-project(':issuecredential').projectDir = new File('./lambdas/issuecredential')
+include "lambdas:issuecredential", "lambdas:drivingpermitcheck"

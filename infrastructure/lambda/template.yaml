@@ -424,13 +424,13 @@ Resources:
             Resource: !ImportValue core-infrastructure-CriVcSigningKey1Arn
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${AWS::StackName}/*"
         - Statement:
           Effect: Allow
           Action:
             - ssm:GetParameter
           Resource:
+            - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+            - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
             - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
             - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
             - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"

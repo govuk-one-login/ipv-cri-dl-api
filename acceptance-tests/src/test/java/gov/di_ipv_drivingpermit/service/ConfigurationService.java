@@ -12,7 +12,6 @@ public class ConfigurationService {
     private final String coreStubEndpoint;
     private final String coreStubUsername;
     private final String coreStubPassword;
-    private final String passportCriUrl;
     private final String orchestratorStubUrl;
     private final String privateApiGatewayId;
     private final String environment;
@@ -27,7 +26,6 @@ public class ConfigurationService {
         this.coreStubEndpoint = getParameter("coreStubUrl");
         this.coreStubUsername = getParameter("coreStubUsername");
         this.coreStubPassword = getParameter("coreStubPassword");
-        this.passportCriUrl = getParameter("passportCriUrl");
         this.orchestratorStubUrl = getParameter("orchestratorStubUrl");
         this.privateApiGatewayId = getParameter("API_GATEWAY_ID_PRIVATE");
         this.environment = env;
@@ -52,10 +50,6 @@ public class ConfigurationService {
 
     public String getCoreStubPassword() {
         return coreStubPassword;
-    }
-
-    public String getPassportCriUrl() {
-        return passportCriUrl;
     }
 
     public String getOrchestratorStubUrl() {
@@ -89,10 +83,10 @@ public class ConfigurationService {
     }
 
     public String getDlCRITestEnvironment() {
-        String fraudCRITestEnvironment = this.environment;
-        if (fraudCRITestEnvironment == null) {
+        String dlCRITestEnvironment = this.environment;
+        if (dlCRITestEnvironment == null) {
             throw new IllegalArgumentException("Environment variable ENVIRONMENT is not set");
         }
-        return fraudCRITestEnvironment;
+        return dlCRITestEnvironment;
     }
 }

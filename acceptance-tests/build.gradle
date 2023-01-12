@@ -121,7 +121,7 @@ task cucumber() {
 				'--tags',
 				"${tags}",
 				'--glue',
-				'gov/di_ipv_fraud/step_definitions',
+				'gov/di_ipv_drivingpermit/step_definitions',
 				'src/test/resources' ,
 				'--plugin',
 				'html:build/test-results/cucmber.html',
@@ -142,7 +142,7 @@ task dlCriSmokeBuild() {
 				'--plugin',
 				'pretty',
 				'--glue',
-				'gov/di_ipv_fraud/step_definitions',
+				'gov/di_ipv_drivingpermit/step_definitions',
 				'src/test/resources/features/',
 				'--tags',
 				'@build'
@@ -161,7 +161,7 @@ task dlCriSmokeStaging() {
 				'--plugin',
 				'pretty',
 				'--glue',
-				'gov/di_ipv_fraud/step_definitions',
+				'gov/di_ipv_drivingpermit/step_definitions',
 				'src/test/resources/features/',
 				'--tags',
 				'@staging'

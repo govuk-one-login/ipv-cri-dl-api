@@ -21,6 +21,7 @@ import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.common.library.error.OauthErrorResponse;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
@@ -111,6 +112,14 @@ public class IssueCredentialHandler
             DocumentCheckResultItem documentCheckResult =
                     documentCheckRetrievalService.getDocumentCheckResult(
                             sessionItem.getSessionId());
+
+            if (documentCheckResult == null) {
+                LOGGER.error("User has arrived in issue credential withou completing check");
+                return ApiGatewayResponseGenerator.proxyJsonResponse(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        OauthErrorResponse.ACCESS_DENIED_ERROR);
+            }
+
             LOGGER.info("VC content retrieved.");
 
             LOGGER.info("Generating verifiable credential...");
@@ -165,7 +174,7 @@ public class IssueCredentialHandler
             LOGGER.error(
                     "Exception while handling lambda {} exception {}",
                     context.getFunctionName(),
-                    e.getClass());
+                    e);
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, e.getMessage());

@@ -27,7 +27,8 @@ public class DrivingLicenceAPIPage {
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
-    private static final Logger LOGGER = Logger.getLogger(DrivingLicenceAPIStepDefs.class.getName());
+    private static final Logger LOGGER =
+            Logger.getLogger(DrivingLicenceAPIStepDefs.class.getName());
 
     public void userIdentityAsJwtString(String criId)
             throws URISyntaxException, IOException, InterruptedException {

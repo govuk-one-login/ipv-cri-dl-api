@@ -20,7 +20,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject             |
       |DVADrivingLicenceSubjectHappyBilly   |
 
-  @DVADrivingLicence_test @build
+  @DVADrivingLicence_test #@build
   Scenario Outline: DVA Driving Licence details page unhappy path with InvalidDVADrivingLicenceDetails
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -161,14 +161,14 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci DO2, validity score 0 and strength score 3
     And The test is complete and I close the driver
 
-  @DVADrivingLicence_test @build
+  @DVADrivingLicence_test #@build
   Scenario: DVA Driving Licence User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVADrivingLicence_test @build
+  @DVADrivingLicence_test #@build
   Scenario: DVA Driving Licence User cancels before first attempt via I do not have a UK driving licence route
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button

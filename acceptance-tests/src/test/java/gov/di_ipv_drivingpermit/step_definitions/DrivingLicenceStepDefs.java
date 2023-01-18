@@ -162,7 +162,6 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     @When("I click the drop-down on the component")
     public void iClickTheDropDownOnTheComponent() {
         clickOnWhyWeNeedLink();
-
     }
 
     @Then("I see the message begins with We need to make sure is shown")

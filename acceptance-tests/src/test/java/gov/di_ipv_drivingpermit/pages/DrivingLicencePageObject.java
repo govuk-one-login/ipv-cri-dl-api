@@ -11,6 +11,7 @@ import gov.di_ipv_drivingpermit.utilities.Driver;
 import gov.di_ipv_drivingpermit.utilities.DrivingLicenceSubject;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -222,6 +223,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(id = "postcode-error")
     public WebElement InvalidPostcodeFieldError;
+
+    @FindBy(className = "govuk-details__summary-text")
+    public WebElement whyWeText;
+
+    @FindBy(className = "govuk-details__text")
+    public WebElement whyWePara;
+
+
+
 
     public DrivingLicencePageObject() {
         this.configurationService = new ConfigurationService(System.getenv("ENVIRONMENT"));
@@ -812,4 +822,20 @@ public class DrivingLicencePageObject extends UniversalSteps {
             LOGGER.info("Fail : Who was your UK driving licence issued by? is displayed");
         }
     }
+
+    public void whyWeNeedToKnowThis() {
+        Assert.assertTrue(whyWeText.isDisplayed());
+        LOGGER.info(whyWeText.getText());
+    }
+
+    public void clickOnWhyWeNeedLink() {
+        whyWeText.click();
+    }
+
+    public void paragraphValidation() {
+        Assert.assertTrue(whyWePara.isDisplayed());
+        LOGGER.info(whyWePara.getText());
+
+    }
+
 }

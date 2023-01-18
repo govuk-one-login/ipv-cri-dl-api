@@ -152,4 +152,21 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void iDeleteTheCookieToGetTheUnexpectedError() {
         deleteCookie();
     }
+
+    @Then("I see ‘Why we need to know this’ component is present")
+    public void iSeeWhyWeNeedToKnowThisComponentIsPresent() {
+
+        whyWeNeedToKnowThis();
+    }
+
+    @When("I click the drop-down on the component")
+    public void iClickTheDropDownOnTheComponent() {
+        clickOnWhyWeNeedLink();
+
+    }
+
+    @Then("I see the message begins with We need to make sure is shown")
+    public void iSeeTheMessageBeginsWithWeNeedToMakeSureIsShown() {
+        paragraphValidation();
+    }
 }

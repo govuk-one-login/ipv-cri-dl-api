@@ -5,6 +5,9 @@ Feature: Driving License Test
     And I click the Driving Licence CRI for the Build environment
     Then I search for Driving Licence user number 5 in the Experian table
     Then I check the page title who was your UK driving license issued by?
+    And I see ‘Why we need to know this’ component is present
+    When I click the drop-down on the component
+    Then I see the message begins with We need to make sure is shown
     And I assert the URL is valid
 
  @DrivingLicenceTest

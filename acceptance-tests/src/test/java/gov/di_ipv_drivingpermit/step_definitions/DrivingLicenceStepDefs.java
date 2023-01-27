@@ -168,4 +168,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void iSeeTheMessageBeginsWithWeNeedToMakeSureIsShown() {
         paragraphValidation();
     }
+    
+    @And("^I click the Driving Licence CRI for the testEnvironment$")
+    public void navigateToDrivingLicenceOnTestEnv() {
+        navigateToDrivingLicenceCRIOnTestEnv();
+    }
 }

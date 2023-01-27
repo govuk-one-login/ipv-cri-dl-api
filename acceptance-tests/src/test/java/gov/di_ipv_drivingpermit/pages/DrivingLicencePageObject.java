@@ -35,13 +35,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public WebElement visitCredentialIssuers;
 
     @FindBy(xpath = "//*[@value=\"Driving Licence CRI Build\"]")
-    public WebElement drivingLicenceCDRIBuild;
+    public WebElement drivingLicenceCRIBuild;
 
     @FindBy(xpath = "//*[@value=\"Driving Licence CRI Staging\"]")
-    public WebElement drivingLicenceCDRIStaging;
+    public WebElement drivingLicenceCRIStaging;
 
     @FindBy(xpath = "//*[@value=\"Driving Licence CRI Integration\"]")
-    public WebElement drivingLicenceCDRIIntegration;
+    public WebElement drivingLicenceCRIIntegration;
 
     @FindBy(id = "licenceIssuerRadio-DVLA-label")
     public WebElement optionDVLA;
@@ -245,15 +245,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertURLContains("credential-issuers");
         switch (environment) {
             case "Build":
-                drivingLicenceCDRIBuild.click();
+                drivingLicenceCRIBuild.click();
                 break;
 
             case "Staging":
-                drivingLicenceCDRIStaging.click();
+                drivingLicenceCRIStaging.click();
                 break;
 
             case "Integration":
-                drivingLicenceCDRIIntegration.click();
+                drivingLicenceCRIIntegration.click();
                 break;
 
             default:
@@ -819,6 +819,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         }
     }
 
+
     public void whyWeNeedToKnowThis() {
         Assert.assertTrue(whyWeText.isDisplayed());
         LOGGER.info(whyWeText.getText());
@@ -832,4 +833,18 @@ public class DrivingLicencePageObject extends UniversalSteps {
         Assert.assertTrue(whyWePara.isDisplayed());
         LOGGER.info(whyWePara.getText());
     }
+    
+    public void navigateToDrivingLicenceCRIOnTestEnv() {
+        visitCredentialIssuers.click();
+        String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
+        LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
+        if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
+            drivingLicenceCRIBuild.click();
+        } else if (dlCRITestEnvironment.equalsIgnoreCase("Staging")) {
+            drivingLicenceCRIStaging.click();
+        } else if (dlCRITestEnvironment.equalsIgnoreCase("Integration")) {
+            drivingLicenceCRIIntegration.click();
+        } else {
+            LOGGER.info("No test environment is set");
+        }
 }

@@ -830,14 +830,16 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void pageTabTitleInEnglish() {
         String actualTitle = Driver.get().getTitle();
-        String expTitle = "Enter your details exactly as they appear on your UK driving licence – – GOV.UK";
+        String expTitle =
+                "Enter your details exactly as they appear on your UK driving licence – – GOV.UK";
         Assert.assertEquals(expTitle, actualTitle);
         LOGGER.info(actualTitle);
     }
 
     public void errorPageTitleInEnglish() {
         String actualTitle = Driver.get().getTitle();
-        String expTitle = "Error: Enter your details exactly as they appear on your UK driving licence – – GOV.UK";
+        String expTitle =
+                "Error: Enter your details exactly as they appear on your UK driving licence – – GOV.UK";
         Assert.assertEquals(expTitle, actualTitle);
         LOGGER.info(actualTitle);
     }

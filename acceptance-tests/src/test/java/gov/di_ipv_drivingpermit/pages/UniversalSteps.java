@@ -1,6 +1,5 @@
 package gov.di_ipv_drivingpermit.pages;
 
-import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
 import gov.di_ipv_drivingpermit.utilities.Driver;
 import org.openqa.selenium.support.PageFactory;
 
@@ -13,10 +12,6 @@ public class UniversalSteps {
 
     public UniversalSteps() {
         PageFactory.initElements(Driver.get(), this);
-    }
-
-    public void waitForFiveSeconds() {
-        BrowserUtils.waitForPageToLoad(5);
     }
 
     public void waitForTextToAppear(String text) {

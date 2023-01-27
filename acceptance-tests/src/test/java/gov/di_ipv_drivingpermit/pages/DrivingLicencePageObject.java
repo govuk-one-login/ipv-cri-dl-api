@@ -8,18 +8,19 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
 import gov.di_ipv_drivingpermit.utilities.Driver;
-import gov.di_ipv_drivingpermit.utilities.DrivingLicenceSubject;
+import gov.di_ipv_drivingpermit.utilities.TestDataCreator;
+import gov.di_ipv_drivingpermit.utilities.TestInput;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
-import org.openqa.selenium.Cookie;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
 import static org.junit.Assert.fail;
@@ -30,6 +31,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     private final ConfigurationService configurationService;
     private static final Logger LOGGER = Logger.getLogger(DrivingLicencePageObject.class.getName());
+
+    // Should be separate stub page
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
     public WebElement visitCredentialIssuers;
@@ -43,13 +46,38 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@value=\"Driving Licence CRI Integration\"]")
     public WebElement drivingLicenceCRIIntegration;
 
+    @FindBy(id = "rowNumber")
+    public WebElement selectRow;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/details/div/pre")
+    public WebElement JSONPayload;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/details")
+    public WebElement errorResponse;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/details/summary/span")
+    public WebElement viewResponse;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/form[2]/div/button")
+    public WebElement searchButton;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/form[2]/div/button")
+    public WebElement goToDLCRIButton;
+
+    // ---------------------
+
+    // Should be separate select issuer page
+
+    @FindBy(xpath = "//*[@id=\"licenceIssuerRadio-fieldset\"]/div/div[3]")
+    public WebElement orLabel;
+
     @FindBy(id = "licenceIssuerRadio-DVLA-label")
     public WebElement optionDVLA;
 
     @FindBy(id = "licenceIssuerRadio")
     public WebElement radioBtnDVLA;
 
-    @FindBy(xpath = "//*[@id=\"licenceIssuerRadio-DVA-label\"]")
+    @FindBy(id = "licenceIssuerRadio-DVA-label")
     public WebElement optionDVA;
 
     @FindBy(id = "licenceIssuerRadio-DVA")
@@ -64,32 +92,37 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "submitButton")
     public WebElement CTButton;
 
-    @FindBy(id = "rowNumber")
-    public WebElement selectRow;
+    @FindBy(id = "licenceIssuerRadio-error")
+    public WebElement radioButtonError;
 
-    @FindBy(xpath = "//*[@id=\"main-content\"]/div[1]/div/ul")
+    // ---------------
+
+    @FindBy(className = "error-summary")
     public WebElement errorSummary;
 
-    @FindBy(xpath = "//*[@id=\"licenceIssuerRadio-error\"]")
-    public WebElement errorText;
-
-    @FindBy(xpath = "//*[@id=\"main-content\"]/div/details/div/pre")
-    public WebElement JSONPayload;
-
-    @FindBy(xpath = "//*[@id=\"main-content\"]/div/details")
-    public WebElement errorResponse;
-
-    @FindBy(xpath = "//*[@id=\"main-content\"]/div/details/summary/span")
-    public WebElement viewResponse;
-
     @FindBy(xpath = "//*[@class='govuk-notification-banner__content']")
-    public WebElement InvalidLicenceDetailsError;
+    public WebElement userNotFoundInThirdPartyBanner;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div/a")
-    public WebElement proveanotherway;
+    public WebElement proveAnotherWay;
 
-    @FindBy(id = "licenceIssuerRadio-noLicence")
-    public WebElement nodrivinglicenceradio;
+    @FindBy(id = "govuk-notification-banner-title")
+    public WebElement errorText;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div[1]/div[2]/p[1]")
+    public WebElement thereWasAProblemFirstSentence;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/p")
+    public WebElement pageDescriptionHeading;
+
+    @FindBy(xpath = "/html/body/div[2]/div/p/strong")
+    public WebElement betaBanner;
+
+    @FindBy(className = "govuk-phase-banner__text")
+    public WebElement betaBannerText;
+
+    @FindBy(id = "error-summary-title")
+    public WebElement errorSummaryTitle;
 
     @FindBy(id = "drivingLicenceNumber")
     public WebElement LicenceNumber;
@@ -121,9 +154,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "expiryDate-year")
     public WebElement LicenceValidToYear;
 
-    @FindBy(xpath = "//*[@id=\"main-content\"]/form[2]/div/button")
-    public WebElement searchButton;
-
     @FindBy(id = "issueDate-day")
     public WebElement LicenceIssueDay;
 
@@ -142,86 +172,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//button[@class='govuk-button button']")
     public WebElement Continue;
 
-    @FindBy(xpath = "//*[@id=\"main-content\"]/form[2]/div/button")
-    public WebElement goToDLCRIButton;
-
-    @FindBy(xpath = "//*[@id=\"header\"]")
-    public WebElement errorTitle;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#dateOfBirth-day')]")
-    public WebElement InvalidDOBError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#drivingLicenceNumber')]")
-    public WebElement InvalidDrivingLicenceError;
+    @FindBy(id = "header")
+    public WebElement pageHeader;
 
     @FindBy(xpath = "//*[@class='govuk-back-link']")
     public WebElement back;
-
-    @FindBy(id = "dateOfBirth-error")
-    public WebElement InvalidDateOfBirthFieldError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#surname')]")
-    public WebElement InvalidLastNameError;
-
-    @FindBy(id = "surname-error")
-    public WebElement InvalidLastNameFieldError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#firstName')]")
-    public WebElement InvalidFirstNameError;
-
-    @FindBy(id = "firstName-error")
-    public WebElement InvalidFirstNameFieldError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#middleNames')]")
-    public WebElement InvalidMiddleNamesError;
-
-    @FindBy(id = "middleNames-error")
-    public WebElement InvalidMiddleNamesFieldError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#issueDate-day')]")
-    public WebElement InvalidIssueDateError;
-
-    @FindBy(id = "issueDate-error")
-    public WebElement InvalidIssueDateFieldError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#expiryDate-day')]")
-    public WebElement InvalidValidToDateError;
-
-    @FindBy(id = "expiryDate-error")
-    public WebElement InvalidValidToDateFieldError;
-
-    @FindBy(id = "drivingLicenceNumber-error")
-    public WebElement DrivingLicenceFieldError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#issueNumber')]")
-    public WebElement InvalidIssueNumberError;
-
-    @FindBy(id = "issueNumber-error")
-    public WebElement InvalidIssueNumberFieldError;
-
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#postcode')]")
-    public WebElement InvalidPostcodeError;
-
-    @FindBy(id = "postcode-error")
-    public WebElement InvalidPostcodeFieldError;
 
     @FindBy(className = "govuk-details__summary-text")
     public WebElement whyWeText;
@@ -229,594 +184,148 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(className = "govuk-details__text")
     public WebElement whyWePara;
 
+    // Error summary items
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#licenceIssuerRadio')]")
+    public WebElement InvalidDocumentIssuerInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'-day')]")
+    public WebElement InvalidDOBErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'LicenceNumber')]")
+    public WebElement InvalidDrivingLicenceErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#surname')]")
+    public WebElement InvalidLastNameErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#firstName')]")
+    public WebElement InvalidFirstNameErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#middleNames')]")
+    public WebElement InvalidMiddleNamesErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#issueDate-day')]")
+    public WebElement InvalidIssueDateErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#expiryDate-day')]")
+    public WebElement InvalidValidToDateErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#issueNumber')]")
+    public WebElement InvalidIssueNumberErrorInSummary;
+
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#postcode')]")
+    public WebElement InvalidPostcodeErrorInSummary;
+
+    // -------------------------
+
+    // Field errors
+
+    @FindBy(id = "dateOfBirth-error")
+    public WebElement InvalidDateOfBirthFieldError;
+
+    @FindBy(id = "surname-error")
+    public WebElement InvalidLastNameFieldError;
+
+    @FindBy(id = "firstName-error")
+    public WebElement InvalidFirstNameFieldError;
+
+    @FindBy(id = "middleNames-error")
+    public WebElement InvalidMiddleNamesFieldError;
+
+    @FindBy(id = "issueDate-error")
+    public WebElement InvalidIssueDateFieldError;
+
+    @FindBy(id = "expiryDate-error")
+    public WebElement InvalidValidToDateFieldError;
+
+    @FindBy(id = "drivingLicenceNumber-error")
+    public WebElement DrivingLicenceFieldError;
+
+    @FindBy(id = "issueNumber-error")
+    public WebElement InvalidIssueNumberFieldError;
+
+    @FindBy(id = "postcode-error")
+    public WebElement InvalidPostcodeFieldError;
+
+    // ------------------------
+
+    // --- Hints ---
+    @FindBy(id = "dateOfBirth-hint")
+    public WebElement dateOfBirthHint;
+
+    @FindBy(id = "issueDate-hint")
+    public WebElement issueDateHint;
+
+    @FindBy(id = "drivingLicenceNumber-hint")
+    public WebElement licenceNumberHint;
+
+    @FindBy(id = "issueNumber-hint")
+    public WebElement issueNumberHint;
+
+    @FindBy(id = "firstName-hint")
+    public WebElement firstNameHint;
+
+    @FindBy(id = "middleNames-hint")
+    public WebElement middleNameHint;
+
+    @FindBy(id = "expiryDate-hint")
+    public WebElement validToHint;
+
+    @FindBy(id = "postcode-hint")
+    public WebElement postcodeHint;
+
+    // --- Legend text ---
+    @FindBy(xpath = "//*[@id=\"dateOfBirth-fieldset\"]/legend")
+    public WebElement dateOfBirthLegend;
+
+    @FindBy(xpath = "//*[@id=\"issueDate-fieldset\"]/legend")
+    public WebElement issueDateLegend;
+
+    @FindBy(xpath = "//*[@id=\"expiryDate-fieldset\"]/legend")
+    public WebElement validToLegend;
+
+    // --- Label text ---
+    @FindBy(id = "drivingLicenceNumber-label")
+    public WebElement licenceNumberFieldLabel;
+
+    @FindBy(id = "issueNumber-label")
+    public WebElement issueNumberFieldLabel;
+
+    @FindBy(id = "postcode-label")
+    public WebElement postcodeLabel;
+
     public DrivingLicencePageObject() {
         this.configurationService = new ConfigurationService(System.getenv("ENVIRONMENT"));
         PageFactory.initElements(Driver.get(), this);
+        TestDataCreator.createDefaultResponses();
     }
+
+    // Should be in stub page
 
     public void navigateToIPVCoreStub() {
         String coreStubUrl = configurationService.getCoreStubUrl(true);
         Driver.get().get(coreStubUrl);
         waitForTextToAppear(IPV_CORE_STUB);
-    }
-
-    public void navigateToDrivingLicenceCRI(String environment) {
-        visitCredentialIssuers.click();
-        assertURLContains("credential-issuers");
-        switch (environment) {
-            case "Build":
-                drivingLicenceCRIBuild.click();
-                break;
-
-            case "Staging":
-                drivingLicenceCRIStaging.click();
-                break;
-
-            case "Integration":
-                drivingLicenceCRIIntegration.click();
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    public void drivingLicencePageURLValidation() {
-        String actualUrl = Driver.get().getCurrentUrl();
-        LOGGER.info("actualUrl = " + actualUrl);
-        assert (actualUrl.contains("review-d"));
-    }
-
-    public void validateDLPageTitle() {
-        String actualTitle = Driver.get().getTitle();
-        String expTitle = "Who was your UK driving licence issued by? – – GOV.UK";
-        if (actualTitle.equals(expTitle)) {
-            LOGGER.info("Pass : directed to Who was your UK driving license issued by?");
-        } else {
-            LOGGER.info("Fail : not directed to the Driving Licence Page");
-        }
-    }
-
-    public void titleDVLAWithRadioBtn() {
-        optionDVLA.isDisplayed();
-        radioBtnDVLA.isDisplayed();
-    }
-
-    public void titleDVAWithRadioBtn() {
-        optionDVA.isDisplayed();
-        radioBtnDVA.isDisplayed();
-    }
-
-    public void noDrivingLicenceBtn() {
-        noDLOption.isDisplayed();
-        noDLRadioBtn.isDisplayed();
-    }
-
-    public void ContinueButton() {
-        CTButton.isDisplayed();
-        CTButton.isEnabled();
-    }
-
-    public void clickOnDVLARadioButton() {
-        radioBtnDVLA.click();
-        CTButton.click();
-    }
-
-    public void pageTitleDVLAValidation() {
-        if (Driver.get().getTitle().contains("We’ll check your details with DVLA ")) {
-            LOGGER.info("Page title contains \"We’ll check your details with DVLA \" ");
-        }
-    }
-
-    public void pageTitleDVAValidation() {
-        if (Driver.get().getTitle().contains("We’ll check your details with DVA ")) {
-            LOGGER.info("Page title contains \"We’ll check your details with DVA \" ");
-        }
-    }
-
-    public void clickOnDVARadioButton() {
-        radioBtnDVA.click();
-        CTButton.click();
-    }
-
-    public void noDrivingLicenceOption() {
-        noDLOption.click();
-        CTButton.click();
-    }
-
-    public void ipvCoreRoutingPage() {
-        String actualTitle = Driver.get().getTitle();
-        String expTitle = "IPV Core Stub - GOV.UK";
-        Assert.assertEquals(expTitle, actualTitle);
-    }
-
-    public void ipvCoreRoutingPageURL() {
-        String coreStubUrl = configurationService.getCoreStubUrl(true);
-        String expUrl =
-                coreStubUrl
-                        + "/callback?error=access_denied&error_description=Authorization+permission+denied";
-        String actUrl = Driver.get().getCurrentUrl();
-        LOGGER.info("expectedUrl = " + expUrl);
-        LOGGER.info("actualUrl = " + actUrl);
-        Assert.assertEquals(actUrl, expUrl);
-    }
-
-    public void noSelectContinue() {
-        CTButton.click();
-    }
-
-    public void errormessage() {
-        errorSummary.isDisplayed();
-    }
-
-    public void errorTitle() {
-        if (Driver.get().getTitle().contains("You must choose an option to continue")) {
-            LOGGER.info("Page title contains \"You must choose an option to continue \" ");
-        }
-    }
-
-    public void errorLink() {
-        errorSummary.click();
-        radioBtnDVLA.isEnabled();
-    }
-
-    public void validateErrorText() {
-        String expectedText = "Error:\n" + "You must choose an option to continue";
-        String actualText = errorText.getText();
-        Assert.assertEquals(expectedText, actualText);
-    }
-
-    public void jsonErrorResponse(String testErrorDescription, String testStatusCode)
-            throws JsonProcessingException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
-        JsonNode insideError = jsonNode.get("errorObject");
-        LOGGER.info("insideError = " + insideError);
-        JsonNode errorDescription = insideError.get("description");
-        JsonNode statusCode = insideError.get("httpstatusCode");
-        String ActualErrorDescription = insideError.get("description").asText();
-        String ActualStatusCode = insideError.get("httpstatusCode").asText();
-        LOGGER.info("errorDescription = " + errorDescription);
-        LOGGER.info("statusCode = " + statusCode);
-        LOGGER.info("testErrorDescription = " + testErrorDescription);
-        LOGGER.info("testStatusCode = " + testStatusCode);
-        Assert.assertEquals(testErrorDescription, ActualErrorDescription);
-        Assert.assertEquals(testStatusCode, ActualStatusCode);
-    }
-
-    public void scoreIs(String validityScore, String strengthScore) throws IOException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
-        JsonNode vcNode = jsonNode.get("vc");
-        JsonNode evidenceNode = vcNode.get("evidence");
-
-        ObjectReader objectReader =
-                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
-        List<JsonNode> evidence = objectReader.readValue(evidenceNode);
-
-        String ValidityScore = evidence.get(0).get("validityScore").asText();
-        assertEquals(ValidityScore, validityScore);
-
-        String StrengthScore = evidence.get(0).get("strengthScore").asText();
-        assertEquals(StrengthScore, strengthScore);
-    }
-
-    public void couldNotFindDetailsErrorDisplayed() {
-        Assert.assertTrue(InvalidLicenceDetailsError.isDisplayed());
-        LOGGER.info(InvalidLicenceDetailsError.getText());
-    }
-
-    public void userEntersData(DrivingLicenceSubject drivingLicenceSubject) {
-        LicenceNumber.sendKeys(drivingLicenceSubject.getlicenceNumber());
-        LastName.sendKeys(drivingLicenceSubject.getlastName());
-        FirstName.sendKeys(drivingLicenceSubject.getfirstName());
-        MiddleNames.sendKeys(drivingLicenceSubject.getmiddleNames());
-        birthDay.sendKeys(drivingLicenceSubject.getbirthDay());
-        birthMonth.sendKeys(drivingLicenceSubject.getbirthMonth());
-        birthYear.sendKeys(drivingLicenceSubject.getbirthYear());
-        LicenceValidToDay.sendKeys(drivingLicenceSubject.getvalidtoDay());
-        LicenceValidToMonth.sendKeys(drivingLicenceSubject.getvalidtoMonth());
-        LicenceValidToYear.sendKeys(drivingLicenceSubject.getvalidtoYear());
-        LicenceIssueDay.sendKeys(drivingLicenceSubject.getlicenceIssueDay());
-        LicenceIssueMonth.sendKeys(drivingLicenceSubject.getlicenceIssueMonth());
-        LicenceIssueYear.sendKeys(drivingLicenceSubject.getlicenceIssueYear());
-        IssueNumber.sendKeys(drivingLicenceSubject.getlicenceIssueNumber());
-        Postcode.sendKeys(drivingLicenceSubject.getpostcode());
-    }
-
-    public void userEntersInvalidDrivingDetails() {
-        new EnterYourDetailsExactlyDVLAPage().drivingLicenceNumber.sendKeys("PARKE610112PBFGI");
-        new EnterYourDetailsExactlyDVLAPage().Lastname.sendKeys("Testlastname");
-        new EnterYourDetailsExactlyDVLAPage().Firstname.sendKeys("Testfirstname");
-        new EnterYourDetailsExactlyDVLAPage().DayOfBirth.sendKeys("11");
-        new EnterYourDetailsExactlyDVLAPage().MonthOfBirth.sendKeys("10");
-        new EnterYourDetailsExactlyDVLAPage().YearOfBirth.sendKeys("1962");
-        new EnterYourDetailsExactlyDVLAPage().LicenceValidToDay.sendKeys("01");
-        new EnterYourDetailsExactlyDVLAPage().LicenceValidToMonth.sendKeys("01");
-        new EnterYourDetailsExactlyDVLAPage().LicenceValidToYear.sendKeys("2030");
-        new EnterYourDetailsExactlyDVLAPage().LicenceIssueDay.sendKeys("10");
-        new EnterYourDetailsExactlyDVLAPage().LicenceIssueMonth.sendKeys("12");
-        new EnterYourDetailsExactlyDVLAPage().LicenceIssueYear.sendKeys("1970");
-        new EnterYourDetailsExactlyDVLAPage().IssueNumber.sendKeys("01");
-        new EnterYourDetailsExactlyDVLAPage().Postcode.sendKeys("BS98 1AA");
-        BrowserUtils.waitFor(3);
-        BrowserUtils.waitForPageToLoad(10);
-    }
-
-    public void userReEntersDataAsADrivingLicenceSubject(
-            DrivingLicenceSubject drivingLicenceSubject) {
-        LicenceNumber.clear();
-        LastName.clear();
-        FirstName.clear();
-        MiddleNames.clear();
-        birthDay.clear();
-        birthMonth.clear();
-        birthYear.clear();
-        LicenceValidToDay.clear();
-        LicenceValidToMonth.clear();
-        LicenceValidToYear.clear();
-        LicenceIssueDay.clear();
-        LicenceIssueMonth.clear();
-        LicenceIssueYear.clear();
-        IssueNumber.clear();
-        Postcode.clear();
-        LicenceNumber.sendKeys(drivingLicenceSubject.getlicenceNumber());
-        LastName.sendKeys(drivingLicenceSubject.getlastName());
-        FirstName.sendKeys(drivingLicenceSubject.getfirstName());
-        MiddleNames.sendKeys(drivingLicenceSubject.getmiddleNames());
-        birthDay.sendKeys(drivingLicenceSubject.getbirthDay());
-        birthMonth.sendKeys(drivingLicenceSubject.getbirthMonth());
-        birthYear.sendKeys(drivingLicenceSubject.getbirthYear());
-        LicenceValidToDay.sendKeys(drivingLicenceSubject.getvalidtoDay());
-        LicenceValidToMonth.sendKeys(drivingLicenceSubject.getvalidtoMonth());
-        LicenceValidToYear.sendKeys(drivingLicenceSubject.getvalidtoYear());
-        LicenceIssueDay.sendKeys(drivingLicenceSubject.getlicenceIssueDay());
-        LicenceIssueMonth.sendKeys(drivingLicenceSubject.getlicenceIssueMonth());
-        LicenceIssueYear.sendKeys(drivingLicenceSubject.getlicenceIssueYear());
-        IssueNumber.sendKeys(drivingLicenceSubject.getlicenceIssueNumber());
-        Postcode.sendKeys(drivingLicenceSubject.getpostcode());
-    }
-
-    public void clickOnIDoNotHaveAUKDrivingLicenceRadioButton() {
-        nodrivinglicenceradio.click();
-        Continue.click();
-    }
-
-    public void searchForUATUser(String number) {
-        assertURLContains("credential-issuer?cri=driving-licence");
-        selectRow.sendKeys(number);
-        searchButton.click();
-    }
-
-    public void navigateToDrivingLicenceResponse(String validOrInvalid) {
-        assertURLContains("callback");
-        if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
-            errorResponse.click();
-        } else {
-            viewResponse.click();
-        }
-    }
-
-    public void invalidDOBErrorDisplayed() {
-        Assert.assertEquals(
-                "Check you have entered your date of birth correctly", InvalidDOBError.getText());
-    }
-
-    public void invalidDateOfBirthFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Check you have entered your date of birth correctly",
-                InvalidDateOfBirthFieldError.getText());
-    }
-
-    public void noDOBErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter your date of birth as it appears on your driving licence",
-                InvalidDOBError.getText());
-    }
-
-    public void noDateOfBirthFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter your date of birth as it appears on your driving licence",
-                InvalidDateOfBirthFieldError.getText());
-    }
-
-    public void futureDOBErrorDisplayed() {
-        Assert.assertEquals("Your date of birth must be in the past", InvalidDOBError.getText());
-    }
-
-    public void futureDOBFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your date of birth must be in the past",
-                InvalidDateOfBirthFieldError.getText());
-    }
-
-    public void invalidIssueDateErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter the date as it appears on your driving licence",
-                InvalidIssueDateError.getText());
-    }
-
-    public void invalidIssueDateFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter the date as it appears on your driving licence",
-                InvalidIssueDateFieldError.getText());
-    }
-
-    public void futureIssueDateErrorDisplayed() {
-        Assert.assertEquals("The issue date must be in the past", InvalidIssueDateError.getText());
-    }
-
-    public void futureIssueDateFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "The issue date must be in the past",
-                InvalidIssueDateFieldError.getText());
-    }
-
-    public void invalidValidToDateErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter the date as it appears on your driving licence",
-                InvalidValidToDateError.getText());
-    }
-
-    public void invalidValidToDateFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter the date as it appears on your driving licence",
-                InvalidValidToDateFieldError.getText());
-    }
-
-    public void expiredDrivingLicenceErrorDisplayed() {
-        Assert.assertEquals(
-                "You cannot use an expired driving licence", InvalidValidToDateError.getText());
-    }
-
-    public void expiredDrivingLicenceFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "You cannot use an expired driving licence",
-                InvalidValidToDateFieldError.getText());
-    }
-
-    public void shortDrivingLicenceNumberErrorDisplayed() {
-        Assert.assertEquals(
-                "Your licence number should be 16 characters long",
-                InvalidDrivingLicenceError.getText());
-    }
-
-    public void shortDrivingLicenceNumberFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your licence number should be 16 characters long",
-                DrivingLicenceFieldError.getText());
-    }
-
-    public void specialCharDrivingLicenceErrorDisplayed() {
-        Assert.assertEquals(
-                "Your licence number should not include any symbols or spaces",
-                InvalidDrivingLicenceError.getText());
-    }
-
-    public void specialCharDrivingLicenceFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your licence number should not include any symbols or spaces",
-                DrivingLicenceFieldError.getText());
-    }
-
-    public void invalidDrivingLicenceErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter the number exactly as it appears on your driving licence",
-                InvalidDrivingLicenceError.getText());
-    }
-
-    public void invalidDrivingLicenceFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter the number exactly as it appears on your driving licence",
-                DrivingLicenceFieldError.getText());
-    }
-
-    public void shortIssueNumberErrorDisplayed() {
-        Assert.assertEquals(
-                "Your issue number should be 2 numbers long", InvalidIssueNumberError.getText());
-    }
-
-    public void shortIssueNumberFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your issue number should be 2 numbers long",
-                InvalidIssueNumberFieldError.getText());
-    }
-
-    public void invalidIssueNumberErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter the issue number as it appears on your driving licence",
-                InvalidIssueNumberError.getText());
-    }
-
-    public void invalidIssueNumberFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter the issue number as it appears on your driving licence",
-                InvalidIssueNumberFieldError.getText());
-    }
-
-    public void specialCharIssueNumberErrorDisplayed() {
-        Assert.assertEquals(
-                "Your issue number should not include any symbols or spaces",
-                InvalidIssueNumberError.getText());
-    }
-
-    public void specialCharIssueNumberFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your issue number should not include any symbols or spaces",
-                InvalidIssueNumberFieldError.getText());
-    }
-
-    public void shortPostcodeErrorDisplayed() {
-        Assert.assertEquals(
-                "Your postcode should be between 5 and 7 characters",
-                InvalidPostcodeError.getText());
-    }
-
-    public void shortPostcodeFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your postcode should be between 5 and 7 characters",
-                InvalidPostcodeFieldError.getText());
-    }
-
-    public void specialCharPostcodeErrorDisplayed() {
-        Assert.assertEquals(
-                "Your postcode should only include numbers and letters",
-                InvalidPostcodeError.getText());
-    }
-
-    public void specialCharPostcodeFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your postcode should only include numbers and letters",
-                InvalidPostcodeFieldError.getText());
-    }
-
-    public void alphaOrNumericPostcodeErrorDisplayed() {
-        Assert.assertEquals(
-                "Your postcode should include numbers and letters", InvalidPostcodeError.getText());
-    }
-
-    public void alphaOrNumericPostcodeFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Your postcode should include numbers and letters",
-                InvalidPostcodeFieldError.getText());
-    }
-
-    public void invalidPostcodeErrorDisplayed() {
-        Assert.assertEquals("Enter your postcode", InvalidPostcodeError.getText());
-    }
-
-    public void invalidPostcodeFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter your postcode", InvalidPostcodeFieldError.getText());
-    }
-
-    public void internationalPostcodeErrorDisplayed() {
-        Assert.assertEquals("Enter a UK postcode", InvalidPostcodeError.getText());
-    }
-
-    public void internationalPostcodeFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter a UK postcode", InvalidPostcodeFieldError.getText());
-    }
-
-    public void invalidLastNameErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter your last name as it appears on your driving licence",
-                InvalidLastNameError.getText());
-    }
-
-    public void invalidLastNameFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter your last name as it appears on your driving licence",
-                InvalidLastNameFieldError.getText());
-    }
-
-    public void invalidFirstNameErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter your first name as it appears on your driving licence",
-                InvalidFirstNameError.getText());
-    }
-
-    public void invalidFirstNameFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter your first name as it appears on your driving licence",
-                InvalidFirstNameFieldError.getText());
-    }
-
-    public void invalidMiddleNamesErrorDisplayed() {
-        Assert.assertEquals(
-                "Enter any middle names as they appear on your driving licence",
-                InvalidMiddleNamesError.getText());
-    }
-
-    public void invalidMiddleNamesFieldErrorDisplayed() {
-        Assert.assertEquals(
-                "Error:\n" + "Enter any middle names as they appear on your driving licence",
-                InvalidMiddleNamesFieldError.getText());
-    }
-
-    public void ciInVC(String ci) throws IOException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
-        JsonNode vcNode = jsonNode.get("vc");
-        JsonNode evidenceNode = vcNode.get("evidence");
-
-        ObjectReader objectReader =
-                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
-        List<JsonNode> evidence = objectReader.readValue(evidenceNode);
-
-        JsonNode cisNode = evidence.get(0).get("ci");
-
-        ObjectReader listReader =
-                new ObjectMapper().readerFor(new TypeReference<List<String>>() {});
-        List<String> cis = listReader.readValue(cisNode);
-
-        if (StringUtils.isNotEmpty(ci)) {
-            if (cis.size() > 0) {
-                assertTrue(cis.contains(ci));
-            } else {
-                fail("No CIs found");
-            }
-        }
-    }
-
-    public void documentNumberInVC(String documentNumber) throws IOException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
-        JsonNode vcNode = jsonNode.get("vc");
-        JsonNode evidenceNode = vcNode.get("drivingPermit");
-
-        ObjectReader objectReader =
-                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
-        List<JsonNode> evidence = objectReader.readValue(evidenceNode);
-
-        String licenceNumber = evidence.get(0).get("documentNumber").asText();
-        assertEquals(documentNumber, licenceNumber);
-    }
-
-    public void navigateToDrivingLicenceCRI() {
-        goToDLCRIButton.click();
-    }
-
-    public void deleteCookie() {
-
-        Set<Cookie> cookies = Driver.get().manage().getCookies();
-
-        for (Cookie cookie : cookies) {
-            LOGGER.info(cookie.getName() + ":" + cookie.getValue());
-        }
-        Driver.get().manage().deleteCookieNamed("service_session");
-        Driver.get().navigate().refresh();
-    }
-
-    public void errorPageURLValidation() {
-        String actualTitle = Driver.get().getTitle();
-        String expTitle = "Sorry, there is a problem – – GOV.UK";
-        if (expTitle.equals(actualTitle)) {
-            LOGGER.info("Pass : Error page is displayed");
-        } else {
-            LOGGER.info("Fail : Who was your UK driving licence issued by? is displayed");
-        }
-        LOGGER.info("title:" + actualTitle);
-    }
-
-    public void validateErrorPageHeading() {
-        String expectedHeading = "Sorry, there is a problem";
-        String actualHeading = errorTitle.getText();
-        if (expectedHeading.equals(actualHeading)) {
-            LOGGER.info("Pass : Sorry, there is a problem page is displayed");
-        } else {
-            LOGGER.info("Fail : Who was your UK driving licence issued by? is displayed");
-        }
     }
 
     public void whyWeNeedToKnowThis() {
@@ -846,5 +355,623 @@ public class DrivingLicencePageObject extends UniversalSteps {
         } else {
             LOGGER.info("No test environment is set");
         }
+    }
+
+    public void searchForUATUser(String number) {
+        assertURLContains("credential-issuer?cri=driving-licence");
+        selectRow.sendKeys(number);
+        searchButton.click();
+    }
+
+    public void navigateToDrivingLicenceResponse(String validOrInvalid) {
+        assertURLContains("callback");
+        if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
+            errorResponse.click();
+        } else {
+            viewResponse.click();
+        }
+    }
+
+    public void navigateToDrivingLicenceCRI() {
+        goToDLCRIButton.click();
+    }
+
+    // ------------------
+
+    // Should be seperate page
+
+    public void betaBanner() {
+        betaBanner.isDisplayed();
+    }
+
+    public void betaBannerSentence(String expectedText) {
+        Assert.assertEquals(expectedText, betaBannerText.getText());
+    }
+
+    public void titleDVLAWithRadioBtn() {
+        optionDVLA.isDisplayed();
+        radioBtnDVLA.isDisplayed();
+    }
+
+    public void titleDVAWithRadioBtn() {
+        optionDVA.isDisplayed();
+        radioBtnDVA.isDisplayed();
+    }
+
+    public void noDrivingLicenceBtn(String expectedText) {
+        noDLOption.isDisplayed();
+        Assert.assertEquals(expectedText, noDLOption.getText());
+        noDLRadioBtn.isDisplayed();
+    }
+
+    public void ContinueButton() {
+        CTButton.isDisplayed();
+        CTButton.isEnabled();
+    }
+
+    public void clickOnDVLARadioButton() {
+        radioBtnDVLA.click();
+        CTButton.click();
+    }
+
+    public void clickOnDVARadioButton() {
+        radioBtnDVA.click();
+        CTButton.click();
+    }
+
+    public void clickOnIDoNotHaveAUKDrivingLicenceRadioButton() {
+        noDLRadioBtn.click();
+        Continue.click();
+    }
+
+    public void pageTitleDVLAValidation() {
+        assert (Driver.get().getTitle().contains("We’ll check your details with DVLA "));
+    }
+
+    public void noSelectContinue() {
+        CTButton.click();
+    }
+
+    public void assertErrorTitle(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidDocumentIssuerInSummary.getText());
+    }
+
+    public void errorMessage() {
+        errorSummary.isDisplayed();
+    }
+
+    public void errorLink() {
+        errorSummary.click();
+        radioBtnDVLA.isEnabled();
+    }
+
+    public void validateErrorText() {
+        String expectedText = "Error:\n" + "You must choose an option to continue";
+        String actualText = radioButtonError.getText();
+        Assert.assertEquals(expectedText, actualText);
+    }
+
+    public void drivingLicencePageURLValidationWelsh() {
+        assertURLContains("/licence-issuer/?lang=cy");
+    }
+
+    public void assertOrLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, orLabel.getText());
+    }
+
+    // -----------------------
+
+    public void drivingLicencePageURLValidation() {
+        assertURLContains("review-d");
+    }
+
+    public void assertUserRoutedToIpvCore() {
+        assertPageTitle("IPV Core Stub - GOV.UK");
+    }
+
+    public void assertUserRoutedToIpvCoreErrorPage() {
+        String coreStubUrl = configurationService.getCoreStubUrl(false);
+        String expUrl =
+                coreStubUrl
+                        + "/callback?error=access_denied&error_description=Authorization+permission+denied";
+        String actUrl = Driver.get().getCurrentUrl();
+        LOGGER.info("expectedUrl = " + expUrl);
+        LOGGER.info("actualUrl = " + actUrl);
+        Assert.assertEquals(actUrl, expUrl);
+    }
+
+    public void jsonErrorResponse(String expectedErrorDescription, String expectedErrorStatusCode)
+            throws JsonProcessingException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+
+        JsonNode insideError = getJsonNode(result, "errorObject");
+        LOGGER.info("insideError = " + insideError);
+
+        JsonNode errorDescription = insideError.get("description");
+        JsonNode statusCode = insideError.get("httpstatusCode");
+        String ActualErrorDescription = insideError.get("description").asText();
+        String ActualStatusCode = insideError.get("httpstatusCode").asText();
+
+        LOGGER.info("errorDescription = " + errorDescription);
+        LOGGER.info("statusCode = " + statusCode);
+        LOGGER.info("testErrorDescription = " + expectedErrorDescription);
+        LOGGER.info("testStatusCode = " + expectedErrorStatusCode);
+
+        Assert.assertEquals(expectedErrorDescription, ActualErrorDescription);
+        Assert.assertEquals(expectedErrorStatusCode, ActualStatusCode);
+    }
+
+    public void scoreIs(String validityScore, String strengthScore) throws IOException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        JsonNode vcNode = getJsonNode(result, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+
+        String ValidityScore = evidence.get(0).get("validityScore").asText();
+        assertEquals(ValidityScore, validityScore);
+
+        String StrengthScore = evidence.get(0).get("strengthScore").asText();
+        assertEquals(StrengthScore, strengthScore);
+    }
+
+    public void userNotFoundInThirdPartyErrorIsDisplayed() {
+        Assert.assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
+        LOGGER.info(userNotFoundInThirdPartyBanner.getText());
+    }
+
+    public void userEntersData(String issuer, String drivingLicenceSubjectScenario) {
+        TestInput drivingLicenceSubject =
+                TestDataCreator.getDVATestUserFromMap(issuer, drivingLicenceSubjectScenario);
+        if (issuer.equals("DVLA")) {
+            LicenceNumber.sendKeys(drivingLicenceSubject.getLicenceNumber());
+            birthDay.sendKeys(drivingLicenceSubject.getBirthDay());
+            birthMonth.sendKeys(drivingLicenceSubject.getBirthMonth());
+            birthYear.sendKeys(drivingLicenceSubject.getBirthYear());
+            LicenceIssueDay.sendKeys(drivingLicenceSubject.getIssueDay());
+            LicenceIssueMonth.sendKeys(drivingLicenceSubject.getIssueMonth());
+            LicenceIssueYear.sendKeys(drivingLicenceSubject.getIssueYear());
+            if (null != drivingLicenceSubject.getIssueNumber()) {
+                IssueNumber.sendKeys(drivingLicenceSubject.getIssueNumber());
+            }
+        }
+        if (null != drivingLicenceSubject.getMiddleNames()) {
+            MiddleNames.sendKeys(drivingLicenceSubject.getMiddleNames());
+        }
+
+        LastName.sendKeys(drivingLicenceSubject.getLastName());
+        FirstName.sendKeys(drivingLicenceSubject.getFirstName());
+        LicenceValidToDay.sendKeys(drivingLicenceSubject.getValidToDay());
+        LicenceValidToMonth.sendKeys(drivingLicenceSubject.getValidToMonth());
+        LicenceValidToYear.sendKeys(drivingLicenceSubject.getValidToYear());
+        Postcode.sendKeys(drivingLicenceSubject.getPostcode());
+    }
+
+    // Why is this invalid
+    public void userEntersInvalidDrivingDetails() {
+        DrivingLicencePageObject enterYourDetailsExactlyDVLAPage = new DrivingLicencePageObject();
+        enterYourDetailsExactlyDVLAPage.LicenceNumber.sendKeys("PARKE610112PBFGI");
+        enterYourDetailsExactlyDVLAPage.LastName.sendKeys("Testlastname");
+        enterYourDetailsExactlyDVLAPage.FirstName.sendKeys("Testfirstname");
+        enterYourDetailsExactlyDVLAPage.birthDay.sendKeys("11");
+        enterYourDetailsExactlyDVLAPage.birthMonth.sendKeys("10");
+        enterYourDetailsExactlyDVLAPage.birthYear.sendKeys("1962");
+        enterYourDetailsExactlyDVLAPage.LicenceValidToDay.sendKeys("01");
+        enterYourDetailsExactlyDVLAPage.LicenceValidToMonth.sendKeys("01");
+        enterYourDetailsExactlyDVLAPage.LicenceValidToYear.sendKeys("2030");
+        enterYourDetailsExactlyDVLAPage.LicenceIssueDay.sendKeys("10");
+        enterYourDetailsExactlyDVLAPage.LicenceIssueMonth.sendKeys("12");
+        enterYourDetailsExactlyDVLAPage.LicenceIssueYear.sendKeys("1970");
+        enterYourDetailsExactlyDVLAPage.IssueNumber.sendKeys("01");
+        enterYourDetailsExactlyDVLAPage.Postcode.sendKeys("BS98 1AA");
+        BrowserUtils.waitForPageToLoad(10);
+    }
+
+    public void enterInvalidLastAndFirstName() {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.LastName.sendKeys("Parker!");
+        drivingLicencePageObject.FirstName.sendKeys("Peter@@!");
+        drivingLicencePageObject.MiddleNames.sendKeys("@@@@@@@");
+    }
+
+    public void enterDvlaBirthYear(String day, String month, String year) {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.birthDay.clear();
+        drivingLicencePageObject.birthDay.click();
+        drivingLicencePageObject.birthDay.sendKeys(day);
+        drivingLicencePageObject.birthMonth.clear();
+        drivingLicencePageObject.birthMonth.click();
+        drivingLicencePageObject.birthMonth.sendKeys(month);
+        drivingLicencePageObject.birthYear.clear();
+        drivingLicencePageObject.birthYear.click();
+        drivingLicencePageObject.birthYear.sendKeys(year);
+    }
+
+    public void enterIssueDate(String day, String month, String year) {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.LicenceIssueDay.clear();
+        drivingLicencePageObject.LicenceIssueDay.click();
+        drivingLicencePageObject.LicenceIssueDay.sendKeys(day);
+        drivingLicencePageObject.LicenceIssueMonth.clear();
+        drivingLicencePageObject.LicenceIssueMonth.click();
+        drivingLicencePageObject.LicenceIssueMonth.sendKeys(month);
+        drivingLicencePageObject.LicenceIssueYear.clear();
+        drivingLicencePageObject.LicenceIssueYear.click();
+        drivingLicencePageObject.LicenceIssueYear.sendKeys(year);
+    }
+
+    public void enterValidToDate(String day, String month, String year) {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.LicenceValidToDay.clear();
+        drivingLicencePageObject.LicenceValidToDay.click();
+        drivingLicencePageObject.LicenceValidToDay.sendKeys(day);
+        drivingLicencePageObject.LicenceValidToMonth.clear();
+        drivingLicencePageObject.LicenceValidToMonth.click();
+        drivingLicencePageObject.LicenceValidToMonth.sendKeys(month);
+        drivingLicencePageObject.LicenceValidToYear.clear();
+        drivingLicencePageObject.LicenceValidToYear.click();
+        drivingLicencePageObject.LicenceValidToYear.sendKeys(year);
+    }
+
+    public void enterLicenceNumber(String licenceNumber) {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.LicenceNumber.clear();
+        drivingLicencePageObject.LicenceNumber.click();
+        drivingLicencePageObject.LicenceNumber.sendKeys(licenceNumber);
+    }
+
+    public void clearIssueNumber() {
+        this.IssueNumber.clear();
+    }
+
+    public void enterPostcode(String postcode) {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.Postcode.clear();
+        drivingLicencePageObject.Postcode.click();
+        drivingLicencePageObject.Postcode.sendKeys(postcode);
+    }
+
+    public void userReEntersDataAsADrivingLicenceSubject(String drivingLicenceSubjectScenario) {
+        TestInput drivingLicenceSubject =
+                TestDataCreator.getDVATestUserFromMap("DVLA", drivingLicenceSubjectScenario);
+
+        LicenceNumber.clear();
+        LastName.clear();
+        FirstName.clear();
+        MiddleNames.clear();
+        birthDay.clear();
+        birthMonth.clear();
+        birthYear.clear();
+        LicenceValidToDay.clear();
+        LicenceValidToMonth.clear();
+        LicenceValidToYear.clear();
+        LicenceIssueDay.clear();
+        LicenceIssueMonth.clear();
+        LicenceIssueYear.clear();
+        IssueNumber.clear();
+        Postcode.clear();
+        LicenceNumber.sendKeys(drivingLicenceSubject.getLicenceNumber());
+        LastName.sendKeys(drivingLicenceSubject.getLastName());
+        FirstName.sendKeys(drivingLicenceSubject.getFirstName());
+        if (null != drivingLicenceSubject.getMiddleNames()) {
+            MiddleNames.sendKeys(drivingLicenceSubject.getMiddleNames());
+        }
+        if (null != drivingLicenceSubject.getIssueNumber()) {
+            IssueNumber.sendKeys(drivingLicenceSubject.getIssueNumber());
+        }
+        birthDay.sendKeys(drivingLicenceSubject.getBirthDay());
+        birthMonth.sendKeys(drivingLicenceSubject.getBirthMonth());
+        birthYear.sendKeys(drivingLicenceSubject.getBirthYear());
+        LicenceValidToDay.sendKeys(drivingLicenceSubject.getValidToDay());
+        LicenceValidToMonth.sendKeys(drivingLicenceSubject.getValidToMonth());
+        LicenceValidToYear.sendKeys(drivingLicenceSubject.getValidToYear());
+        LicenceIssueDay.sendKeys(drivingLicenceSubject.getIssueDay());
+        LicenceIssueMonth.sendKeys(drivingLicenceSubject.getIssueMonth());
+        LicenceIssueYear.sendKeys(drivingLicenceSubject.getIssueYear());
+        Postcode.sendKeys(drivingLicenceSubject.getPostcode());
+    }
+
+    public void assertInvalidDoBInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidDOBErrorInSummary.getText());
+    }
+
+    public void assertInvalidDoBOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidDateOfBirthFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidIssueDateInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidIssueDateErrorInSummary.getText());
+    }
+
+    public void assertInvalidIssueDateOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidIssueDateFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidValidToDateInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidValidToDateErrorInSummary.getText());
+    }
+
+    public void assertInvalidValidToDateOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidValidToDateFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidLicenceNumberInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidDrivingLicenceErrorInSummary.getText());
+    }
+
+    public void assertInvalidLicenceNumberOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, DrivingLicenceFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidIssueNumberInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidIssueNumberErrorInSummary.getText());
+    }
+
+    public void assertInvalidIssueNumberOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidIssueNumberFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidPostcodeInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidPostcodeErrorInSummary.getText());
+    }
+
+    public void assertInvalidPostcodeOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidPostcodeFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidLastNameInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidLastNameErrorInSummary.getText());
+    }
+
+    public void assertInvalidLastNameOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidLastNameFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidFirstNameInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidFirstNameErrorInSummary.getText());
+    }
+
+    public void assertInvalidFirstNameOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidFirstNameFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertInvalidMiddleNameInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, InvalidMiddleNamesErrorInSummary.getText());
+    }
+
+    public void assertInvalidMiddleNameOnField(String expectedText) {
+        Assert.assertEquals(
+                expectedText, InvalidMiddleNamesFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void ciInVC(String ci) throws IOException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        JsonNode vcNode = getJsonNode(result, "vc");
+        JsonNode evidenceNode = vcNode.get("evidence");
+
+        List<String> cis = getCIsFromEvidence(evidenceNode);
+
+        if (StringUtils.isNotEmpty(ci)) {
+            if (cis.size() > 0) {
+                assertTrue(cis.contains(ci));
+            } else {
+                fail("No CIs found");
+            }
+        }
+    }
+
+    public void assertDocumentNumberInVc(String documentNumber) throws IOException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        JsonNode vcNode = getJsonNode(result, "vc");
+        String licenceNumber = getDocumentNumberFromVc(vcNode);
+        assertEquals(documentNumber, licenceNumber);
+    }
+
+    public void validateErrorPageHeading() {
+        String expectedHeading = "Sorry, there is a problem";
+        String actualHeading = pageHeader.getText();
+        if (expectedHeading.equals(actualHeading)) {
+            LOGGER.info("Pass : Sorry, there is a problem page is displayed");
+        } else {
+            LOGGER.info("Fail : Who was your UK driving licence issued by? is displayed");
+            fail("Fail : Who was your UK driving licence issued by? is displayed");
+        }
+    }
+
+    public void assertPageTitle(String expTitle) {
+        String actualTitle = Driver.get().getTitle();
+
+        LOGGER.info("Page title: " + actualTitle);
+        Assert.assertEquals(expTitle, actualTitle);
+    }
+
+    public void assertPageHeading(String expectedText) {
+        Assert.assertEquals(expectedText, pageHeader.getText().split("\n")[0]);
+    }
+
+    public void assertProveAnotherWayLinkText(String expectedText) {
+        Assert.assertEquals(expectedText, getParent(proveAnotherWay).getText());
+    }
+
+    public void assertErrorPrefix(String expectedText) {
+        Assert.assertEquals(expectedText, errorText.getText());
+    }
+
+    public void assertFirstLineOfUserNotFoundText(String expectedText) {
+        Assert.assertEquals(expectedText, userNotFoundInThirdPartyBanner.getText().split("\n")[0]);
+    }
+
+    public void youWillBeAbleToFindSentence(String expectedText) {
+        Assert.assertEquals(expectedText, thereWasAProblemFirstSentence.getText());
+    }
+
+    public void assertPageSourceContains(String expectedText) {
+        assert (Driver.get().getPageSource().contains(expectedText));
+    }
+
+    public void assertLastNameLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, getLabel(getParent(LastName)).getText());
+    }
+
+    public void assertGivenNameLegendText(String expectedText) {
+        Assert.assertEquals(
+                expectedText,
+                FirstName.findElement(By.xpath("./../../.."))
+                        .findElement(By.tagName("legend"))
+                        .getText());
+    }
+
+    public void assertMiddleNameLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, getLabel(getParent(MiddleNames)).getText());
+    }
+
+    public void assertGivenNameDescription(String expectedText) {
+        Assert.assertEquals(
+                expectedText, getLabel(firstNameHint.findElement(By.xpath("./../.."))).getText());
+    }
+
+    public void assertGivenNameHint(String expectedText) {
+        Assert.assertEquals(expectedText, firstNameHint.getText());
+    }
+
+    public void assertMiddleNameHint(String expectedText) {
+        Assert.assertEquals(expectedText, middleNameHint.getText());
+    }
+
+    public void assertDateOfBirthLegendText(String expectedText) {
+        Assert.assertEquals(expectedText, dateOfBirthLegend.getText());
+    }
+
+    public void assertDateOfBirthHintText(String expectedText) {
+        Assert.assertEquals(expectedText, dateOfBirthHint.getText());
+    }
+
+    public void assertBirthDayLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, getLabel(getParent(birthDay)).getText());
+    }
+
+    public void assertBirthMonthLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, getLabel(getParent(birthMonth)).getText());
+    }
+
+    public void assertBirthYearLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, getLabel(getParent(birthYear)).getText());
+    }
+
+    public void assertIssueDateLegendText(String expectedText) {
+        Assert.assertEquals(expectedText, issueDateLegend.getText());
+    }
+
+    public void assertIssueDateHintText(String expectedText) {
+        Assert.assertEquals(expectedText, issueDateHint.getText());
+    }
+
+    public void assertValidToHintText(String expectedText) {
+        Assert.assertEquals(expectedText, validToHint.getText());
+    }
+
+    public void assertValidToHintTextDVA(String expectedText) {
+        Assert.assertEquals(expectedText, validToHint.getText());
+    }
+
+    public void assertLicenceNumberLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, licenceNumberFieldLabel.getText());
+    }
+
+    public void assertLicenceNumberHintText(String expectedText) {
+        Assert.assertEquals(expectedText, licenceNumberHint.getText());
+    }
+
+    public void assertIssueNumberLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, issueNumberFieldLabel.getText());
+    }
+
+    public void assertIssueNumberHintText(String expectedText) {
+        Assert.assertEquals(expectedText, issueNumberHint.getText());
+    }
+
+    public void assertPostcodeLabelText(String expectedText) {
+        Assert.assertEquals(expectedText, postcodeLabel.getText());
+    }
+
+    public void assertPostcodeHintText(String expectedText) {
+        Assert.assertEquals(expectedText, postcodeHint.getText());
+    }
+
+    public void assertPageDescription(String expectedText) {
+        Assert.assertEquals(expectedText, pageDescriptionHeading.getText());
+    }
+
+    public void assertValidToLegend(String expectedText) {
+        Assert.assertEquals(expectedText, validToLegend.getText());
+    }
+
+    public void assertErrorSummaryText(String expectedText) {
+        Assert.assertEquals(expectedText, errorSummaryTitle.getText());
+    }
+
+    public void assertIssueNumberDescriptionText(String expectedText) {
+        Assert.assertEquals(
+                expectedText,
+                getParent(issueNumberFieldLabel)
+                        .findElement(By.tagName("p"))
+                        .getText()
+                        .trim()
+                        .replace("\n", ""));
+    }
+
+    public void assertCTATextAs(String expectedText) {
+        assertEquals(CTButton.getText(), expectedText);
+    }
+
+    private List<String> getCIsFromEvidence(JsonNode evidenceNode) throws IOException {
+        ObjectReader objectReader =
+                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
+        List<JsonNode> evidence = objectReader.readValue(evidenceNode);
+
+        List<String> cis =
+                getListOfNodes(evidence.get(0), "ci").stream()
+                        .map(JsonNode::asText)
+                        .collect(Collectors.toList());
+        return cis;
+    }
+
+    private JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        return jsonNode.get(vc);
+    }
+
+    private String getDocumentNumberFromVc(JsonNode vcNode) throws IOException {
+        List<JsonNode> evidence = getListOfNodes(vcNode, "drivingPermit");
+
+        String licenceNumber = evidence.get(0).get("documentNumber").asText();
+        return licenceNumber;
+    }
+
+    private List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {
+        JsonNode evidenceNode = vcNode.get(evidence);
+
+        ObjectReader objectReader =
+                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
+        return objectReader.readValue(evidenceNode);
+    }
+
+    private WebElement getParent(WebElement webElement) {
+        return webElement.findElement(By.xpath("./.."));
+    }
+
+    private WebElement getLabel(WebElement webElement) {
+        return webElement.findElement(By.tagName("label"));
     }
 }

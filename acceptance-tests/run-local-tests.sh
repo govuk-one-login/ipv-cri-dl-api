@@ -6,6 +6,8 @@ if [ -f "$CONF_FILE" ]; then
   export $(grep -v '^#' $CONF_FILE | xargs)
 fi
 
+export BROWSER="${BROWSER:-chrome-headless}"
+
 ##### Ask fundamental test questions
 read -p "What environment are you running against? [previous=$ENVIRONMENT] " ENVIRONMENT_NEW
 

@@ -12,6 +12,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class BrowserUtils {
 
@@ -394,5 +395,29 @@ public class BrowserUtils {
     public static void waitForPresenceOfElement(By by, long time) {
         new WebDriverWait(Driver.get(), Duration.ofSeconds(time))
                 .until(ExpectedConditions.presenceOfElementLocated(by));
+    }
+
+    public static void deleteCookie(String cookieName) {
+        Set<Cookie> cookies = Driver.get().manage().getCookies();
+
+        for (Cookie cookie : cookies) {
+            LOGGER.info(cookie.getName() + ":" + cookie.getValue());
+        }
+        Driver.get().manage().deleteCookieNamed(cookieName);
+        Driver.get().navigate().refresh();
+    }
+
+    public static void changeLanguageTo(final String language) {
+        String languageCode = "eng";
+        switch (language) {
+            case "Welsh":
+                {
+                    languageCode = "cy";
+                }
+        }
+
+        String currentURL = Driver.get().getCurrentUrl();
+        String newURL = currentURL + "/?lang=" + languageCode;
+        Driver.get().get(newURL);
     }
 }

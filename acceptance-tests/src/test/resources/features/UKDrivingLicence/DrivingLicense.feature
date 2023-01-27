@@ -7,7 +7,7 @@ Feature: Driving License Test
     Then I check the page title who was your UK driving license issued by?
     And I assert the URL is valid
 
- @DrivingLicenceTest @build @staging @integration
+ @DrivingLicenceTest @build @staging @integration @smoke
   Scenario:3 options and Radio button available in Driving Licence page
     Given I can see a radio button titled “DVLA”
     Then I can see a radio button titled “DVA”

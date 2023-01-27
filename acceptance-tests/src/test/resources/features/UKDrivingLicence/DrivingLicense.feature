@@ -51,3 +51,65 @@ Feature: Driving License Test
     When I can see the relevant error page with correct title
     Then I can see the heading  Sorry, there is a error
     And The test is complete and I close the driver
+
+  @DVLADrivingLicence_test@build
+  Scenario Outline: DVLA Error tab title validation
+    Given I click on DVLA radio button and Continue
+    When I should on the page DVLA Enter your details exactly as they appear on your UK driving licence
+    And I validate the page title in English
+    Then User enters data as a <DrivingLicenceSubject>
+    And User clicks on continue
+    Then I validate the page error page title in English
+    And The test is complete and I close the driver
+    Examples:
+      |DrivingLicenceSubject             |
+      |NoLastName   |
+      |NoFirstName |
+      |NoDateOfBirth   |
+      |NoIssueDate   |
+      |NoValidToDate  |
+      |NoDrivingLicenceNumber |
+      |NoIssueNumber  |
+      |NoPostcode|
+      |InvalidFirstNameWithNumbers|
+      |InvalidFirstNameWithSpecialCharacters|
+      |DateOfBirthWithSpecialCharacters     |
+      |InvalidDateOfBirth|
+      |IssueDateWithSpecialCharacters|
+      |ValidToDateWithSpecialCharacters|
+      |ValidToDateInPast |
+      |DrivingLicenceNumberWithSpecialChar|
+      |IssueNumberWithSpecialChar         |
+      |PostcodeWithSpecialChar            |
+      |InternationalPostcode              |
+
+  @DVADrivingLicence_test@build
+  Scenario Outline: DVAError tab title validation
+    Given I click on DVA radio button and Continue
+    When I should be on the page DVA Enter your details exactly as they appear on your UK driving licence
+    And I validate the page title in English
+    Then User enters DVA data as a <DVADrivingLicenceSubject>
+    And User clicks on continue
+    Then I validate the page error page title in English
+    And The test is complete and I close the driver
+    Examples:
+      |DVADrivingLicenceSubject             |
+      |NoDVALastName   |
+      |NoDVAFirstName |
+      |NoDVADateOfBirth   |
+      |NoDVAIssueDate   |
+      |NoDVAValidToDate   |
+      |NoDVADrivingLicenceNumber   |
+      |NoDVAPostcode   |
+      |InvalidDVAFirstNameWithSpecialChar|
+      |DVADOBWithSpecialCharacters       |
+      |DVADateOfBirthInFuture            |
+      |DVAIssueDateWithSpecialChar       |
+      |DVAValidToDateWithSpecialChar     |
+      |DVAValidToDateInPast              |
+      |DVADrivingLicenceNumWithSpecialChar|
+      |DVADrivingLicenceNumWithAlphanumericChar|
+      |DVADrivingLicenceNumberWithAlphaChar    |
+      |DVAPostcodeWithSpecialChar |
+      |DVAPostcodeWithAlphaChar      |
+      |DVAInternationalPostcode      |

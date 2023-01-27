@@ -157,4 +157,14 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void navigateToDrivingLicenceOnTestEnv() {
         navigateToDrivingLicenceCRIOnTestEnv();
     }
+
+    @And("I validate the page title in English")
+    public void iValidateThePageTitle() {
+        pageTabTitleInEnglish();
+    }
+
+    @Then("I validate the page error page title in English")
+    public void iValidateThePageErrorPageTitle() {
+        errorPageTitleInEnglish();
+    }
 }

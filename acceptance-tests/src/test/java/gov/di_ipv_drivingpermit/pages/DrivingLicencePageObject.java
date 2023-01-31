@@ -819,7 +819,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
         }
     }
 
-
     public void whyWeNeedToKnowThis() {
         Assert.assertTrue(whyWeText.isDisplayed());
         LOGGER.info(whyWeText.getText());
@@ -833,7 +832,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         Assert.assertTrue(whyWePara.isDisplayed());
         LOGGER.info(whyWePara.getText());
     }
-    
+
     public void navigateToDrivingLicenceCRIOnTestEnv() {
         visitCredentialIssuers.click();
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
@@ -847,4 +846,5 @@ public class DrivingLicencePageObject extends UniversalSteps {
         } else {
             LOGGER.info("No test environment is set");
         }
+    }
 }

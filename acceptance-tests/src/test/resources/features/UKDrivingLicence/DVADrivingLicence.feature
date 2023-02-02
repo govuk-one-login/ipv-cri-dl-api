@@ -8,7 +8,7 @@ Feature: DVA Driving Licence Test
     And I click on DVA radio button and Continue
     And I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page
 
-  @DVADrivingLicence_test @build @staging @integration
+  @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVA Driving Licence details page happy path
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -123,7 +123,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectDVAPostcode|
 
-  @DVADrivingLicence_test @build @staging @integration
+  @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline: DVA Driving Licence Retry Test Happy Path
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -137,7 +137,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |DVADrivingLicenceSubjectHappyBilly |
 
-  @DVADrivingLicence_test @build @staging @integration
+  @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline: DVA Driving Licence User failed second attempt
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -151,7 +151,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectDVADrivingLicenceNumber |
 
-  @DVADrivingLicence_test @build @staging @integration
+  @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario: DVA Driving Licence User cancels after failed first attempt
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -161,14 +161,14 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci DO2, validity score 0 and strength score 3
     And The test is complete and I close the driver
 
-  @DVADrivingLicence_test @build @staging @integration
+  @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario: DVA Driving Licence User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVADrivingLicence_test @build @staging @integration
+  @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario: DVA Driving Licence User cancels before first attempt via I do not have a UK driving licence route
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button
@@ -496,7 +496,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject      |
       |DVAInternationalPostcode |
 
-  @DVADrivingLicence_test @build @staging @integration
+  @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVA Driving Licence Generate VC with invalid DL number and prove in another way unhappy path
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue

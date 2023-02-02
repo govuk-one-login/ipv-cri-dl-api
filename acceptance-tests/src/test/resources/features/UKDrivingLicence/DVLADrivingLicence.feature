@@ -172,14 +172,14 @@ Feature: Driving Licence Test
     And JSON payload should contain ci DO2, validity score 0 and strength score 3
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @tmsLink=LIME-167 @build @staging @integration @smoke
+  @DVLADrivingLicence_test @tmsLink=LIME-167 @smoke
   Scenario: DVLA Driving Licence User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @tmsLink=LIME-167 @build @staging @integration @smoke
+  @DVLADrivingLicence_test @tmsLink=LIME-167 @smoke
   Scenario: DVLA Driving Licence User cancels before first attempt via I do not have a UK driving licence route
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button

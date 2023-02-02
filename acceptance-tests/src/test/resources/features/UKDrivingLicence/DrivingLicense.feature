@@ -27,7 +27,7 @@ Feature: Driving License Test
     Then I should be on the page DVA Enter your details exactly as they appear on your UK driving licence
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration
+  @DrivingLicenceTest
   Scenario:User selects no Driving Licence and landed in IPV Core
     Given I click I do not have UK Driving License and continue
     When I am directed to the IPV Core routing page

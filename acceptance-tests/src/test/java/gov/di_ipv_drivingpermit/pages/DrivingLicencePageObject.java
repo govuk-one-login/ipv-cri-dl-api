@@ -223,6 +223,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "postcode-error")
     public WebElement InvalidPostcodeFieldError;
 
+    @FindBy(className = "govuk-details__summary-text")
+    public WebElement whyWeText;
+
+    @FindBy(className = "govuk-details__text")
+    public WebElement whyWePara;
+
     public DrivingLicencePageObject() {
         this.configurationService = new ConfigurationService(System.getenv("ENVIRONMENT"));
         PageFactory.initElements(Driver.get(), this);
@@ -811,6 +817,20 @@ public class DrivingLicencePageObject extends UniversalSteps {
         } else {
             LOGGER.info("Fail : Who was your UK driving licence issued by? is displayed");
         }
+    }
+
+    public void whyWeNeedToKnowThis() {
+        Assert.assertTrue(whyWeText.isDisplayed());
+        LOGGER.info(whyWeText.getText());
+    }
+
+    public void clickOnWhyWeNeedLink() {
+        whyWeText.click();
+    }
+
+    public void paragraphValidation() {
+        Assert.assertTrue(whyWePara.isDisplayed());
+        LOGGER.info(whyWePara.getText());
     }
 
     public void navigateToDrivingLicenceCRIOnTestEnv() {

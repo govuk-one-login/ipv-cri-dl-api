@@ -21,12 +21,14 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
 
     @Then("^the text reads (.*)$")
     public void
-            theTextReadsBETAMaeHwnYnWasanaethNewyddByddEichAdborthAgorMewnTabNewyddYnEinHelpuIWWella(String expectedText) {
+            theTextReadsBETAMaeHwnYnWasanaethNewyddByddEichAdborthAgorMewnTabNewyddYnEinHelpuIWWella(
+                    String expectedText) {
         betaBannerSentenceWelsh(expectedText);
     }
 
     @Then("^I check the page title (.*)$")
-    public void i_check_the_page_title_who_was_your_uk_driving_license_issued_by(String expectedTitle) {
+    public void i_check_the_page_title_who_was_your_uk_driving_license_issued_by(
+            String expectedTitle) {
         validateDLPageTitleWelsh(expectedTitle);
     }
 
@@ -36,12 +38,15 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I can see a I do not have a UK driving licence radio button titled (.*)$")
-    public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButtonTitledNidOesGennyfDrwyddedYrruYDU(String expectedText) {
+    public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButtonTitledNidOesGennyfDrwyddedYrruYDU(
+            String expectedText) {
         noDrivingLicenceBtnWelsh(expectedText);
     }
 
     @And("I can see “Or”")
-    public void iCanSeeOr() { orDisplayWelsh();}
+    public void iCanSeeOr() {
+        orDisplayWelsh();
+    }
 
     @Then("I can see CTA as Parhau")
     public void iCanSeeCTAAsParhau() {
@@ -49,8 +54,8 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I see the licence Selection sentence starts with (.*)$")
-    public void iSeeTheSentenceISeeTheSentenceStartsWithGallwchDdodOHydIHwnYnAdran(String expectedText)
-            throws Throwable {
+    public void iSeeTheSentenceISeeTheSentenceStartsWithGallwchDdodOHydIHwnYnAdran(
+            String expectedText) throws Throwable {
         licenceSelectionSentence(expectedText);
     }
 
@@ -65,7 +70,8 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I see the heading (.*)$")
-    public void iSeeTheHeadingRhowchEichManylionYnUnionFelMaentYnYmddangosArEichTrwyddedYrru(String expectedText) {
+    public void iSeeTheHeadingRhowchEichManylionYnUnionFelMaentYnYmddangosArEichTrwyddedYrru(
+            String expectedText) {
         dvlaPageHeading(expectedText);
     }
 
@@ -110,7 +116,8 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I can see the sentence (.*)$")
-    public void iCanSeeTheSentenceGadewchHynYnWagOsNadOesGennychUnrhywEnwauCanol(String expectedText) {
+    public void iCanSeeTheSentenceGadewchHynYnWagOsNadOesGennychUnrhywEnwauCanol(
+            String expectedText) {
         middleNameSentence(expectedText);
     }
 
@@ -150,7 +157,7 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @Given("^I can see the Issue date field titled (.*)$")
-    public void iCanSeeTheIssueDateFieldTitledDyddiadCyhoeddi(String expectedText ) {
+    public void iCanSeeTheIssueDateFieldTitledDyddiadCyhoeddi(String expectedText) {
         issueDateField(expectedText);
     }
 
@@ -195,7 +202,8 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I can see issue sentence as (.*)$")
-    public void iCanSeeIssueSentenceAsDymaRRhifDdigidArÔlYGofodYnAdranOChTrwydded(String expectedText) {
+    public void iCanSeeIssueSentenceAsDymaRRhifDdigidArÔlYGofodYnAdranOChTrwydded(
+            String expectedText) {
         issueNumberSentence(expectedText);
     }
 
@@ -245,12 +253,14 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I see lastName error sentence as (.*)$")
-    public void iSeeLastNameErrorSentenceAsRhowchEichEnwOlafFelYMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+    public void iSeeLastNameErrorSentenceAsRhowchEichEnwOlafFelYMaeNYmddangosArEichTrwyddedYrru(
+            String expectedText) {
         lastNameErrorSentenceWelsh(expectedText);
     }
 
     @And("^I see firstName error sentence as (.*)$")
-    public void iSeeFirstNameErrorSentenceAsRhowchEichEnwCyntafFelYMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+    public void iSeeFirstNameErrorSentenceAsRhowchEichEnwCyntafFelYMaeNYmddangosArEichTrwyddedYrru(
+            String expectedText) {
         firstNameErrorSentenceWelsh(expectedText);
     }
 
@@ -265,12 +275,14 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I see Enter the date as it appears as (.*)$")
-    public void iSeeEnterTheDateAsItAppearsAsRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+    public void iSeeEnterTheDateAsItAppearsAsRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrru(
+            String expectedText) {
         enterDOBErrorTextWelsh(expectedText);
     }
 
     @And("^I see check date of birth sentence as (.*)$")
-    public void iSeeCheckDateOfBirthSentenceAsGwiriwchEichBodWediRhoiEichDyddiadGeniYnGywir(String expectedText) {
+    public void iSeeCheckDateOfBirthSentenceAsGwiriwchEichBodWediRhoiEichDyddiadGeniYnGywir(
+            String expectedText) {
         enterValidDOBErrorTextWelsh(expectedText);
     }
 
@@ -285,7 +297,8 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @Then("^I see Your date of birth must be in the past (.*)$")
-    public void iSeeYourDateOfBirthMustBeInThePastRhaidIChDyddiadGeniFodYnYGorffennol(String expectedText) {
+    public void iSeeYourDateOfBirthMustBeInThePastRhaidIChDyddiadGeniFodYnYGorffennol(
+            String expectedText) {
         errorMessageFutureDOBWelsh(expectedText);
     }
 
@@ -300,7 +313,8 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I see issue date must be in the past as (.*)$")
-    public void iSeeIssueDateMustBeInThePastAsRhaidIDdyddiadCyhoeddiFodYnYGorffennol(String expectedText) {
+    public void iSeeIssueDateMustBeInThePastAsRhaidIDdyddiadCyhoeddiFodYnYGorffennol(
+            String expectedText) {
         issueDateErrorWelsh(expectedText);
     }
 
@@ -359,7 +373,6 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         licenceErrorWelshforExactonDL(expectedText);
     }
 
-
     @When("I enter inValid issue number")
     public void iEnterInValidIssueNumber() {
         invalidIssueNumber();
@@ -391,7 +404,8 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("^I see DVA postcode should contain only number and letter as (.*)$")
-    public void DVADylaiEichRhowchEichCodPostOndCynnwysRhifauALlythrennauYnUnig(String expectedText) {
+    public void DVADylaiEichRhowchEichCodPostOndCynnwysRhifauALlythrennauYnUnig(
+            String expectedText) {
         postCodeErrorInvalidWelshDVA(expectedText);
     }
 
@@ -414,11 +428,11 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     public void RhowchEichCodPost(String expectedText) {
         enterYourPostCodeErrorWelsh(expectedText);
     }
+
     @And("^I see Enter your DVA postcode as (.*)$")
     public void RhowchEichCodPostDVA(String expectedText) {
         enterYourPostCodeErrorWelshDVA(expectedText);
     }
-
 
     @Then("I clear the postcode and enter the less character postcode")
     public void iClearThePostcodeAndEnterTheLessCharacterPostcode() {

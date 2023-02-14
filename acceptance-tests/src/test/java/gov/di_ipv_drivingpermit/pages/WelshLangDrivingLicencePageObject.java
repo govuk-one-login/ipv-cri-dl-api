@@ -136,7 +136,7 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     @FindBy(id = "postcode-hint")
     public WebElement postCodeExampleField;
 
-   @FindBy(xpath = "//*[@id=\"main-content\"]/div[1]/div/ul/li[1]/a")
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div[1]/div/ul/li[1]/a")
     public WebElement lastNameErrorMsg;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/div[1]/div/ul/li[2]/a")
@@ -277,12 +277,12 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
         LOGGER.info(actualTitle);
     }
 
-   public void dvlaPageHeading(String expectedText) {
+    public void dvlaPageHeading(String expectedText) {
         Assert.assertEquals(expectedText, dvlaPageHeadingWelsh.getText());
     }
 
-     public void dvlaProveYourIdentitySentence(String expectedText) {
-       Assert.assertEquals(expectedText, proveIdentityTextWelsh.getText());
+    public void dvlaProveYourIdentitySentence(String expectedText) {
+        Assert.assertEquals(expectedText, proveIdentityTextWelsh.getText());
     }
 
     public void checkYourDetailsSentence(String expectedText) {
@@ -293,11 +293,11 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
         Assert.assertEquals(expectedText, errorTextWelsh.getText());
     }
 
-      public void weCouldNotFindDetailsSentence(String expectedText) {
+    public void weCouldNotFindDetailsSentence(String expectedText) {
         Assert.assertEquals(expectedText, weWereUnableToFind.getText());
     }
 
-     public void youWillBeAbleToFindSentence(String expectedText) {
+    public void youWillBeAbleToFindSentence(String expectedText) {
         Assert.assertEquals(expectedText, thereWasAProblemDVLA.getText());
     }
 
@@ -306,8 +306,12 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void thereIsaProblemSentence(String expectedText) {
-        if (Driver.get().getPageSource().contains("Ni fyddwch yn gallu newid eich manylion eto os byddwch yn gwneud camgymeriad")) {
-            LOGGER.info("Ni fyddwch yn gallu newid eich manylion eto os byddwch yn gwneud camgymeriad");
+        if (Driver.get()
+                .getPageSource()
+                .contains(
+                        "Ni fyddwch yn gallu newid eich manylion eto os byddwch yn gwneud camgymeriad")) {
+            LOGGER.info(
+                    "Ni fyddwch yn gallu newid eich manylion eto os byddwch yn gwneud camgymeriad");
         }
     }
 
@@ -320,7 +324,7 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void firstNameWelsh(String expectedText) {
-       Assert.assertEquals(expectedText, firstNameinWelsh.getText());
+        Assert.assertEquals(expectedText, firstNameinWelsh.getText());
     }
 
     public void middleNameWelsh(String expectedText) {
@@ -336,7 +340,7 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void dateOfBirthField(String expectedText) {
-        Assert.assertEquals(expectedText,dateFieldWelsh.getText());
+        Assert.assertEquals(expectedText, dateFieldWelsh.getText());
     }
 
     public void dateOfBirthFieldDVA(String expectedText) {
@@ -364,10 +368,10 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void monthFieldDVA(String expectedText) {
-        Assert.assertEquals(expectedText,  monthfieldDVAWelsh.getText());
+        Assert.assertEquals(expectedText, monthfieldDVAWelsh.getText());
     }
 
-    public void yearField(String expectedText ) {
+    public void yearField(String expectedText) {
         Assert.assertEquals(expectedText, yearfieldWelsh.getText());
     }
 
@@ -393,7 +397,7 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
 
     public void validityDateSentence(String expectedText) {
         Assert.assertEquals(expectedText, validTofieldExample.getText());
-         }
+    }
 
     public void validityDateSentenceforDVA(String expectedText) {
         Assert.assertEquals(expectedText, validTofieldExampleDVA.getText());
@@ -403,8 +407,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
         Assert.assertEquals(expectedText, licenceNumberField.getText());
     }
 
-    public void licenceNumberSentence(String expectedText){
-       Assert.assertEquals(expectedText, licenceExample.getText());
+    public void licenceNumberSentence(String expectedText) {
+        Assert.assertEquals(expectedText, licenceExample.getText());
     }
 
     public void licenceNumberWelshDVA(String expectedText) {
@@ -633,14 +637,16 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void inValidDrivingLicenceDVA() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.dvaLicenceNumber.clear();
         dvaEnterYourDetailsExactlyPage.dvaLicenceNumber.click();
         dvaEnterYourDetailsExactlyPage.dvaLicenceNumber.sendKeys("1acd1113756456");
     }
 
     public void invalidDrivingLicenceWithlessCharDVA() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.dvaLicenceNumber.click();
         dvaEnterYourDetailsExactlyPage.dvaLicenceNumber.sendKeys("111106");
     }
@@ -714,7 +720,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void invalidDobForDVAWelsh() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.click();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.sendKeys("ss");
         dvaEnterYourDetailsExactlyPage.MonthOfBirth.click();
@@ -724,7 +731,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void dvaclearDOBandReEnterWelshtofuture() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.clear();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.click();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.sendKeys("15");
@@ -737,7 +745,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void dvaPastErrorrWelsh() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.clear();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.click();
         dvaEnterYourDetailsExactlyPage.DayOfBirth.sendKeys("11");
@@ -750,7 +759,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void invalidIssueDayForDVA() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.LicenceIssueDay.click();
         dvaEnterYourDetailsExactlyPage.LicenceIssueDay.sendKeys("");
         dvaEnterYourDetailsExactlyPage.LicenceIssueMonth.click();
@@ -760,7 +770,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void enterInValidIssueDateWithFutureYearDVA() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.LicenceIssueDay.clear();
         dvaEnterYourDetailsExactlyPage.LicenceIssueDay.click();
         dvaEnterYourDetailsExactlyPage.LicenceIssueDay.sendKeys("23");
@@ -773,7 +784,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void invalidValidUntilForDVA() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.LicenceValidToDay.click();
         dvaEnterYourDetailsExactlyPage.LicenceValidToDay.sendKeys("");
         dvaEnterYourDetailsExactlyPage.LicenceValidToMonth.click();
@@ -783,7 +795,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void enterTheValidToExpiredYearForDVA() {
-        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage = new DVAEnterYourDetailsExactlyPage();
+        DVAEnterYourDetailsExactlyPage dvaEnterYourDetailsExactlyPage =
+                new DVAEnterYourDetailsExactlyPage();
         dvaEnterYourDetailsExactlyPage.LicenceValidToDay.clear();
         dvaEnterYourDetailsExactlyPage.LicenceValidToDay.click();
         dvaEnterYourDetailsExactlyPage.LicenceValidToDay.sendKeys("23");

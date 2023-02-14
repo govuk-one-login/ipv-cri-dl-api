@@ -52,6 +52,7 @@ Feature: Driving License Test
     Then I can see the heading  Sorry, there is a error
     And The test is complete and I close the driver
 
+
   @DVLADrivingLicence_test@build
   Scenario Outline: DVLA Error tab title validation
     Given I click on DVLA radio button and Continue
@@ -82,6 +83,7 @@ Feature: Driving License Test
       |IssueNumberWithSpecialChar         |
       |PostcodeWithSpecialChar            |
       |InternationalPostcode              |
+
 
   @DVADrivingLicence_test@build
   Scenario Outline: DVAError tab title validation

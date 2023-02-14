@@ -11,7 +11,6 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
 
     @And("I add a cookie to change the language to Welsh")
     public void iAddACookieToChangeTheLanguageToWelsh() {
-
         changeLanguageToWelsh();
     }
 
@@ -20,16 +19,15 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         betaBanner();
     }
 
-    @Then(
-            "the text reads “BETA Mae hwn yn wasanaeth newydd – bydd eich adborth \\(agor mewn tab newydd) yn ein helpu i'w wella.”")
+    @Then("^the text reads (.*)$")
     public void
-            theTextReadsBETAMaeHwnYnWasanaethNewyddByddEichAdborthAgorMewnTabNewyddYnEinHelpuIWWella() {
-        betaBannerSentenceWelsh();
+            theTextReadsBETAMaeHwnYnWasanaethNewyddByddEichAdborthAgorMewnTabNewyddYnEinHelpuIWWella(String expectedText) {
+        betaBannerSentenceWelsh(expectedText);
     }
 
-    @Then("I check the page title Pwy wnaeth gyhoeddi eich trwydded yrru y DU?")
-    public void i_check_the_page_title_who_was_your_uk_driving_license_issued_by() {
-        validateDLPageTitleWelsh();
+    @Then("^I check the page title (.*)$")
+    public void i_check_the_page_title_who_was_your_uk_driving_license_issued_by(String expectedTitle) {
+        validateDLPageTitleWelsh(expectedTitle);
     }
 
     @And("I assert the URL is valid in Welsh")
@@ -37,25 +35,23 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         drivingLicencePageURLValidationWelsh();
     }
 
-    @And("I can see a radio button titled “Nid oes gennyf drwydded yrru y DU”")
-    public void iCanSeeARadioButtonTitledNidOesGennyfDrwyddedYrruYDU() {
-        noDrivingLicenceBtnWelsh();
+    @And("^I can see a I do not have a UK driving licence radio button titled (.*)$")
+    public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButtonTitledNidOesGennyfDrwyddedYrruYDU(String expectedText) {
+        noDrivingLicenceBtnWelsh(expectedText);
     }
 
     @And("I can see “Or”")
-    public void iCanSeeOr() {
-        orDisplayWelsh();
-    }
+    public void iCanSeeOr() { orDisplayWelsh();}
 
     @Then("I can see CTA as Parhau")
     public void iCanSeeCTAAsParhau() {
         continueButtonWelsh();
     }
 
-    @And("I see the sentence starts with “Gallwch ddod o hyd i hwn yn adran\"")
-    public void iSeeTheSentenceISeeTheSentenceStartsWithGallwchDdodOHydIHwnYnAdran()
+    @And("^I see the licence Selection sentence starts with (.*)$")
+    public void iSeeTheSentenceISeeTheSentenceStartsWithGallwchDdodOHydIHwnYnAdran(String expectedText)
             throws Throwable {
-        licenceSelectionSentence();
+        licenceSelectionSentence(expectedText);
     }
 
     @Then("I should on the page DVLA and validate title")
@@ -68,138 +64,149 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         pageTitleDVLAValidationWelsh();
     }
 
-    @And(
-            "I see the heading Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru")
-    public void iSeeTheHeadingRhowchEichManylionYnUnionFelMaentYnYmddangosArEichTrwyddedYrru() {
-        dvlaPageHeading();
+    @And("^I see the heading (.*)$")
+    public void iSeeTheHeadingRhowchEichManylionYnUnionFelMaentYnYmddangosArEichTrwyddedYrru(String expectedText) {
+        dvlaPageHeading(expectedText);
     }
 
-    @Given("I can see the lastname as Enw olaf")
-    public void iCanSeeTheLastnameAsEnwOlaf() {
-        lastNameWelsh();
+    @And("^I see We will check your details as (.*)$")
+    public void iSeeTheSentenceWeWillCheckYourDetails(String expectedText) {
+        weWillCheckYourDetails(expectedText);
     }
 
-    @And("I can see Given name as Enwau a roddwyd")
-    public void iCanSeeGivenNameAsEnwauARoddwyd() {
-        givenNameWelsh();
+    @And("^I see sentence (.*)$")
+    public void iSeeTheSentenceBelowOsNadOesGennych(String expectedText) {
+        dvlaProveYourIdentitySentence(expectedText);
     }
 
-    @And("I can see First name as Enw cyntaf")
-    public void iCanSeeFirstNameAsEnwCyntaf() {
-        firstNameWelsh();
+    @And("^I can see Check your details as (.*)$")
+    public void iCanSeeCheckYourDetailsAsGwiriwchBodEich(String expectedText) {
+        checkYourDetailsSentence(expectedText);
     }
 
-    @And("I can see the middle name as Enwau canol")
-    public void iCanSeeTheMiddleNameAsEnwauCanol() {
-        middleNameWelsh();
+    @Given("^I can see the lastname as (.*)$")
+    public void ICanSeeTheLastnameAsEnwOlaf(String expectedText) {
+        lastNameWelsh(expectedText);
     }
 
-    @And(
-            "I can see the sentence “Mae hwn yn adran 2 och trwydded. Nid oes angen i chi gynnwys eich teitl.”")
-    public void iCanSeeTheSentenceMaeHwnYnAdranOChTrwyddedNidOesAngenIChiGynnwysEichTeitl() {
-        firstNameSentence();
+    @And("^I can see the givenName as (.*)$")
+    public void ICanSeeTheGivenNameAsEnwauARoddwyd(String expectedText) {
+        givenNameWelsh(expectedText);
     }
 
-    @And(
-            "I see the sentence below Os nad oes gennych drwydded yrru y DU neu os na allwch gofio'ch manylion, gallwch brofi pwy ydych chi mewn ffordd arall yn lle.")
-    public void
-            iSeeTheSentenceBelowOsNadOesGennychDrwyddedYrruYDUNeuOsNaAllwchGofioChManylionGallwchBrofiPwyYdychChiMewnFforddArallYnLle() {
-        dvlaProveYourIdentitySentence();
+    @And("^I can see the firstName as (.*)$")
+    public void iCanSeeTheFirstNameAsEnwCyntaf(String expectedText) {
+        firstNameWelsh(expectedText);
     }
 
-    @And("I can see the sentence “Gadewch hyn yn wag os nad oes gennych unrhyw enwau canol”")
-    public void iCanSeeTheSentenceGadewchHynYnWagOsNadOesGennychUnrhywEnwauCanol() {
-        middleNameSentence();
+    @And("^I can see the middleName as (.*)$")
+    public void iCanSeeTheMiddleNameAsEnwauCanol(String expectedText) {
+        middleNameWelsh(expectedText);
     }
 
-    @Given("I can see the DoB fields titled “Dyddiad geni”")
-    public void iCanSeeTheDoBFieldsTitledDyddiadGeni() {
-        DateOfBirthField();
+    @And("^I can see the first name sentence (.*)$")
+    public void iCanSeeTheFirstNameSentenceMaeHwnYnAdra(String expectedText) {
+        firstNameSentence(expectedText);
     }
 
-    @And("I can see example as Er enghraifft")
-    public void iCanSeeExampleAsErEnghraifft() {
-        DateOfBirthFieldhint();
+    @And("^I can see the sentence (.*)$")
+    public void iCanSeeTheSentenceGadewchHynYnWagOsNadOesGennychUnrhywEnwauCanol(String expectedText) {
+        middleNameSentence(expectedText);
     }
 
-    @And("I can see date as “Diwrnod”")
-    public void iCanSeeDateAsDiwrnod() {
-        dateField();
+    @Given("^I can see the DoB fields titled (.*)$")
+    public void iCanSeeTheDoBFieldsTitledDyddiadGeni(String expectedText) {
+        dateOfBirthField(expectedText);
     }
 
-    @And("I can see date for DVA as “Diwrnod”")
-    public void iCanSeeDateForDVAAsDiwrnod() {
-        dateFieldDVA();
+    @And("^I can see example as (.*)$")
+    public void iCanSeeExampleAsErEnghraifft(String expectedText) {
+        dateOfBirthFieldhint(expectedText);
     }
 
-    @And("I can see month as “Mis”")
-    public void iCanSeeMonthAsMis() {
-        monthField();
+    @And("^I can see date as (.*)$")
+    public void iCanSeeDateAsDiwrnod(String expectedText) {
+        dateField(expectedText);
     }
 
-    @And("I can see month for DVA as “Mis”")
-    public void iCanSeeMonthForDVAAsMis() {
-        monthFieldDVA();
+    @And("^I can see date for DVA as (.*)$")
+    public void iCanSeeDateForDVAAsDiwrnod(String expectedText) {
+        dateFieldDVA(expectedText);
     }
 
-    @And("I can see year as “Blwyddyn”")
-    public void iCanSeeYearAsBlwyddyn() {
-        yearField();
+    @And("^I can see month as (.*)$")
+    public void iCanSeeMonthAsMis(String expectedText) {
+        monthField(expectedText);
     }
 
-    @Given("I can see the Issue date field titled “Dyddiad cyhoeddi”")
-    public void iCanSeeTheIssueDateFieldTitledDyddiadCyhoeddi() {
-        issueDateField();
+    @And("^I can see month for DVA as (.*)$")
+    public void iCanSeeMonthForDVAAsMis(String expectedText) {
+        monthFieldDVA(expectedText);
     }
 
-    @Then("Dyma r dyddiad yn adran 4a o ch trwydded, er enghraifft 27 5 2019")
-    public void dymaRDyddiadYnAdranAOChTrwyddedErEnghraifft() {
-        issueDateSentence();
+    @And("^I can see year as (.*)$")
+    public void iCanSeeYearAsBlwyddyn(String expectedText) {
+        yearField(expectedText);
     }
 
-    @Then("Dyma r dyddiad yn adran 4b o ch trwydded, er enghraifft 27 5 2019")
-    public void dymaRDyddiadYnAdranAOChTrwyddedErEnghraifftValidityDate() {
-        validityDateSentence();
+    @Given("^I can see the Issue date field titled (.*)$")
+    public void iCanSeeTheIssueDateFieldTitledDyddiadCyhoeddi(String expectedText ) {
+        issueDateField(expectedText);
     }
 
-    @Then("I can see the Valid to date field titled “Yn ddilys tan”")
-    public void iCanSeeTheValidToDateFieldTitledYnDdilysTan() {
-        validToDateFieldTitle();
+    @Then("^I can see date sentence as (.*)$")
+    public void iCanSeeDateSentenceAs(String expectedText) {
+        issueDateSentence(expectedText);
     }
 
-    @Given("I can see the licence number field titled “Rhif trwydded”")
-    public void iSelectedDVLAOnThePreviousPage() {
-        licenceNumberWelsh();
+    @And("^I can see Valid to date sentence as (.*)$")
+    public void iCanSeeValidToDateSentence(String expectedText) {
+        validityDateSentence(expectedText);
     }
 
-    @Given("I can see the licence number field for DVA titled “Rhif trwydded”")
-    public void iSelectedDVLAOnThePreviousPageForDVA() {
-        licenceNumberWelshDVA();
+    @Then("^I can see the Valid to date field titled (.*)$")
+    public void iCanSeeTheValidToDateFieldTitledYnDdilysTan(String expectedText) {
+        validToDateFieldTitle(expectedText);
     }
 
-    @And("I see the sentence “Dyma'r rhif hir yn adran  ar eich trwydded”")
-    public void iSeeTheSentenceDymaRRhifHirYnAdranArEichTrwydded() {
-        licenceSentence();
+    @And("^I see valid until example for DVA as (.*)$")
+    public void DymaRDyddiadYnAdranBOChTrwyddedErEnghraifft(String expectedText) {
+        validityDateSentenceforDVA(expectedText);
     }
 
-    @Then("I can see the issue number field titled “Rhif cyhoeddi”")
-    public void iCanSeeTheIssueNumberFieldTitledDyddiadCyhoeddi() {
-        issueNumberWelsh();
+    @Given("^I can see the licence number field titled (.*)$")
+    public void iSelectedDVLAOnThePreviousPage(String expectedText) {
+        licenceNumberWelsh(expectedText);
     }
 
-    @And("I  can see “Dyma r rhif  ddigid ar ôl y gofod yn adran  o'ch trwydded”")
-    public void iCanSeeDymaRRhifDdigidArÔlYGofodYnAdranOChTrwydded() {
-        issueNumberSentence();
+    @Then("^I see the Licence number sentence (.*)$")
+    public void DymaRRhifHirYnAdranArEichTrwyddedErEnghraifftHARRIMJ(String expectedText) {
+        licenceNumberSentence(expectedText);
     }
 
-    @Then("I can see the postcode field titled “Cod post”")
-    public void iCanSeeThePostcodeFieldTitledCodPost() {
-        postcodeWelsh();
+    @Given("^I can see the licence number field for DVA titled (.*)$")
+    public void licenceFieldDVARhiftrwydded(String expectedText) {
+        licenceNumberWelshDVA(expectedText);
     }
 
-    @And("I can see “Rhowch y cod post yn y cyfeiriad yn adran  o ch trwydded”")
-    public void rhowchYCodPostYnYCyfeiriadYnAdranOChTrwydded() {
-        postcodeSentence();
+    @Then("^I can see the issue number field titled (.*)$")
+    public void iCanSeeTheIssueNumberFieldTitledDyddiadCyhoeddi(String expectedText) {
+        issueNumberWelsh(expectedText);
+    }
+
+    @And("^I can see issue sentence as (.*)$")
+    public void iCanSeeIssueSentenceAsDymaRRhifDdigidArÔlYGofodYnAdranOChTrwydded(String expectedText) {
+        issueNumberSentence(expectedText);
+    }
+
+    @Then("^I can see the postcode field titled (.*)$")
+    public void iCanSeeThePostcodeFieldTitledCodPost(String expectedText) {
+        postcodeWelsh(expectedText);
+    }
+
+    @Then("^I can see postcode sentence as (.*)$")
+    public void iCanSeePostcodeSentenceAs(String expectedText) {
+        postcodeSentence(expectedText);
     }
 
     @When("User clicks on Parhau")
@@ -222,26 +229,9 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         noDrivingLicenceOptionWelsh();
     }
 
-    @And(
-            "Proper error message for invalid Driving Licence \"Rhaid i'ch dyddiad geni fod yn y gorffennol”")
-    public void properErrorMessageForInvalidDrivingLicenceRhaidIChDyddiadGeniFodYnYGorffennol()
-            throws Throwable { // Write code here that turns the phrase above into concrete actions
-        //    throw new cucumber.api.PendingException();}
-        inValidDLText();
-    }
-
-    @Then(
-            "Proper error message for invalid IssueDate “Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru”")
-    public void
-            properErrorMessageForInvalidIssueDateRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrru() {
-        inValidIssueDateText();
-    }
-
-    @Then(
-            "I can see the Valid to date field error “Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru” for DVA")
-    public void
-            ICanSeeTheValidtoDateFieldErrorRhowchYDyddiadFelYMaenymddangosareichtrwyddedyrruforDVA() {
-        inValidIssueDateTextDVA();
+    @Then("^I can see the Valid to date field error (.*) for DVA$")
+    public void RhowchYDyddiadFelYMaenymddangosareichtrwyddedyrruforDVA(String expectedText) {
+        inValidIssueDateTextDVA(expectedText);
     }
 
     @When("I enter the invalid last name and first name")
@@ -249,47 +239,39 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         invalidlastAndFirstNameWelsh();
     }
 
-    @Then("the validation text reads “Mae problem”")
-    public void theValidationTextReadsMaeProblem() {
-        thereIsaProblemText();
+    @Then("^the validation text reads (.*)$")
+    public void theValidationTextReadsMaeProblem(String expectedText) {
+        thereIsaProblemText(expectedText);
     }
 
-    @And("I see “Rhowch eich enw olaf fel y mae'n ymddangos ar eich trwydded yrru”")
-    public void rhowchEichEnwOlafFelYMaeNYmddangosArEichTrwyddedYrru() {
-        lastNameErrorSentenceWelsh();
+    @And("^I see lastName error sentence as (.*)$")
+    public void iSeeLastNameErrorSentenceAsRhowchEichEnwOlafFelYMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+        lastNameErrorSentenceWelsh(expectedText);
     }
 
-    @And("I see “Rhowch eich enw cyntaf fel y mae'n ymddangos ar eich trwydded yrru”")
-    public void iSeeRhowchEichEnwCyntafFelYMaeNYmddangosArEichTrwyddedYrru() {
-        firstNameErrorSentenceWelsh();
+    @And("^I see firstName error sentence as (.*)$")
+    public void iSeeFirstNameErrorSentenceAsRhowchEichEnwCyntafFelYMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+        firstNameErrorSentenceWelsh(expectedText);
     }
 
-    @And("I see “Rhowch unrhyw enwau canol fel y maent yn ymddangos ar eich trwydded yrru\"")
-    public void iSeeRhowchUnrhywEnwauCanolFelYMaentYnYmddangosArEichTrwyddedYrru()
-            throws Throwable { // Write code here that turns the phrase above into concrete actions
-        //    throw new cucumber.api.PendingException();}
-        middleNameErrorSentence();
+    @And("^I see middleName error sentence as (.*)$")
+    public void iSeeMiddleNameErrorSentenceAsRhowchUnrhywEnwauCanolFelY(String expectedText) {
+        middleNameErrorSentence(expectedText);
     }
 
     @When("I click Parhau without entering any details")
     public void iClickParhauWithoutEnteringAnyDetails() {
-        //  clearDOBandReEnterWelshForDVA();
         new DrivingLicencePageObject().Continue.click();
     }
 
-    @And("I see “Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru”")
-    public void iSeeRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrru() {
-        enterDOBErrorTextWelsh();
+    @And("^I see Enter the date as it appears as (.*)$")
+    public void iSeeEnterTheDateAsItAppearsAsRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+        enterDOBErrorTextWelsh(expectedText);
     }
 
-    @And("I see “Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru” for DVA")
-    public void iSeeRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrruForDVA() {
-        enterDOBErrorTextWelshDVA();
-    }
-
-    @And("I see “Gwiriwch eich bod wedi rhoi eich dyddiad geni yn gywir”")
-    public void iSeeGwiriwchEichBodWediRhoiEichDyddiadGeniYnGywir() {
-        enterValidDOBErrorTextWelsh();
+    @And("^I see check date of birth sentence as (.*)$")
+    public void iSeeCheckDateOfBirthSentenceAsGwiriwchEichBodWediRhoiEichDyddiadGeniYnGywir(String expectedText) {
+        enterValidDOBErrorTextWelsh(expectedText);
     }
 
     @Then("I clear the data and re enter the date of birth")
@@ -302,14 +284,14 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         clearDOBandReEnterWelshtofuture();
     }
 
-    @Then("I see “Rhaid i'ch dyddiad geni fod yn y gorffennol”")
-    public void iSeeRhaidIChDyddiadGeniFodYnYGorffennol() {
-        errorMessageFutureDOBWelsh();
+    @Then("^I see Your date of birth must be in the past (.*)$")
+    public void iSeeYourDateOfBirthMustBeInThePastRhaidIChDyddiadGeniFodYnYGorffennol(String expectedText) {
+        errorMessageFutureDOBWelsh(expectedText);
     }
 
-    @Then("I see “Rhaid i'ch dyddiad geni fod yn y gorffennol” For DVA")
-    public void iSeeRhaidIChDyddiadGeniFodYnYGorffennolForDVA() {
-        errorMessageFutureDOBWelshDVA();
+    @And("^I see enter the date as it appearing on the DL (.*)$")
+    public void iSeeRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrruForDVA(String expectedText) {
+        enterDOBErrorTextWelshDVA(expectedText);
     }
 
     @When("I enter the invalid issue date")
@@ -317,14 +299,9 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         enterInValidIssueDate();
     }
 
-    @And("I see “Rhaid i ddyddiad cyhoeddi fod yn y gorffennol”")
-    public void iSeeRhaidIDdyddiadCyhoeddiFodYnYGorffennol() {
-        issueDateErrorWelsh();
-    }
-
-    @And("I see “Rhaid i ddyddiad cyhoeddi fod yn y gorffennol” for DVA")
-    public void iSeeRhaidIDdyddiadCyhoeddiFodYnYGorffennolForDVA() {
-        issueDateErrorDVAWelshh();
+    @And("^I see issue date must be in the past as (.*)$")
+    public void iSeeIssueDateMustBeInThePastAsRhaidIDdyddiadCyhoeddiFodYnYGorffennol(String expectedText) {
+        issueDateErrorWelsh(expectedText);
     }
 
     @Then("I clear the data and re enter the invalid future year")
@@ -337,19 +314,19 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         enterInValidUntilDate();
     }
 
-    /*@Then("I can see the Valid to date field error “Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru”")
-    public void iCanSeeTheValidToDateFieldErrorRhowchYDyddiadFelYMaeNYmddangosArEichTrwyddedYrru() {
-        inValidIssueDateText();
-    }*/
+    @And("^I see Enter the date as it appears on your driving licence as (.*)$")
+    public void iSeeEnterTheDateAsItAppearsOnYourDrivingLicence(String expectedText) {
+        inValidIssueDateText(expectedText);
+    }
 
     @Then("I clear the data and re enter the valid to expired year")
     public void iClearTheDataAndReEnterTheValidToExpiredYear() {
         enterTheValidToExpiredYear();
     }
 
-    @And("I see Ni allwch ddefnyddio trwydded yrru sydd wedi dod i ben")
-    public void iSeeNiAllwchDdefnyddioTrwyddedYrruSyddWediDodIBen() {
-        validToErrorWelsh();
+    @And("^I see You cannot use an expired driving licence as (.*)$")
+    public void iNiAllwchDdefnyddioTrwyddedYrruSyddWediDodIBen(String expectedText) {
+        validToErrorWelsh(expectedText);
     }
 
     @When("I enter driving licence field empty")
@@ -368,28 +345,29 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     }
 
     @And("I clear the licence number enter the invalid Driving Licence for DVLA")
-    public void iClearTheLicenceNumberEnterTheInvalidDrivingLicenceForDVLA() {
+    public void iClearTheLicenceNumberForDVLA() {
         invalidDrivingLicenceDVLA();
     }
 
-    @And("I see “Ni ddylai rhif eich trwydded gynnwys unrhyw symbolau neu ofodau”")
-    public void Niddylairhifeichtrwyddedgynnwysunrhywsymbolauneuofodau() {
-        licenceErrorWelshforSplChar();
+    @And("^I see no special character error as (.*)$")
+    public void NiDdylaiRhifEichTrwyddedGynnwysUnrhywSymbolauNeuOfodau(String expectedText) {
+        licenceErrorWelshforSplChar(expectedText);
     }
 
-    @And("I see “Rhowch y rhif yn union fel mae'n ymddangos ar eich trwydded yrru”")
-    public void iSeeRhowchYRhifYnUnionFelMaeNYmddangosArEichTrwyddedYrru() {
-        licenceErrorWelshforExactonDL();
+    @And("^I see Enter the number exactly as (.*)$")
+    public void RhowchYRhifYnUnionFelMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+        licenceErrorWelshforExactonDL(expectedText);
     }
+
 
     @When("I enter inValid issue number")
     public void iEnterInValidIssueNumber() {
         invalidIssueNumber();
     }
 
-    @And("I see “Dylai eich rhif cyhoeddi fod yn  rif o hyd”")
-    public void iSeeDylaiEichRhifCyhoeddiFodYnRifOHyd() {
-        IssueNumberErrorWelsh();
+    @And("^I see Issue Number Error as (.*)$")
+    public void DylaiEichRhifCyhoeddiFodYnRifOHyd(String expectedText) {
+        IssueNumberErrorWelsh(expectedText);
     }
 
     @And("I clear Issue number to see the error Enter Issue number")
@@ -397,9 +375,9 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         clearIssueNumber();
     }
 
-    @And("I see “Rhowch y rhif cyhoeddi fel y mae'n ymddangos ar eich trwydded yrru”")
-    public void iSeeRhowchYRhifCyhoeddiFelYMaeNYmddangosArEichTrwyddedYrru() {
-        enterIssueNumberErrorWelsh();
+    @And("^I see enter the Issue Number error as (.*)$")
+    public void RhowchYRhifCyhoeddiFelYMaeNYmddangosArEichTrwyddedYrru(String expectedText) {
+        enterIssueNumberErrorWelsh(expectedText);
     }
 
     @When("I enter the invalid Postcode")
@@ -407,9 +385,14 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         enterInValidPostCode();
     }
 
-    @And("I see “Dylai eich rhowch eich cod post ond cynnwys rhifau a llythrennau yn unig”")
-    public void iSeeDylaiEichRhowchEichCodPostOndCynnwysRhifauALlythrennauYnUnig() {
-        postCodeErrorInvalidWelsh();
+    @And("^I see postcode should contain only number and letter as (.*)$")
+    public void DylaiEichRhowchEichCodPostOndCynnwysRhifauALlythrennauYnUnig(String expectedText) {
+        postCodeErrorInvalidWelsh(expectedText);
+    }
+
+    @And("^I see DVA postcode should contain only number and letter as (.*)$")
+    public void DVADylaiEichRhowchEichCodPostOndCynnwysRhifauALlythrennauYnUnig(String expectedText) {
+        postCodeErrorInvalidWelshDVA(expectedText);
     }
 
     @And("I clear the postcode to see the Enter your postcode error")
@@ -417,19 +400,29 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         new DrivingLicencePageObject().Postcode.clear();
     }
 
-    @And("I see “Rhowch eich cod post”")
-    public void iSeeRhowchEichCodPost() {
-        enterYourPostCodeErrorWelsh();
+    @And("^I see postcode should be 5 and 7 characters as (.*)$")
+    public void DylaiEichRhowchEichCodPostFodRhwngANod(String expectedText) {
+        postCodeErrorWelsh(expectedText);
     }
+
+    @And("^I see DVA postcode should be 5 and 7 characters as (.*)$")
+    public void DylaiEichRhowchEichCodPostFodRhwngANodDVA(String expectedText) {
+        postCodeErrorWelshDVA(expectedText);
+    }
+
+    @And("^I see Enter your postcode as (.*)$")
+    public void RhowchEichCodPost(String expectedText) {
+        enterYourPostCodeErrorWelsh(expectedText);
+    }
+    @And("^I see Enter your DVA postcode as (.*)$")
+    public void RhowchEichCodPostDVA(String expectedText) {
+        enterYourPostCodeErrorWelshDVA(expectedText);
+    }
+
 
     @Then("I clear the postcode and enter the less character postcode")
     public void iClearThePostcodeAndEnterTheLessCharacterPostcode() {
         invalidPostCode();
-    }
-
-    @And("I see “Dylai eich rhowch eich cod post fod rhwng {int} a {int} nod”")
-    public void iSeeDylaiEichRhowchEichCodPostFodRhwngANod(int arg0, int arg1) {
-        postCodeErrorWelsh();
     }
 
     @When("I enter the invalid date of birth for DVA")
@@ -462,11 +455,6 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         invalidDrivingLicenceWithlessCharDVA();
     }
 
-    @And("I see “Rhowch y rhif yn union fel mae'n ymddangos ar eich trwydded yrru”x")
-    public void iSeeRhowchYRhifYnUnionFelMaeNYmddangosArEichTrwyddedYrruX() {
-        licenceErrorWelshforExactonDL();
-    }
-
     @When("I enter the invalid Valid to date field for DVA")
     public void iEnterTheInvalidValidToDateFieldForDVA() {
         invalidValidUntilForDVA();
@@ -477,19 +465,19 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         enterTheValidToExpiredYearForDVA();
     }
 
-    @And("I see “Dylai rhif eich trwydded fod yn [X] nod o hyd” for DVLA")
-    public void iSeeDylaiRhifEichTrwyddedFodYnXNodOHydForDVLA() {
-        licenceNumberErrorWelshForDVLA();
+    @And("^I see Your licence number character long as (.*) for DVLA$")
+    public void DylaiRhifEichTrwyddedFodYnXNodOHydForDVLA(String expectedText) {
+        licenceNumberErrorWelshForDVLA(expectedText);
     }
 
-    @And("I see “Dylai rhif eich trwydded fod yn [X] nod o hyd” for DVA")
-    public void iSeeDylaiRhifEichTrwyddedFodYnXNodOHydForDVA() {
-        licenceNumberErrorWelshForDVA();
+    @And("^I see your DVA licence should be 8 char (.*)$")
+    public void DylaiRhifEichTrwyddedFodYnXNodOHydForDVA(String expectedText) {
+        licenceNumberErrorWelshForDVA(expectedText);
     }
 
-    @And("I see the sentence “Dyma'r rhif hir yn adran  ar eich trwydded” for DVA")
-    public void iSeeTheSentenceDymaRRhifHirYnAdranArEichTrwyddedForDVA() {
-        licenceNumberErrorWelshforDVA();
+    @And("^I see the DVA licence sentence (.*)$")
+    public void DymaRRhifHirYnAdranArEichTrwyddedForDVA(String expectedText) {
+        licenceNumberErrorWelshforDVA(expectedText);
     }
 
     @Then("I validate the page error page title")
@@ -497,71 +485,53 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         ErrorPageTitleDVLA();
     }
 
-    @Then(
-            "I see the error box “Gwiriwch bod eich manylion yn paru gyda beth sydd ar eich trwydded yrru y DU”")
-    public void iSeeTheErrorBoxGwiriwchBodEichManylionYnParuGydaBethSyddArEichTrwyddedYrruYDU() {
-        checkYourDetailsSentence();
+    @And("^I see you will not be able to change your details as (.*)$")
+    public void iSeeNiFyddwchYnGalluNewidEichManylionEtoOs(String expectedText) {
+        thereIsaProblemSentence(expectedText);
     }
 
-    @And("I see “Gwall”")
-    public void iSeeGwall() {
-        erroeWord();
+    @And("^I see error word as (.*)$")
+    public void iSeeErrorWordAsGwall(String expectedText) {
+        errorWord(expectedText);
     }
 
-    @And("I see “Nid oeddem yn gallu dod o hyd i'ch manylion”")
-    public void iSeeNidOeddemYnGalluDodOHydIChManylion() {
-        weCouldNotFindDetailsSentence();
+    @And("^I see We could not find your details as (.*)$")
+    public void iSeeNidOeddemYnGalluDodOHydIChManylion(String expectedText) {
+        weCouldNotFindDetailsSentence(expectedText);
     }
 
-    @And("I see “Ni fyddwch yn gallu newid eich manylion eto os byddwch yn gwneud camgymeriad.”")
-    public void iSeeNiFyddwchYnGalluNewidEichManylionEtoOsByddwchYnGwneudCamgymeriad() {
-        thereIsaProblemSentence();
+    @And("^I see Check your details as (.*)$")
+    public void iSeeRoeddYnaBroblemWrthINiWirioEichManylionGydaRDVLADVA(String expectedText) {
+        youWillBeAbleToFindSentence(expectedText);
     }
 
-    @And("I see Roedd yna broblem wrth i ni wirio eich manylion gyda'r [DVLA]")
-    public void iSeeRoeddYnaBroblemWrthINiWirioEichManylionGydaRDVLADVA() {
-        youWillBeAbleToFindSentence();
+    @And("^I see check your details for DVA as (.*)$")
+    public void RoeddYnaBroblemWrthINiWirioEichManylionGydaRDVA(String expectedText) {
+        youWillBeAbleToFindSentenceDVA(expectedText);
     }
 
-    @And("I see Roedd yna broblem wrth i ni wirio eich manylion gyda'r [DVA]")
-    public void iSeeRoeddYnaBroblemWrthINiWirioEichManylionGydaRDVA() {
-        youWillBeAbleToFindSentenceDVA();
+    @When("^I can see the DoB fields for DVA titled (.*)$")
+    public void iCanSeeTheDoBFieldsForDVATitledDyddiadGeni(String expectedText) {
+        dateOfBirthFieldDVA(expectedText);
     }
 
-    @When("I can see the DoB fields for DVA titled “Dyddiad geni”")
-    public void iCanSeeTheDoBFieldsForDVATitledDyddiadGeni() {
-        DateOfBirthFieldDVA();
+    @Then("^I can see example  for DVA as (.*)$")
+    public void iCanSeeExampleForDVAAsErEnghraifft(String expectedText) {
+        dateOfBirthFieldHintDVA(expectedText);
     }
 
-    @Then("I can see example  for DVA as Er enghraifft")
-    public void iCanSeeExampleForDVAAsErEnghraifft() {
-        DateOfBirthFieldHintDVA();
+    @And("^I can see year for DVA as (.*)$")
+    public void iCanSeeYearForDVAAsBlwyddyn(String expectedText) {
+        yearFieldDVA(expectedText);
     }
 
-    @And("I can see year for DVA as “Blwyddyn”")
-    public void iCanSeeYearForDVAAsBlwyddyn() {
-        yearFieldDVA();
+    @When("^I see the Issue date field titled (.*) for DVA$")
+    public void iCanSeeTheIssueDateFieldTitledForDVADyddiadCyhoeddi(String expectedText) {
+        issueDateFieldDVA(expectedText);
     }
 
-    @When("I can see the Issue date field titled for DVA “Dyddiad cyhoeddi”")
-    public void iCanSeeTheIssueDateFieldTitledForDVADyddiadCyhoeddi() {
-        issueDateFieldDVA();
-    }
-
-    @Then("Dyma r dyddiad yn adran 4a o ch trwydded, er enghraifft 27 5 2019 for DVA")
-    public void dymaRDyddiadYnAdranAOChTrwyddedErEnghraifftForDVA() {
-        issueDateSentenceDVA();
-    }
-
-    @And("I see “Ni ddylai rhif eich trwydded gynnwys unrhyw symbolau neu ofodau” for DVA")
-    public void iSeeNiDdylaiRhifEichTrwyddedGynnwysUnrhywSymbolauNeuOfodauForDVA() {
-        licenceErrorWelshforSplCharForDVA();
-    }
-
-    @And(
-            "I see the sentence Byddwn yn gwirio eich manylion gydar DVLA i sicrhau nad yw eich trwydded yrru wedi cael ei chanslo na'i hadrodd fel un sydd ar goll neu wedi ei dwyn.")
-    public void
-            iSeeTheSentenceByddwnYnGwirioEichManylionGydarDVLAISicrhauNadYwEichTrwyddedYrruWediCaelEiChansloNaIHadroddFelUnSyddArGollNeuWediEiDwyn() {
-        weWillCheckYourDetails();
+    @Then("^I see date section example as (.*)$")
+    public void dymaRDyddiadYnAdranAOChTrwyddedErEnghraifftForDVA(String expectedText) {
+        issueDateSentenceDVA(expectedText);
     }
 }

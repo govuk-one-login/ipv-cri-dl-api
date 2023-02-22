@@ -67,6 +67,13 @@ public class ConfigurationService {
 
     private final Thumbprints signingCertThumbprints;
 
+    private final PrivateKey DVADirectConnectionSigningKey;
+    private final Certificate DVADirectEncryptionCert;
+
+    private final PrivateKey DVLADirectConnectionSigningKey;
+    private final Certificate DVLADirectEncryptionCert;
+    private final boolean legacyDcsConnection;
+
     public ConfigurationService(
             SecretsProvider secretsProvider, ParamProvider paramProvider, String env)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -103,12 +110,22 @@ public class ConfigurationService {
         this.drivingPermitCriSigningKey =
                 getPrivateKey(paramProvider, "signingKeyForDrivingPermitToSign");
 
+        this.DVADirectConnectionSigningKey =
+                getPrivateKey(paramProvider, "DVADirectConnectionSigningKey");
+        this.DVADirectEncryptionCert = getCertificate(paramProvider, "DVADirectEncryptionCert");
+
+        this.DVLADirectConnectionSigningKey =
+                getPrivateKey(paramProvider, "DVLADirectConnectionSigningKey");
+        this.DVLADirectEncryptionCert = getCertificate(paramProvider, "DVLADirectEncryptionCert");
+
         var cert = getCertificate(paramProvider, "signingCertForDcsToVerify");
         this.signingCertThumbprints =
                 new Thumbprints(
                         getThumbprint((X509Certificate) cert, "SHA-1"),
                         getThumbprint((X509Certificate) cert, "SHA-256"));
         // *****************************Feature Toggles*******************************
+        this.legacyDcsConnection =
+                Boolean.parseBoolean(paramProvider.get(getParameterName("legacyDcsConnection")));
 
         // *********************************Secrets***********************************
 
@@ -199,5 +216,25 @@ public class ConfigurationService {
 
     public PrivateKey getDrivingPermitTlsKey() {
         return drivingPermitTlsKey;
+    }
+
+    public boolean isLegacyDcsConnection() {
+        return legacyDcsConnection;
+    }
+
+    public PrivateKey getDVADirectConnectionSigningKey() {
+        return DVADirectConnectionSigningKey;
+    }
+
+    public Certificate getDVADirectEncryptionCert() {
+        return DVADirectEncryptionCert;
+    }
+
+    public PrivateKey getDVLADirectConnectionSigningKey() {
+        return DVLADirectConnectionSigningKey;
+    }
+
+    public Certificate getDVLADirectEncryptionCert() {
+        return DVLADirectEncryptionCert;
     }
 }

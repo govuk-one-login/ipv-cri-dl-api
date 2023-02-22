@@ -70,6 +70,8 @@ class IdentityVerificationServiceTest {
         testFraudCheckResult.setValid(true);
         when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
+        when(configurationService.isLegacyDcsConnection()).thenReturn(true);
+
         when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
                 .thenReturn(testFraudCheckResult);
 
@@ -111,6 +113,7 @@ class IdentityVerificationServiceTest {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
+        when(configurationService.isLegacyDcsConnection()).thenReturn(true);
         when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm)).thenReturn(null);
 
         DocumentCheckVerificationResult result =

@@ -38,6 +38,7 @@ public class IdentityVerificationService {
 
     private final FormDataValidator formDataValidator;
     private final ThirdPartyDocumentGateway thirdPartyGateway;
+    private final ConfigurationService configurationService;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
 
@@ -56,6 +57,7 @@ public class IdentityVerificationService {
         this.auditService = auditService;
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
+        this.configurationService = configurationService;
     }
 
     public DocumentCheckVerificationResult verifyIdentity(DrivingPermitForm drivingPermitData)
@@ -80,8 +82,13 @@ public class IdentityVerificationService {
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
 
-            DocumentCheckResult documentCheckResult =
-                    thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            DocumentCheckResult documentCheckResult = null;
+            if (configurationService.isLegacyDcsConnection()) {
+                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            } else {
+                documentCheckResult =
+                        thirdPartyGateway.performDirectDocumentCheck(drivingPermitData);
+            }
 
             LOGGER.info("Third party response mapped");
             if (Objects.nonNull(documentCheckResult)) {

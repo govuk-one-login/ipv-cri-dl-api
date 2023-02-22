@@ -23,8 +23,13 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ProtectedHeader;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
+import uk.gov.di.ipv.cri.drivingpermit.api.gateway.dto.request.LicenceCheckRequestDto;
+import uk.gov.di.ipv.cri.drivingpermit.api.gateway.dto.response.LicenceCheckResponseDto;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -45,9 +50,43 @@ public class DcsCryptographyService {
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
                     JOSEException, JsonProcessingException {
         JWSObject signedPassportDetails =
-                createJWS(objectMapper.writeValueAsString(passportDetails));
+                createJWS(
+                        objectMapper.writeValueAsString(passportDetails),
+                        configurationService.getDrivingPermitCriSigningKey());
         JWEObject encryptedPassportDetails = createJWE(signedPassportDetails.serialize());
-        return createJWS(encryptedPassportDetails.serialize());
+        return createJWS(
+                encryptedPassportDetails.serialize(),
+                configurationService.getDrivingPermitCriSigningKey());
+    }
+
+    public JWSObject preparePayload(LicenceCheckRequestDto passportDetails, IssuingAuthority issuer)
+            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
+                    JOSEException, JsonProcessingException {
+
+        PrivateKey drivingPermitCriSigningKey = null;
+        if (issuer.equals(IssuingAuthority.DVA)) {
+            drivingPermitCriSigningKey = configurationService.getDVADirectConnectionSigningKey();
+            JWSObject signedPassportDetails =
+                    createJWS(
+                            objectMapper.writeValueAsString(passportDetails),
+                            drivingPermitCriSigningKey);
+            JWEObject encryptedPassportDetails =
+                    createJWE(
+                            signedPassportDetails.serialize(),
+                            configurationService.getDVADirectEncryptionCert());
+            return createJWS(encryptedPassportDetails.serialize(), drivingPermitCriSigningKey);
+        } else {
+            drivingPermitCriSigningKey = configurationService.getDVLADirectConnectionSigningKey();
+            JWSObject signedPassportDetails =
+                    createJWS(
+                            objectMapper.writeValueAsString(passportDetails),
+                            drivingPermitCriSigningKey);
+            JWEObject encryptedPassportDetails =
+                    createJWE(
+                            signedPassportDetails.serialize(),
+                            configurationService.getDVLADirectEncryptionCert());
+            return createJWS(encryptedPassportDetails.serialize(), drivingPermitCriSigningKey);
+        }
     }
 
     public DcsResponse unwrapDcsResponse(String dcsSignedEncryptedResponseString)
@@ -74,7 +113,32 @@ public class DcsCryptographyService {
         }
     }
 
-    private JWSObject createJWS(String stringToSign) throws JOSEException, JsonProcessingException {
+    public LicenceCheckResponseDto unwrapAuthorityResponse(String dcsSignedEncryptedResponseString)
+            throws JOSEException, ParseException, JsonProcessingException, CertificateException {
+        DcsSignedEncryptedResponse dcsSignedEncryptedResponse =
+                new DcsSignedEncryptedResponse(dcsSignedEncryptedResponseString);
+        JWSObject outerSignedPayload = JWSObject.parse(dcsSignedEncryptedResponse.getPayload());
+        if (isInvalidSignature(outerSignedPayload)) {
+            throw new IpvCryptoException("DCS Response Outer Signature invalid.");
+        }
+        JWEObject encryptedSignedPayload =
+                JWEObject.parse(outerSignedPayload.getPayload().toString());
+        JWSObject decryptedSignedPayload = decrypt(encryptedSignedPayload);
+        if (isInvalidSignature(decryptedSignedPayload)) {
+            throw new IpvCryptoException("DCS Response Inner Signature invalid.");
+        }
+        try {
+            return objectMapper.readValue(
+                    decryptedSignedPayload.getPayload().toString(), LicenceCheckResponseDto.class);
+        } catch (JsonProcessingException exception) {
+            throw new IpvCryptoException(
+                    String.format(
+                            "Failed to parse decrypted DCS response: %s", exception.getMessage()));
+        }
+    }
+
+    private JWSObject createJWS(String stringToSign, PrivateKey signingCert)
+            throws JOSEException, JsonProcessingException {
 
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
@@ -94,7 +158,7 @@ public class DcsCryptographyService {
                                 .build(),
                         new Payload(stringToSign));
 
-        jwsObject.sign(new RSASSASigner(configurationService.getDrivingPermitCriSigningKey()));
+        jwsObject.sign(new RSASSASigner(signingCert));
 
         return jwsObject;
     }
@@ -110,6 +174,24 @@ public class DcsCryptographyService {
         jwe.encrypt(
                 new RSAEncrypter(
                         (RSAPublicKey) configurationService.getDcsEncryptionCert().getPublicKey()));
+
+        if (!jwe.getState().equals(JWEObject.State.ENCRYPTED)) {
+            throw new IpvCryptoException("Something went wrong, couldn't encrypt JWE");
+        }
+
+        return jwe;
+    }
+
+    private JWEObject createJWE(String data, Certificate dcsEncryptionCert)
+            throws JOSEException, CertificateException {
+
+        var header =
+                new JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A128CBC_HS256)
+                        .type(new JOSEObjectType("JWE"))
+                        .build();
+        var jwe = new JWEObject(header, new Payload(data));
+
+        jwe.encrypt(new RSAEncrypter((RSAPublicKey) dcsEncryptionCert.getPublicKey()));
 
         if (!jwe.getState().equals(JWEObject.State.ENCRYPTED)) {
             throw new IpvCryptoException("Something went wrong, couldn't encrypt JWE");

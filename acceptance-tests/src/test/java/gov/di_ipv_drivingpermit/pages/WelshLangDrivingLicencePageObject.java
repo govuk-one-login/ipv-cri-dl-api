@@ -13,18 +13,6 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     private static final Logger LOGGER =
             Logger.getLogger(WelshLangDrivingLicencePageObject.class.getName());
 
-    @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
-    public WebElement visitCredentialIssuers;
-
-    @FindBy(xpath = "//*[@value=\"Driving Licence CRI Build\"]")
-    public WebElement drivingLicenceCDRIBuild;
-
-    @FindBy(xpath = "//*[@value=\"Driving Licence CRI Staging\"]")
-    public WebElement drivingLicenceCDRIStaging;
-
-    @FindBy(xpath = "//*[@value=\"Driving Licence CRI Integration\"]")
-    public WebElement drivingLicenceCDRIIntegration;
-
     @FindBy(xpath = "//*[@id=\"licenceIssuerRadio-fieldset\"]/div/div[3]")
     public WebElement orOption;
 
@@ -213,27 +201,6 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
 
     public WelshLangDrivingLicencePageObject() {
         PageFactory.initElements(Driver.get(), this);
-    }
-
-    public void navigateToDrivingLicenceCRI(String environment) {
-        visitCredentialIssuers.click();
-        assertURLContains("credential-issuers");
-        switch (environment) {
-            case "Build":
-                drivingLicenceCDRIBuild.click();
-                break;
-
-            case "Staging":
-                drivingLicenceCDRIStaging.click();
-                break;
-
-            case "Integration":
-                drivingLicenceCDRIIntegration.click();
-                break;
-
-            default:
-                break;
-        }
     }
 
     public void betaBanner() {
@@ -428,8 +395,8 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
         noDLRadioBtn.isDisplayed();
     }
 
-    public void orDisplayWelsh() {
-        orOption.isDisplayed();
+    public void orDisplayWelsh(String expectedText) {
+        Assert.assertEquals(expectedText, orOption.getText());
     }
 
     public void postcodeWelsh(String expectedText) {
@@ -454,45 +421,36 @@ public class WelshLangDrivingLicencePageObject extends DrivingLicencePageObject 
     }
 
     public void invalidlastAndFirstNameWelsh() {
-        new DrivingLicencePageObject().LastName.sendKeys("Parker!");
-        new DrivingLicencePageObject().FirstName.sendKeys("Peter@@!");
-        new DrivingLicencePageObject().MiddleNames.sendKeys("@@@@@@@");
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.LastName.sendKeys("Parker!");
+        drivingLicencePageObject.FirstName.sendKeys("Peter@@!");
+        drivingLicencePageObject.MiddleNames.sendKeys("@@@@@@@");
     }
 
     public void clearDOBandReEnterWelsh() {
-        new DrivingLicencePageObject().birthDay.clear();
-        new DrivingLicencePageObject().birthDay.click();
-        new DrivingLicencePageObject().birthDay.sendKeys("15");
-        new DrivingLicencePageObject().birthMonth.clear();
-        new DrivingLicencePageObject().birthMonth.click();
-        new DrivingLicencePageObject().birthMonth.sendKeys("04");
-        new DrivingLicencePageObject().birthYear.clear();
-        new DrivingLicencePageObject().birthYear.click();
-        new DrivingLicencePageObject().birthYear.sendKeys("1968");
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.birthDay.clear();
+        drivingLicencePageObject.birthDay.click();
+        drivingLicencePageObject.birthDay.sendKeys("15");
+        drivingLicencePageObject.birthMonth.clear();
+        drivingLicencePageObject.birthMonth.click();
+        drivingLicencePageObject.birthMonth.sendKeys("04");
+        drivingLicencePageObject.birthYear.clear();
+        drivingLicencePageObject.birthYear.click();
+        drivingLicencePageObject.birthYear.sendKeys("1968");
     }
 
     public void clearDOBandReEnterWelshtofuture() {
-        new DrivingLicencePageObject().birthDay.clear();
-        new DrivingLicencePageObject().birthDay.click();
-        new DrivingLicencePageObject().birthDay.sendKeys("15");
-        new DrivingLicencePageObject().birthMonth.clear();
-        new DrivingLicencePageObject().birthMonth.click();
-        new DrivingLicencePageObject().birthMonth.sendKeys("04");
-        new DrivingLicencePageObject().birthYear.clear();
-        new DrivingLicencePageObject().birthYear.click();
-        new DrivingLicencePageObject().birthYear.sendKeys("2028");
-    }
-
-    public void clearDOBandReEnterWelshForDVA() {
-        new DrivingLicencePageObject().birthDay.clear();
-        new DrivingLicencePageObject().birthDay.click();
-        new DrivingLicencePageObject().birthDay.sendKeys("");
-        new DrivingLicencePageObject().birthMonth.clear();
-        new DrivingLicencePageObject().birthMonth.click();
-        new DrivingLicencePageObject().birthMonth.sendKeys("");
-        new DrivingLicencePageObject().birthYear.clear();
-        new DrivingLicencePageObject().birthYear.click();
-        new DrivingLicencePageObject().birthYear.sendKeys("");
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.birthDay.clear();
+        drivingLicencePageObject.birthDay.click();
+        drivingLicencePageObject.birthDay.sendKeys("15");
+        drivingLicencePageObject.birthMonth.clear();
+        drivingLicencePageObject.birthMonth.click();
+        drivingLicencePageObject.birthMonth.sendKeys("04");
+        drivingLicencePageObject.birthYear.clear();
+        drivingLicencePageObject.birthYear.click();
+        drivingLicencePageObject.birthYear.sendKeys("2028");
     }
 
     public void thereIsaProblemText(String expectedText) {

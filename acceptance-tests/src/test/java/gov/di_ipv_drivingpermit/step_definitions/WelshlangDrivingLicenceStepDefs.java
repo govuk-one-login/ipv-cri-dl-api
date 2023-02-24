@@ -43,9 +43,9 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
         noDrivingLicenceBtnWelsh(expectedText);
     }
 
-    @And("I can see “Or”")
-    public void iCanSeeOr() {
-        orDisplayWelsh();
+    @And("^I can see OR options as (.*)$")
+    public void iCanSeeOROptionsAsNue(String expectedText) {
+        orDisplayWelsh(expectedText);
     }
 
     @Then("I can see CTA as Parhau")
@@ -548,4 +548,5 @@ public class WelshlangDrivingLicenceStepDefs extends WelshLangDrivingLicencePage
     public void dymaRDyddiadYnAdranAOChTrwyddedErEnghraifftForDVA(String expectedText) {
         issueDateSentenceDVA(expectedText);
     }
+
 }

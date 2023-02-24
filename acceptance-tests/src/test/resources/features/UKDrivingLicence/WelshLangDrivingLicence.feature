@@ -20,7 +20,7 @@ Feature: Driving License Language Test
      Then I can see a radio button titled “DVLA”
      Then I can see a radio button titled “DVA”
      And I can see a I do not have a UK driving licence radio button titled Nid oes gennyf drwydded yrru y DU
-     And I can see “Or”
+     And I can see OR options as nue
      Then I can see CTA as Parhau
      And I see the licence Selection sentence starts with Gallwch ddod o hyd i hwn yn adran 4c o'ch trwydded yrru. Bydd naill ai'n dweud DVLA (Asiantaeth Trwyddedu Gyrru a Cherbydau) neu DVA (Asiantaeth Gyrrwyr a Cherbydau).
      And The test is complete and I close the driver

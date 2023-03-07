@@ -150,13 +150,13 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void contraIndicatorInVerifiableCredential(
             String ci, String validityScore, String strengthScore) throws IOException {
         new DrivingLicencePageObject().ciInVC(ci);
-        scoreIs(validityScore, strengthScore);
+        checkScoreInStubIs(validityScore, strengthScore);
     }
 
     @And("^JSON payload should contain validity score (.*) and strength score (.*)$")
     public void scoresInVerifiableCredential(String validityScore, String strengthScore)
             throws IOException {
-        scoreIs(validityScore, strengthScore);
+        checkScoreInStubIs(validityScore, strengthScore);
     }
 
     @Given("User click on ‘Back' Link")

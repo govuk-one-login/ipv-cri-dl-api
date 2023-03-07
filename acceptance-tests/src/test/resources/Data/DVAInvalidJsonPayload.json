@@ -1,0 +1,17 @@
+{
+  "drivingLicenceNumber": "12345678",
+  "postcode": "BT205NE",
+  "licenceIssuer": "DVA",
+  "surname": "Roberts",
+  "forenames": "John",
+  "addresses": {
+    "buildingNumber": "48",
+    "streetName": "Street Road",
+    "postalCode": "BT205NE",
+    "addressCountry": "GB",
+    "validFrom": "1999-12-12"
+  },
+  "dateOfBirth": "1991-12-12",
+  "dateOfIssue": "2020-12-12",
+  "expiryDate": "2030-12-12"
+}

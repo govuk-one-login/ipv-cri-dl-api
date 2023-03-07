@@ -505,8 +505,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
         Assert.assertEquals(expectedErrorStatusCode, ActualStatusCode);
     }
 
-    public void scoreIs(String validityScore, String strengthScore) throws IOException {
-        String result = JSONPayload.getText();
+    public void checkScoreInStubIs(String validityScore, String strengthScore) throws IOException {
+        scoreIs(validityScore, strengthScore, JSONPayload.getText());
+    }
+
+    public void scoreIs(String validityScore, String strengthScore, String jsonPayloadText)
+            throws IOException {
+        String result = jsonPayloadText;
         LOGGER.info("result = " + result);
         JsonNode vcNode = getJsonNode(result, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");

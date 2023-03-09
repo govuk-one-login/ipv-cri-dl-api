@@ -40,6 +40,9 @@ subprojects {
 		maven {
 			url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
 		}
+		//		flatDir {
+		//			dirs '/PATH_TO_LIB/di-ipv-cri-lib/build/libs'
+		//		}
 	}
 
 	configurations {
@@ -106,6 +109,7 @@ subprojects {
 		test_runtime "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit}"
 
 		cri_common_lib "uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib}"
+		// cri_common_lib name: "cri-common-lib-1.4.1"
 
 	}
 	apply plugin: 'java'

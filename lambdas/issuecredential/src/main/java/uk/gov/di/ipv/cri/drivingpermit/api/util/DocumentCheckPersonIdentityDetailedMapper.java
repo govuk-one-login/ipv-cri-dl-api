@@ -1,9 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.util;
 
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.Name;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.NamePart;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 
 import java.util.ArrayList;
@@ -27,7 +24,10 @@ public class DocumentCheckPersonIdentityDetailedMapper {
         birthDate.setValue(drivingPermitData.getDateOfBirth());
 
         return new PersonIdentityDetailed(
-                List.of(name1), List.of(birthDate), drivingPermitData.getAddresses());
+                List.of(name1),
+                List.of(birthDate),
+                drivingPermitData.getAddresses(),
+                List.of(mapDrivingPermit(drivingPermitData)));
     }
 
     public static Name mapNamesToCanonicalName(List<String> forenames, String surname) {
@@ -53,5 +53,17 @@ public class DocumentCheckPersonIdentityDetailedMapper {
         namePart.setValue(value);
         namePart.setType(type);
         return namePart;
+    }
+
+    private static DrivingPermit mapDrivingPermit(DrivingPermitForm drivingPermitData) {
+        DrivingPermit drivingPermit = new DrivingPermit();
+
+        drivingPermit.setPersonalNumber(drivingPermitData.getDrivingLicenceNumber());
+        drivingPermit.setIssueNumber(drivingPermitData.getIssueNumber());
+        drivingPermit.setIssueDate(drivingPermitData.getIssueDate());
+        drivingPermit.setExpiryDate(drivingPermitData.getExpiryDate());
+        drivingPermit.setIssuedBy(drivingPermitData.getLicenceIssuer());
+
+        return drivingPermit;
     }
 }

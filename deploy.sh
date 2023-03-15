@@ -9,6 +9,16 @@ echo -e "Stack name expected as first argument, e.g. ./deploy.sh my-driving-perm
 exit 1
 fi
 
+if [ -z "$audit_event_name_prefix" ]
+then
+  audit_event_name_prefix="/common-cri-parameters/DrivingPermitAuditEventNamePrefix"
+fi
+
+if [ -z "$cri_identifier" ]
+then
+  cri_identifier="/common-cri-parameters/DrivingPermitCriIdentifier"
+fi
+
 ./gradlew clean
 
 sam validate -t infrastructure/lambda/template.yaml --config-env dev

@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
+
       - name: Set up JDK 11
         uses: actions/setup-java@v2
         with:
@@ -58,7 +59,7 @@ jobs:
           sam deploy \
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
-            --parameter-overrides "Environment=${{ env.ENVIRONMENT }} CodeSigningEnabled=false AuditEventNamePrefix=/common-cri-parameters/DrivingPermitAuditEventNamePrefix CriIdentifier=/common-cri-parameters/DrivingPermitCriIdentifier CommonStackName=driving-permit-common-cri-api" \
+            --parameter-overrides "Environment=${{ secrets.SHARED_DEV_ENVIRONMENT }} CodeSigningEnabled=false AuditEventNamePrefix=/common-cri-parameters/DrivingPermitAuditEventNamePrefix CriIdentifier=/common-cri-parameters/DrivingPermitCriIdentifier CommonStackName=driving-permit-common-cri-api" \
             --stack-name $STACK_NAME \
             --s3-bucket ${{ secrets.AWS_CONFIG_BUCKET }} \
             --s3-prefix $STACK_NAME \
@@ -67,6 +68,12 @@ jobs:
 
       - name: Run API integration tests
         run: echo "🤞 now run integration tests..."
+        env:
+          ENVIRONMENT: shared-dev
+          APIGW_API_KEY: ${{ secrets.API_KEY_CRI_DEV }}
+          coreStubUrl: ${{ secrets.CORE_STUB_URL }}
+          coreStubUsername: ${{ secrets.CORE_STUB_USERNAME }}
+          coreStubPassword: ${{ secrets.CORE_STUB_PASSWORD }}
 
       - name: Delete integration test stack
         if: always()

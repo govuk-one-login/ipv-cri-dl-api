@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+NOCOLOR="\033[0m"
+
 stack_name="$1"
+audit_event_name_prefix="$2"
+cri_identifier="$3"
 
 if [ -z "$stack_name" ]
 then
@@ -19,6 +25,11 @@ then
   cri_identifier="/common-cri-parameters/DrivingPermitCriIdentifier"
 fi
 
+echo -e "👉 deploying di-ipv-cri-dl-api with:"
+echo -e "\tstack name: ${GREEN}$stack_name${NOCOLOR}"
+echo -e "\tAuditEventNamePrefix SSM key ${GREEN}$audit_event_name_prefix${NOCOLOR}"
+echo -e "\tCriIdentifier SSM key ${GREEN}$cri_identifier${NOCOLOR}"
+
 ./gradlew clean
 
 sam validate -t infrastructure/lambda/template.yaml --config-env dev
@@ -31,4 +42,9 @@ sam deploy --stack-name $stack_name \
    --resolve-s3 \
    --region eu-west-2 \
    --capabilities CAPABILITY_IAM \
-   --parameter-overrides CodeSigningEnabled=false Environment=dev AuditEventNamePrefix=/common-cri-parameters/DrivingPermitAuditEventNamePrefix CriIdentifier=/common-cri-parameters/DrivingPermitCriIdentifier CommonStackName=driving-permit-common-cri-api-local
+   --parameter-overrides \
+   CodeSigningEnabled=false \
+   Environment=dev \
+   AuditEventNamePrefix=/common-cri-parameters/DrivingPermitAuditEventNamePrefix \
+   CriIdentifier=/common-cri-parameters/DrivingPermitCriIdentifier \
+   CommonStackName=driving-permit-common-cri-api-local

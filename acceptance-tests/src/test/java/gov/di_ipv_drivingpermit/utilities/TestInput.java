@@ -2,31 +2,33 @@ package gov.di_ipv_drivingpermit.utilities;
 
 public interface TestInput {
 
-    public default String getlicenceNumber() {
-        return null;
-    }
+    public String getLicenceNumber();
 
-    public default String getlastName() {
-        return null;
-    }
+    public String getLastName();
 
-    public default String getfirstName() {
-        return null;
-    }
+    public String getFirstName();
 
-    public default String getbirthDay() {
-        return null;
-    }
+    public String getMiddleNames();
 
-    public default String getbirthMonth() {
-        return null;
-    }
+    public String getBirthDay();
 
-    public default String getbirthYear() {
-        return null;
-    }
+    public String getBirthMonth();
 
-    public default String getDVAlicenceNumber() {
-        return null;
-    }
+    public String getBirthYear();
+
+    public String getValidToDay();
+
+    public String getValidToMonth();
+
+    public String getValidToYear();
+
+    public String getIssueDay();
+
+    public String getIssueMonth();
+
+    public String getIssueYear();
+
+    public String getIssueNumber();
+
+    public String getPostcode();
 }

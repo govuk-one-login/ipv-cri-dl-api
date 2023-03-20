@@ -1,742 +1,7 @@
 package gov.di_ipv_drivingpermit.utilities;
 
-public enum DrivingLicenceSubject implements TestInput {
-    DrivingLicenceSubjectHappyPeter(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    IncorrectDrivingLicenceNumber(
-            "PARKE610112PBFGI",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidDrivingLicenceNumber(
-            "PARKE610102PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    IncorrectFirstName(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETERE",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    IncorrectLastName(
-            "PARKE610112PBFGH",
-            "PARKERINVALID",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    IncorrectIssueDate(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "01",
-            "06",
-            "1983",
-            "12",
-            "BS98 1TL"),
-    IncorrectValidToDate(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "11",
-            "11",
-            "2030",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    IncorrectIssueNumber(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "20",
-            "BS98 1TL"),
-    IncorrectPostcode(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1AA"),
-    IncorrectDateOfBirth(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "09",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidLastNameWithNumbers(
-            "PARKE610112PBFGH",
-            "PARKER123",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidLastNameWithSpecialCharacters(
-            "PARKE610112PBFGH",
-            "PARKER*$%",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    NoLastName(
-            "PARKE610112PBFGH",
-            "",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidFirstNameWithNumbers(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETERE987",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidFirstNameWithSpecialCharacters(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETERE$£@",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    NoFirstName(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidMiddleNamesWithNumbers(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN567",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidMiddleNamesWithSpecialCharacters(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN)(*",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidDateOfBirth(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "50",
-            "72",
-            "197",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    DateOfBirthWithSpecialCharacters(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "@",
-            "%*",
-            "19 7",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    DateOfBirthInFuture(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "10",
-            "10",
-            "2042",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    NoDateOfBirth(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "",
-            "",
-            "",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    InvalidIssueDate(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "AA",
-            "BB",
-            "ABCD",
-            "12",
-            "BS98 1TL"),
-    IssueDateWithSpecialCharacters(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "&^",
-            "*£",
-            "19 0",
-            "12",
-            "BS98 1TL"),
-    IssueDateInFuture(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "01",
-            "02",
-            "2042",
-            "12",
-            "BS98 1TL"),
-    NoIssueDate(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "",
-            "",
-            "",
-            "12",
-            "BS98 1TL"),
-    InvalidValidToDate(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "48",
-            "10",
-            "2030",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    ValidToDateWithSpecialCharacters(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "4*",
-            "£$",
-            "^&8",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    ValidToDateInPast(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2000",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    NoValidToDate(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "",
-            "",
-            "",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    DrivingLicenceNumLessThan16Char(
-            "PARKE6101",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    DrivingLicenceNumberWithSpecialChar(
-            "PARKE£ %^&*^&*()",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    DrivingLicenceNumberWithNumericChar(
-            "1234567890123456",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    DrivingLicenceNumberWithAlphaChar(
-            "ABCDEFGHIJKLMNOP",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    NoDrivingLicenceNumber(
-            "",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98 1TL"),
-    IssueNumberLessThan2Char(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "1",
-            "BS98 1TL"),
-    IssueNumberWithSpecialChar(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "$%",
-            "BS98 1TL"),
-    IssueNumberWithAlphanumericChar(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "A1",
-            "BS98 1TL"),
-    IssueNumberWithAlphaChar(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "AA",
-            "BS98 1TL"),
-    NoIssueNumber(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "",
-            "BS98 1TL"),
-    PostcodeLessThan5Char(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "BS98"),
-    PostcodeWithSpecialChar(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "B£$% 1$L"),
-    PostcodeWithNumericChar(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "1234 567"),
-    PostcodeWithAlphaChar(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "ABCD XYZ"),
-    NoPostcode(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            ""),
-    InternationalPostcode(
-            "PARKE610112PBFGH",
-            "PARKER",
-            "PETER",
-            "BENJAMIN",
-            "11",
-            "10",
-            "1962",
-            "09",
-            "12",
-            "2062",
-            "23",
-            "05",
-            "1982",
-            "12",
-            "CA 95128");
+public class DrivingLicenceSubject implements TestInput {
+
     private String licenceNumber,
             lastName,
             firstName,
@@ -786,63 +51,155 @@ public enum DrivingLicenceSubject implements TestInput {
         this.postcode = postcode;
     }
 
-    public String getlicenceNumber() {
+    DrivingLicenceSubject(DrivingLicenceSubject drivingLicenceSubject) {
+        this.licenceNumber = drivingLicenceSubject.licenceNumber;
+        this.lastName = drivingLicenceSubject.lastName;
+        this.firstName = drivingLicenceSubject.firstName;
+        this.birthDay = drivingLicenceSubject.birthDay;
+        this.birthMonth = drivingLicenceSubject.birthMonth;
+        this.birthYear = drivingLicenceSubject.birthYear;
+        this.validToDay = drivingLicenceSubject.validToDay;
+        this.validToMonth = drivingLicenceSubject.validToMonth;
+        this.validToYear = drivingLicenceSubject.validToYear;
+        this.issueDay = drivingLicenceSubject.issueDay;
+        this.issueMonth = drivingLicenceSubject.issueMonth;
+        this.issueYear = drivingLicenceSubject.issueYear;
+        this.issueNumber = drivingLicenceSubject.issueNumber;
+        this.postcode = drivingLicenceSubject.postcode;
+    }
+
+    @Override
+    public String getLicenceNumber() {
         return licenceNumber;
     }
 
-    public String getlastName() {
+    public void setLicenceNumber(String licenceNumber) {
+        this.licenceNumber = licenceNumber;
+    }
+
+    @Override
+    public String getLastName() {
         return lastName;
     }
 
-    public String getfirstName() {
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    @Override
+    public String getFirstName() {
         return firstName;
     }
 
-    public String getmiddleNames() {
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    @Override
+    public String getMiddleNames() {
         return middleNames;
     }
 
-    public String getbirthDay() {
+    public void setMiddleNames(String middleNames) {
+        this.middleNames = middleNames;
+    }
+
+    @Override
+    public String getBirthDay() {
         return birthDay;
     }
 
-    public String getbirthMonth() {
+    public void setBirthDay(String birthDay) {
+        this.birthDay = birthDay;
+    }
+
+    @Override
+    public String getBirthMonth() {
         return birthMonth;
     }
 
-    public String getbirthYear() {
+    public void setBirthMonth(String birthMonth) {
+        this.birthMonth = birthMonth;
+    }
+
+    @Override
+    public String getBirthYear() {
         return birthYear;
     }
 
-    public String getvalidtoDay() {
+    public void setBirthYear(String birthYear) {
+        this.birthYear = birthYear;
+    }
+
+    @Override
+    public String getValidToDay() {
         return validToDay;
     }
 
-    public String getvalidtoMonth() {
+    public void setValidToDay(String validToDay) {
+        this.validToDay = validToDay;
+    }
+
+    @Override
+    public String getValidToMonth() {
         return validToMonth;
     }
 
-    public String getvalidtoYear() {
+    public void setValidToMonth(String validToMonth) {
+        this.validToMonth = validToMonth;
+    }
+
+    @Override
+    public String getValidToYear() {
         return validToYear;
     }
 
-    public String getlicenceIssueDay() {
+    public void setValidToYear(String validToYear) {
+        this.validToYear = validToYear;
+    }
+
+    @Override
+    public String getIssueDay() {
         return issueDay;
     }
 
-    public String getlicenceIssueMonth() {
+    public void setIssueDay(String issueDay) {
+        this.issueDay = issueDay;
+    }
+
+    @Override
+    public String getIssueMonth() {
         return issueMonth;
     }
 
-    public String getlicenceIssueYear() {
+    public void setIssueMonth(String issueMonth) {
+        this.issueMonth = issueMonth;
+    }
+
+    @Override
+    public String getIssueYear() {
         return issueYear;
     }
 
-    public String getlicenceIssueNumber() {
+    public void setIssueYear(String issueYear) {
+        this.issueYear = issueYear;
+    }
+
+    @Override
+    public String getIssueNumber() {
         return issueNumber;
     }
 
-    public String getpostcode() {
+    public void setIssueNumber(String issueNumber) {
+        this.issueNumber = issueNumber;
+    }
+
+    @Override
+    public String getPostcode() {
         return postcode;
+    }
+
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
     }
 }

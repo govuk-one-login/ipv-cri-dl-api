@@ -5,6 +5,8 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential.EvidenceT
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
+import java.util.List;
+
 public class EvidenceHelper {
 
     private EvidenceHelper() {
@@ -29,9 +31,9 @@ public class EvidenceHelper {
         evidence.setCi(documentCheckResultItem.getContraIndicators());
 
         if (null == evidence.getCi()) {
-            evidence.setCheckDetails(checkDetails);
+            evidence.setCheckDetails(List.of(checkDetails));
         } else {
-            evidence.setFailedCheckDetails(checkDetails);
+            evidence.setFailedCheckDetails(List.of(checkDetails));
         }
 
         return evidence;

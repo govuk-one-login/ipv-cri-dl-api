@@ -156,7 +156,7 @@ public class DrivingPermitHandler
             result.setAttemptCount(sessionItem.getAttemptCount());
 
             auditService.sendAuditEvent(
-                    AuditEventType.THIRD_PARTY_REQUEST_ENDED,
+                    AuditEventType.RESPONSE_RECEIVED,
                     new AuditEventContext(headers, sessionItem),
                     "");
 

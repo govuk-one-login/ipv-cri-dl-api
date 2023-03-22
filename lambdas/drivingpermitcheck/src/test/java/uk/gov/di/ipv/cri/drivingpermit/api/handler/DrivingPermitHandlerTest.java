@@ -109,9 +109,7 @@ class DrivingPermitHandlerTest {
         doNothing()
                 .when(auditService)
                 .sendAuditEvent(
-                        eq(AuditEventType.THIRD_PARTY_REQUEST_ENDED),
-                        any(AuditEventContext.class),
-                        eq(""));
+                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
 
         when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
                 .thenReturn(testDocumentVerificationResult);
@@ -166,9 +164,7 @@ class DrivingPermitHandlerTest {
         doNothing()
                 .when(auditService)
                 .sendAuditEvent(
-                        eq(AuditEventType.THIRD_PARTY_REQUEST_ENDED),
-                        any(AuditEventContext.class),
-                        eq(""));
+                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
 
         when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
                 .thenReturn(testDocumentVerificationResult);
@@ -232,9 +228,7 @@ class DrivingPermitHandlerTest {
         doNothing()
                 .when(auditService)
                 .sendAuditEvent(
-                        eq(AuditEventType.THIRD_PARTY_REQUEST_ENDED),
-                        any(AuditEventContext.class),
-                        eq(""));
+                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
 
         when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
                 .thenReturn(testDocumentVerificationResult);
@@ -333,9 +327,7 @@ class DrivingPermitHandlerTest {
         doNothing()
                 .when(auditService)
                 .sendAuditEvent(
-                        eq(AuditEventType.THIRD_PARTY_REQUEST_ENDED),
-                        any(AuditEventContext.class),
-                        eq(""));
+                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");

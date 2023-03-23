@@ -36,7 +36,7 @@ sam validate -t infrastructure/lambda/template.yaml --config-env dev
 
 sam build -t infrastructure/lambda/template.yaml --config-env dev
 
-sam deploy --stack-name $stack_name \
+sam deploy --stack-name "$stack_name" \
    --no-fail-on-empty-changeset \
    --no-confirm-changeset \
    --resolve-s3 \
@@ -45,6 +45,6 @@ sam deploy --stack-name $stack_name \
    --parameter-overrides \
    CodeSigningEnabled=false \
    Environment=dev \
-   AuditEventNamePrefix=/common-cri-parameters/DrivingPermitAuditEventNamePrefix \
-   CriIdentifier=/common-cri-parameters/DrivingPermitCriIdentifier \
+   AuditEventNamePrefix=$audit_event_name_prefix \
+   CriIdentifier=$cri_identifier \
    CommonStackName=driving-permit-common-cri-api-local

@@ -1,519 +1,11 @@
 package gov.di_ipv_drivingpermit.utilities;
 
-public enum DVADrivingLicenceSubject implements TestInput {
-    DVADrivingLicenceSubjectHappyBilly(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVADrivingLicenceSubjectUnhappySelina(
-            "88776655",
-            "KYLE",
-            "SELINA",
-            "12",
-            "08",
-            "1985",
-            "04",
-            "08",
-            "2032",
-            "14",
-            "09",
-            "2009",
-            "E20 2AQ"),
-    IncorrectDVADrivingLicenceNumber(
-            "88776655",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    IncorrectDVADateOfBirth(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "12",
-            "08",
-            "1985",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    IncorrectDVALastName(
-            "55667788",
-            "KYLE",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    IncorrectDVAFirstName(
-            "55667788",
-            "BATSON",
-            "SELINA",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    IncorrectDVAIssueDate(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "14",
-            "09",
-            "2009",
-            "NW3 5RG"),
-    IncorrectDVAValidToDate(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "04",
-            "08",
-            "2032",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    IncorrectDVAPostcode(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "E20 2AQ"),
-    InvalidDVALastNameWithNumbers(
-            "55667788",
-            "KYLE123",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    InvalidDVALastNameWithSpecialChar(
-            "55667788",
-            "KYLE^&(",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    NoDVALastName(
-            "55667788",
-            "",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    InvalidDVAFirstNameWithNumbers(
-            "55667788",
-            "BATSON",
-            "SELINA987",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    InvalidDVAFirstNameWithSpecialChar(
-            "55667788",
-            "BATSON",
-            "SELINA%$@",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    NoDVAFirstName(
-            "55667788",
-            "BATSON",
-            "",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    InvalidDVADateOfBirth(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "51",
-            "71",
-            "198",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVADOBWithSpecialCharacters(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "@",
-            "*&",
-            "19 7",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVADateOfBirthInFuture(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "10",
-            "10",
-            "2042",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    NoDVADateOfBirth(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "",
-            "",
-            "",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVAInvalidIssueDate(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "AA",
-            "BB",
-            "ABCC",
-            "NW3 5RG"),
-    DVAIssueDateWithSpecialChar(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "&",
-            "^%",
-            "£$ ^",
-            "NW3 5RG"),
-    DVAIssueDateInFuture(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "1",
-            "10",
-            "2043",
-            "NW3 5RG"),
-    NoDVAIssueDate(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "",
-            "",
-            "",
-            "NW3 5RG"),
-    DVAInvalidValidToDate(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "50",
-            "10",
-            "2030",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVAValidToDateWithSpecialChar(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "!@",
-            "£$",
-            "%^ *",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVAValidToDateInPast(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "10",
-            "1",
-            "2010",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    NoDVAValidToDate(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "",
-            "",
-            "",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVADrivingLicenceNumLessThan8Char(
-            "5566778", "BATSON", "BILLY", "26", "07", "1981", "01", "10", "2042", "19", "04",
-            "2001", "NW3 5RG"),
-    DVADrivingLicenceNumWithSpecialChar(
-            "55667^&*",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVADrivingLicenceNumWithAlphanumericChar(
-            "55667ABC",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    DVADrivingLicenceNumberWithAlphaChar(
-            "XYZabdAB",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW3 5RG"),
-    NoDVADrivingLicenceNumber(
-            "", "BATSON", "BILLY", "26", "07", "1981", "01", "10", "2042", "19", "04", "2001",
-            "NW3 5RG"),
-    DVAPostcodeLessThan5Char(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "E20A"),
-    DVAPostcodeWithSpecialChar(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "NW* ^%G"),
-    DVAPostcodeWithNumericChar(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "123 456"),
-    DVAPostcodeWithAlphaChar(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "ABC XYZ"),
-    NoDVAPostcode(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            ""),
-    DVAInternationalPostcode(
-            "55667788",
-            "BATSON",
-            "BILLY",
-            "26",
-            "07",
-            "1981",
-            "01",
-            "10",
-            "2042",
-            "19",
-            "04",
-            "2001",
-            "CA 95128");
+public class DVADrivingLicenceSubject implements TestInput {
+
     private String dvaLicenceNumber,
             lastName,
             firstName,
+            middleNames,
             birthDay,
             birthMonth,
             birthYear,
@@ -529,6 +21,7 @@ public enum DVADrivingLicenceSubject implements TestInput {
             String dvaLicenceNumber,
             String lastName,
             String firstName,
+            String middleNames,
             String birthDay,
             String birthMonth,
             String birthYear,
@@ -542,6 +35,7 @@ public enum DVADrivingLicenceSubject implements TestInput {
         this.dvaLicenceNumber = dvaLicenceNumber;
         this.lastName = lastName;
         this.firstName = firstName;
+        this.middleNames = middleNames;
         this.birthDay = birthDay;
         this.birthMonth = birthMonth;
         this.birthYear = birthYear;
@@ -554,55 +48,143 @@ public enum DVADrivingLicenceSubject implements TestInput {
         this.postcode = postcode;
     }
 
-    public String getDVAlicenceNumber() {
+    DVADrivingLicenceSubject(DVADrivingLicenceSubject dvaDrivingLicenceSubject) {
+        this.dvaLicenceNumber = dvaDrivingLicenceSubject.dvaLicenceNumber;
+        this.lastName = dvaDrivingLicenceSubject.lastName;
+        this.firstName = dvaDrivingLicenceSubject.firstName;
+        this.middleNames = dvaDrivingLicenceSubject.middleNames;
+        this.birthDay = dvaDrivingLicenceSubject.birthDay;
+        this.birthMonth = dvaDrivingLicenceSubject.birthMonth;
+        this.birthYear = dvaDrivingLicenceSubject.birthYear;
+        this.validToDay = dvaDrivingLicenceSubject.validToDay;
+        this.validToMonth = dvaDrivingLicenceSubject.validToMonth;
+        this.validToYear = dvaDrivingLicenceSubject.validToYear;
+        this.issueDay = dvaDrivingLicenceSubject.issueDay;
+        this.issueMonth = dvaDrivingLicenceSubject.issueMonth;
+        this.issueYear = dvaDrivingLicenceSubject.issueYear;
+        this.postcode = dvaDrivingLicenceSubject.postcode;
+    }
+
+    public String getDvaLicenceNumber() {
         return dvaLicenceNumber;
     }
 
-    public String getlastName() {
+    public void setDvaLicenceNumber(String dvaLicenceNumber) {
+        this.dvaLicenceNumber = dvaLicenceNumber;
+    }
+
+    @Override
+    public String getLicenceNumber() {
+        return this.dvaLicenceNumber;
+    }
+
+    public String getLastName() {
         return lastName;
     }
 
-    public String getfirstName() {
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getFirstName() {
         return firstName;
     }
 
-    public String getbirthDay() {
+    @Override
+    public String getMiddleNames() {
+        return middleNames;
+    }
+
+    public void setMiddleNames(String middleNames) {
+        this.middleNames = middleNames;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getBirthDay() {
         return birthDay;
     }
 
-    public String getbirthMonth() {
+    public void setBirthDay(String birthDay) {
+        this.birthDay = birthDay;
+    }
+
+    public String getBirthMonth() {
         return birthMonth;
     }
 
-    public String getbirthYear() {
+    public void setBirthMonth(String birthMonth) {
+        this.birthMonth = birthMonth;
+    }
+
+    public String getBirthYear() {
         return birthYear;
     }
 
-    public String getvalidtoDay() {
+    public void setBirthYear(String birthYear) {
+        this.birthYear = birthYear;
+    }
+
+    public String getValidToDay() {
         return validToDay;
     }
 
-    public String getvalidtoMonth() {
+    public void setValidToDay(String validToDay) {
+        this.validToDay = validToDay;
+    }
+
+    public String getValidToMonth() {
         return validToMonth;
     }
 
-    public String getvalidtoYear() {
+    public void setValidToMonth(String validToMonth) {
+        this.validToMonth = validToMonth;
+    }
+
+    public String getValidToYear() {
         return validToYear;
     }
 
-    public String getlicenceIssueDay() {
+    public void setValidToYear(String validToYear) {
+        this.validToYear = validToYear;
+    }
+
+    public String getIssueDay() {
         return issueDay;
     }
 
-    public String getlicenceIssueMonth() {
+    public void setIssueDay(String issueDay) {
+        this.issueDay = issueDay;
+    }
+
+    public String getIssueMonth() {
         return issueMonth;
     }
 
-    public String getlicenceIssueYear() {
+    public void setIssueMonth(String issueMonth) {
+        this.issueMonth = issueMonth;
+    }
+
+    public String getIssueYear() {
         return issueYear;
     }
 
-    public String getpostcode() {
+    @Override
+    public String getIssueNumber() {
+        return null;
+    }
+
+    public void setIssueYear(String issueYear) {
+        this.issueYear = issueYear;
+    }
+
+    public String getPostcode() {
         return postcode;
+    }
+
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
     }
 }

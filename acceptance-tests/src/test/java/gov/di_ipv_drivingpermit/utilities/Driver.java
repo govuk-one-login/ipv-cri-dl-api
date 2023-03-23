@@ -32,13 +32,14 @@ public class Driver {
             switch (browser) {
                 case "chrome":
                     WebDriverManager.chromedriver().setup();
-                    ChromeOptions chromeOptionsLocal = new ChromeOptions();
-                    chromeOptionsLocal.addArguments("--remote-allow-origins=*");
-                    driverPool.set(new ChromeDriver(chromeOptionsLocal));
+                    ChromeOptions chromeOptions1 = new ChromeOptions();
+                    chromeOptions1.addArguments("--remote-allow-origins=*");
+                    driverPool.set(new ChromeDriver(chromeOptions1));
                     break;
                 case "chrome-headless":
                     WebDriverManager.chromedriver().setup();
                     ChromeOptions chromeOptions = new ChromeOptions().setHeadless(true);
+                    chromeOptions.addArguments("--remote-allow-origins=*");
                     if (ConfigurationReader.noChromeSandbox()) {
                         // no-sandbox is needed for chrome-headless when running in a container due
                         // to restricted syscalls

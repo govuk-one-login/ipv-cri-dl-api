@@ -10,7 +10,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence details page happy path
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 3
@@ -22,7 +22,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectDrivingLicenceNumber
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -36,21 +36,21 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline: DVLA Driving Licence details page unhappy path when licence number date format does not match with User's Date Of Birth
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Licence number should be displayed in the Error summary
-    And Check you have entered your date of birth correctly error should be displayed in the Error summary
+    Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
+    #And I see check date of birth sentence as Error:Check you have entered your date of birth correctly
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
-      |InvalidDrivingLicenceNumber |
+      |DrivingLicenceNumberWithNumericChar |
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectDateOfBirth
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Check you have entered your date of birth correctly error should be displayed in the Error summary
-    And Proper error message for invalid Licence number should be displayed in the Error summary
+    Then I see check date of birth sentence as Check you have entered your date of birth correctly
+    Then I see enter the date as it appears above the field as Error:Check you have entered your date of birth correctly
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -58,7 +58,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectFirstName
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -71,7 +71,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectLastName
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -84,7 +84,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectIssueDate
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -97,7 +97,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectValidToDate
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -110,7 +110,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectIssueNumber
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -123,7 +123,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectPostcode
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -139,7 +139,7 @@ Feature: Driving Licence Test
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
-    When User Re-enters data as a <DrivingLicenceSubject>
+    When User Re-enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 3
@@ -153,7 +153,7 @@ Feature: Driving Licence Test
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
-    When User Re-enters data as a <DrivingLicenceSubject>
+    When User Re-enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci DO2, validity score 0 and strength score 3
@@ -190,10 +190,10 @@ Feature: Driving Licence Test
     ###########  DVLA Field Validations ##########
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Last name with numbers error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Last name should be displayed in the Error summary
-    And Field error message for invalid Last name should be displayed
+    Then I see the Lastname error in the error summary as Enter your last name as it appears on your driving licence
+    And I see the Lastname error in the error field as Error:Enter your last name as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
@@ -201,10 +201,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Last name with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Last name should be displayed in the Error summary
-    And Field error message for invalid Last name should be displayed
+    Then I see the Lastname error in the error summary as Enter your last name as it appears on your driving licence
+    And I see the Lastname error in the error field as Error:Enter your last name as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -212,10 +212,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No Last name in the Last name field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Last name should be displayed in the Error summary
-    And Field error message for invalid Last name should be displayed
+    Then I see the Lastname error in the error summary as Enter your last name as it appears on your driving licence
+    And I see the Lastname error in the error field as Error:Enter your last name as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -223,10 +223,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence First name with numbers error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid First name should be displayed in the Error summary
-    And Field error message for invalid First name should be displayed
+    Then I see the firstname error summary as Enter your first name as it appears on your driving licence
+    And I see the firstname error in the error field as Error:Enter your first name as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
@@ -234,10 +234,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence First name with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid First name should be displayed in the Error summary
-    And Field error message for invalid First name should be displayed
+    Then I see the firstname error summary as Enter your first name as it appears on your driving licence
+    And I see the firstname error in the error field as Error:Enter your first name as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -245,10 +245,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No First name in the First name field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid First name should be displayed in the Error summary
-    And Field error message for invalid First name should be displayed
+    Then I see the firstname error summary as Enter your first name as it appears on your driving licence
+    And I see the firstname error in the error field as Error:Enter your first name as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -256,10 +256,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Middle names with numbers error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Middle names should be displayed in the Error summary
-    And Field error message for invalid Middle names should be displayed
+    Then I see the middlenames error summary as Enter any middle names as they appear on your driving licence
+    And I see the middlenames error in the error field as Error:Enter any middle names as they appear on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
@@ -267,10 +267,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Middle names with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Middle names should be displayed in the Error summary
-    And Field error message for invalid Middle names should be displayed
+    Then I see the middlenames error summary as Enter any middle names as they appear on your driving licence
+    And I see the middlenames error in the error field as Error:Enter any middle names as they appear on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
@@ -278,21 +278,21 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Date of birth that are not real error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for no or invalid Date of Birth should be displayed
-    And Field error message for no or invalid Date of Birth should be displayed
+    Then I see check date of birth sentence as Check you have entered your date of birth correctly
+    And I see enter the date as it appears above the field as Error:Check you have entered your date of birth correctly
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
-      |InvalidDateOfBirth |
+      |IncorrectDateOfBirth |
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Date of birth with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for no or invalid Date of Birth should be displayed
-    And Field error message for no or invalid Date of Birth should be displayed
+    Then I see check date of birth sentence as Enter your date of birth as it appears on your driving licence
+    And I see enter the date as it appears above the field as Error:Enter your date of birth as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -300,10 +300,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Date of birth in the future error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your date of birth must be in the past error should be displayed in the Error summary
-    And Your date of birth must be in the past Field error message should be displayed
+    Then I see check date of birth sentence as Your date of birth must be in the past
+    And I see enter the date as it appears above the field as Error:Your date of birth must be in the past
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -311,10 +311,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No Date in the Date of birth field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for no or invalid Date of Birth should be displayed
-    And Field error message for no or invalid Date of Birth should be displayed
+    Then I see check date of birth sentence as Enter your date of birth as it appears on your driving licence
+    And I see enter the date as it appears above the field as Error:Enter your date of birth as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -322,10 +322,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Issue date that are not real error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Issue date should be displayed in the Error summary
-    And Field error message for invalid Issue date should be displayed
+    Then I see issue date error in summary as Enter the date as it appears on your driving licence
+    And I see invalid issue date field error as Error:Enter the date as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -333,10 +333,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Issue date with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Issue date should be displayed in the Error summary
-    And Field error message for invalid Issue date should be displayed
+    Then I see issue date error in summary as Enter the date as it appears on your driving licence
+    And I see invalid issue date field error as Error:Enter the date as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -344,10 +344,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Issue date in the future error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then The issue date must be in the past error message should be displayed in the Error summary
-    And The issue date must be in the past Field error message should be displayed
+    Then I see issue date error in summary as The issue date must be in the past
+    And I see invalid issue date field error as Error:The issue date must be in the past
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -355,10 +355,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No date in the Issue date field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Issue date should be displayed in the Error summary
-    And Field error message for invalid Issue date should be displayed
+    Then I see issue date error in summary as Enter the date as it appears on your driving licence
+    And I see invalid issue date field error as Error:Enter the date as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -366,10 +366,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Valid to date that are not real error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Valid to date should be displayed in the Error summary
-    And Field error message for invalid Valid to date should be displayed
+    Then I can see the valid to date error in the error summary as Enter the date as it appears on your driving licence
+    And I can see the Valid to date field error as Error:Enter the date as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -377,10 +377,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Valid to date with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Valid to date should be displayed in the Error summary
-    And Field error message for invalid Valid to date should be displayed
+    Then I can see the valid to date error in the error summary as Enter the date as it appears on your driving licence
+    And I can see the Valid to date field error as Error:Enter the date as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -388,10 +388,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Valid to date in the past error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for expired driving licence should be displayed in the Error summary
-    And Field error message for expired driving licence should be displayed
+    Then I can see the valid to date error in the error summary as You cannot use an expired driving licence
+    And  I can see the Valid to date field error as Error:You cannot use an expired driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -399,10 +399,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No date in the Valid to date field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Valid to date should be displayed in the Error summary
-    And Field error message for invalid Valid to date should be displayed
+    Then I can see the valid to date error in the error summary as Enter the date as it appears on your driving licence
+    And I can see the Valid to date field error as Error:Enter the date as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -410,10 +410,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence number less than 16 characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your licence number should be 16 characters long error message should be displayed in the Error summary
-    And Your licence number should be 16 characters long Field error should be displayed
+    Then I see the licence number error in the summary as Your licence number should be 16 characters long
+    And I can see the licence number error in the field as Error:Your licence number should be 16 characters long
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
@@ -421,10 +421,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence number with special characters and spaces error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your licence number should not include any symbols or spaces error message should be displayed in the Error summary
-    And Your licence number should not include any symbols or spaces Field error should be displayed
+    Then I see the licence number error in the summary as Your licence number should not include any symbols or spaces
+    And I can see the licence number error in the field as Error:Your licence number should not include any symbols or spaces
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -432,10 +432,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence number with numeric characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Licence number should be displayed in the Error summary
-    And Field error message for invalid Licence number should be displayed
+    Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
+    And I can see the licence number error in the field as Error:Enter the number exactly as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -443,10 +443,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence number with alpha characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Licence number should be displayed in the Error summary
-    And Field error message for invalid Licence number should be displayed
+    Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
+    And I can see the licence number error in the field as Error:Enter the number exactly as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -454,10 +454,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No Licence number in the Licence number field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Licence number should be displayed in the Error summary
-    And Field error message for invalid Licence number should be displayed
+    Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
+    And I can see the licence number error in the field as Error:Enter the number exactly as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -465,10 +465,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Issue number less than 2 characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your issue number should be 2 numbers long error message should be displayed in the Error summary
-    And Your issue number should be 2 numbers long Field error should be displayed
+    Then I see the issue number error in summary as Your issue number should be 2 numbers long
+    And I see the issue number error in field as Error:Your issue number should be 2 numbers long
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -476,10 +476,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Issue number with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your issue number should not include any symbols or spaces error message should be displayed in the Error summary
-    And Your issue number should not include any symbols or spaces Field error should be displayed
+    Then I see the issue number error in summary as Your issue number should not include any symbols or spaces
+    And I see the issue number error in field as Error:Your issue number should not include any symbols or spaces
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -487,10 +487,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Issue number with alphanumeric characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Issue number should be displayed in the Error summary
-    And Field error message for invalid Issue number should be displayed
+    Then I see the issue number error in summary as Enter the issue number as it appears on your driving licence
+    And I see the issue number error in field as Error:Enter the issue number as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -498,10 +498,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Issue number with alpha characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Issue number should be displayed in the Error summary
-    And Field error message for invalid Issue number should be displayed
+    Then I see the issue number error in summary as Enter the issue number as it appears on your driving licence
+    And I see the issue number error in field as Error:Enter the issue number as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -509,10 +509,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No Issue number in the Issue number field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Issue number should be displayed in the Error summary
-    And Field error message for invalid Issue number should be displayed
+    Then I see the issue number error in summary as Enter the issue number as it appears on your driving licence
+    And I see the issue number error in field as Error:Enter the issue number as it appears on your driving licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -520,10 +520,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Postcode less than 5 characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your postcode should be between 5 and 7 characters error should be displayed in the Error summary
-    And Your postcode should be between 5 and 7 characters Field error should be displayed
+    Then I see the postcode error in summary as Your postcode should be between 5 and 7 characters
+    And I see the postcode error in the field as Error:Your postcode should be between 5 and 7 characters
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -531,10 +531,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Postcode with special characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your postcode should only include numbers and letters error message should be displayed in the Error summary
-    And Your postcode should only include numbers and letters Field error should be displayed
+    Then I see the postcode error in summary as Your postcode should only include numbers and letters
+    And I see the postcode error in the field as Error:Your postcode should only include numbers and letters
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -542,10 +542,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Postcode with numeric characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your postcode should include numbers and letters error message should be displayed in the Error summary
-    And Your postcode should include numbers and letters Field error should be displayed
+    Then I see the postcode error in summary as Your postcode should include numbers and letters
+    And I see the postcode error in the field as Error:Your postcode should include numbers and letters
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -553,10 +553,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Postcode with alpha characters error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Your postcode should include numbers and letters error message should be displayed in the Error summary
-    And Your postcode should include numbers and letters Field error should be displayed
+    Then I see the postcode error in summary as Your postcode should include numbers and letters
+    And I see the postcode error in the field as Error:Your postcode should include numbers and letters
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -564,10 +564,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence - No Postcode in the Postcode field error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Proper error message for invalid Postcode should be displayed in the Error summary
-    And Field error message for invalid Postcode should be displayed
+    Then I see the postcode error in summary as Enter your postcode
+    And I see the postcode error in the field as Error:Enter your postcode
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -575,10 +575,10 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence International Postcode error validation
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
-    Then Enter a UK postcode should be displayed in the Error summary
-    And Enter a UK postcode Field error message should be displayed
+    Then I see the postcode error in summary as Enter a UK postcode
+    And I see the postcode error in the field as Error:Enter a UK postcode
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -586,7 +586,7 @@ Feature: Driving Licence Test
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence Generate VC with invalid DL number and prove in another way unhappy path
-    Given User enters data as a <DrivingLicenceSubject>
+    Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response

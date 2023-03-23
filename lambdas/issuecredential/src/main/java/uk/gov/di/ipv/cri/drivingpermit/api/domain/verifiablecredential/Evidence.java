@@ -35,11 +35,11 @@ public class Evidence {
 
     @JsonProperty("checkDetails")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private CheckDetails checkDetails;
+    private List<CheckDetails> checkDetails;
 
     @JsonProperty("failedCheckDetails")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private CheckDetails failedCheckDetails;
+    private List<CheckDetails> failedCheckDetails;
 
     @JsonProperty("ci")
     private List<String> ci;
@@ -84,19 +84,19 @@ public class Evidence {
         this.activityHistoryScore = activityHistoryScore;
     }
 
-    public CheckDetails getCheckDetails() {
+    public List<CheckDetails> getCheckDetails() {
         return checkDetails;
     }
 
-    public void setCheckDetails(CheckDetails checkDetails) {
+    public void setCheckDetails(List<CheckDetails> checkDetails) {
         this.checkDetails = checkDetails;
     }
 
-    public CheckDetails getFailedCheckDetails() {
+    public List<CheckDetails> getFailedCheckDetails() {
         return failedCheckDetails;
     }
 
-    public void setFailedCheckDetails(CheckDetails failedCheckDetails) {
+    public void setFailedCheckDetails(List<CheckDetails> failedCheckDetails) {
         this.failedCheckDetails = failedCheckDetails;
     }
 

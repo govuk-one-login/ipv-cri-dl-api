@@ -24,7 +24,10 @@ public class DocumentCheckPersonIdentityDetailedMapper {
         birthDate.setValue(drivingPermitData.getDateOfBirth());
 
         return new PersonIdentityDetailed(
-                List.of(name1), List.of(birthDate), drivingPermitData.getAddresses());
+                List.of(name1),
+                List.of(birthDate),
+                drivingPermitData.getAddresses(),
+                List.of(mapDrivingPermit(drivingPermitData)));
     }
 
     public static Name mapNamesToCanonicalName(List<String> forenames, String surname) {
@@ -50,5 +53,17 @@ public class DocumentCheckPersonIdentityDetailedMapper {
         namePart.setValue(value);
         namePart.setType(type);
         return namePart;
+    }
+
+    private static DrivingPermit mapDrivingPermit(DrivingPermitForm drivingPermitData) {
+        DrivingPermit drivingPermit = new DrivingPermit();
+
+        drivingPermit.setPersonalNumber(drivingPermitData.getDrivingLicenceNumber());
+        drivingPermit.setIssueNumber(drivingPermitData.getIssueNumber());
+        drivingPermit.setIssueDate(drivingPermitData.getIssueDate());
+        drivingPermit.setExpiryDate(drivingPermitData.getExpiryDate());
+        drivingPermit.setIssuedBy(drivingPermitData.getLicenceIssuer());
+
+        return drivingPermit;
     }
 }

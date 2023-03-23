@@ -2,6 +2,7 @@ package gov.di_ipv_drivingpermit.step_definitions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import gov.di_ipv_drivingpermit.pages.DrivingLicencePageObject;
+import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -9,14 +10,14 @@ import io.cucumber.java.en.When;
 
 public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
+    @When("^User enters DVLA data as a (.*)$")
+    public void user_enters_and(String drivingLicenceSubject) {
+        userEntersData("DVLA", drivingLicenceSubject);
+    }
+
     @Given("I navigate to the IPV Core Stub")
     public void navigateToStub() {
         navigateToIPVCoreStub();
-    }
-
-    @And("^I click the Driving Licence CRI for the (.*) environment$")
-    public void navigateToDrivingLicence(String environment) {
-        navigateToDrivingLicenceCRI(environment);
     }
 
     @Then("^I search for Driving Licence user number (.*) in the Experian table$")
@@ -24,19 +25,14 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         searchForUATUser(number);
     }
 
-    @Then("I check the page title who was your UK driving license issued by?")
-    public void i_check_the_page_title_who_was_your_uk_driving_license_issued_by() {
-        validateDLPageTitle();
-    }
-
     @And("I assert the URL is valid")
     public void i_assert_the_url_is_valid() {
         drivingLicencePageURLValidation();
     }
 
-    @Given("I check the page title {string}")
-    public void i_check_the_page_titled() {
-        validateDLPageTitle();
+    @Given("^I check the page title is (.*)$")
+    public void i_check_the_page_titled(String pageTitle) {
+        assertPageTitle(pageTitle);
     }
 
     @Given("I can see a radio button titled “DVLA”")
@@ -49,9 +45,10 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         titleDVAWithRadioBtn();
     }
 
-    @And("I can see a radio button titled “I do not have a UK driving licence”")
-    public void i_can_see_a_radio_button_titled_i_do_not_have_a_uk_driving_licence() {
-        noDrivingLicenceBtn();
+    @And("^I can see a I do not have a UK driving licence radio button titled (.*)$")
+    public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButtonTitledNidOesGennyfDrwyddedYrruYDU(
+            String expectedText) {
+        noDrivingLicenceBtn(expectedText);
     }
 
     @Then("I can see CTA {string}")
@@ -70,12 +67,6 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         pageTitleDVLAValidation();
     }
 
-    @Then(
-            "^I should be on the page DVA Enter your details exactly as they appear on your UK driving licence$")
-    public void i_should_be_on_the_DVA_page() {
-        pageTitleDVAValidation();
-    }
-
     @Given("I click on DVA radio button and Continue")
     public void i_select_dva_radio_button_and_Continue() {
         clickOnDVARadioButton();
@@ -83,12 +74,12 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @Given("I click I do not have UK Driving License and continue")
     public void i_select_i_do_not_have_uk_driving_license() {
-        noDrivingLicenceOption();
+        clickOnIDoNotHaveAUKDrivingLicenceRadioButton();
     }
 
     @When("I am directed to the IPV Core routing page")
     public void i_am_directed_to_the_ipv_core_routing_page() {
-        ipvCoreRoutingPage();
+        assertUserRoutedToIpvCore();
     }
 
     @Given("I have not selected anything and Continue")
@@ -98,12 +89,12 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @When("I can see an error box highlighted red")
     public void i_can_see_an_error_box_highlighted_red() {
-        errormessage();
+        errorMessage();
     }
 
-    @And("An error heading copy “You must choose an option to continue”")
-    public void an_error_heading_copy_you_must_choose_an_option_to_continue() {
-        errorTitle();
+    @And("^An error heading copy (.*)$")
+    public void an_error_heading_copy_you_must_choose_an_option_to_continue(String expectedText) {
+        assertErrorTitle(expectedText);
     }
 
     @Then("I can select a link which directs to the problem field")
@@ -118,7 +109,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @And("I validate the URL having access denied")
     public void iValidateTheURLHavingAccessDenied() {
-        ipvCoreRoutingPageURL();
+        assertUserRoutedToIpvCoreErrorPage();
     }
 
     @Then("^I navigate to the Driving Licence verifiable issuer to check for a (.*) response$")
@@ -138,19 +129,14 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         navigateToDrivingLicenceCRI();
     }
 
-    @Given("I can see the relevant error page with correct title")
-    public void i_can_see_the_relevant_error_page() {
-        errorPageURLValidation();
-    }
-
     @Then("^I can see the heading  Sorry, there is a error$")
     public void i_can_see_the_heading_page() {
         validateErrorPageHeading();
     }
 
-    @Given("I delete the cookie to get the unexpected error")
-    public void iDeleteTheCookieToGetTheUnexpectedError() {
-        deleteCookie();
+    @Given("^I delete the (.*) cookie to get the unexpected error$")
+    public void iDeleteTheCookieToGetTheUnexpectedError(String cookieName) {
+        BrowserUtils.deleteCookie(cookieName);
     }
 
     @Then("I see ‘Why we need to know this’ component is present")
@@ -172,5 +158,190 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     @And("^I click the Driving Licence CRI for the testEnvironment$")
     public void navigateToDrivingLicenceOnTestEnv() {
         navigateToDrivingLicenceCRIOnTestEnv();
+    }
+
+    @Given("I view the Beta banner")
+    public void iViewTheBetaBanner() {
+        betaBanner();
+    }
+
+    @Then("^the beta banner reads (.*)$")
+    public void betaBannerContainsText(String expectedText) {
+        betaBannerSentence(expectedText);
+    }
+
+    @And("^I can see OR options as (.*)$")
+    public void ICanSeeTheOrDividerTextAs(String expectedText) {
+        assertOrLabelText(expectedText);
+    }
+
+    @And("^I see the licence Selection sentence starts with (.*)$")
+    public void ICanSeeThePageDescriptionAs(String expectedText) throws Throwable {
+        assertPageDescription(expectedText);
+    }
+
+    @And("^I see the heading (.*)$")
+    public void ICanSeeTheHeadingTextAs(String expectedText) {
+        assertPageHeading(expectedText);
+    }
+
+    @And("^I see We will check your details as (.*)$")
+    public void iSeeTheSentenceWeWillCheckYourDetails(String expectedText) {
+        assertPageSourceContains(expectedText);
+    }
+
+    @And("^I see sentence (.*)$")
+    public void ICanSeeProveAnotherWayLinkTextAs(String expectedText) {
+        assertProveAnotherWayLinkText(expectedText);
+    }
+
+    @And("^I can see Check your details as (.*)$")
+    public void ICanSeeTitleAs(String expectedText) {
+        assertPageHeading(expectedText);
+    }
+
+    @Given("^I can see the lastname as (.*)$")
+    public void ICanSeeLastNameLegendAs(String expectedText) {
+        assertLastNameLabelText(expectedText);
+    }
+
+    @And("^I can see the givenName as (.*)$")
+    public void ICanSeeGivenNameLegendAs(String expectedText) {
+        assertGivenNameLegendText(expectedText);
+    }
+
+    @And("^I can see the firstName as (.*)$")
+    public void ICanSeeFirstNameLabelAs(String expectedText) {
+        assertGivenNameDescription(expectedText);
+    }
+
+    @And("^I can see the middleName as (.*)$")
+    public void ICanSeeMiddleNameLabelAs(String expectedText) {
+        assertMiddleNameLabelText(expectedText);
+    }
+
+    @And("^I can see the first name sentence (.*)$")
+    public void ICanSeeTheFirstNameHintAs(String expectedText) {
+        assertGivenNameHint(expectedText);
+    }
+
+    @And("^I can see the sentence (.*)$")
+    public void ICanSeeMiddleNameHintAs(String expectedText) {
+        assertMiddleNameHint(expectedText);
+    }
+
+    @Given("^I can see the DoB fields titled (.*)$")
+    public void ICanSeeDateOfBirthLegendAs(String expectedText) {
+        assertDateOfBirthLegendText(expectedText);
+    }
+
+    @And("^I can see example as (.*)$")
+    public void ICanSeeDateOfBirthHintTextAs(String expectedText) {
+        assertDateOfBirthHintText(expectedText);
+    }
+
+    @And("^I can see date as (.*)$")
+    public void ICanSeeBirthDayAs(String expectedText) {
+        assertBirthDayLabelText(expectedText);
+    }
+
+    @And("^I can see month as (.*)$")
+    public void ICanSeeMonthAs(String expectedText) {
+        assertBirthMonthLabelText(expectedText);
+    }
+
+    @And("^I can see year as (.*)$")
+    public void ICanSeeIssueYearAs(String expectedText) {
+        assertBirthYearLabelText(expectedText);
+    }
+
+    @Given("^I can see the Issue date field titled (.*)$")
+    public void ICanSeeTheIssueDateFieldAs(String expectedText) {
+        assertIssueDateLegendText(expectedText);
+    }
+
+    @Then("^I can see date sentence as (.*)$")
+    public void iCanSeeDateSentenceAs(String expectedText) {
+        assertIssueDateHintText(expectedText);
+    }
+
+    @And("^I can see Valid to date sentence as (.*)$")
+    public void iCanSeeValidToDateSentence(String expectedText) {
+        assertValidToHintText(expectedText);
+    }
+
+    @Then("^I can see the Valid to date field titled (.*)$")
+    public void ICanSeeTheValidToDateFieldAs(String expectedText) {
+        assertValidToLegend(expectedText);
+    }
+
+    @Given("^I can see the licence number field titled (.*)$")
+    public void iSelectedDVLAOnThePreviousPage(String expectedText) {
+        assertLicenceNumberLabelText(expectedText);
+    }
+
+    @Then("^I see the Licence number sentence (.*)$")
+    public void ISeeTheLicenceNumberSentenceAs(String expectedText) {
+        assertLicenceNumberHintText(expectedText);
+    }
+
+    @Then("^I can see the issue number field titled (.*)$")
+    public void ICanSeeIssueNumberNumberFieldTitledAs(String expectedText) {
+        assertIssueNumberLabelText(expectedText);
+    }
+
+    @And("^I can see issue sentence as (.*)$")
+    public void ICanSeeIssueSentenceAs(String expectedText) {
+        assertIssueNumberHintText(expectedText);
+    }
+
+    @Then("^I can see the postcode field titled (.*)$")
+    public void iCanSeeThePostcodeFieldTitledCodPost(String expectedText) {
+        assertPostcodeLabelText(expectedText);
+    }
+
+    @Then("^I can see postcode sentence as (.*)$")
+    public void iCanSeePostcodeSentenceAs(String expectedText) {
+        assertPostcodeHintText(expectedText);
+    }
+
+    @When("I enter the invalid last name and first name")
+    public void iEnterTheInvalidLastNameAndFirstName() {
+        enterInvalidLastAndFirstName();
+    }
+
+    @Then("^the validation text reads (.*)$")
+    public void theValidationTextReadsMaeProblem(String expectedText) {
+        assertErrorSummaryText(expectedText);
+    }
+
+    @And("^I see Check your details as (.*)$")
+    public void ISeeCheckYourDetailsAs(String expectedText) {
+        youWillBeAbleToFindSentence(expectedText);
+    }
+
+    @And("^I see We could not find your details as (.*)$")
+    public void ISeeWeCouldNotFindYourDetailsAs(String expectedText) {
+        assertFirstLineOfUserNotFoundText(expectedText);
+    }
+
+    @And("^I see you will not be able to change your details as (.*)$")
+    public void ISeeYouWillNotBeAbleToChangeYourDetailsAs(String expectedText) {
+        assertPageSourceContains(expectedText);
+    }
+
+    @And("^I see error word as (.*)$")
+    public void iSeeErrorWordAsGwall(String expectedText) {
+        assertErrorPrefix(expectedText);
+    }
+
+    @And("^I can see CTA as (.*)$")
+    public void iCanSeeCTAAs(String expectedText) {
+        assertCTATextAs(expectedText);
+    }
+
+    @When("^User Re-enters DVLA data as a (.*)$")
+    public void userReInputsDataAsADrivingLicenceSubject(String drivingLicenceSubject) {
+        userReEntersDataAsADrivingLicenceSubject(drivingLicenceSubject);
     }
 }

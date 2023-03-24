@@ -43,7 +43,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-#          role-session-name: ${{ secrets.AWS_ROLE_SESSION }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM build
@@ -82,8 +81,8 @@ jobs:
           export API_GATEWAY_ID_PUBLIC=$API_GATEWAY_ID_PUBLIC
           cd acceptance-tests && ./gradlew clean cucumber -P tags=@pre-merge
 
-#      - name: Delete integration test stack
-#        if: always()
-#        run: |
-#          STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
-#          aws cloudformation delete-stack --region ${{ env.AWS_REGION }} --stack-name $STACK_NAME
+      - name: Delete integration test stack
+        if: always()
+        run: |
+          STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
+          aws cloudformation delete-stack --region ${{ env.AWS_REGION }} --stack-name $STACK_NAME

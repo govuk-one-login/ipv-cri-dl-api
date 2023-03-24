@@ -66,12 +66,12 @@ jobs:
             --capabilities CAPABILITY_IAM
 
       - name: Run API integration tests
-        ###env:
-        ###  ENVIRONMENT: shared-dev
-        ###  APIGW_API_KEY: ${{ secrets.API_KEY_CRI_DEV }}
-        ###  coreStubUrl: ${{ secrets.CORE_STUB_URL }}
-        ###  coreStubUsername: ${{ secrets.CORE_STUB_USERNAME }}
-        ###  coreStubPassword: ${{ secrets.CORE_STUB_PASSWORD }}
+        env:
+          ENVIRONMENT: shared-dev
+          APIGW_API_KEY: ${{ secrets.API_KEY_CRI_DEV }}
+          coreStubUrl: ${{ secrets.CORE_STUB_URL }}
+          coreStubUsername: ${{ secrets.CORE_STUB_USERNAME }}
+          coreStubPassword: ${{ secrets.CORE_STUB_PASSWORD }}
         run: |
           echo "🤞 now run integration tests..."
           STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}

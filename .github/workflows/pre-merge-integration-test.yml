@@ -75,8 +75,8 @@ jobs:
         run: |
           echo "🤞 now run integration tests..."
           STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
-          API_GATEWAY_ID_PRIVATE=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "PrivateFraudApiGatewayId").OutputValue')
-          API_GATEWAY_ID_PUBLIC=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "FraudApiGatewayId").OutputValue')
+          API_GATEWAY_ID_PRIVATE=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "PrivateDrivingPermitApiGatewayId").OutputValue')
+          API_GATEWAY_ID_PUBLIC=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "DrivingPermitApiGatewayId").OutputValue')
           export API_GATEWAY_ID_PRIVATE=$API_GATEWAY_ID_PRIVATE
           export API_GATEWAY_ID_PUBLIC=$API_GATEWAY_ID_PUBLIC
           cd acceptance-tests && ./gradlew clean cucumber -P tags=@pre-merge

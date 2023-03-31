@@ -144,7 +144,7 @@ Feature: Driving License Language Test
      And I see the middlenames error summary as Rhowch unrhyw enwau canol fel y maent yn ymddangos ar eich trwydded yrru
      And The test is complete and I close the driver
 
-  @Language-regression1
+  @Language-regression
   Scenario Outline: DVLA Driving Licence details IncorrectDateOfBirth error message in Welsh
     Given I click on DVLA radio button and Parhau
     When User clicks on continue

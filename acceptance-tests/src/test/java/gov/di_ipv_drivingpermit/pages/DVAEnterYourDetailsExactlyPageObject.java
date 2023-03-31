@@ -127,7 +127,6 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         dvaEnterYourDetailsExactlyPage.dateOfIssueYear.sendKeys(
                 drivingLicenceSubject.getIssueYear());
         dvaEnterYourDetailsExactlyPage.consentDVACheckbox.click();
-
     }
 
     // Why is this invalid?
@@ -182,7 +181,6 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         dateOfIssueYear.sendKeys(dvaDrivingLicenceSubject.getIssueYear());
         Postcode.sendKeys(dvaDrivingLicenceSubject.getPostcode());
         consentDVACheckbox.click();
-
     }
 
     public void pageTitleDVAValidation() {

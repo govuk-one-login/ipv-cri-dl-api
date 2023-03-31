@@ -168,6 +168,7 @@ Feature: Driving Licence Test
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User click on ‘prove your identity another way' Link
+    And User selects `Prove your identity another way` and confirms
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci DO2, validity score 0 and strength score 3
     And The test is complete and I close the driver
@@ -175,6 +176,7 @@ Feature: Driving Licence Test
   @DVLADrivingLicence_test @smoke
   Scenario: DVLA Driving Licence User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
+    And User selects `Prove your identity another way` and confirms
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
@@ -589,6 +591,7 @@ Feature: Driving Licence Test
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     When User click on ‘prove your identity another way' Link
+    And User selects `Prove your identity another way` and confirms
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON response should contain documentNumber PARKE610112PBFGI same as given Driving Licence
     And The test is complete and I close the driver

@@ -121,6 +121,13 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         proveAnotherWay.click();
     }
 
+    @Given("User selects `Prove your identity another way` and confirms")
+    public void clickOnProveYourIdentityAnotherWayRadioButton() {
+        optionProveAnotherWay.click();
+        radioProveAnotherWay.click();
+        CTButton.click();
+    }
+
     @When("User click on I do not have a UK driving licence radio button")
     public void selectIDoNotHaveAUKDrivingLicenceRadioButton() {
         clickOnIDoNotHaveAUKDrivingLicenceRadioButton();

@@ -106,6 +106,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div/a")
     public WebElement proveAnotherWay;
 
+    @FindBy(id = "proveAnotherWayRadio")
+    public WebElement radioProveAnotherWay;
+
+    @FindBy(id = "proveAnotherWayRadio-proveAnotherWay-label")
+    public WebElement optionProveAnotherWay;
+
     @FindBy(id = "govuk-notification-banner-title")
     public WebElement errorText;
 

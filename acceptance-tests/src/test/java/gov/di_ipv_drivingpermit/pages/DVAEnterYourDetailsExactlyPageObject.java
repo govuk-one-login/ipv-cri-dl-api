@@ -32,6 +32,9 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
     @FindBy(id = "dvaLicenceNumber")
     public WebElement dvaLicenceNumber;
 
+    @FindBy(id = "consentDVACheckbox")
+    public WebElement consentDVACheckbox;
+
     // --- Hints ---
 
     @FindBy(id = "dvaDateOfBirth-hint")
@@ -123,6 +126,8 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
                 drivingLicenceSubject.getIssueMonth());
         dvaEnterYourDetailsExactlyPage.dateOfIssueYear.sendKeys(
                 drivingLicenceSubject.getIssueYear());
+        dvaEnterYourDetailsExactlyPage.consentDVACheckbox.click();
+
     }
 
     // Why is this invalid?
@@ -140,6 +145,8 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         dateOfIssueMonth.sendKeys("12");
         dateOfIssueYear.sendKeys("1970");
         Postcode.sendKeys("BS98 1AA");
+        consentDVACheckbox.click();
+
         BrowserUtils.waitForPageToLoad(10);
     }
 
@@ -160,6 +167,7 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         dateOfIssueMonth.clear();
         dateOfIssueYear.clear();
         Postcode.clear();
+        consentDVACheckbox.click();
         dvaLicenceNumber.sendKeys(dvaDrivingLicenceSubject.getLicenceNumber());
         LastName.sendKeys(dvaDrivingLicenceSubject.getLastName());
         FirstName.sendKeys(dvaDrivingLicenceSubject.getFirstName());
@@ -173,6 +181,8 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         dateOfIssueMonth.sendKeys(dvaDrivingLicenceSubject.getIssueMonth());
         dateOfIssueYear.sendKeys(dvaDrivingLicenceSubject.getIssueYear());
         Postcode.sendKeys(dvaDrivingLicenceSubject.getPostcode());
+        consentDVACheckbox.click();
+
     }
 
     public void pageTitleDVAValidation() {

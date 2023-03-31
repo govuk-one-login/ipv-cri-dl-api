@@ -68,31 +68,31 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     // Should be separate select issuer page
 
-    @FindBy(xpath = "//*[@id=\"licenceIssuerRadio-fieldset\"]/div/div[3]")
+    @FindBy(xpath = "//*[@id=\"licenceIssuer-fieldset\"]/div/div[3]")
     public WebElement orLabel;
 
-    @FindBy(id = "licenceIssuerRadio-DVLA-label")
+    @FindBy(id = "licenceIssuer-DVLA-label")
     public WebElement optionDVLA;
 
-    @FindBy(id = "licenceIssuerRadio")
+    @FindBy(id = "licenceIssuer")
     public WebElement radioBtnDVLA;
 
-    @FindBy(id = "licenceIssuerRadio-DVA-label")
+    @FindBy(id = "licenceIssuer-DVA-label")
     public WebElement optionDVA;
 
-    @FindBy(id = "licenceIssuerRadio-DVA")
+    @FindBy(id = "licenceIssuer-DVA")
     public WebElement radioBtnDVA;
 
-    @FindBy(id = "licenceIssuerRadio-noLicence-label")
+    @FindBy(id = "licenceIssuer-noLicence-label")
     public WebElement noDLOption;
 
-    @FindBy(id = "licenceIssuerRadio-noLicence")
+    @FindBy(id = "licenceIssuer-noLicence")
     public WebElement noDLRadioBtn;
 
     @FindBy(id = "submitButton")
     public WebElement CTButton;
 
-    @FindBy(id = "licenceIssuerRadio-error")
+    @FindBy(id = "licenceIssuer-error")
     public WebElement radioButtonError;
 
     // ---------------
@@ -169,6 +169,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "postcode")
     public WebElement Postcode;
 
+    @FindBy(id = "consentCheckbox")
+    public WebElement consentDVLACheckbox;
+
     @FindBy(xpath = "//button[@class='govuk-button button']")
     public WebElement Continue;
 
@@ -188,7 +191,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(
             xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#licenceIssuerRadio')]")
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#licenceIssuer')]")
     public WebElement InvalidDocumentIssuerInSummary;
 
     @FindBy(
@@ -534,6 +537,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
             if (null != drivingLicenceSubject.getIssueNumber()) {
                 IssueNumber.sendKeys(drivingLicenceSubject.getIssueNumber());
             }
+            consentDVLACheckbox.click();
         }
         if (null != drivingLicenceSubject.getMiddleNames()) {
             MiddleNames.sendKeys(drivingLicenceSubject.getMiddleNames());
@@ -564,6 +568,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
         enterYourDetailsExactlyDVLAPage.LicenceIssueYear.sendKeys("1970");
         enterYourDetailsExactlyDVLAPage.IssueNumber.sendKeys("01");
         enterYourDetailsExactlyDVLAPage.Postcode.sendKeys("BS98 1AA");
+        consentDVLACheckbox.click();
+
         BrowserUtils.waitForPageToLoad(10);
     }
 

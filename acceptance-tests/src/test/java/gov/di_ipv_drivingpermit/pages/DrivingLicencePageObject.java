@@ -37,6 +37,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
     public WebElement visitCredentialIssuers;
 
+    @FindBy(xpath = "//*[@value=\"Driving Licence CRI dev\"]")
+    public WebElement drivingLicenceCRIDev;
+
     @FindBy(xpath = "//*[@value=\"Driving Licence CRI Build\"]")
     public WebElement drivingLicenceCRIBuild;
 
@@ -349,7 +352,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
         visitCredentialIssuers.click();
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
         LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
-        if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
+        if (dlCRITestEnvironment.equalsIgnoreCase("dev")) {
+            drivingLicenceCRIDev.click();
+        } else if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
             drivingLicenceCRIBuild.click();
         } else if (dlCRITestEnvironment.equalsIgnoreCase("Staging")) {
             drivingLicenceCRIStaging.click();

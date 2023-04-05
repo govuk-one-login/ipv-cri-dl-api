@@ -117,6 +117,14 @@ Mappings:
       integration: "6"
       production: "6"
 
+  VcExpiryRemoved:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "false"
+
   JwtTtlUnitMapping:
     Environment:
       dev: MONTHS
@@ -555,7 +563,7 @@ Resources:
         - IsDevEnvironment
         - !Sub "/${AWS::StackName}/release-flags-vc-expiry-removed-not-used-in-dev"
         - !Sub "/release-flags/vc-expiry-removed"
-      Value: "true"
+      Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
       Type: String
       Description: Expiry date release toggle
 

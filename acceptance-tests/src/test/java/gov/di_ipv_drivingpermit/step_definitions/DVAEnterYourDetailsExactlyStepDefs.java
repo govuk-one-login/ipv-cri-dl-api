@@ -222,4 +222,19 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
     public void userReInputsDataAsADrivingLicenceSubject(String drivingLicenceSubject) {
         userReEntersDataAsDVADrivingLicenceSubject(drivingLicenceSubject);
     }
+
+    @When("^DVA consent checkbox is unselected$")
+    public void dva_consent_checkbox_click() {
+        consentDVACheckbox.click();
+    }
+
+    @Then("^User can see the DVA consent error in summary as (.*)$")
+    public void shortDVAConsentErrorMessageIsDisplayed(String expectedText) {
+        assertDVAConsentErrorInErrorSummary(expectedText);
+    }
+
+    @Then("^User can see the DVA consent error on the checkbox as (.*)$")
+    public void shortDVAConsentCheckboxErrorMessageIsDisplayed(String expectedText) {
+        assertDVAConsentErrorOnCheckbox(expectedText);
+    }
 }

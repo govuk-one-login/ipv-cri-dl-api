@@ -959,7 +959,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     private String getDocumentNumberFromVc(JsonNode vcNode) throws IOException {
-        List<JsonNode> evidence = getListOfNodes(vcNode, "drivingPermit");
+        JsonNode credentialSubject = vcNode.findValue("credentialSubject");
+        List<JsonNode> evidence = getListOfNodes(credentialSubject, "drivingPermit");
 
         String licenceNumber = evidence.get(0).get("documentNumber").asText();
         return licenceNumber;

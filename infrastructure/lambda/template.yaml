@@ -123,7 +123,7 @@ Mappings:
       build: "true"
       staging: "true"
       integration: "true"
-      production: "false"
+      production: "true"
 
   JwtTtlUnitMapping:
     Environment:

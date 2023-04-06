@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
+import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.DocumentCheckPersonIdentityDetailedMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -30,6 +31,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDat
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
+import java.time.Clock;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,9 +63,16 @@ class VerifiableCredentialServiceTest implements TestFixtures {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
+        when(mockConfigurationService.getParameterValue("JwtTtlUnit")).thenReturn("SECONDS");
+        VerifiableCredentialClaimsSetBuilder verifiableCredentialClaimsSetBuilder =
+                new VerifiableCredentialClaimsSetBuilder(
+                        mockConfigurationService, Clock.systemUTC());
         verifiableCredentialService =
                 new VerifiableCredentialService(
-                        signedJwtFactory, mockConfigurationService, objectMapper);
+                        signedJwtFactory,
+                        mockConfigurationService,
+                        objectMapper,
+                        verifiableCredentialClaimsSetBuilder);
     }
 
     @ParameterizedTest

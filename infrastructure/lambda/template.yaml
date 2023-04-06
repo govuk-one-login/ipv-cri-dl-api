@@ -111,11 +111,27 @@ Mappings:
 
   MaxJwtTtlMapping:
     Environment:
-      dev: "7200" # 2 hrs
-      build: "7200"
-      staging: "7200"
-      integration: "7200"
-      production: "7200"
+      dev: "6"
+      build: "6"
+      staging: "6"
+      integration: "6"
+      production: "6"
+
+  VcExpiryRemoved:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "false"
+
+  JwtTtlUnitMapping:
+    Environment:
+      dev: MONTHS
+      build: MONTHS
+      staging: MONTHS
+      integration: MONTHS
+      production: MONTHS
 
   DrivingPermitCriAudienceMapping:
     Environment:
@@ -432,11 +448,13 @@ Resources:
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiableCredentialKmsSigningKeyId"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
         - Statement:
             Effect: Allow
             Action:
@@ -538,6 +556,17 @@ Resources:
 #                                                                  #
 ####################################################################
 
+  ParameterReleaseFlagsVcExpiryRemoved:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !If
+        - IsDevEnvironment
+        - !Sub "/${AWS::StackName}/release-flags-vc-expiry-removed-not-used-in-dev"
+        - !Sub "/release-flags/vc-expiry-removed"
+      Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
+      Type: String
+      Description: Expiry date release toggle
+
   ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter
     Properties:
@@ -561,6 +590,14 @@ Resources:
       Type: String
       Value: !FindInMap [DrivingPermitCriAudienceMapping, Environment, !Ref 'Environment']
       Description: The driving permit credential issuer (audience) identifier
+
+  JwtTtlUnitParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/JwtTtlUnit"
+      Type: String
+      Value: !FindInMap [ JwtTtlUnitMapping, Environment, !Ref Environment ]
+      Description: The unit for the time-to-live for an JWT e.g. (MONTHS)
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

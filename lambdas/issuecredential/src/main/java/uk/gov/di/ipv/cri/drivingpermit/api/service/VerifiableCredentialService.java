@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
@@ -12,21 +11,19 @@ import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDeta
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.KMSSigner;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
+import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ThirdPartyAddress;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.EvidenceHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
-import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
-import static com.nimbusds.jwt.JWTClaimNames.ISSUER;
-import static com.nimbusds.jwt.JWTClaimNames.NOT_BEFORE;
-import static com.nimbusds.jwt.JWTClaimNames.SUBJECT;
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.*;
 
 public class VerifiableCredentialService {
@@ -34,6 +31,7 @@ public class VerifiableCredentialService {
     private final SignedJWTFactory signedJwtFactory;
     private final ConfigurationService configurationService;
     private final ObjectMapper objectMapper;
+    private final VerifiableCredentialClaimsSetBuilder vcClaimsSetBuilder;
 
     public VerifiableCredentialService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
@@ -46,15 +44,20 @@ public class VerifiableCredentialService {
                 new ObjectMapper()
                         .registerModule(new Jdk8Module())
                         .registerModule(new JavaTimeModule());
+        this.vcClaimsSetBuilder =
+                new VerifiableCredentialClaimsSetBuilder(
+                        this.configurationService, Clock.systemUTC());
     }
 
     public VerifiableCredentialService(
             SignedJWTFactory signedClaimSetJwt,
             ConfigurationService configurationService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            VerifiableCredentialClaimsSetBuilder vcClaimsSetBuilder) {
         this.signedJwtFactory = signedClaimSetJwt;
         this.configurationService = configurationService;
         this.objectMapper = objectMapper;
+        this.vcClaimsSetBuilder = vcClaimsSetBuilder;
     }
 
     public SignedJWT generateSignedVerifiableCredentialJwt(
@@ -62,39 +65,28 @@ public class VerifiableCredentialService {
             DocumentCheckResultItem documentCheckResultItem,
             PersonIdentityDetailed personIdentityDetailed)
             throws JOSEException {
+        long jwtTtl = this.configurationService.getMaxJwtTtl();
+
+        ChronoUnit jwtTtlUnit =
+                ChronoUnit.valueOf(this.configurationService.getParameterValue("JwtTtlUnit"));
         var now = Instant.now();
 
         var claimsSet =
-                new JWTClaimsSet.Builder()
-                        .claim(SUBJECT, subject)
-                        .claim(ISSUER, configurationService.getVerifiableCredentialIssuer())
-                        .claim(NOT_BEFORE, now.getEpochSecond())
-                        .claim(
-                                EXPIRATION_TIME,
-                                now.plusSeconds(configurationService.getMaxJwtTtl())
-                                        .getEpochSecond())
-                        .claim(
-                                VerifiableCredentialConstants.VC_CLAIM,
+                this.vcClaimsSetBuilder
+                        .subject(subject)
+                        .verifiableCredentialType(DRIVING_PERMIT_CREDENTIAL_TYPE)
+                        .timeToLive(jwtTtl, jwtTtlUnit)
+                        .verifiableCredentialSubject(
                                 Map.of(
-                                        VC_TYPE,
-                                        new String[] {
-                                            VERIFIABLE_CREDENTIAL_TYPE,
-                                            DRIVING_PERMIT_CREDENTIAL_TYPE
-                                        },
-                                        VC_CREDENTIAL_SUBJECT,
-                                        Map.of(
-                                                VC_ADDRESS_KEY,
-                                                convertAddresses(
-                                                        personIdentityDetailed.getAddresses()),
-                                                VC_NAME_KEY,
-                                                personIdentityDetailed.getNames(),
-                                                VC_BIRTHDATE_KEY,
-                                                convertBirthDates(
-                                                        personIdentityDetailed.getBirthDates())),
+                                        VC_ADDRESS_KEY,
+                                        convertAddresses(personIdentityDetailed.getAddresses()),
+                                        VC_NAME_KEY,
+                                        personIdentityDetailed.getNames(),
+                                        VC_BIRTHDATE_KEY,
+                                        convertBirthDates(personIdentityDetailed.getBirthDates()),
                                         VC_DRIVING_PERMIT_KEY,
-                                        convertDrivingPermits(documentCheckResultItem),
-                                        VC_EVIDENCE_KEY,
-                                        calculateEvidence(documentCheckResultItem)))
+                                        convertDrivingPermits(documentCheckResultItem)))
+                        .verifiableCredentialEvidence(calculateEvidence(documentCheckResultItem))
                         .build();
 
         return signedJwtFactory.createSignedJwt(claimsSet);

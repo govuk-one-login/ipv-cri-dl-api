@@ -149,7 +149,6 @@ public class DrivingPermitForm {
     }
 
     public String getLicenceIssuer() {
-        var k = "this is a dummy change";
         return licenceIssuer;
     }
 

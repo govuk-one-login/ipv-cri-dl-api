@@ -239,6 +239,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#postcode')]")
     public WebElement InvalidPostcodeErrorInSummary;
 
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#consentCheckbox')]")
+    public WebElement DVLAConsentErrorInSummary;
+
     // -------------------------
 
     // Field errors
@@ -269,6 +274,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(id = "postcode-error")
     public WebElement InvalidPostcodeFieldError;
+
+    @FindBy(id = "consentCheckbox-error")
+    public WebElement DVLAConsentCheckboxError;
 
     // ------------------------
 
@@ -980,5 +988,14 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     private WebElement getLabel(WebElement webElement) {
         return webElement.findElement(By.tagName("label"));
+    }
+
+    public void assertDVLAConsentErrorInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, DVLAConsentErrorInSummary.getText());
+    }
+
+    public void assertDVLAConsentErrorOnCheckbox(String expectedText) {
+        Assert.assertEquals(
+                expectedText, DVLAConsentCheckboxError.getText().trim().replace("\n", ""));
     }
 }

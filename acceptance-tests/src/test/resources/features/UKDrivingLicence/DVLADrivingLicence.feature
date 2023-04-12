@@ -595,3 +595,15 @@ Feature: Driving Licence Test
     Examples:
       |DrivingLicenceSubject             |
       | IncorrectDrivingLicenceNumber    |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence error validation when DVLA consent checkbox is unselected
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    And DVLA consent checkbox is unselected
+    When User clicks on continue
+    Then User can see the DVLA consent error in summary as You must give your consent to continue
+    And User can see the DVLA consent error on the checkbox as Error:You must give your consent to continue
+    And The test is complete and I close the driver
+    Examples:
+      |DrivingLicenceSubject             |
+      |DrivingLicenceSubjectHappyPeter   |

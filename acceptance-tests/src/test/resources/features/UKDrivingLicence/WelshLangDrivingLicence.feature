@@ -407,3 +407,29 @@ Feature: Driving License Language Test
     And User clicks on continue
     Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
     And The test is complete and I close the driver
+
+  @Language-regression
+  Scenario Outline:  DVLA Driving Licence error validation when DVLA consent checkbox is unselected
+    Given I click on DVLA radio button and Parhau
+    Then User enters DVLA data as a <DrivingLicenceSubject>
+    And DVLA consent checkbox is unselected
+    When User clicks on continue
+    Then User can see the DVLA consent error in summary as Mae'n rhaid i chi roi eich caniatâd i barhau
+    And User can see the DVLA consent error on the checkbox as Gwall:Mae'n rhaid i chi roi eich caniatâd i barhau
+    And The test is complete and I close the driver
+    Examples:
+      |DrivingLicenceSubject             |
+      |DrivingLicenceSubjectHappyPeter   |
+
+  @Language-regression
+  Scenario Outline:  DVA Driving Licence error validation when DVA consent checkbox is unselected
+    Given I click on DVA radio button and Parhau
+    Then User enters DVA data as a <DrivingLicenceSubject>
+    And DVA consent checkbox is unselected
+    When User clicks on continue
+    Then User can see the DVA consent error in summary as Mae'n rhaid i chi roi eich caniatâd i barhau
+    And User can see the DVA consent error on the checkbox as Gwall:Mae'n rhaid i chi roi eich caniatâd i barhau
+    And The test is complete and I close the driver
+    Examples:
+      |DrivingLicenceSubject             |
+      |DVADrivingLicenceSubjectHappyBilly|

@@ -196,4 +196,19 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void errorInJsonResponse(String documentNumber) throws IOException {
         new DrivingLicencePageObject().assertDocumentNumberInVc(documentNumber);
     }
+
+    @When("^DVLA consent checkbox is unselected$")
+    public void dvla_consent_checkbox_click() {
+        consentDVLACheckbox.click();
+    }
+
+    @Then("^User can see the DVLA consent error in summary as (.*)$")
+    public void shortDVLAConsentErrorMessageIsDisplayed(String expectedText) {
+        assertDVLAConsentErrorInErrorSummary(expectedText);
+    }
+
+    @Then("^User can see the DVLA consent error on the checkbox as (.*)$")
+    public void shortDVLAConsentCheckboxErrorMessageIsDisplayed(String expectedText) {
+        assertDVLAConsentErrorOnCheckbox(expectedText);
+    }
 }

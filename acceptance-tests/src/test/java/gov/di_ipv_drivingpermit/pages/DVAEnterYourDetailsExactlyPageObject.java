@@ -85,6 +85,11 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#dvaLicenceNumber')]")
     public WebElement DVAInvalidDrivingLicenceErrorInSummary;
 
+    @FindBy(
+            xpath =
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#consentDVACheckbox')]")
+    public WebElement DVAConsentErrorInSummary;
+
     // --------------------------
 
     // Field errors
@@ -103,6 +108,9 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
     @FindBy(id = "dvaLicenceNumber-error")
     public WebElement drivingLicenceNumberErrorDVA;
+
+    @FindBy(id = "consentDVACheckbox-error")
+    public WebElement DVAConsentCheckboxError;
 
     // ------------------------
 
@@ -311,5 +319,14 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
     private String mapErrorTextToSingleLine(WebElement webElement) {
         return webElement.getText().trim().replace("\n", "");
+    }
+
+    public void assertDVAConsentErrorInErrorSummary(String expectedText) {
+        Assert.assertEquals(expectedText, DVAConsentErrorInSummary.getText());
+    }
+
+    public void assertDVAConsentErrorOnCheckbox(String expectedText) {
+        Assert.assertEquals(
+                expectedText, DVAConsentCheckboxError.getText().trim().replace("\n", ""));
     }
 }

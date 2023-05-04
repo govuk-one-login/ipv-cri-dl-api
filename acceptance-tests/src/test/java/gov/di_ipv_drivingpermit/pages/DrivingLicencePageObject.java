@@ -37,6 +37,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
     public WebElement visitCredentialIssuers;
 
+    @FindBy(xpath = "//*[@value=\"Driving Licence CRI dev\"]")
+    public WebElement drivingLicenceCRIDev;
+
     @FindBy(xpath = "//*[@value=\"Driving Licence CRI Build\"]")
     public WebElement drivingLicenceCRIBuild;
 
@@ -357,7 +360,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
         visitCredentialIssuers.click();
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
         LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
-        if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
+        if (dlCRITestEnvironment.equalsIgnoreCase("dev")) {
+            drivingLicenceCRIDev.click();
+        } else if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
             drivingLicenceCRIBuild.click();
         } else if (dlCRITestEnvironment.equalsIgnoreCase("Staging")) {
             drivingLicenceCRIStaging.click();
@@ -513,8 +518,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
         Assert.assertEquals(expectedErrorStatusCode, ActualStatusCode);
     }
 
-    public void scoreIs(String validityScore, String strengthScore) throws IOException {
-        String result = JSONPayload.getText();
+    public void checkScoreInStubIs(String validityScore, String strengthScore) throws IOException {
+        scoreIs(validityScore, strengthScore, JSONPayload.getText());
+    }
+
+    public void scoreIs(String validityScore, String strengthScore, String jsonPayloadText)
+            throws IOException {
+        String result = jsonPayloadText;
         LOGGER.info("result = " + result);
         JsonNode vcNode = getJsonNode(result, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");

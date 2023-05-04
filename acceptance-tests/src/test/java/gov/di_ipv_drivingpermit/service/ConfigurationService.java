@@ -15,6 +15,7 @@ public class ConfigurationService {
     private final String orchestratorStubUrl;
     private final String privateApiGatewayId;
     private final String environment;
+    private final String publicApiGatewayId;
 
     public ConfigurationService(String env) {
 
@@ -28,6 +29,7 @@ public class ConfigurationService {
         this.coreStubPassword = getParameter("coreStubPassword");
         this.orchestratorStubUrl = getParameter("orchestratorStubUrl");
         this.privateApiGatewayId = getParameter("API_GATEWAY_ID_PRIVATE");
+        this.publicApiGatewayId = getParameter("API_GATEWAY_ID_PUBLIC");
         this.environment = env;
     }
 
@@ -77,7 +79,10 @@ public class ConfigurationService {
             throw new IllegalArgumentException(
                     "Environment variable PRIVATE API endpoint is not set");
         }
-        String stage = this.environment.equals("local") ? "dev" : this.environment;
+        String stage =
+                this.environment.equals("local") || this.environment.equals("shared-dev")
+                        ? "dev"
+                        : this.environment;
         LOGGER.info("privateGatewayId =>" + privateGatewayId);
         return "https://" + privateGatewayId + ".execute-api.eu-west-2.amazonaws.com/" + stage;
     }
@@ -88,5 +93,19 @@ public class ConfigurationService {
             throw new IllegalArgumentException("Environment variable ENVIRONMENT is not set");
         }
         return dlCRITestEnvironment;
+    }
+
+    public String getPublicAPIEndpoint() {
+        String publicGatewayId = this.publicApiGatewayId;
+        if (publicGatewayId == null) {
+            throw new IllegalArgumentException(
+                    "Environment variable PUBLIC API endpoint is not set");
+        }
+        String stage =
+                this.environment.equals("local") || this.environment.equals("shared-dev")
+                        ? "dev"
+                        : this.environment;
+        LOGGER.info("publicGatewayId =>" + publicGatewayId);
+        return "https://" + publicGatewayId + ".execute-api.eu-west-2.amazonaws.com/" + stage;
     }
 }

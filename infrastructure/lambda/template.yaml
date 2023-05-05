@@ -99,6 +99,10 @@ Globals:
         POWERTOOLS_METRICS_NAMESPACE: !Ref CriIdentifier
         COMMON_PARAMETER_NAME_PREFIX: !Ref CommonStackName
         ENVIRONMENT: !Ref Environment
+    ProvisionedConcurrencyConfig: !If
+      - IsProdEnvironment
+      - ProvisionedConcurrentExecutions: 1
+      - !Ref AWS::NoValue
 
 Mappings:
   MemorySizeMapping:
@@ -643,6 +647,125 @@ Resources:
 # Alerts                                                           #
 #                                                                  #
 ####################################################################
+
+## Common API Alarms
+
+  CommonAPISessionLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Permit CRI ${Environment} - Common API Session Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-SessionFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Permit CRI ${Environment} - Common API Authorization Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-AuthorizationFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAccessTokenLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Permit CRI ${Environment} - Common API AccessToken Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-AccessTokenFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ## Driving Permit Alarms
+
+  DLDrivingPermitCheckLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Permit CRI ${Environment} - DrivingPermitCheck Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DrivingPermitCheckingFunction
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DLIssueCredentialLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Permit CRI ${Environment} - IssueCredential Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref IssueCredentialFunction
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 
   DLLambdaErrors:
     Type: AWS::CloudWatch::Alarm

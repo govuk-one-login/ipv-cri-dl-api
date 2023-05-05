@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.testdata;
 
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ public class DocumentCheckTestDataGenerator {
     public static DocumentCheckResultItem generateValidResultItem() {
 
         LocalDate expiryDate = LocalDate.now().plusYears(5);
+        LocalDate issueDate = expiryDate.minusYears(10);
 
         DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
 
@@ -21,11 +23,13 @@ public class DocumentCheckTestDataGenerator {
         documentCheckResultItem.setValidityScore(2);
         documentCheckResultItem.setActivityHistoryScore(1);
 
-        documentCheckResultItem.setActivityFrom(expiryDate.minusYears(10).toString());
+        documentCheckResultItem.setActivityFrom(issueDate.toString());
         documentCheckResultItem.setCheckMethod("data");
         documentCheckResultItem.setIdentityCheckPolicy("published");
 
+        documentCheckResultItem.setIssuedBy(IssuingAuthority.DVLA.toString());
         documentCheckResultItem.setDocumentNumber("L101");
+        documentCheckResultItem.setIssueDate(issueDate.toString());
         documentCheckResultItem.setExpiryDate(expiryDate.toString());
 
         documentCheckResultItem.setTransactionId(UUID.randomUUID().toString());

@@ -14,7 +14,7 @@ Feature: DVA Driving Licence Test
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 3
-    And JSON response should contain documentNumber 55667788 same as given Driving Licence
+    And JSON response should contain personal number 55667788 same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
       |DVADrivingLicenceSubject             |
@@ -39,7 +39,7 @@ Feature: DVA Driving Licence Test
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci DO2, validity score 0 and strength score 3
-    And JSON response should contain documentNumber 88776655 same as given Driving Licence
+    And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
       |DVADrivingLicenceSubject      |
@@ -503,7 +503,7 @@ Feature: DVA Driving Licence Test
     When User clicks on continue
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON response should contain documentNumber 88776655 same as given Driving Licence
+    And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
       |DVADrivingLicenceSubject           |

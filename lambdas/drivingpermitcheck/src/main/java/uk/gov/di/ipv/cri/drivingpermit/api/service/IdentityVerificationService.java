@@ -113,7 +113,6 @@ public class IdentityVerificationService {
                     result.setActivityHistoryScore(activityHistoryScore);
 
                     result.setCheckDetails(documentCheckResult.getCheckDetails());
-                    result.setDrivingPermit(documentCheckResult.getDrivingPermit());
 
                     result.setTransactionId(documentCheckResult.getTransactionId());
                     result.setVerified(documentCheckResult.isValid());

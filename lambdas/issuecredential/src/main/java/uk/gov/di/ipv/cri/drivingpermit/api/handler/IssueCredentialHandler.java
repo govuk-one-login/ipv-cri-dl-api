@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.ParseException;
@@ -34,6 +35,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.CredentialRequestException;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.IssueCredentialDrivingPermitAuditExtensionUtil;
+import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.time.Clock;
@@ -84,7 +86,7 @@ public class IssueCredentialHandler
                 new AuditService(
                         SqsClient.builder().build(),
                         configurationService,
-                        new ObjectMapper(),
+                        new ObjectMapper().registerModule(new JavaTimeModule()),
                         new AuditEventFactory(configurationService, Clock.systemUTC()));
         this.documentCheckRetrievalService = new DocumentCheckRetrievalService();
     }
@@ -127,9 +129,16 @@ public class IssueCredentialHandler
                     verifiableCredentialService.generateSignedVerifiableCredentialJwt(
                             sessionItem.getSubject(), documentCheckResult, personIdentityDetailed);
 
+            // Needed as personIdentityService.savePersonIdentity creates personIdentityDetailed via
+            // shared claims
+            var auditRestricted =
+                    PersonIdentityDetailedHelperMapper
+                            .mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                                    personIdentityDetailed, documentCheckResult);
+
             auditService.sendAuditEvent(
                     AuditEventType.VC_ISSUED,
-                    new AuditEventContext(input.getHeaders(), sessionItem),
+                    new AuditEventContext(auditRestricted, input.getHeaders(), sessionItem),
                     IssueCredentialDrivingPermitAuditExtensionUtil
                             .generateVCISSDocumentCheckAuditExtension(
                                     verifiableCredentialService.getVerifiableCredentialIssuer(),
@@ -152,6 +161,9 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     ex.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(ex.getMessage(), ex);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ex.awsErrorDetails().errorMessage());
         } catch (CredentialRequestException | ParseException | JOSEException e) {
@@ -160,6 +172,9 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     e.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.BAD_REQUEST, ErrorResponse.VERIFIABLE_CREDENTIAL_ERROR);
         } catch (SqsException sqsException) {
@@ -168,6 +183,9 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     sqsException.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(sqsException.getMessage(), sqsException);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, sqsException.getMessage());
         } catch (Exception e) {
@@ -176,6 +194,9 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     e);
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }

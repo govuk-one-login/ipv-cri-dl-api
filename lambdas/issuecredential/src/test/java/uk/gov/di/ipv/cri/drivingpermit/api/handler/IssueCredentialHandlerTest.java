@@ -34,7 +34,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.DocumentCheckPersonIdentityDetailedMapper;
+import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
@@ -59,9 +59,6 @@ class IssueCredentialHandlerTest {
     @Mock private EventProbe mockEventProbe;
     @Mock private AuditService mockAuditService;
 
-    @Mock
-    private DocumentCheckPersonIdentityDetailedMapper documentCheckPersonIdentityDetailedMapper;
-
     @InjectMocks private IssueCredentialHandler handler;
 
     @Test
@@ -75,7 +72,7 @@ class IssueCredentialHandlerTest {
         setRequestBodyAsPlainJWT(event);
 
         var personIdentityDetailed =
-                documentCheckPersonIdentityDetailedMapper.generatePersonIdentityDetailed(
+                PersonIdentityDetailedHelperMapper.drivingPermitFormDataToAuditRestrictedFormat(
                         DrivingPermitFormTestDataGenerator.generate());
         SessionItem sessionItem = new SessionItem();
         DocumentCheckResultItem resultItem =
@@ -120,7 +117,7 @@ class IssueCredentialHandlerTest {
 
     @Test
     void shouldThrowJOSEExceptionWhenGenerateVerifiableCredentialIsMalformed()
-            throws JsonProcessingException, JOSEException, SqsException, JsonProcessingException {
+            throws JOSEException, SqsException, JsonProcessingException {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         AccessToken accessToken = new BearerAccessToken();
         event.withHeaders(
@@ -132,7 +129,7 @@ class IssueCredentialHandlerTest {
         var unExpectedJOSEException = new JOSEException("Unexpected JOSE object type: JWSObject");
 
         var personIdentityDetailed =
-                DocumentCheckPersonIdentityDetailedMapper.generatePersonIdentityDetailed(
+                PersonIdentityDetailedHelperMapper.drivingPermitFormDataToAuditRestrictedFormat(
                         DrivingPermitFormTestDataGenerator.generate());
 
         SessionItem sessionItem = new SessionItem();

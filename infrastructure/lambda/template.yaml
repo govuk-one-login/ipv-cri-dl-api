@@ -395,13 +395,19 @@ Resources:
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${AWS::StackName}/*"
 
+  DrivingPermitCheckingFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
+      RetentionInDays: 30
+
   DrivingPermitCheckingFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevEnvironment
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
-      LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
+      LogGroupName: !Ref DrivingPermitCheckingFunctionLogGroup
 
   DrivingPermitCheckingFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -463,13 +469,19 @@ Resources:
             Resource:
               - !ImportValue AuditEventQueueEncryptionKeyArn
 
+  IssueCredentialFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
+      RetentionInDays: 30
+
   IssueCredentialFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevEnvironment
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
-      LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
+      LogGroupName: !Ref IssueCredentialFunctionLogGroup
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission

@@ -33,10 +33,10 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionW
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.DocumentCheckPersonIdentityDetailedMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.io.IOException;
@@ -48,6 +48,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 import java.util.Map;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
@@ -156,16 +157,15 @@ public class DrivingPermitHandler
             result.setAttemptCount(sessionItem.getAttemptCount());
 
             auditService.sendAuditEvent(
-                    AuditEventType.RESPONSE_RECEIVED,
-                    new AuditEventContext(headers, sessionItem),
-                    "");
+                    AuditEventType.RESPONSE_RECEIVED, new AuditEventContext(headers, sessionItem));
 
             LOGGER.info("Sending audit event REQUEST_SENT...");
             auditService.sendAuditEvent(
                     AuditEventType.REQUEST_SENT,
                     new AuditEventContext(
-                            DocumentCheckPersonIdentityDetailedMapper
-                                    .generatePersonIdentityDetailed(drivingPermitFormData),
+                            PersonIdentityDetailedHelperMapper
+                                    .drivingPermitFormDataToAuditRestrictedFormat(
+                                            drivingPermitFormData),
                             input.getHeaders(),
                             sessionItem));
 
@@ -211,6 +211,9 @@ public class DrivingPermitHandler
             // Driving Permit Lambda Completed with an Error
             LOGGER.error("Exception while handling lambda {}", context.getFunctionName());
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.GENERIC_SERVER_ERROR);
         }
@@ -233,7 +236,7 @@ public class DrivingPermitHandler
         sharedClaims.setBirthDates(List.of(birthDate));
         sharedClaims.setNames(
                 List.of(
-                        DocumentCheckPersonIdentityDetailedMapper.mapNamesToCanonicalName(
+                        PersonIdentityDetailedHelperMapper.mapNamesToCanonicalName(
                                 drivingPermitFormData.getForenames(),
                                 drivingPermitFormData.getSurname())));
 
@@ -241,7 +244,7 @@ public class DrivingPermitHandler
         LOGGER.info("person identity saved.");
 
         final DocumentCheckResultItem documentCheckResultItem =
-                mapVerificationResultToResultItem(sessionItem, result);
+                mapVerificationResultToResultItem(sessionItem, result, drivingPermitFormData);
 
         LOGGER.info("Saving document check results...");
         dataStore.create(documentCheckResultItem);
@@ -263,7 +266,9 @@ public class DrivingPermitHandler
     }
 
     private DocumentCheckResultItem mapVerificationResultToResultItem(
-            SessionItem sessionItem, DocumentCheckVerificationResult result) {
+            SessionItem sessionItem,
+            DocumentCheckVerificationResult result,
+            DrivingPermitForm drivingPermitFormData) {
         DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
 
         documentCheckResultItem.setSessionId(sessionItem.getSessionId());
@@ -279,10 +284,19 @@ public class DrivingPermitHandler
         documentCheckResultItem.setCheckMethod(checkDetails.getCheckMethod());
         documentCheckResultItem.setIdentityCheckPolicy(checkDetails.getIdentityCheckPolicy());
 
-        DrivingPermit drivingPermit = result.getDrivingPermit();
-        documentCheckResultItem.setDocumentNumber(drivingPermit.getDocumentNumber());
-        documentCheckResultItem.setIssuedBy(drivingPermit.getIssuedBy());
-        documentCheckResultItem.setExpiryDate(drivingPermit.getExpiryDate());
+        IssuingAuthority issuingAuthority =
+                IssuingAuthority.valueOf(drivingPermitFormData.getLicenceIssuer());
+
+        // Common Permit Fields
+        documentCheckResultItem.setIssuedBy(drivingPermitFormData.getLicenceIssuer());
+        documentCheckResultItem.setExpiryDate(drivingPermitFormData.getExpiryDate().toString());
+        documentCheckResultItem.setDocumentNumber(drivingPermitFormData.getDrivingLicenceNumber());
+        documentCheckResultItem.setIssueDate(drivingPermitFormData.getIssueDate().toString());
+
+        // DVLA only field(s)
+        if (issuingAuthority == DVLA) {
+            documentCheckResultItem.setIssueNumber(drivingPermitFormData.getIssueNumber());
+        }
 
         documentCheckResultItem.setTransactionId(result.getTransactionId());
 

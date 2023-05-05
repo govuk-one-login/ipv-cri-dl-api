@@ -27,7 +27,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
@@ -107,12 +106,12 @@ public class ThirdPartyDocumentGateway {
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
 
-        IssuingAuthority licenceIssuer;
+        IssuingAuthority issuingAuthority;
         try {
-            licenceIssuer = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
-            LOGGER.info("Document Issuer {}", licenceIssuer);
+            issuingAuthority = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+            LOGGER.info("Document Issuer {}", issuingAuthority);
             eventProbe.counterMetric(
-                    ISSUING_AUTHORITY_PREFIX + licenceIssuer.toString().toLowerCase());
+                    ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
         } catch (IllegalArgumentException e) {
             throw new OAuthHttpResponseExceptionWithErrorBody(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -120,27 +119,29 @@ public class ThirdPartyDocumentGateway {
         }
         LocalDate drivingPermitExpiryDate = drivingPermitData.getExpiryDate();
         String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
+        LocalDate drivingPermitIssueDate = drivingPermitData.getIssueDate();
 
-        LocalDate documentIssueDate = null;
         String dcsEndpointUri = null;
-        switch (licenceIssuer) {
+        switch (issuingAuthority) {
             case DVA:
-                documentIssueDate = drivingPermitData.getDateOfIssue();
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/dva-driving-licence";
 
                 dcsPayload.setExpiryDate(drivingPermitExpiryDate);
                 dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
-                dcsPayload.setDateOfIssue(documentIssueDate);
+
+                // Note: DateOfIssue is mapped to issueDate in the front end to simplify
+                // api handling of that field
+                // Here (for the DVA request) it needs to be mapped back to date of issue
+                dcsPayload.setDateOfIssue(drivingPermitIssueDate);
                 break;
             case DVLA:
-                documentIssueDate = drivingPermitData.getIssueDate();
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
 
                 dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
 
                 dcsPayload.setExpiryDate(drivingPermitExpiryDate);
                 dcsPayload.setLicenceNumber(drivingPermitDocumentNumber);
-                dcsPayload.setIssueDate(documentIssueDate);
+                dcsPayload.setIssueDate(drivingPermitIssueDate);
                 break;
             default:
                 throw new OAuthHttpResponseExceptionWithErrorBody(
@@ -170,15 +171,9 @@ public class ThirdPartyDocumentGateway {
 
             if (documentCheckResult.isValid()) {
                 // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
-                checkDetails.setActivityFrom(documentIssueDate.toString());
+                checkDetails.setActivityFrom(drivingPermitIssueDate.toString());
             }
             documentCheckResult.setCheckDetails(checkDetails);
-
-            DrivingPermit permit = new DrivingPermit();
-            permit.setIssuedBy(licenceIssuer.toString());
-            permit.setDocumentNumber(drivingPermitDocumentNumber);
-            permit.setExpiryDate(drivingPermitExpiryDate.toString());
-            documentCheckResult.setDrivingPermit(permit);
         }
 
         return documentCheckResult;

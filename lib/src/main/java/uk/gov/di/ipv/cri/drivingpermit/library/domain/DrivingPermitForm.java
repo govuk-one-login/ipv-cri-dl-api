@@ -37,9 +37,6 @@ public class DrivingPermitForm {
     private LocalDate issueDate;
 
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
-    public LocalDate dateOfIssue;
-
-    @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
     private LocalDate expiryDate;
 
     public DrivingPermitForm() {}
@@ -138,14 +135,6 @@ public class DrivingPermitForm {
 
     public void setIssueDate(LocalDate issueDate) {
         this.issueDate = issueDate;
-    }
-
-    public LocalDate getDateOfIssue() {
-        return dateOfIssue;
-    }
-
-    public void setDateOfIssue(LocalDate dateOfIssue) {
-        this.dateOfIssue = dateOfIssue;
     }
 
     public String getLicenceIssuer() {

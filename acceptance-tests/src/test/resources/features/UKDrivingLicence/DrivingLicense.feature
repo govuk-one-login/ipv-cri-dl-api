@@ -8,7 +8,7 @@ Feature: Driving License Test
     And I see ‘Why we need to know this’ component is present
     When I click the drop-down on the component
     Then I see the message begins with We need to make sure is shown
-    And I assert the URL is valid
+    And I assert the url path contains licence-issuer
 
  @DrivingLicenceTest @build @staging @integration @smoke
   Scenario:3 options and Radio button available in Driving Licence page

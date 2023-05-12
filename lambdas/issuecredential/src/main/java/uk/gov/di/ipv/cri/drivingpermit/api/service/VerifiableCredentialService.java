@@ -7,6 +7,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.KMSSigner;
@@ -14,17 +15,17 @@ import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ThirdPartyAddress;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.EvidenceHelper;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.*;
+import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
 
 public class VerifiableCredentialService {
 
@@ -69,7 +70,6 @@ public class VerifiableCredentialService {
 
         ChronoUnit jwtTtlUnit =
                 ChronoUnit.valueOf(this.configurationService.getParameterValue("JwtTtlUnit"));
-        var now = Instant.now();
 
         var claimsSet =
                 this.vcClaimsSetBuilder
@@ -116,9 +116,19 @@ public class VerifiableCredentialService {
 
     private Object[] convertDrivingPermits(DocumentCheckResultItem documentCheckResultItem) {
         final DrivingPermit drivingPermit = new DrivingPermit();
-        drivingPermit.setDocumentNumber(documentCheckResultItem.getDocumentNumber());
+
+        IssuingAuthority issuingAuthority =
+                IssuingAuthority.valueOf(documentCheckResultItem.getIssuedBy());
+
+        drivingPermit.setPersonalNumber(documentCheckResultItem.getDocumentNumber());
         drivingPermit.setExpiryDate(documentCheckResultItem.getExpiryDate());
         drivingPermit.setIssuedBy(documentCheckResultItem.getIssuedBy());
+        drivingPermit.setIssueDate(documentCheckResultItem.getIssueDate());
+
+        // DVLA only field(s)
+        if (issuingAuthority == DVLA) {
+            drivingPermit.setIssueNumber(documentCheckResultItem.getIssueNumber());
+        }
 
         return new Map[] {objectMapper.convertValue(drivingPermit, Map.class)};
     }

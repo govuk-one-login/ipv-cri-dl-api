@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 
 import java.util.List;
@@ -17,6 +18,8 @@ import java.util.List;
     "checkDetails",
     "failedCheckDetails"
 })
+@ExcludeFromGeneratedCoverageReport
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Evidence {
     @JsonProperty("type")
     private EvidenceType type;
@@ -34,11 +37,9 @@ public class Evidence {
     private Integer activityHistoryScore;
 
     @JsonProperty("checkDetails")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<CheckDetails> checkDetails;
 
     @JsonProperty("failedCheckDetails")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<CheckDetails> failedCheckDetails;
 
     @JsonProperty("ci")

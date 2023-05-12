@@ -192,9 +192,9 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
                 .assertInvalidDrivingLicenceFieldText(expectedText);
     }
 
-    @And("^JSON response should contain documentNumber (.*) same as given Driving Licence$")
-    public void errorInJsonResponse(String documentNumber) throws IOException {
-        new DrivingLicencePageObject().assertDocumentNumberInVc(documentNumber);
+    @And("^JSON response should contain personal number (.*) same as given Driving Licence$")
+    public void errorInJsonResponse(String personalNumber) throws IOException {
+        new DrivingLicencePageObject().assertPersonalNumberInVc(personalNumber);
     }
 
     @When("^DVLA consent checkbox is unselected$")

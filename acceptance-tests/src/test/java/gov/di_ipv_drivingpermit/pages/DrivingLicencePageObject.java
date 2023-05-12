@@ -477,8 +477,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     // -----------------------
 
-    public void drivingLicencePageURLValidation() {
-        assertURLContains("review-d");
+    public void drivingLicencePageURLValidation(String path) {
+        assertURLContains(path);
     }
 
     public void assertUserRoutedToIpvCore() {
@@ -793,12 +793,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
         }
     }
 
-    public void assertDocumentNumberInVc(String documentNumber) throws IOException {
+    public void assertPersonalNumberInVc(String personalNumber) throws IOException {
         String result = JSONPayload.getText();
         LOGGER.info("result = " + result);
         JsonNode vcNode = getJsonNode(result, "vc");
-        String licenceNumber = getDocumentNumberFromVc(vcNode);
-        assertEquals(documentNumber, licenceNumber);
+        String licenceNumber = getPersonalNumberFromVc(vcNode);
+        assertEquals(personalNumber, licenceNumber);
     }
 
     public void validateErrorPageHeading() {
@@ -976,11 +976,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
         return jsonNode.get(vc);
     }
 
-    private String getDocumentNumberFromVc(JsonNode vcNode) throws IOException {
+    private String getPersonalNumberFromVc(JsonNode vcNode) throws IOException {
         JsonNode credentialSubject = vcNode.findValue("credentialSubject");
         List<JsonNode> evidence = getListOfNodes(credentialSubject, "drivingPermit");
 
-        String licenceNumber = evidence.get(0).get("documentNumber").asText();
+        String licenceNumber = evidence.get(0).get("personalNumber").asText();
         return licenceNumber;
     }
 

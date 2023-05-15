@@ -125,6 +125,14 @@ Mappings:
       integration: "true"
       production: "true"
 
+  VcContainsUniqueIdMapping:
+    Environment:
+      dev: "false"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
+
   JwtTtlUnitMapping:
     Environment:
       dev: MONTHS
@@ -461,6 +469,7 @@ Resources:
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiableCredentialKmsSigningKeyId"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/release-flags/vc-contains-unique-id"
         - Statement:
             Effect: Allow
             Action:
@@ -578,6 +587,14 @@ Resources:
       Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
       Type: String
       Description: Expiry date release toggle
+
+  ReleaseFlagsVcContainsUniqueIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/release-flags/vc-contains-unique-id"
+      Value: !FindInMap [ VcContainsUniqueIdMapping, Environment, !Ref Environment ]
+      Type: String
+      Description: Verifiable Credential Contains UniqueId Mapping
 
   ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter

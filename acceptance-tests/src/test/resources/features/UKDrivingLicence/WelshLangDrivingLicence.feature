@@ -15,7 +15,7 @@ Feature: Driving License Language Test
 
   @Language-regression
   Scenario:3 options and Radio button available in Driving Licence page
-     Given I check the page title is Pwy wnaeth gyhoeddi eich trwydded yrru y DU? – – GOV.UK
+     Given I check the page title is Pwy wnaeth gyhoeddi eich trwydded yrru y DU? – Profi pwy ydych chi – GOV.UK
      When I assert the URL is valid in Welsh
      Then I can see a radio button titled “DVLA”
      Then I can see a radio button titled “DVA”
@@ -28,7 +28,7 @@ Feature: Driving License Language Test
   @Language-regression
   Scenario:User Selects DVLA and landed in DVLA page and Validate the title and sentences
     Given I click on DVLA radio button and Parhau
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
     And I see the heading Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru
     And I see We will check your details as Byddwn yn gwirio eich manylion gydar DVLA i sicrhau nad yw eich trwydded yrru wedi cael ei chanslo na'i hadrodd fel un sydd ar goll neu wedi ei dwyn.
     And I see sentence Os nad oes gennych drwydded yrru y DU neu os na allwch gofio'ch manylion, gallwch brofi pwy ydych chi mewn ffordd arall yn lle.
@@ -230,7 +230,7 @@ Feature: Driving License Language Test
   @Language-regression
   Scenario:User Selects DVA and landed in DVA page and Page title and sub-text
     Given I click on DVA radio button and Parhau
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
     Then I see the heading Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru
     And I see sentence Os nad oes gennych drwydded yrru y DU neu os na allwch gofio'ch manylion, gallwch brofi pwy ydych chi mewn ffordd arall yn lle.
     And The test is complete and I close the driver
@@ -384,16 +384,16 @@ Feature: Driving License Language Test
     Then I clear the data and re enter the invalid future year for DVA
     And  User clicks on continue
     And  As a DVA user I see invalid issue date field error as Gwall:Rhaid i ddyddiad cyhoeddi fod yn y gorffennol
-    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
+    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
     And The test is complete and I close the driver
 
   @Language-regression
   Scenario Outline: DVLA Error tab title validation
     Given I click on DVLA radio button and Parhau
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
     Then User enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue
-    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
+    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -402,10 +402,10 @@ Feature: Driving License Language Test
   @Language-regression
   Scenario: DVAError tab title validation
     Given I click on DVA radio button and Parhau
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
     When I enter the invalid Postcode
     And User clicks on continue
-    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – – GOV.UK
+    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
     And The test is complete and I close the driver
 
   @Language-regression

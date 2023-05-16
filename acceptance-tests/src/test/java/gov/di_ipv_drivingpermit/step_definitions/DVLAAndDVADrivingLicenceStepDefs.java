@@ -129,14 +129,14 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @Then(
             "I should be on `Enter your details exactly as they appear on your UK driving licence` page")
     public void
-            i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_page() {
+    i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_page() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
     }
 
     @Then(
             "I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page")
     public void
-            i_should_be_on_DVA_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_page() {
+    i_should_be_on_DVA_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_page() {
         Assert.assertTrue(
                 new DVAEnterYourDetailsExactlyPageObject().dvaLicenceNumber.isDisplayed());
     }
@@ -210,5 +210,20 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @Then("^User can see the DVLA consent error on the checkbox as (.*)$")
     public void shortDVLAConsentCheckboxErrorMessageIsDisplayed(String expectedText) {
         assertDVLAConsentErrorOnCheckbox(expectedText);
+    }
+
+    @Then("^I see the consent section (.*)$")
+    public void iSeeTheConsentSectionAllowDVLAToCheckYourDrivingLicenceDetails(String consentSection) {
+        assertConsentSection(consentSection);
+    }
+
+    @Then("^I see privacy notice link (.*)$")
+    public void iSeePrivacyNoticeLinkTheGOVUKOneLoginPrivacyNotice(String oneLoginPrivacyLink) {
+        assertOneLoginPrivacyLink(oneLoginPrivacyLink);
+    }
+
+    @Then("^I see the DVLA privacy notice link (.*)$")
+    public void iSeeTheDVLAPrivacyNoticeLinkTheDVLAPrivacyNoticeOpensInANewTab(String dvlaPrivacyLink) {
+        assertDVLAPrivacyLink(dvlaPrivacyLink);
     }
 }

@@ -112,6 +112,15 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
     @FindBy(id = "consentDVACheckbox-error")
     public WebElement DVAConsentCheckboxError;
 
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/form/h2")
+    public WebElement DVAConsentSection;
+
+    @FindBy(xpath = "//*[@id=\"consentDVACheckbox-hint\"]/ul/li[1]/a")
+    public WebElement oneLoginDVALink;
+
+    @FindBy(xpath = "//*[@id=\"consentDVACheckbox-hint\"]/ul/li[2]/a")
+    public WebElement dvaLink;
+
     // ------------------------
 
     public DVAEnterYourDetailsExactlyPageObject() {
@@ -328,5 +337,18 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
     public void assertDVAConsentErrorOnCheckbox(String expectedText) {
         Assert.assertEquals(
                 expectedText, DVAConsentCheckboxError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertDVAConsentSection(String consentSectionDVA){
+
+        Assert.assertEquals(consentSectionDVA, DVAConsentSection.getText());
+    }
+
+    public void assertDVAOneLoginPrivacyLink(String oneLoginPrivacyLinkDVA){
+        Assert.assertEquals(oneLoginPrivacyLinkDVA, oneLoginDVALink.getText());
+    }
+
+    public void assertDVAPrivacyLink(String dvaPrivacyLink){
+        Assert.assertEquals(dvaPrivacyLink, dvaLink.getText());
     }
 }

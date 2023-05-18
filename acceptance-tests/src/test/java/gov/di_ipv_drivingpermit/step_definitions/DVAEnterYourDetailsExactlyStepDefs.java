@@ -100,6 +100,11 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
         enterDvaLicenceNumber("1acd1113756456");
     }
 
+    @And("I clear the licence number enter the invalid Driving Licence with special character")
+    public void iClearTheLicenceNumberEnterTheInvalidDrivingLicencewithSpecialChar() {
+        enterDvaLicenceNumber("123456@@");
+    }
+
     @When("I enter the invalid date of birth for DVA")
     public void iEnterTheInvalidDateOfBirthForDVA() {
         enterDVADateOfBirth("ss", "aa", "aaaa");
@@ -112,7 +117,7 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
 
     @When("I enter the invalid issue date for DVA")
     public void iEnterTheInvalidIssueDateForDVA() {
-        enterInvalidIssueDayForDVA("", "", "");
+        enterInvalidIssueDayForDVA("AA", "BB", "CCCC");
     }
 
     @Then("I clear the data and re enter the invalid future year for DVA")
@@ -206,6 +211,11 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
     @And("I clear Issue number to see the error Enter Issue number")
     public void iClearIssueNumberToSeeTheErrorEnterIssueNumber() {
         clearIssueNumber();
+    }
+
+    @And("^I clear Issue number and enter the issue number with special character$")
+    public void iClearIssueNumberAndEnterTheIssueNumberWithSpecialChar() {
+        enterIssueNumber("1@");
     }
 
     @And("I clear the postcode to see the Enter your postcode error")

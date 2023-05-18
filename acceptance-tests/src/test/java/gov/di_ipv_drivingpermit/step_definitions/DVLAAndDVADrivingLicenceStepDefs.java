@@ -31,6 +31,11 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         assertInvalidIssueDateInErrorSummary(expectedText);
     }
 
+    @Then("^I see issue date error in summary for DVA as (.*)$")
+    public void properErrorMessageForInvalidIssueDateForDVAIsDisplayed(String expectedText) {
+        assertInvalidIssueDateInErrorSummaryDVA(expectedText);
+    }
+
     @Then("^I see invalid issue date field error as (.*)$")
     public void fieldErrorMessageForInvalidIssueDateIsDisplayed(String expectedText) {
         assertInvalidIssueDateOnField(expectedText);

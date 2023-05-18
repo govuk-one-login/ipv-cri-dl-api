@@ -229,6 +229,7 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void iSeeTheDVLAPrivacyNoticeLinkTheDVLAPrivacyNoticeOpensInANewTab(
             String dvlaPrivacyLink) {
         assertDVLAPrivacyLink(dvlaPrivacyLink);
+    }
 
     @And(
             "I should be on `Who was your UK driving licence issued by? – Prove your identity – GOV.UK` page")
@@ -241,6 +242,5 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void
             iShouldBeOnEnterYourDetailsExactlyAsTheyAppearOnYourUKDrivingLicenceProveYourIdentityGOVUKPage() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
-
     }
 }

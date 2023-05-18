@@ -339,16 +339,16 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
                 expectedText, DVAConsentCheckboxError.getText().trim().replace("\n", ""));
     }
 
-    public void assertDVAConsentSection(String consentSectionDVA){
+    public void assertDVAConsentSection(String consentSectionDVA) {
 
         Assert.assertEquals(consentSectionDVA, DVAConsentSection.getText());
     }
 
-    public void assertDVAOneLoginPrivacyLink(String oneLoginPrivacyLinkDVA){
+    public void assertDVAOneLoginPrivacyLink(String oneLoginPrivacyLinkDVA) {
         Assert.assertEquals(oneLoginPrivacyLinkDVA, oneLoginDVALink.getText());
     }
 
-    public void assertDVAPrivacyLink(String dvaPrivacyLink){
+    public void assertDVAPrivacyLink(String dvaPrivacyLink) {
         Assert.assertEquals(dvaPrivacyLink, dvaLink.getText());
     }
 }

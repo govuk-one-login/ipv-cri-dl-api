@@ -1018,16 +1018,16 @@ public class DrivingLicencePageObject extends UniversalSteps {
                 expectedText, DVLAConsentCheckboxError.getText().trim().replace("\n", ""));
     }
 
-    public void assertConsentSection(String consentSection){
+    public void assertConsentSection(String consentSection) {
 
         Assert.assertEquals(consentSection, DVLAConsentSection.getText());
     }
 
-   public void assertOneLoginPrivacyLink(String oneLoginPrivacyLink){
+    public void assertOneLoginPrivacyLink(String oneLoginPrivacyLink) {
         Assert.assertEquals(oneLoginPrivacyLink, oneLoginLink.getText());
-   }
+    }
 
-    public void assertDVLAPrivacyLink(String dvlaPrivacyLink){
+    public void assertDVLAPrivacyLink(String dvlaPrivacyLink) {
         Assert.assertEquals(dvlaPrivacyLink, dvlaLink.getText());
     }
 }

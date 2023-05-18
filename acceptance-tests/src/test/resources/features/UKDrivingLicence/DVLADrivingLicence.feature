@@ -4,9 +4,9 @@ Feature: Driving Licence Test
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     And I search for Driving Licence user number 5 in the Experian table
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? – Prove your identity – GOV.UK` page
     And I click on DVLA radio button and Continue
-    And I should be on `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence details page happy path
@@ -14,7 +14,7 @@ Feature: Driving Licence Test
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 3
-    And JSON response should contain documentNumber PARKE610112PBFGH same as given Driving Licence
+    And JSON response should contain personal number PARKE610112PBFGH same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |
@@ -28,7 +28,7 @@ Feature: Driving Licence Test
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci DO2, validity score 0 and strength score 3
-    And JSON response should contain documentNumber PARKE610112PBFGI same as given Driving Licence
+    And JSON response should contain personal number PARKE610112PBFGI same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
@@ -590,7 +590,7 @@ Feature: Driving Licence Test
     When User clicks on continue
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON response should contain documentNumber PARKE610112PBFGI same as given Driving Licence
+    And JSON response should contain personal number PARKE610112PBFGI same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |

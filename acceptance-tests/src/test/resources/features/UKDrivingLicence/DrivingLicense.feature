@@ -4,11 +4,11 @@ Feature: Driving License Test
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     Then I search for Driving Licence user number 5 in the Experian table
-    Then I check the page title is Who was your UK driving licence issued by? – – GOV.UK
+    Then I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
     And I see ‘Why we need to know this’ component is present
     When I click the drop-down on the component
     Then I see the message begins with We need to make sure is shown
-    And I assert the URL is valid
+    And I assert the url path contains licence-issuer
 
  @DrivingLicenceTest @build @staging @integration @smoke
   Scenario:3 options and Radio button available in Driving Licence page
@@ -21,13 +21,13 @@ Feature: Driving License Test
   @DrivingLicenceTest @build @staging @integration
   Scenario:User Selects DVLA and landed in DVLA page
     Given I click on DVLA radio button and Continue
-    Then I should on the page DVLA Enter your details exactly as they appear on your UK driving licence
+    Then I should on the page DVLA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
     And The test is complete and I close the driver
 
   @DrivingLicenceTest @build @staging @integration
   Scenario:User Selects DVA and landed in DVA page
     Given I click on DVA radio button and Continue
-    Then I should be on the page DVA Enter your details exactly as they appear on your UK driving licence
+    Then I should be on the page DVA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
     And The test is complete and I close the driver
 
   @DrivingLicenceTest
@@ -51,7 +51,7 @@ Feature: Driving License Test
   @DVLADrivingLicence_test @build @staging @integration
   Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
     Given I delete the service_session cookie to get the unexpected error
-    When I check the page title is Sorry, there is a problem – – GOV.UK
+    When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
     Then I can see the heading  Sorry, there is a error
     And The test is complete and I close the driver
 
@@ -59,11 +59,11 @@ Feature: Driving License Test
   @DVLADrivingLicence_test @build
   Scenario Outline: DVLA Error tab title validation
     Given I click on DVLA radio button and Continue
-    When I should on the page DVLA Enter your details exactly as they appear on your UK driving licence
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – – GOV.UK
+    When I should on the page DVLA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     Then User enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue
-    And I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – – GOV.UK
+    And I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |
@@ -91,11 +91,11 @@ Feature: Driving License Test
   @DVADrivingLicence_test @build
   Scenario Outline: DVAError tab title validation
     Given I click on DVA radio button and Continue
-    When I should be on the page DVA Enter your details exactly as they appear on your UK driving licence
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – – GOV.UK
+    When I should be on the page DVA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     Then User enters DVA data as a <DVADrivingLicenceSubject>
     And User clicks on continue
-    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – – GOV.UK
+    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And The test is complete and I close the driver
     Examples:
       |DVADrivingLicenceSubject             |

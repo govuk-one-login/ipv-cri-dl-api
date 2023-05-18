@@ -16,6 +16,7 @@ public class ConfigurationService {
     private final String privateApiGatewayId;
     private final String environment;
     private final String publicApiGatewayId;
+    private final boolean usingLocalStub;
 
     public ConfigurationService(String env) {
 
@@ -31,6 +32,7 @@ public class ConfigurationService {
         this.privateApiGatewayId = getParameter("API_GATEWAY_ID_PRIVATE");
         this.publicApiGatewayId = getParameter("API_GATEWAY_ID_PUBLIC");
         this.environment = env;
+        this.usingLocalStub = getParameter("LOCAL") != null && getParameter("LOCAL").equals("yes");
     }
 
     private String getParameter(String paramName) {
@@ -63,13 +65,14 @@ public class ConfigurationService {
         String coreStubPassword = this.getCoreStubPassword();
         String coreStubUrl = this.getCoreStubEndpoint();
 
-        if (null != coreStubUsername && null != coreStubPassword && withAuth) {
-            return "https://" + coreStubUsername + ":" + coreStubPassword + "@" + coreStubUrl;
+        if (usingLocalStub) {
+            return "http://" + coreStubUrl;
         } else {
-            if (!this.environment.equals("local")) {
+            if (null != coreStubUsername && null != coreStubPassword && withAuth) {
+                return "https://" + coreStubUsername + ":" + coreStubPassword + "@" + coreStubUrl;
+            } else {
                 return "https://" + coreStubUrl;
             }
-            return "http://" + coreStubUrl;
         }
     }
 

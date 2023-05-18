@@ -8,7 +8,7 @@ defaultTasks 'clean', 'spotlessApply', 'build'
 
 ext {
 	dependencyVersions = [
-		jackson_version             : "2.13.1",
+		jackson_version             : "2.15.0",
 		aws_sdk_version             : "1.12.153",
 		aws_lambda_events_version   : "3.11.0",
 		aws_powertools_version      : "1.12.2",
@@ -17,8 +17,7 @@ ext {
 		protobuf_version            : "3.19.4",
 		junit                       : "5.8.2",
 		mockito                     : "4.3.1",
-		cri_common_lib           	: "1.4.5"
-
+		cri_common_lib           	: "1.5.0"
 	]
 }
 
@@ -41,6 +40,7 @@ subprojects {
 			url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
 		}
 		//		flatDir {
+		//			// Update the version cri_common_lib_version to match your local version
 		//			dirs '/PATH_TO_LIB/di-ipv-cri-lib/build/libs'
 		//		}
 	}
@@ -90,9 +90,7 @@ subprojects {
 				"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
 				"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
 				"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
-				"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}",
-				"jakarta.xml.bind:jakarta.xml.bind-api:3.0.1",
-				"com.sun.xml.bind:jaxb-impl:3.0.2"
+				"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}"
 
 		powertools "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_version}",
 				"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_version}"
@@ -109,8 +107,6 @@ subprojects {
 		test_runtime "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit}"
 
 		cri_common_lib "uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib}"
-		// cri_common_lib name: "cri-common-lib-1.4.1"
-
 	}
 	apply plugin: 'java'
 }

@@ -60,7 +60,7 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
     }
 
     @Then(
-            "^I should be on the page DVA Enter your details exactly as they appear on your UK driving licence$")
+            "^I should be on the page DVA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK$")
     public void i_should_be_on_the_DVA_page() {
         pageTitleDVAValidation();
     }

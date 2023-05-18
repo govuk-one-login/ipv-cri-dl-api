@@ -99,6 +99,10 @@ Globals:
         POWERTOOLS_METRICS_NAMESPACE: !Ref CriIdentifier
         COMMON_PARAMETER_NAME_PREFIX: !Ref CommonStackName
         ENVIRONMENT: !Ref Environment
+    ProvisionedConcurrencyConfig: !If
+      - IsProdEnvironment
+      - ProvisionedConcurrentExecutions: 1
+      - !Ref AWS::NoValue
 
 Mappings:
   MemorySizeMapping:
@@ -395,13 +399,19 @@ Resources:
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${AWS::StackName}/*"
 
+  DrivingPermitCheckingFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
+      RetentionInDays: 30
+
   DrivingPermitCheckingFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevEnvironment
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
-      LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
+      LogGroupName: !Ref DrivingPermitCheckingFunctionLogGroup
 
   DrivingPermitCheckingFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -463,13 +473,19 @@ Resources:
             Resource:
               - !ImportValue AuditEventQueueEncryptionKeyArn
 
+  IssueCredentialFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
+      RetentionInDays: 30
+
   IssueCredentialFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
     Condition: IsNotDevEnvironment
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
-      LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
+      LogGroupName: !Ref IssueCredentialFunctionLogGroup
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -632,6 +648,125 @@ Resources:
 #                                                                  #
 ####################################################################
 
+## Common API Alarms
+
+  CommonAPISessionLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} - Common API Session Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-SessionFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} - Common API Authorization Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-AuthorizationFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAccessTokenLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} - Common API AccessToken Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-AccessTokenFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ## Driving Permit Alarms
+
+  DLDrivingPermitCheckLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} - DrivingPermitCheck Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DrivingPermitCheckingFunction
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DLIssueCredentialLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} - IssueCredential Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref IssueCredentialFunction
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   DLLambdaErrors:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -738,6 +873,49 @@ Resources:
               Dimensions:
                 - Name: ApiName
                   Value: !Sub "${AWS::StackName}-PrivateDLApi"
+            Period: 300
+            Stat: Sum
+
+  DrivingLicenceLambdaInvocationDeviation:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Driving Licence ${Environment} Deviation between the session and issue credential lambda
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: [ ]
+      DatapointsToAlarm: 10
+      EvaluationPeriods: 10
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: booleanDevationMetric
+          Label: BooleanDevationMetric
+          ReturnData: true
+          Expression: IF(ABS(((sessionInvocations-issueCredentialInvocations)/sessionInvocations) *100) > 50, 2, 1)
+        - Id: issueCredentialInvocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Invocations
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref IssueCredentialFunction
+            Period: 300
+            Stat: Sum
+        - Id: sessionInvocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Invocations
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Sub "${CommonStackName}-SessionFunction"
             Period: 300
             Stat: Sum
 

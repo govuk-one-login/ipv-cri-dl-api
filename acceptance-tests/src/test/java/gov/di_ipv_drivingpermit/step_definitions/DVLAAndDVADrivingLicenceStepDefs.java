@@ -127,22 +127,24 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @Then(
-            "I should be on `Enter your details exactly as they appear on your UK driving licence` page")
+            "I should be on `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page")
     public void
-            i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_page() {
+            i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_prove_your_identity_gov_uk_page() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
     }
 
     @Then(
-            "I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page")
+            "I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page")
     public void
-            i_should_be_on_DVA_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_page() {
+            i_should_be_on_DVA_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_prove_your_identity_gov_uk_page() {
         Assert.assertTrue(
                 new DVAEnterYourDetailsExactlyPageObject().dvaLicenceNumber.isDisplayed());
     }
 
-    @Then("I should be on `Who was your UK driving licence issued by` page")
-    public void i_should_be_on_who_was_your_uk_driving_licence_issued_by_page() {
+    @Then(
+            "I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page")
+    public void
+            i_should_be_on_who_was_your_uk_driving_licence_issued_by_prove_your_identity_gov_uk_page() {
         Assert.assertTrue(new DrivingLicencePageObject().optionDVLA.isDisplayed());
     }
 
@@ -192,9 +194,9 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
                 .assertInvalidDrivingLicenceFieldText(expectedText);
     }
 
-    @And("^JSON response should contain documentNumber (.*) same as given Driving Licence$")
-    public void errorInJsonResponse(String documentNumber) throws IOException {
-        new DrivingLicencePageObject().assertDocumentNumberInVc(documentNumber);
+    @And("^JSON response should contain personal number (.*) same as given Driving Licence$")
+    public void errorInJsonResponse(String personalNumber) throws IOException {
+        new DrivingLicencePageObject().assertPersonalNumberInVc(personalNumber);
     }
 
     @When("^DVLA consent checkbox is unselected$")
@@ -227,5 +229,18 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void iSeeTheDVLAPrivacyNoticeLinkTheDVLAPrivacyNoticeOpensInANewTab(
             String dvlaPrivacyLink) {
         assertDVLAPrivacyLink(dvlaPrivacyLink);
+
+    @And(
+            "I should be on `Who was your UK driving licence issued by? – Prove your identity – GOV.UK` page")
+    public void iShouldBeOnWhoWasYourUKDrivingLicenceIssuedByProveYourIdentityGOVUKPage() {
+        Assert.assertTrue(new DrivingLicencePageObject().optionDVA.isDisplayed());
+    }
+
+    @And(
+            "I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page")
+    public void
+            iShouldBeOnEnterYourDetailsExactlyAsTheyAppearOnYourUKDrivingLicenceProveYourIdentityGOVUKPage() {
+        Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
+
     }
 }

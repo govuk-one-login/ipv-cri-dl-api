@@ -6,12 +6,12 @@ plugins {
 
 dependencies {
 	implementation project(":lib"),
+			configurations.cri_common_lib,
 			configurations.aws,
 			configurations.lambda,
 			configurations.nimbus,
 			configurations.dynamodb,
 			configurations.jackson,
-			configurations.cri_common_lib,
 			configurations.sqs
 	implementation 'org.apache.httpcomponents:httpcore:4.4.15'
 	implementation 'org.apache.httpcomponents:httpclient:4.5.13'

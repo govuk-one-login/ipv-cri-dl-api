@@ -8,6 +8,7 @@ dependencies {
 
 	implementation configurations.cri_common_lib,
 			configurations.aws,
+			configurations.jackson,
 			configurations.dynamodb
 
 	aspect configurations.powertools

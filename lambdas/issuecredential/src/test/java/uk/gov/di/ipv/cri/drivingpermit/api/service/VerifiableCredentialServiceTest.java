@@ -23,7 +23,7 @@ import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.DocumentCheckPersonIdentityDetailedMapper;
+import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
@@ -83,7 +83,7 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                 DocumentCheckTestDataGenerator.generateValidResultItem();
 
         PersonIdentityDetailed personIdentityDetailed =
-                DocumentCheckPersonIdentityDetailedMapper.generatePersonIdentityDetailed(
+                PersonIdentityDetailedHelperMapper.drivingPermitFormDataToAuditRestrictedFormat(
                         DrivingPermitFormTestDataGenerator.generateWithMultipleAddresses(
                                 addressCount, 0, 0, false));
 

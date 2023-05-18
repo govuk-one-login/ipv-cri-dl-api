@@ -18,8 +18,6 @@ public class DocumentCheckVerificationResultDataGenerator {
 
         testDocumentVerificationResult.setCheckDetails(
                 DrivingPermitFormTestDataGenerator.deriveCheckDetails(data));
-        testDocumentVerificationResult.setDrivingPermit(
-                DrivingPermitFormTestDataGenerator.deriveDrivingPermit(data));
 
         return testDocumentVerificationResult;
     }

@@ -1,8 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.testdata;
 
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermit;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
@@ -16,6 +16,10 @@ import java.util.stream.IntStream;
 public class DrivingPermitFormTestDataGenerator {
 
     public static final String TEST_DRIVING_LICENCE_NUMBER = "A001";
+
+    private DrivingPermitFormTestDataGenerator() {
+        throw new IllegalStateException("Instantiation is not valid for this class.");
+    }
 
     public static DrivingPermitForm generate() {
         DrivingPermitForm drivingPermitForm = new DrivingPermitForm();
@@ -62,6 +66,8 @@ public class DrivingPermitFormTestDataGenerator {
 
         LocalDate licenceStart = LocalDate.now().minusYears(1);
 
+        drivingPermitForm.setLicenceIssuer(IssuingAuthority.DVLA.toString());
+        drivingPermitForm.setIssueDate(licenceStart);
         drivingPermitForm.setExpiryDate(licenceStart.plusYears(10));
         drivingPermitForm.setDrivingLicenceNumber(TEST_DRIVING_LICENCE_NUMBER);
 
@@ -126,9 +132,9 @@ public class DrivingPermitFormTestDataGenerator {
 
     public static DrivingPermit deriveDrivingPermit(DrivingPermitForm data) {
         DrivingPermit drivingPermit = new DrivingPermit();
-        drivingPermit.setDocumentNumber(data.getDrivingLicenceNumber());
+        drivingPermit.setPersonalNumber(data.getDrivingLicenceNumber());
         drivingPermit.setExpiryDate(data.getExpiryDate().toString());
-        drivingPermit.setIssuedBy(IssuingAuthority.DVLA.toString());
+        drivingPermit.setIssuedBy(data.getLicenceIssuer());
 
         return drivingPermit;
     }

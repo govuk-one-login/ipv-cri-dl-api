@@ -25,9 +25,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         searchForUATUser(number);
     }
 
-    @And("I assert the URL is valid")
-    public void i_assert_the_url_is_valid() {
-        drivingLicencePageURLValidation();
+    @And("I assert the url path contains (.*)$")
+    public void i_assert_the_url_path_contains(String path) {
+        drivingLicencePageURLValidation(path);
     }
 
     @Given("^I check the page title is (.*)$")
@@ -62,7 +62,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @Then(
-            "^I should on the page DVLA Enter your details exactly as they appear on your UK driving licence$")
+            "^I should on the page DVLA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK$")
     public void i_should_be_on_the_DVLA_page() {
         pageTitleDVLAValidation();
     }

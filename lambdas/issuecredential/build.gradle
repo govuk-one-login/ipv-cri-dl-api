@@ -6,12 +6,12 @@ plugins {
 
 dependencies {
 	implementation project(":lib"),
+			configurations.cri_common_lib,
 			configurations.aws,
 			configurations.lambda,
 			configurations.nimbus,
 			configurations.dynamodb,
 			configurations.jackson,
-			configurations.cri_common_lib,
 			configurations.sqs,
 			configurations.kms
 

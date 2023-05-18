@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
@@ -108,8 +109,7 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
         doNothing()
                 .when(auditService)
-                .sendAuditEvent(
-                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
+                .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
                 .thenReturn(testDocumentVerificationResult);
@@ -163,8 +163,7 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
         doNothing()
                 .when(auditService)
-                .sendAuditEvent(
-                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
+                .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
                 .thenReturn(testDocumentVerificationResult);
@@ -227,8 +226,7 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
         doNothing()
                 .when(auditService)
-                .sendAuditEvent(
-                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
+                .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
                 .thenReturn(testDocumentVerificationResult);
@@ -320,14 +318,11 @@ class DrivingPermitHandlerTest {
         when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
                 .thenReturn(testDocumentVerificationResult);
 
-        doNothing()
-                .when(auditService)
+        verify(auditService, never())
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
 
-        doNothing()
-                .when(auditService)
-                .sendAuditEvent(
-                        eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class), eq(""));
+        verify(auditService, never())
+                .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");

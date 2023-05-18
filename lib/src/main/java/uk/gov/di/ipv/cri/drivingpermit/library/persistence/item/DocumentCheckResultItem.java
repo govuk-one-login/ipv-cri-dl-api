@@ -19,6 +19,13 @@ public class DocumentCheckResultItem {
     private String issuedBy;
     private String documentNumber;
     private String expiryDate;
+
+    // DVLA only
+    private String issueNumber;
+
+    // Used by DVLA and mapped from dateOfIssue for DVA
+    private String issueDate;
+
     private String transactionId;
 
     public DocumentCheckResultItem() {}
@@ -104,12 +111,28 @@ public class DocumentCheckResultItem {
         this.documentNumber = documentNumber;
     }
 
+    public String getIssueNumber() {
+        return issueNumber;
+    }
+
+    public void setIssueNumber(String issueNumber) {
+        this.issueNumber = issueNumber;
+    }
+
     public String getExpiryDate() {
         return expiryDate;
     }
 
     public void setExpiryDate(String expiryDate) {
         this.expiryDate = expiryDate;
+    }
+
+    public String getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(String issueDate) {
+        this.issueDate = issueDate;
     }
 
     public String getTransactionId() {

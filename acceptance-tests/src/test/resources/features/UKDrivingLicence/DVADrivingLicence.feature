@@ -524,6 +524,8 @@ Feature: DVA Driving Licence Test
   @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario: DVA Driving Licence privacy notice link to consent
     Then I see the DVA consent section Allow DVA to check your driving licence details
+    And I see the Consent sentence in DVA page DVA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.
+    And I see the Consent second line in DVA page To find out more about how your driving licence details will be used, you can read:
     And I see privacy DVA notice link the GOV.UK One Login privacy notice (opens in a new tab)
     Then I see the DVA privacy notice link the DVA privacy notice (opens in a new tab)
     And The test is complete and I close the driver

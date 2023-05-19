@@ -243,4 +243,14 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
             iShouldBeOnEnterYourDetailsExactlyAsTheyAppearOnYourUKDrivingLicenceProveYourIdentityGOVUKPage() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
     }
+
+    @And("^I see the sentence (.*)$")
+    public void iSeeTheContentForDVLA(String contentDVLA) {
+        assertDVLAContent(contentDVLA);
+    }
+
+    @And("^I see the second line (.*)$")
+    public void iSeeTheLineToFindOutMoreAboutHowYourDrivingLicenceDetailsWillBeUsedYouCanRead(String contentDVLALine2) {
+        assertDVLAContentLineTwo(contentDVLALine2);
+    }
 }

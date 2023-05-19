@@ -244,6 +244,16 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
         assertDVAConsentSection(consentSectionDVA);
     }
 
+    @And("^I see the Consent sentence in DVA page (.*)$")
+    public void iSeeTheSentenceInDVAPage(String contentDVA) {
+        assertDVAContent(contentDVA);
+    }
+
+    @And("^I see the Consent second line in DVA page (.*)$")
+    public void iSeeTheComsentSecondLineInDVAPage(String contentDVALine2) {
+        assertDVAContentLineTwo(contentDVALine2);
+    }
+
     @And("^I see privacy DVA notice link (.*)$")
     public void iSeePrivacyDVANoticeLinkTheGOVUKOneLoginPrivacyNoticeOpensInANewTab(
             String oneLoginPrivacyLinkDVA) {

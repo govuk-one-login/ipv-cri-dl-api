@@ -68,6 +68,16 @@ public class TestDataCreator {
     public static DrivingLicenceSubject peterIncorrectPostcode;
     public static DrivingLicenceSubject peterIncorrectValidToDate;
 
+    public static DrivingLicenceSubject kennethDobJan;
+
+    public static DrivingLicenceSubject kennethDobDec;
+
+    public static DrivingLicenceSubject johnSmithHappy;
+
+    public static DrivingLicenceSubject johnABValid;
+
+    public static DrivingLicenceSubject johnASmithValid;
+
     public static void createDefaultResponses() {
         billyBatsonHappyPath =
                 new DVADrivingLicenceSubject(
@@ -154,6 +164,27 @@ public class TestDataCreator {
                         "1982",
                         "12",
                         "BS98 1TL");
+
+        kennethDobJan = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        kennethDobJan.setBirthDay("08");
+        kennethDobJan.setBirthMonth("01");
+        kennethDobJan.setBirthYear("1965");
+
+        kennethDobDec = new DrivingLicenceSubject(kennethDobJan);
+        kennethDobDec.setBirthMonth("12");
+
+        johnSmithHappy = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        johnSmithHappy.setFirstName("John");
+        johnSmithHappy.setLastName("Smith");
+
+        johnABValid = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        johnABValid.setFirstName("John");
+        johnABValid.setLastName("AB");
+
+        johnASmithValid = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        johnASmithValid.setFirstName("John");
+        johnASmithValid.setMiddleNames("A");
+        johnASmithValid.setLastName("Smith");
 
         billyBatsonIncorrectLicenceNumber = new DVADrivingLicenceSubject(billyBatsonHappyPath);
         billyBatsonIncorrectLicenceNumber.setDvaLicenceNumber("88776655");
@@ -424,6 +455,11 @@ public class TestDataCreator {
 
         dvlaTestUsers.put("DrivingLicenceSubjectHappyPeter", peterHappyPath);
         dvlaTestUsers.put("DrivingLicenceSubjectHappyKenneth", kennethDecerqueiraDvlaHappyPath);
+        dvlaTestUsers.put("KennethDOBJan", kennethDobJan);
+        dvlaTestUsers.put("KennethDOBDec", kennethDobDec);
+        dvlaTestUsers.put("JohnSmithHappy", johnSmithHappy);
+        dvlaTestUsers.put("JohnShortSurname", johnABValid);
+        dvlaTestUsers.put("JohnTwoForename", johnASmithValid);
         dvlaTestUsers.put("NoLastName", billyBatsonIncorrectNoSecondName);
         dvlaTestUsers.put("NoFirstName", billyBatsonIncorrectNoFirstName);
         dvlaTestUsers.put("NoDateOfBirth", billyBatsonIncorrectNoDoB);

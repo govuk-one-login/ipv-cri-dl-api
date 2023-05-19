@@ -245,6 +245,8 @@ public class DrivingPermitHandler
 
         final DocumentCheckResultItem documentCheckResultItem =
                 mapVerificationResultToResultItem(sessionItem, result, drivingPermitFormData);
+        documentCheckResultItem.setExpiry(
+                configurationService.getDocumentCheckItemExpirationEpoch());
 
         LOGGER.info("Saving document check results...");
         dataStore.create(documentCheckResultItem);

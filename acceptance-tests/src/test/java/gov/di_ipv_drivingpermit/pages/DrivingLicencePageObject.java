@@ -290,6 +290,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/ul/li[2]")
     public WebElement dvlaLink;
 
+    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/p[1]")
+    public WebElement dvlaSentence;
+
+    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/p[2]")
+    public WebElement dvlaSentenceTwo;
+
     // ------------------------
 
     // --- Hints ---
@@ -1040,5 +1046,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertDVLAPrivacyLink(String dvlaPrivacyLink) {
         Assert.assertEquals(dvlaPrivacyLink, dvlaLink.getText());
+    }
+
+    public void assertDVLAContent(String contentDVLA) {
+        Assert.assertEquals(contentDVLA, dvlaSentence.getText());
+    }
+
+    public void assertDVLAContentLineTwo(String contentDVLALine2) {
+        Assert.assertEquals(contentDVLALine2, dvlaSentenceTwo.getText());
     }
 }

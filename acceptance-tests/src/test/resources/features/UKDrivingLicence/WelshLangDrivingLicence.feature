@@ -447,6 +447,8 @@ Feature: Driving License Language Test
   Scenario: DVLA Driving Licence privacy notice link to consent
     Given I click on DVLA radio button and Parhau
     Then I see the consent section Caniatau DVLA i wirio eich manylion trwydded yrru
+    And I see the sentence Mae DVLA angen eich caniatâd i wirio eich manylion trwydded yrru cyn y gallwch barhau. Byddant yn sicrhau nad yw eich trwydded wedi cael ei chanslo na'i hadrodd fel un sydd ar goll neu wedi'i dwyn.
+    And I see the second line I ddarganfod mwy am sut bydd eich manylion trwydded yrru yn cael eu defnyddio, gallwch ddarllen:
     And I see privacy notice link hysbysiad preifatrwydd GOV.UK One Login (agor mewn tab newydd)
     Then I see the DVLA privacy notice link hysbysiad preifatrwydd DVLA (agor mewn tab newydd)
     And The test is complete and I close the driver
@@ -455,6 +457,8 @@ Feature: Driving License Language Test
   Scenario: DVA Driving Licence privacy notice link to consent
     Given I click on DVA radio button and Parhau
     Then I see the DVA consent section Caniatau DVA i wirio eich manylion trwydded yrru
+    And I see the Consent sentence in DVA page Mae DVA angen eich caniatâd i wirio eich manylion trwydded yrru cyn y gallwch barhau. Byddant yn sicrhau nad yw eich trwydded wedi cael ei chanslo na'i hadrodd fel un sydd ar goll neu wedi'i dwyn.
+    And I see the Consent second line in DVA page I ddarganfod mwy am sut bydd eich manylion trwydded yrru yn cael eu defnyddio, gallwch ddarllen:
     And I see privacy DVA notice link hysbysiad preifatrwydd GOV.UK One Login (agor mewn tab newydd)
     Then I see the DVA privacy notice link hysbysiad preifatrwydd DVA (agor mewn tab newydd)
     And The test is complete and I close the driver

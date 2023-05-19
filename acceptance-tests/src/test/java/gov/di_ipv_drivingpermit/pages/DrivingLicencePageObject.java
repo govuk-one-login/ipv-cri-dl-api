@@ -227,9 +227,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#issueDate-day')]")
     public WebElement InvalidIssueDateErrorInSummary;
 
-    @FindBy(xpath = "//*[@id=\"dateOfIssue-error\"]")
-    public WebElement InvalidIssueDateErrorInSummaryDVA;
-
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#expiryDate-day')]")
@@ -716,15 +713,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertInvalidIssueDateInErrorSummary(String expectedText) {
         Assert.assertEquals(expectedText, InvalidIssueDateErrorInSummary.getText());
-    }
-
-    public void assertInvalidIssueDateInErrorSummaryDVA(String expectedText) {
-        Assert.assertEquals(
-                expectedText, mapErrorTextToSingleLine(InvalidIssueDateErrorInSummaryDVA));
-    }
-
-    private String mapErrorTextToSingleLine(WebElement webElement) {
-        return webElement.getText().trim().replace("\n", "");
     }
 
     public void assertInvalidIssueDateOnField(String expectedText) {

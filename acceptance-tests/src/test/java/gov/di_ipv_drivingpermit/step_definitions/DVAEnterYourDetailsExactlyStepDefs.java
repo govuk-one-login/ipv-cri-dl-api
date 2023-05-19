@@ -117,6 +117,11 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
 
     @When("I enter the invalid issue date for DVA")
     public void iEnterTheInvalidIssueDateForDVA() {
+        enterInvalidIssueDayForDVA("", "", "");
+    }
+
+    @Then("I clear the data and re enter the invalid date with alphabets DVA")
+    public void iClearTheDataAndReEnterTheInvalidDateWithAlphabetsForDVA() {
         enterInvalidIssueDayForDVA("AA", "BB", "CCCC");
     }
 

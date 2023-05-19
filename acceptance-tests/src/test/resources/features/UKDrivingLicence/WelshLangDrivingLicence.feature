@@ -386,7 +386,10 @@ Feature: Driving License Language Test
     Given I click on DVA radio button and Parhau
     When I enter the invalid issue date for DVA
     And  User clicks on continue
-    And I see issue date error in summary for DVA as Gwall:Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru
+    And As a DVA user I see invalid issue date field error as Gwall:Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru
+    Then I clear the data and re enter the invalid date with alphabets DVA
+    And  User clicks on continue
+    And As a DVA user I see invalid issue date field error as Gwall:Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru
     Then I clear the data and re enter the invalid future year for DVA
     And  User clicks on continue
     And  As a DVA user I see invalid issue date field error as Gwall:Rhaid i ddyddiad cyhoeddi fod yn y gorffennol

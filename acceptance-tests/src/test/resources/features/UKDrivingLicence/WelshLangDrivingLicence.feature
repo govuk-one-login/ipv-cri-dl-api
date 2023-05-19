@@ -207,6 +207,9 @@ Feature: Driving License Language Test
     And I clear Issue number to see the error Enter Issue number
     Then User clicks on continue
     And I see the issue number error in field as Gwall:Rhowch y rhif cyhoeddi fel y mae'n ymddangos ar eich trwydded yrru
+    And I clear Issue number and enter the issue number with special character
+    Then User clicks on continue
+    And I see the issue number error in field as Gwall:Ni ddylai eich rhif cyhoeddi gynnwys unrhyw symbolau neu ofodau
     And The test is complete and I close the driver
 
     Examples:
@@ -326,6 +329,9 @@ Feature: Driving License Language Test
     And I clear the licence number enter the invalid Driving Licence
     Then User clicks on continue
     And I see the licence number error in the summary as Ni ddylai rhif eich trwydded gynnwys unrhyw symbolau neu ofodau
+    And I clear the licence number enter the invalid Driving Licence with special character
+    Then User clicks on continue
+    And I see the licence number error in the summary as Ni ddylai rhif eich trwydded gynnwys unrhyw symbolau neu ofodau
     And The test is complete and I close the driver
 
   @Language-regression
@@ -380,7 +386,10 @@ Feature: Driving License Language Test
     Given I click on DVA radio button and Parhau
     When I enter the invalid issue date for DVA
     And  User clicks on continue
-    #And I see Enter the date as it appears as Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru
+    And As a DVA user I see invalid issue date field error as Gwall:Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru
+    Then I clear the data and re enter the invalid date with alphabets DVA
+    And  User clicks on continue
+    And As a DVA user I see invalid issue date field error as Gwall:Rhowch y dyddiad fel y mae'n ymddangos ar eich trwydded yrru
     Then I clear the data and re enter the invalid future year for DVA
     And  User clicks on continue
     And  As a DVA user I see invalid issue date field error as Gwall:Rhaid i ddyddiad cyhoeddi fod yn y gorffennol

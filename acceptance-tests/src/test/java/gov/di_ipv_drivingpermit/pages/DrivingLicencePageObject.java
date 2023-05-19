@@ -648,6 +648,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
         this.IssueNumber.clear();
     }
 
+    public void enterIssueNumber(String issueNumber) {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.IssueNumber.clear();
+        drivingLicencePageObject.IssueNumber.click();
+        drivingLicencePageObject.IssueNumber.sendKeys(issueNumber);
+    }
+
     public void enterPostcode(String postcode) {
         DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
         drivingLicencePageObject.Postcode.clear();

@@ -344,4 +344,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void userReInputsDataAsADrivingLicenceSubject(String drivingLicenceSubject) {
         userReEntersDataAsADrivingLicenceSubject(drivingLicenceSubject);
     }
+
+    @And("^I navigate to the page (.*)$")
+    public void navigateToPage(String page) {
+        goToPage(page);
+    }
 }

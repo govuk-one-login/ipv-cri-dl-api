@@ -1015,4 +1015,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
         Assert.assertEquals(
                 expectedText, DVLAConsentCheckboxError.getText().trim().replace("\n", ""));
     }
+
+    public void goToPage(String page) {
+        waitForTextToAppear(page);
+    }
 }

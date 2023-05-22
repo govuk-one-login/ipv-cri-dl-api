@@ -608,10 +608,10 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyPeter   |
     
-  @DVLADrivingLicence_test1 @build @staging @integration @smoke
+  @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence number validation test - Correct licence number structure
     Given User enters DVLA data as a <DrivingLicenceSubject>
-    Then User clears the driving licence number and enters the new value as DECER662085K99LN
+    Then User clears the driving licence number and enters the new value as DECER657085K99LN
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     And The test is complete and I close the driver
@@ -632,7 +632,7 @@ Feature: Driving Licence Test
   @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, female licenceNumber DOB Jan)
     Given User enters DVLA data as a <DrivingLicenceSubject>
-    Then User clears the driving licence number and enters the new value as DECER651085KE9LN
+    Then User clears the driving licence number and enters the new value as DECER651085K99LN
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     And The test is complete and I close the driver
@@ -643,7 +643,7 @@ Feature: Driving Licence Test
   @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, female licenceNumber DOB Dec)
     Given User enters DVLA data as a <DrivingLicenceSubject>
-    Then User clears the driving licence number and enters the new value as DECER662085KE9LN
+    Then User clears the driving licence number and enters the new value as DECER662085K99LN
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     And The test is complete and I close the driver

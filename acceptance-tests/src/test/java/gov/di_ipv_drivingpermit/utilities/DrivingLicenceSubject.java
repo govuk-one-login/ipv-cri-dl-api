@@ -55,6 +55,7 @@ public class DrivingLicenceSubject implements TestInput {
         this.licenceNumber = drivingLicenceSubject.licenceNumber;
         this.lastName = drivingLicenceSubject.lastName;
         this.firstName = drivingLicenceSubject.firstName;
+        this.middleNames = drivingLicenceSubject.middleNames;
         this.birthDay = drivingLicenceSubject.birthDay;
         this.birthMonth = drivingLicenceSubject.birthMonth;
         this.birthYear = drivingLicenceSubject.birthYear;

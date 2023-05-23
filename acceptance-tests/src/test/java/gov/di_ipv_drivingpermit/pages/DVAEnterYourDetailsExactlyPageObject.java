@@ -9,7 +9,20 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.logging.Logger;
+
+import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
+import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObject {
+
+    private static final Logger LOGGER = Logger.getLogger(DVAEnterYourDetailsExactlyPageObject.class.getName());
 
     @FindBy(id = "dvaDateOfBirth-day")
     public WebElement birthDay;
@@ -368,10 +381,16 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
     public void assertDVAOneLoginPrivacyLink(String oneLoginPrivacyLinkDVA) {
         Assert.assertEquals(oneLoginPrivacyLinkDVA, oneLoginDVALink.getText());
+        String oneLoginDVALinkUrl = oneLoginDVALink.getAttribute("href");
+
+        checkOkHttpResponseOnLink(oneLoginDVALinkUrl);
         oneLoginDVALink.click();
     }
 
     public void assertDVAPrivacyLink(String dvaPrivacyLink) {
         Assert.assertEquals(dvaPrivacyLink, dvaLink.getText());
+        String oneLoginDVALinkUrl = dvaLink.getAttribute("href");
+
+        checkOkHttpResponseOnLink(oneLoginDVALinkUrl);
     }
 }

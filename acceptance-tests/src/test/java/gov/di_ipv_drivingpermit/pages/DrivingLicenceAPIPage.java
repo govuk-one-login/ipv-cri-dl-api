@@ -23,6 +23,7 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
@@ -224,13 +225,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .build();
 
         return sendHttpRequest(request).body();
-    }
-
-    private HttpResponse<String> sendHttpRequest(HttpRequest request)
-            throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response;
     }
 
     private static final String getBasicAuthenticationHeader(String username, String password) {

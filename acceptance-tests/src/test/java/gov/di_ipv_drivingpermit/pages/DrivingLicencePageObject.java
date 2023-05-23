@@ -376,7 +376,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
         visitCredentialIssuers.click();
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
         LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
-        if (dlCRITestEnvironment.equalsIgnoreCase("dev")) {
+        if (dlCRITestEnvironment.equalsIgnoreCase("dev")
+                || dlCRITestEnvironment.equalsIgnoreCase("local")) {
             drivingLicenceCRIDev.click();
         } else if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
             drivingLicenceCRIBuild.click();
@@ -662,6 +663,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void clearIssueNumber() {
         this.IssueNumber.clear();
+    }
+
+    public void enterIssueNumber(String issueNumber) {
+        DrivingLicencePageObject drivingLicencePageObject = new DrivingLicencePageObject();
+        drivingLicencePageObject.IssueNumber.clear();
+        drivingLicencePageObject.IssueNumber.click();
+        drivingLicencePageObject.IssueNumber.sendKeys(issueNumber);
     }
 
     public void enterPostcode(String postcode) {
@@ -1051,5 +1059,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertDVLAContentLineTwo(String contentDVLALine2) {
         Assert.assertEquals(contentDVLALine2, dvlaSentenceTwo.getText());
+
+    public void goToPage(String page) {
+        waitForTextToAppear(page);
     }
 }

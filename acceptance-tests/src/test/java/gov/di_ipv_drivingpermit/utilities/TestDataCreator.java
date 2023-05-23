@@ -9,6 +9,7 @@ public class TestDataCreator {
     public static Map<String, TestInput> dvlaTestUsers = new HashMap<>();
 
     public static DVADrivingLicenceSubject billyBatsonHappyPath;
+    public static DVADrivingLicenceSubject kennethDecerqueiraHappyPath;
     public static DVADrivingLicenceSubject selinaUnhappyPath;
     public static DVADrivingLicenceSubject billyBatsonIncorrectLicenceNumber;
     public static DVADrivingLicenceSubject billyBatsonIncorrectDateOfBirth;
@@ -48,8 +49,8 @@ public class TestDataCreator {
     public static DVADrivingLicenceSubject billyBatsonIncorrectPostcodeOnlyAlphas;
     public static DVADrivingLicenceSubject billyBatsonIncorrectNoPostcode;
     public static DVADrivingLicenceSubject billyBatsonIncorrectInternationalPostcode;
-
     public static DrivingLicenceSubject peterHappyPath;
+    public static DrivingLicenceSubject kennethDecerqueiraDvlaHappyPath;
     public static DrivingLicenceSubject peterIncorrectIssueNumber;
     public static DrivingLicenceSubject peterIncorrectDrivingLicenceNumber;
     public static DrivingLicenceSubject peterNoIssueNumber;
@@ -66,6 +67,16 @@ public class TestDataCreator {
     public static DrivingLicenceSubject peterIncorrectFirstName;
     public static DrivingLicenceSubject peterIncorrectPostcode;
     public static DrivingLicenceSubject peterIncorrectValidToDate;
+
+    public static DrivingLicenceSubject kennethDobJan;
+
+    public static DrivingLicenceSubject kennethDobDec;
+
+    public static DrivingLicenceSubject johnSmithHappy;
+
+    public static DrivingLicenceSubject johnABValid;
+
+    public static DrivingLicenceSubject johnASmithValid;
 
     public static void createDefaultResponses() {
         billyBatsonHappyPath =
@@ -101,6 +112,41 @@ public class TestDataCreator {
                         "2009",
                         "E20 2AQ");
 
+        kennethDecerqueiraHappyPath =
+                new DVADrivingLicenceSubject(
+                        "12345678",
+                        "DECERQUEIRA",
+                        "KENNETH",
+                        "",
+                        "08",
+                        "07",
+                        "1965",
+                        "01",
+                        "10",
+                        "2042",
+                        "19",
+                        "04",
+                        "2001",
+                        "BA2 5AA");
+
+        kennethDecerqueiraDvlaHappyPath =
+                new DrivingLicenceSubject(
+                        "DECER607085KE9LN",
+                        "DECERQUEIRA",
+                        "KENNETH",
+                        "",
+                        "08",
+                        "07",
+                        "1965",
+                        "01",
+                        "10",
+                        "2042",
+                        "19",
+                        "04",
+                        "2001",
+                        "23",
+                        "BA2 5AA");
+
         peterHappyPath =
                 new DrivingLicenceSubject(
                         "PARKE610112PBFGH",
@@ -118,6 +164,27 @@ public class TestDataCreator {
                         "1982",
                         "12",
                         "BS98 1TL");
+
+        kennethDobJan = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        kennethDobJan.setBirthDay("08");
+        kennethDobJan.setBirthMonth("01");
+        kennethDobJan.setBirthYear("1965");
+
+        kennethDobDec = new DrivingLicenceSubject(kennethDobJan);
+        kennethDobDec.setBirthMonth("12");
+
+        johnSmithHappy = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        johnSmithHappy.setFirstName("John");
+        johnSmithHappy.setLastName("Smith");
+
+        johnABValid = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        johnABValid.setFirstName("John");
+        johnABValid.setLastName("AB");
+
+        johnASmithValid = new DrivingLicenceSubject(kennethDecerqueiraDvlaHappyPath);
+        johnASmithValid.setFirstName("John");
+        johnASmithValid.setMiddleNames("A");
+        johnASmithValid.setLastName("Smith");
 
         billyBatsonIncorrectLicenceNumber = new DVADrivingLicenceSubject(billyBatsonHappyPath);
         billyBatsonIncorrectLicenceNumber.setDvaLicenceNumber("88776655");
@@ -331,6 +398,7 @@ public class TestDataCreator {
         peterIncorrectValidToDate.setValidToYear("2032");
 
         dvaTestUsers.put("DVADrivingLicenceSubjectHappyBilly", billyBatsonHappyPath);
+        dvaTestUsers.put("DVADrivingLicenceSubjectHappyKenneth", kennethDecerqueiraHappyPath);
         dvaTestUsers.put("DVADrivingLicenceSubjectUnhappySelina", selinaUnhappyPath);
         dvaTestUsers.put("NoLastName", billyBatsonIncorrectNoSecondName);
         dvaTestUsers.put("NoFirstName", billyBatsonIncorrectNoFirstName);
@@ -386,6 +454,12 @@ public class TestDataCreator {
         dvaTestUsers.put("IncorrectIssueDate", billyBatsonIncorrectIssueDate);
 
         dvlaTestUsers.put("DrivingLicenceSubjectHappyPeter", peterHappyPath);
+        dvlaTestUsers.put("DrivingLicenceSubjectHappyKenneth", kennethDecerqueiraDvlaHappyPath);
+        dvlaTestUsers.put("KennethDOBJan", kennethDobJan);
+        dvlaTestUsers.put("KennethDOBDec", kennethDobDec);
+        dvlaTestUsers.put("JohnSmithHappy", johnSmithHappy);
+        dvlaTestUsers.put("JohnShortSurname", johnABValid);
+        dvlaTestUsers.put("JohnTwoForename", johnASmithValid);
         dvlaTestUsers.put("NoLastName", billyBatsonIncorrectNoSecondName);
         dvlaTestUsers.put("NoFirstName", billyBatsonIncorrectNoFirstName);
         dvlaTestUsers.put("NoDateOfBirth", billyBatsonIncorrectNoDoB);

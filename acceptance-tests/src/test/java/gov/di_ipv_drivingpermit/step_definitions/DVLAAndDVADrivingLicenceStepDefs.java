@@ -252,5 +252,9 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @And("^I see the second line (.*)$")
     public void iSeeTheLineToFindOutMoreAboutHowYourDrivingLicenceDetailsWillBeUsedYouCanRead(String contentDVLALine2) {
         assertDVLAContentLineTwo(contentDVLALine2);
+
+    @Then("User clears the driving licence number and enters the new value as (.*)$")
+    public void iReEnterTheLicenceNumberForDVLA(String licenceNumber) {
+        enterLicenceNumber(licenceNumber);
     }
 }

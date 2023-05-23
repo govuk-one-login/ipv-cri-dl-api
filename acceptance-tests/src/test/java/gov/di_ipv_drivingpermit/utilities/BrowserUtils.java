@@ -437,11 +437,7 @@ public class BrowserUtils {
     }
 
     public static void checkOkHttpResponseOnLink(String link) {
-        HttpRequest request =
-                HttpRequest.newBuilder()
-                        .uri(URI.create(link))
-                        .GET()
-                        .build();
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(link)).GET().build();
         HttpResponse<String> httpResponse = null;
         try {
             httpResponse = sendHttpRequest(request);

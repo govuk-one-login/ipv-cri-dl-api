@@ -255,7 +255,8 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @And("^I see the second line (.*)$")
-    public void iSeeTheLineToFindOutMoreAboutHowYourDrivingLicenceDetailsWillBeUsedYouCanRead(String contentDVLALine2) {
+    public void iSeeTheLineToFindOutMoreAboutHowYourDrivingLicenceDetailsWillBeUsedYouCanRead(
+            String contentDVLALine2) {
         assertDVLAContentLineTwo(contentDVLALine2);
     }
 }

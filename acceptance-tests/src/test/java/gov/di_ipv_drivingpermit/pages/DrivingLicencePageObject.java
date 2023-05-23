@@ -360,7 +360,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
         visitCredentialIssuers.click();
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
         LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
-        if (dlCRITestEnvironment.equalsIgnoreCase("dev")) {
+        if (dlCRITestEnvironment.equalsIgnoreCase("dev")
+                || dlCRITestEnvironment.equalsIgnoreCase("local")) {
             drivingLicenceCRIDev.click();
         } else if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
             drivingLicenceCRIBuild.click();

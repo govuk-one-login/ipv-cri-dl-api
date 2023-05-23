@@ -607,3 +607,101 @@ Feature: Driving Licence Test
     Examples:
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyPeter   |
+    
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - Correct licence number structure
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as DECER657085K99LN
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | DrivingLicenceSubjectHappyKenneth         |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, surname > 5)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    When User clicks on continue
+    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject             |
+      | DrivingLicenceSubjectHappyKenneth |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, female licenceNumber DOB Jan)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as DECER651085K99LN
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | KennethDOBJan         |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, female licenceNumber DOB Dec)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as DECER662085K99LN
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | KennethDOBDec         |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, licenceNumber DOB Dec)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as DECER612085KE9LN
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | KennethDOBDec         |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, licenceNumber DOB Jan)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as DECER601085KE9LN
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | KennethDOBJan         |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, 1 forename)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as AB999607085J9AAA
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | JohnSmithHappy        |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, surname < 5)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as AB999607085J9AAA
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | JohnShortSurname      |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario Outline:  DVLA Driving Licence number validation test - (VALID, 2 forenames)
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    Then User clears the driving licence number and enters the new value as AB999607085JAAAA
+    When User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject |
+      | JohnTwoForename       |

@@ -226,4 +226,9 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
             iShouldBeOnEnterYourDetailsExactlyAsTheyAppearOnYourUKDrivingLicenceProveYourIdentityGOVUKPage() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
     }
+
+    @Then("User clears the driving licence number and enters the new value as (.*)$")
+    public void iReEnterTheLicenceNumberForDVLA(String licenceNumber) {
+        enterLicenceNumber(licenceNumber);
+    }
 }

@@ -4,6 +4,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @DynamoDbBean
@@ -27,6 +28,9 @@ public class DocumentCheckResultItem {
     private String issueDate;
 
     private String transactionId;
+
+    // expiry for documentCheckResultItem in DynamoDb
+    private long expiry;
 
     public DocumentCheckResultItem() {}
 
@@ -141,5 +145,55 @@ public class DocumentCheckResultItem {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public long getExpiry() {
+        return expiry;
+    }
+
+    public void setExpiry(long expiry) {
+        this.expiry = expiry;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DocumentCheckResultItem that = (DocumentCheckResultItem) o;
+        return strengthScore == that.strengthScore
+                && validityScore == that.validityScore
+                && activityHistoryScore == that.activityHistoryScore
+                && expiry == that.expiry
+                && Objects.equals(sessionId, that.sessionId)
+                && Objects.equals(contraIndicators, that.contraIndicators)
+                && Objects.equals(activityFrom, that.activityFrom)
+                && Objects.equals(checkMethod, that.checkMethod)
+                && Objects.equals(identityCheckPolicy, that.identityCheckPolicy)
+                && Objects.equals(issuedBy, that.issuedBy)
+                && Objects.equals(documentNumber, that.documentNumber)
+                && Objects.equals(expiryDate, that.expiryDate)
+                && Objects.equals(issueNumber, that.issueNumber)
+                && Objects.equals(issueDate, that.issueDate)
+                && Objects.equals(transactionId, that.transactionId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                sessionId,
+                contraIndicators,
+                strengthScore,
+                validityScore,
+                activityHistoryScore,
+                activityFrom,
+                checkMethod,
+                identityCheckPolicy,
+                issuedBy,
+                documentNumber,
+                expiryDate,
+                issueNumber,
+                issueDate,
+                transactionId,
+                expiry);
     }
 }

@@ -20,6 +20,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Clock;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Objects;
 
@@ -49,12 +51,14 @@ public class ConfigurationService {
     }
 
     private static final String KEY_FORMAT = "/%s/credentialIssuers/driving-permit/%s";
+    private static final String PARAMETER_NAME_FORMAT = "/%s/%s";
 
     private final String thirdPartyId;
     private final String documentCheckResultTableName;
     private final String contraindicationMappings;
     private final String dcsEndpointUri;
     private final String parameterPrefix;
+    private final String commonParameterPrefix;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
     private final Certificate drivingPermitTlsSelfCert;
@@ -67,6 +71,10 @@ public class ConfigurationService {
 
     private final Thumbprints signingCertThumbprints;
 
+    private final Clock clock;
+
+    private final long documentCheckItemTtl;
+
     public ConfigurationService(
             SecretsProvider secretsProvider, ParamProvider paramProvider, String env)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -76,9 +84,11 @@ public class ConfigurationService {
         if (StringUtils.isBlank(env)) {
             throw new IllegalArgumentException("env must be specified");
         }
+        this.clock = Clock.systemUTC();
 
         // ****************************Private Parameters****************************
         this.parameterPrefix = System.getenv("AWS_STACK_NAME");
+        this.commonParameterPrefix = System.getenv("COMMON_PARAMETER_NAME_PREFIX");
         this.thirdPartyId = paramProvider.get(String.format(KEY_FORMAT, env, "thirdPartyId"));
         this.contraindicationMappings =
                 paramProvider.get(getParameterName("contraindicationMappings"));
@@ -108,6 +118,8 @@ public class ConfigurationService {
                 new Thumbprints(
                         getThumbprint((X509Certificate) cert, "SHA-1"),
                         getThumbprint((X509Certificate) cert, "SHA-256"));
+        this.documentCheckItemTtl =
+                Long.parseLong(paramProvider.get(getCommonParameterName("SessionTtl")));
         // *****************************Feature Toggles*******************************
 
         // *********************************Secrets***********************************
@@ -158,7 +170,11 @@ public class ConfigurationService {
     }
 
     public String getParameterName(String parameterName) {
-        return String.format("/%s/%s", parameterPrefix, parameterName);
+        return String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName);
+    }
+
+    private String getCommonParameterName(String parameterName) {
+        return String.format(PARAMETER_NAME_FORMAT, commonParameterPrefix, parameterName);
     }
 
     public Certificate getDcsSigningCert() {
@@ -199,5 +215,9 @@ public class ConfigurationService {
 
     public PrivateKey getDrivingPermitTlsKey() {
         return drivingPermitTlsKey;
+    }
+
+    public long getDocumentCheckItemExpirationEpoch() {
+        return clock.instant().plus(documentCheckItemTtl, ChronoUnit.SECONDS).getEpochSecond();
     }
 }

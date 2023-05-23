@@ -511,6 +511,9 @@ Resources:
       KeySchema:
         - AttributeName: "sessionId"
           KeyType: "HASH"
+      TimeToLiveSpecification:
+        AttributeName: expiry
+        Enabled: true
 
 ####################################################################
 #                                                                  #

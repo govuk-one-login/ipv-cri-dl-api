@@ -30,9 +30,11 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -84,20 +86,25 @@ class DrivingPermitHandlerTest {
     void handleResponseShouldReturnOkResponseWhenValidInputProvided()
             throws IOException, SqsException, OAuthHttpResponseExceptionWithErrorBody {
         String testRequestBody = "request body";
+        UUID sessionId = UUID.randomUUID();
+
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
         DocumentCheckVerificationResult testDocumentVerificationResult =
                 DocumentCheckVerificationResultDataGenerator.generate(drivingPermitForm);
+        DocumentCheckResultItem documentCheckResultItem =
+                generateDocCheckResultItem(
+                        sessionId, drivingPermitForm, testDocumentVerificationResult);
 
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders = Map.of("session_id", sessionId.toString());
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
-        sessionItem.setSessionId(UUID.randomUUID());
+        sessionItem.setSessionId(sessionId);
         sessionItem.setAttemptCount(0); // No previous attempt
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
 
@@ -116,6 +123,8 @@ class DrivingPermitHandlerTest {
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
+        when(configurationService.getDocumentCheckItemExpirationEpoch()).thenReturn(1000L);
+
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
@@ -124,6 +133,7 @@ class DrivingPermitHandlerTest {
                 .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
 
+        verify(dataStore).create(documentCheckResultItem);
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
         assertEquals("{\"redirectUrl\":null,\"retry\":false}", responseEvent.getBody());
@@ -337,6 +347,31 @@ class DrivingPermitHandlerTest {
         final String EXPECTED_ERROR =
                 "{\"code\":1025,\"message\":\"Request failed due to a server error\",\"errorSummary\":\"1025: Request failed due to a server error\"}";
         assertEquals(EXPECTED_ERROR, responseEvent.getBody());
+    }
+
+    private DocumentCheckResultItem generateDocCheckResultItem(
+            UUID sessionId,
+            DrivingPermitForm drivingPermitForm,
+            DocumentCheckVerificationResult testDocumentVerificationResult) {
+        DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
+        documentCheckResultItem.setDocumentNumber(drivingPermitForm.getDrivingLicenceNumber());
+        documentCheckResultItem.setCheckMethod(
+                testDocumentVerificationResult.getCheckDetails().getCheckMethod());
+        documentCheckResultItem.setActivityFrom(drivingPermitForm.getIssueDate().toString());
+        documentCheckResultItem.setExpiry(1000L);
+        documentCheckResultItem.setExpiryDate(drivingPermitForm.getExpiryDate().toString());
+        documentCheckResultItem.setIdentityCheckPolicy(
+                testDocumentVerificationResult.getCheckDetails().getIdentityCheckPolicy());
+        documentCheckResultItem.setIssueDate(drivingPermitForm.getIssueDate().toString());
+        documentCheckResultItem.setIssuedBy("DVLA");
+        documentCheckResultItem.setActivityHistoryScore(
+                testDocumentVerificationResult.getActivityHistoryScore());
+        documentCheckResultItem.setIssueNumber(drivingPermitForm.getIssueNumber());
+        documentCheckResultItem.setStrengthScore(testDocumentVerificationResult.getStrengthScore());
+        documentCheckResultItem.setValidityScore(testDocumentVerificationResult.getValidityScore());
+        documentCheckResultItem.setSessionId(sessionId);
+        documentCheckResultItem.setContraIndicators(List.of("A01"));
+        return documentCheckResultItem;
     }
 
     private static boolean[] getDocumentVerifiedStatus() {

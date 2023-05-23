@@ -252,4 +252,22 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
     public void shortDVAConsentCheckboxErrorMessageIsDisplayed(String expectedText) {
         assertDVAConsentErrorOnCheckbox(expectedText);
     }
+
+    @Then("^I see the DVA consent section (.*)$")
+    public void iSeeTheDVAConsentSectionAllowDVAToCheckYourDrivingLicenceDetails(
+            String consentSectionDVA) {
+        assertDVAConsentSection(consentSectionDVA);
+    }
+
+    @And("^I see privacy DVA notice link (.*)$")
+    public void iSeePrivacyDVANoticeLinkTheGOVUKOneLoginPrivacyNoticeOpensInANewTab(
+            String oneLoginPrivacyLinkDVA) {
+        assertDVAOneLoginPrivacyLink(oneLoginPrivacyLinkDVA);
+    }
+
+    @Then("^I see the DVA privacy notice link (.*)$")
+    public void iSeeTheDVAPrivacyNoticeLinkTheDVAPrivacyNoticeOpensInANewTab(
+            String dvaPrivacyLink) {
+        assertDVAPrivacyLink(dvaPrivacyLink);
+    }
 }

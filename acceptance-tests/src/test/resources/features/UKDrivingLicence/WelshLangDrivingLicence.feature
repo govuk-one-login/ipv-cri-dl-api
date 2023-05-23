@@ -442,3 +442,19 @@ Feature: Driving License Language Test
     Examples:
       |DrivingLicenceSubject             |
       |DVADrivingLicenceSubjectHappyBilly|
+
+  @Language-regression
+  Scenario: DVLA Driving Licence privacy notice link to consent
+    Given I click on DVLA radio button and Parhau
+    Then I see the consent section Caniatau DVLA i wirio eich manylion trwydded yrru
+    And I see privacy notice link hysbysiad preifatrwydd GOV.UK One Login (agor mewn tab newydd)
+    Then I see the DVLA privacy notice link hysbysiad preifatrwydd DVLA (agor mewn tab newydd)
+    And The test is complete and I close the driver
+
+  @Language-regression
+  Scenario: DVA Driving Licence privacy notice link to consent
+    Given I click on DVA radio button and Parhau
+    Then I see the DVA consent section Caniatau DVA i wirio eich manylion trwydded yrru
+    And I see privacy DVA notice link hysbysiad preifatrwydd GOV.UK One Login (agor mewn tab newydd)
+    Then I see the DVA privacy notice link hysbysiad preifatrwydd DVA (agor mewn tab newydd)
+    And The test is complete and I close the driver

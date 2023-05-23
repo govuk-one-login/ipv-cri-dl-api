@@ -214,6 +214,28 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         assertDVLAConsentErrorOnCheckbox(expectedText);
     }
 
+    @Then("User clears the driving licence number and enters the new value as (.*)$")
+    public void iReEnterTheLicenceNumberForDVLA(String licenceNumber) {
+        enterLicenceNumber(licenceNumber);
+    }
+
+    @Then("^I see the consent section (.*)$")
+    public void iSeeTheConsentSectionAllowDVLAToCheckYourDrivingLicenceDetails(
+            String consentSection) {
+        assertConsentSection(consentSection);
+    }
+
+    @Then("^I see privacy notice link (.*)$")
+    public void iSeePrivacyNoticeLinkTheGOVUKOneLoginPrivacyNotice(String oneLoginPrivacyLink) {
+        assertOneLoginPrivacyLink(oneLoginPrivacyLink);
+    }
+
+    @Then("^I see the DVLA privacy notice link (.*)$")
+    public void iSeeTheDVLAPrivacyNoticeLinkTheDVLAPrivacyNoticeOpensInANewTab(
+            String dvlaPrivacyLink) {
+        assertDVLAPrivacyLink(dvlaPrivacyLink);
+    }
+
     @And(
             "I should be on `Who was your UK driving licence issued by? – Prove your identity – GOV.UK` page")
     public void iShouldBeOnWhoWasYourUKDrivingLicenceIssuedByProveYourIdentityGOVUKPage() {
@@ -225,10 +247,5 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void
             iShouldBeOnEnterYourDetailsExactlyAsTheyAppearOnYourUKDrivingLicenceProveYourIdentityGOVUKPage() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
-    }
-
-    @Then("User clears the driving licence number and enters the new value as (.*)$")
-    public void iReEnterTheLicenceNumberForDVLA(String licenceNumber) {
-        enterLicenceNumber(licenceNumber);
     }
 }

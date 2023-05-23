@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
+import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -287,7 +288,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/ul/li[1]/a")
     public WebElement oneLoginLink;
 
-    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/ul/li[2]")
+    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/ul/li[2]/a")
     public WebElement dvlaLink;
 
     @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/p[1]")
@@ -1031,10 +1032,17 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertOneLoginPrivacyLink(String oneLoginPrivacyLink) {
         Assert.assertEquals(oneLoginPrivacyLink, oneLoginLink.getText());
+        String oneLoginDVLALinkUrl = oneLoginLink.getAttribute("href");
+
+        checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
+        oneLoginLink.click();
     }
 
     public void assertDVLAPrivacyLink(String dvlaPrivacyLink) {
         Assert.assertEquals(dvlaPrivacyLink, dvlaLink.getText());
+        String oneLoginDVLALinkUrl = dvlaLink.getAttribute("href");
+
+        checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
     }
 
     public void assertDVLAContent(String contentDVLA) {

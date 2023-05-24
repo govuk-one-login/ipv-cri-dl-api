@@ -58,11 +58,11 @@ public class DrivingPermitForm {
         this.licenceIssuer = licenceIssuer;
         this.drivingLicenceNumber = drivingLicenceNumber;
         this.postcode = postcode;
-        List<Address> addresses = new ArrayList<>();
+        List<Address> tempAddresses = new ArrayList<>();
         Address address = new Address();
         address.setPostalCode(postcode);
-        addresses.add(address);
-        this.addresses = addresses;
+        tempAddresses.add(address);
+        this.addresses = tempAddresses;
     }
 
     public String getDrivingLicenceNumber() {

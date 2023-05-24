@@ -1,7 +1,5 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -9,7 +7,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckRes
 import java.util.UUID;
 
 public class DocumentCheckRetrievalService {
-    private static final Logger LOGGER = LogManager.getLogger();
 
     private final DataStore<DocumentCheckResultItem> dataStore;
     private final ConfigurationService configurationService;

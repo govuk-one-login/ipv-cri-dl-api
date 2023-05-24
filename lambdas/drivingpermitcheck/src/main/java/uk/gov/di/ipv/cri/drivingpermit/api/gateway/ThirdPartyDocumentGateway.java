@@ -6,7 +6,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.RSADecrypter;
-import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -35,7 +34,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -255,15 +253,15 @@ public class ThirdPartyDocumentGateway {
             if (statusCode >= 300 && statusCode <= 399) {
                 // Not Seen
                 throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_30x);
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_30X);
             } else if (statusCode >= 400 && statusCode <= 499) {
                 // Seen when a cert has expired
                 throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_40x);
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_40X);
             } else if (statusCode >= 500 && statusCode <= 599) {
                 // Error on DCS side
                 throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_50x);
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_50X);
             } else {
                 // Any other status codes
                 throw new OAuthHttpResponseExceptionWithErrorBody(
@@ -280,13 +278,6 @@ public class ThirdPartyDocumentGateway {
         request.setEntity(new StringEntity(requestBody));
 
         return request;
-    }
-
-    private boolean isInvalidSignature(JWSObject jwsObject) throws JOSEException {
-        RSASSAVerifier rsassaVerifier =
-                new RSASSAVerifier(
-                        (RSAPublicKey) configurationService.getDcsSigningCert().getPublicKey());
-        return !jwsObject.verify(rsassaVerifier);
     }
 
     public JWSObject decrypt(JWEObject encrypted) {

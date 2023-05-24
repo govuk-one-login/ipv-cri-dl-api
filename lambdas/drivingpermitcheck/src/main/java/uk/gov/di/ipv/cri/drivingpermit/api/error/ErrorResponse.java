@@ -27,9 +27,9 @@ public enum ErrorResponse {
     SESSION_NOT_FOUND(1020, "Session not found"),
 
     FORM_DATA_FAILED_VALIDATION(1021, "Form Data failed validation"),
-    DCS_ERROR_HTTP_30x(1022, "DCS Responded with a HTTP Redirection status code"),
-    DCS_ERROR_HTTP_40x(1023, "DCS Responded with a HTTP Client Error status code"),
-    DCS_ERROR_HTTP_50x(1024, "DCS Responded with a HTTP Server Error status code"),
+    DCS_ERROR_HTTP_30X(1022, "DCS Responded with a HTTP Redirection status code"),
+    DCS_ERROR_HTTP_40X(1023, "DCS Responded with a HTTP Client Error status code"),
+    DCS_ERROR_HTTP_50X(1024, "DCS Responded with a HTTP Server Error status code"),
     DCS_ERROR_HTTP_X(1025, "DCS Responded with an unhandled HTTP status code"),
     TOO_MANY_RETRY_ATTEMPTS(1026, "Too many retry attempts made");
 

@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.http.HttpStatusCode;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
@@ -84,7 +85,7 @@ public class IssueCredentialHandler
         this.eventProbe = new EventProbe();
         this.auditService =
                 new AuditService(
-                        SqsClient.builder().build(),
+                        SqsClient.builder().region(Region.EU_WEST_2).build(),
                         configurationService,
                         new ObjectMapper().registerModule(new JavaTimeModule()),
                         new AuditEventFactory(configurationService, Clock.systemUTC()));

@@ -5,6 +5,7 @@ import org.apache.http.HttpException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
@@ -125,7 +126,7 @@ public class ServiceFactory {
         var commonLibConfigurationService =
                 new uk.gov.di.ipv.cri.common.library.service.ConfigurationService();
         return new AuditService(
-                SqsClient.builder().build(),
+                SqsClient.builder().region(Region.EU_WEST_2).build(),
                 commonLibConfigurationService,
                 objectMapper,
                 new AuditEventFactory(commonLibConfigurationService, Clock.systemUTC()));

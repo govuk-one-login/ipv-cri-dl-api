@@ -607,7 +607,7 @@ Feature: Driving Licence Test
     Examples:
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyPeter   |
-    
+
   @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence number validation test - Correct licence number structure
     Given User enters DVLA data as a <DrivingLicenceSubject>
@@ -705,3 +705,12 @@ Feature: Driving Licence Test
     Examples:
       | DrivingLicenceSubject |
       | JohnTwoForename       |
+
+  @DVLADrivingLicence_test @build @staging @integration @smoke
+  Scenario: DVLA Driving Licence privacy notice link to consent
+    Then I see the consent section Allow DVLA to check your driving licence details
+    And I see the sentence DVLA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.
+   And I see the second line To find out more about how your driving licence details will be used, you can read:
+    And I see privacy notice link the GOV.UK One Login privacy notice (opens in a new tab)
+    Then I see the DVLA privacy notice link the DVLA privacy notice (opens in a new tab)
+    And The test is complete and I close the driver

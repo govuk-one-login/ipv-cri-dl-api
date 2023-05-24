@@ -9,7 +9,14 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+import java.util.logging.Logger;
+
+import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
+
 public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObject {
+
+    private static final Logger LOGGER =
+            Logger.getLogger(DVAEnterYourDetailsExactlyPageObject.class.getName());
 
     @FindBy(id = "dvaDateOfBirth-day")
     public WebElement birthDay;
@@ -111,6 +118,21 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
     @FindBy(id = "consentDVACheckbox-error")
     public WebElement DVAConsentCheckboxError;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/form/h2")
+    public WebElement DVAConsentSection;
+
+    @FindBy(xpath = "//*[@id=\"consentDVACheckbox-hint\"]/ul/li[1]/a")
+    public WebElement oneLoginDVALink;
+
+    @FindBy(xpath = "//*[@id=\"consentDVACheckbox-hint\"]/ul/li[2]/a")
+    public WebElement dvaLink;
+
+    @FindBy(xpath = "//*[@id=\"consentDVACheckbox-hint\"]/p[1]")
+    public WebElement dvaSentence;
+
+    @FindBy(xpath = "//*[@id=\"consentDVACheckbox-hint\"]/p[2]")
+    public WebElement dvaSentenceTwo;
 
     // ------------------------
 
@@ -328,5 +350,33 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
     public void assertDVAConsentErrorOnCheckbox(String expectedText) {
         Assert.assertEquals(
                 expectedText, DVAConsentCheckboxError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertDVAConsentSection(String consentSectionDVA) {
+
+        Assert.assertEquals(consentSectionDVA, DVAConsentSection.getText());
+    }
+
+    public void assertDVAContent(String contentDVA) {
+        Assert.assertEquals(contentDVA, dvaSentence.getText());
+    }
+
+    public void assertDVAContentLineTwo(String contentDVALine2) {
+        Assert.assertEquals(contentDVALine2, dvaSentenceTwo.getText());
+    }
+
+    public void assertDVAOneLoginPrivacyLink(String oneLoginPrivacyLinkDVA) {
+        Assert.assertEquals(oneLoginPrivacyLinkDVA, oneLoginDVALink.getText());
+        String oneLoginDVALinkUrl = oneLoginDVALink.getAttribute("href");
+
+        checkOkHttpResponseOnLink(oneLoginDVALinkUrl);
+        oneLoginDVALink.click();
+    }
+
+    public void assertDVAPrivacyLink(String dvaPrivacyLink) {
+        Assert.assertEquals(dvaPrivacyLink, dvaLink.getText());
+        String oneLoginDVALinkUrl = dvaLink.getAttribute("href");
+
+        checkOkHttpResponseOnLink(oneLoginDVALinkUrl);
     }
 }

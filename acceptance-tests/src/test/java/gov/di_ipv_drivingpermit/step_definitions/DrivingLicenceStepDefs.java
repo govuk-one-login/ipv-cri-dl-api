@@ -170,6 +170,26 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         betaBannerSentence(expectedText);
     }
 
+    @And("^I select (.*) cookie$")
+    public void selectRejectAnalysisCookie(String rejectAnalysis) {
+        rejectAnalysisCookie(rejectAnalysis);
+    }
+
+    @Then("^I see the Reject Analysis sentence (.*)$")
+    public void iSeeTheSenetenceYouVeRejectedAdditionalCookiesYouCanChangeYourCookieSettingsAtAnyTime(String rejectanalysisSentence ) {
+        rejectCookieSentence(rejectanalysisSentence);
+    }
+
+    @And("^I select the (.*) link$")
+    public void iSelectTheChangeYourCookieSettingsLink(String changeCookieLink) {
+        AssertChangeCookieLink(changeCookieLink);
+    }
+
+    @Then("^I check the page to change cookie preferences opens$")
+    public void iCheckThePageToChangeCookiePreferencesOpens() {
+        AssertcookiePreferencePage();
+    }
+
     @And("^I can see OR options as (.*)$")
     public void ICanSeeTheOrDividerTextAs(String expectedText) {
         assertOrLabelText(expectedText);

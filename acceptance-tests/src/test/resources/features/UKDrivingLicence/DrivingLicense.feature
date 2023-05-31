@@ -18,6 +18,16 @@ Feature: Driving License Test
     Then I can see CTA "continue"
     And The test is complete and I close the driver
 
+  @DrivingLicenceTest @build @staging @integration @smoke
+  Scenario: Beta Banner Reject Analysis
+    When I view the Beta banner
+    When the beta banner reads This is a new service – your feedback (opens in new tab) will help us to improve it.
+    And I select Reject Analysis cookie
+    Then I see the Reject Analysis sentence You’ve rejected additional cookies. You can change your cookie settings at any time.
+    And  I select the ‘change your cookie settings’ link
+    Then I check the page to change cookie preferences opens
+    Then The test is complete and I close the driver
+
   @DrivingLicenceTest @build @staging @integration
   Scenario:User Selects DVLA and landed in DVLA page
     Given I click on DVLA radio button and Continue
@@ -54,7 +64,6 @@ Feature: Driving License Test
     When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
     Then I can see the heading  Sorry, there is a error
     And The test is complete and I close the driver
-
 
   @DVLADrivingLicence_test @build
   Scenario Outline: DVLA Error tab title validation

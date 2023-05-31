@@ -14,6 +14,15 @@ Feature: Driving License Language Test
     Then The test is complete and I close the driver
 
   @Language-regression
+  Scenario: Beta Banner Reject Analysis button
+    Given I view the Beta banner
+    When I select Gwrthod cwcis dadansoddi cookie
+    Then I see the Reject Analysis sentence Rydych wedi gwrthod cwcis ychwanegol. Gallwchnewid eich gosodiadau cwcis" unrhyw bryd.
+    And  I select the newid eich gosodiadau cwcis link
+    Then I check the page to change cookie preferences opens
+    Then The test is complete and I close the driver
+
+  @Language-regression
   Scenario:3 options and Radio button available in Driving Licence page
      Given I check the page title is Pwy wnaeth gyhoeddi eich trwydded yrru y DU? – Profi pwy ydych chi – GOV.UK
      When I assert the URL is valid in Welsh

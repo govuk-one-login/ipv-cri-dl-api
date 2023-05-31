@@ -125,7 +125,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(className = "govuk-phase-banner__text")
     public WebElement betaBannerText;
 
-   @FindBy(xpath = "//*[@id=\"cookies-banner-main\"]/div[2]/button[2]")
+    @FindBy(xpath = "//*[@id=\"cookies-banner-main\"]/div[2]/button[2]")
     public WebElement rejectAnalysisButton;
 
     @FindBy(xpath = "//*[@id=\"cookies-rejected\"]/div[1]/div/div/p")
@@ -432,24 +432,22 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public void betaBannerSentence(String expectedText) {
         Assert.assertEquals(expectedText, betaBannerText.getText());
         LOGGER.info("actualText = " + betaBannerText.getText());
-
     }
 
-    public void rejectAnalysisCookie(String rejectAnalysis){
+    public void rejectAnalysisCookie(String rejectAnalysis) {
         rejectAnalysisButton.click();
     }
 
-    public void rejectCookieSentence(String rejectanalysisSentence)
-    {
+    public void rejectCookieSentence(String rejectanalysisSentence) {
         Assert.assertEquals(rejectanalysisSentence, rejectanalysisActual.getText());
         LOGGER.info(rejectanalysisActual.getText());
     }
 
-    public void AssertChangeCookieLink(String changeCookieLink){
+    public void AssertChangeCookieLink(String changeCookieLink) {
         changeCookieButton.click();
     }
 
-    public void AssertcookiePreferencePage(){
+    public void AssertcookiePreferencePage() {
 
         String changeCookiePageUrl = cookiePreference.getAttribute("href");
         checkOkHttpResponseOnLink(changeCookiePageUrl);

@@ -176,7 +176,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @Then("^I see the Reject Analysis sentence (.*)$")
-    public void iSeeTheSenetenceYouVeRejectedAdditionalCookiesYouCanChangeYourCookieSettingsAtAnyTime(String rejectanalysisSentence ) {
+    public void
+            iSeeTheSenetenceYouVeRejectedAdditionalCookiesYouCanChangeYourCookieSettingsAtAnyTime(
+                    String rejectanalysisSentence) {
         rejectCookieSentence(rejectanalysisSentence);
     }
 

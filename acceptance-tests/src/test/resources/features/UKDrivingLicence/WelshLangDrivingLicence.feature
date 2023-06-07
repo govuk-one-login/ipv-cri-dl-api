@@ -1,6 +1,6 @@
 Feature: Driving License Language Test
 
-  Background: @Language-regression
+  Background:
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     Then I search for Driving Licence user number 5 in the Experian table
@@ -11,6 +11,15 @@ Feature: Driving License Language Test
   Scenario: Beta Banner
     Given I view the Beta banner
     When the beta banner reads Mae hwn yn wasanaeth newydd – bydd eich adborth (agor mewn tab newydd) yn ein helpu i'w wella.
+    Then The test is complete and I close the driver
+
+  @Language-regression
+  Scenario: Beta Banner Reject Analysis button
+    Given I view the Beta banner
+    When I select Gwrthod cwcis dadansoddi cookie
+    Then I see the Reject Analysis sentence Rydych wedi gwrthod cwcis ychwanegol. Gallwch newid eich gosodiadau cwcis unrhyw bryd.
+    And  I select the newid eich gosodiadau cwcis link
+    Then I check the page to change cookie preferences opens
     Then The test is complete and I close the driver
 
   @Language-regression

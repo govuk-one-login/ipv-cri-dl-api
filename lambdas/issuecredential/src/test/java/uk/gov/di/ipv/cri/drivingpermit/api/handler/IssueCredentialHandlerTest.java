@@ -13,9 +13,9 @@ import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -38,6 +38,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHel
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.util.Map;
 import java.util.UUID;
@@ -49,6 +52,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class IssueCredentialHandlerTest {
     public static final String SUBJECT = "subject";
     @Mock private Context context;
@@ -59,7 +63,22 @@ class IssueCredentialHandlerTest {
     @Mock private EventProbe mockEventProbe;
     @Mock private AuditService mockAuditService;
 
-    @InjectMocks private IssueCredentialHandler handler;
+    private IssueCredentialHandler handler;
+    @SystemStub private EnvironmentVariables environmentVariables;
+
+    @BeforeEach
+    void setup() {
+        environmentVariables.set("AWS_REGION", "eu-west-2");
+
+        this.handler =
+                new IssueCredentialHandler(
+                        mockVerifiableCredentialService,
+                        mockSessionService,
+                        mockEventProbe,
+                        mockAuditService,
+                        mockPersonIdentityService,
+                        mockDocumentCheckRetrievalService);
+    }
 
     @Test
     void shouldReturn200OkWhenIssueCredentialRequestIsValid() throws JOSEException, SqsException {

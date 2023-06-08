@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FormDataValidatorTest {
@@ -42,8 +43,8 @@ class FormDataValidatorTest {
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_STRING, drivingPermitForm.getForenames());
-        assertEquals(TEST_STRING, drivingPermitForm.getSurname());
+        assertNull(drivingPermitForm.getForenames());
+        assertNull(drivingPermitForm.getSurname());
         assertEquals(2, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR_0, validationResult.getError().get(0));
         assertEquals(EXPECTED_ERROR_1, validationResult.getError().get(1));

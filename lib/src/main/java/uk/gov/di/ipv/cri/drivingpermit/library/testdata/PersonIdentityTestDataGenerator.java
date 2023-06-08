@@ -9,6 +9,8 @@ import java.util.List;
 
 public class PersonIdentityTestDataGenerator {
 
+    private PersonIdentityTestDataGenerator() {}
+
     public static PersonIdentity createTestPersonIdentity(AddressType addressType) {
         PersonIdentity personIdentity = new PersonIdentity();
 

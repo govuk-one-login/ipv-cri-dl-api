@@ -41,6 +41,7 @@ public class ServiceFactory {
     private final AuditService auditService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
+    private final Region awsRegion = Region.of(System.getenv("AWS_REGION"));
 
     public ServiceFactory(ObjectMapper objectMapper)
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
@@ -126,7 +127,12 @@ public class ServiceFactory {
         var commonLibConfigurationService =
                 new uk.gov.di.ipv.cri.common.library.service.ConfigurationService();
         return new AuditService(
-                SqsClient.builder().region(Region.EU_WEST_2).build(),
+                SqsClient.builder()
+                        .region(awsRegion)
+                        // TODO: investigate solution to bring this into SQSClientBuilder for best
+                        // practice
+                        // .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                        .build(),
                 commonLibConfigurationService,
                 objectMapper,
                 new AuditEventFactory(commonLibConfigurationService, Clock.systemUTC()));

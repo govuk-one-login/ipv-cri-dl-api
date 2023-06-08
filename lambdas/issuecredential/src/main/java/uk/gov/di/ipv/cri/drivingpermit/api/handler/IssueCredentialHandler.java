@@ -55,12 +55,15 @@ public class IssueCredentialHandler
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String AUTHORIZATION_HEADER_KEY = "Authorization";
+    public static final String LAMBDA_HANDLING_EXCEPTION =
+            "Exception while handling lambda {} exception {}";
     private final VerifiableCredentialService verifiableCredentialService;
     private final PersonIdentityService personIdentityService;
     private final DocumentCheckRetrievalService documentCheckRetrievalService;
     private final SessionService sessionService;
     private EventProbe eventProbe;
     private final AuditService auditService;
+    private final Region awsRegion = Region.of(System.getenv("AWS_REGION"));
 
     public IssueCredentialHandler(
             VerifiableCredentialService verifiableCredentialService,
@@ -85,7 +88,12 @@ public class IssueCredentialHandler
         this.eventProbe = new EventProbe();
         this.auditService =
                 new AuditService(
-                        SqsClient.builder().region(Region.EU_WEST_2).build(),
+                        SqsClient.builder()
+                                .region(awsRegion)
+                                // TODO: investigate solution to bring this into SQSClient.builder
+                                // for best practice
+                                // .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                                .build(),
                         configurationService,
                         new ObjectMapper().registerModule(new JavaTimeModule()),
                         new AuditEventFactory(configurationService, Clock.systemUTC()));
@@ -157,10 +165,7 @@ public class IssueCredentialHandler
             return ApiGatewayResponseGenerator.proxyJwtResponse(
                     HttpStatusCode.OK, signedJWT.serialize());
         } catch (AwsServiceException ex) {
-            LOGGER.error(
-                    "Exception while handling lambda {} exception {}",
-                    context.getFunctionName(),
-                    ex.getClass());
+            LOGGER.error(LAMBDA_HANDLING_EXCEPTION, context.getFunctionName(), ex.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
 
             LOGGER.debug(ex.getMessage(), ex);
@@ -168,10 +173,7 @@ public class IssueCredentialHandler
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ex.awsErrorDetails().errorMessage());
         } catch (CredentialRequestException | ParseException | JOSEException e) {
-            LOGGER.error(
-                    "Exception while handling lambda {} exception {}",
-                    context.getFunctionName(),
-                    e.getClass());
+            LOGGER.error(LAMBDA_HANDLING_EXCEPTION, context.getFunctionName(), e.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
 
             LOGGER.debug(e.getMessage(), e);
@@ -180,9 +182,7 @@ public class IssueCredentialHandler
                     HttpStatusCode.BAD_REQUEST, ErrorResponse.VERIFIABLE_CREDENTIAL_ERROR);
         } catch (SqsException sqsException) {
             LOGGER.error(
-                    "Exception while handling lambda {} exception {}",
-                    context.getFunctionName(),
-                    sqsException.getClass());
+                    LAMBDA_HANDLING_EXCEPTION, context.getFunctionName(), sqsException.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
 
             LOGGER.debug(sqsException.getMessage(), sqsException);
@@ -190,10 +190,7 @@ public class IssueCredentialHandler
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, sqsException.getMessage());
         } catch (Exception e) {
-            LOGGER.error(
-                    "Exception while handling lambda {} exception {}",
-                    context.getFunctionName(),
-                    e);
+            LOGGER.error("Exception while handling lambda {}", context.getFunctionName());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
 
             LOGGER.debug(e.getMessage(), e);

@@ -17,7 +17,8 @@ ext {
 		protobuf_version            : "3.19.4",
 		junit                       : "5.8.2",
 		mockito                     : "4.3.1",
-		cri_common_lib           	: "1.5.0"
+		cri_common_lib           	: "1.5.0",
+		webcompere_version          : "2.0.2",
 	]
 }
 
@@ -102,7 +103,10 @@ subprojects {
 				"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit}",
 				"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito}",
 				"org.mockito:mockito-inline:${dependencyVersions.mockito}",
-				"org.hamcrest:hamcrest:2.2"
+				"org.hamcrest:hamcrest:2.2",
+				"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
+				"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
+
 
 		test_runtime "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit}"
 

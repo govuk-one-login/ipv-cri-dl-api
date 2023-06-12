@@ -7,7 +7,6 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @ExcludeFromGeneratedCoverageReport
@@ -58,11 +57,9 @@ public class DrivingPermitForm {
         this.licenceIssuer = licenceIssuer;
         this.drivingLicenceNumber = drivingLicenceNumber;
         this.postcode = postcode;
-        List<Address> addresses = new ArrayList<>();
         Address address = new Address();
         address.setPostalCode(postcode);
-        addresses.add(address);
-        this.addresses = addresses;
+        this.addresses = List.of(address);
     }
 
     public String getDrivingLicenceNumber() {

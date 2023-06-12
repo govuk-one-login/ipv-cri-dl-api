@@ -5,6 +5,7 @@ import org.apache.http.HttpException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
@@ -40,6 +41,7 @@ public class ServiceFactory {
     private final AuditService auditService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
+    private final Region awsRegion = Region.of(System.getenv("AWS_REGION"));
 
     public ServiceFactory(ObjectMapper objectMapper)
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
@@ -125,7 +127,12 @@ public class ServiceFactory {
         var commonLibConfigurationService =
                 new uk.gov.di.ipv.cri.common.library.service.ConfigurationService();
         return new AuditService(
-                SqsClient.builder().build(),
+                SqsClient.builder()
+                        .region(awsRegion)
+                        // TODO: investigate solution to bring this into SQSClientBuilder for best
+                        // practice
+                        // .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                        .build(),
                 commonLibConfigurationService,
                 objectMapper,
                 new AuditEventFactory(commonLibConfigurationService, Clock.systemUTC()));

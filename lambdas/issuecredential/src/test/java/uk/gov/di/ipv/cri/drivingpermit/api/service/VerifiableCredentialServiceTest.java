@@ -27,6 +27,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHel
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -39,6 +42,7 @@ import static org.mockito.Mockito.*;
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.*;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class VerifiableCredentialServiceTest implements TestFixtures {
 
     private static final Logger LOGGER = LogManager.getLogger();
@@ -49,6 +53,8 @@ class VerifiableCredentialServiceTest implements TestFixtures {
     private final long UNIT_TEST_MAX_JWT_TTL = 100L;
     private final String UNIT_TEST_SUBJECT = "UNIT_TEST_SUBJECT";
 
+    @SystemStub private EnvironmentVariables environmentVariables;
+
     @Mock private ConfigurationService mockConfigurationService;
 
     private ObjectMapper objectMapper;
@@ -57,6 +63,8 @@ class VerifiableCredentialServiceTest implements TestFixtures {
 
     @BeforeEach
     void setup() throws JOSEException, InvalidKeySpecException, NoSuchAlgorithmException {
+
+        environmentVariables.set("AWS_REGION", "eu-west-2");
 
         SignedJWTFactory signedJwtFactory = new SignedJWTFactory(new ECDSASigner(getPrivateKey()));
 

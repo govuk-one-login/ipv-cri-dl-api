@@ -38,8 +38,6 @@ public class IdentityVerificationService {
 
     private final FormDataValidator formDataValidator;
     private final ThirdPartyDocumentGateway thirdPartyGateway;
-    private final AuditService auditService;
-    private final ObjectMapper objectMapper;
 
     private final EventProbe eventProbe;
 
@@ -53,8 +51,6 @@ public class IdentityVerificationService {
             EventProbe eventProbe) {
         this.thirdPartyGateway = thirdPartyGateway;
         this.formDataValidator = formDataValidator;
-        this.auditService = auditService;
-        this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
     }
 

@@ -179,7 +179,7 @@ class ThirdPartyDocumentGatewayTest {
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_30x.getMessage();
+        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_30X.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
@@ -223,7 +223,7 @@ class ThirdPartyDocumentGatewayTest {
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_40x.getMessage();
+        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_40X.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
@@ -268,7 +268,7 @@ class ThirdPartyDocumentGatewayTest {
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_50x.getMessage();
+        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_50X.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(

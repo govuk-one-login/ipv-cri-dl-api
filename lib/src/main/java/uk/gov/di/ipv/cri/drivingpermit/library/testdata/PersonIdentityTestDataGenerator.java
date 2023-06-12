@@ -1,7 +1,5 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.testdata;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.AddressType;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentity;
@@ -11,7 +9,7 @@ import java.util.List;
 
 public class PersonIdentityTestDataGenerator {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private PersonIdentityTestDataGenerator() {}
 
     public static PersonIdentity createTestPersonIdentity(AddressType addressType) {
         PersonIdentity personIdentity = new PersonIdentity();

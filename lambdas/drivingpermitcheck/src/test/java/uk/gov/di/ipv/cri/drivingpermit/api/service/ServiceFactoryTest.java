@@ -9,6 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.HttpRetryer;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -16,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class ServiceFactoryTest {
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private ConfigurationService mockConfigurationService;
@@ -29,9 +33,13 @@ class ServiceFactoryTest {
 
     @Mock private EventProbe mockEventProbe;
 
+    @SystemStub private EnvironmentVariables environmentVariables;
+
     @Test
     void shouldCreateIdentityVerificationService()
             throws NoSuchAlgorithmException, InvalidKeyException {
+        environmentVariables.set("AWS_REGION", "eu-west-2");
+
         ServiceFactory serviceFactory =
                 new ServiceFactory(
                         mockObjectMapper,

@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public class DocumentCheckTestDataGenerator {
 
+    private DocumentCheckTestDataGenerator() {}
+
     public static DocumentCheckResultItem generateValidResultItem() {
 
         LocalDate expiryDate = LocalDate.now().plusYears(5);

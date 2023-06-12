@@ -1,16 +1,12 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.nimbusds.oauth2.sdk.util.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import software.amazon.lambda.powertools.parameters.ParamProvider;
 import software.amazon.lambda.powertools.parameters.SecretsProvider;
 
 import java.util.Objects;
 
 public class ConfigurationService {
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     private final String documentCheckResultTableName;
     private final String contraindicationMappings;

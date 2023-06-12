@@ -7,7 +7,7 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario: IPV Core Routing To Driving Licence CRI - 3 Options Available In 'Who was your UK driving licence issued by?' Page (STUB)
     When I select the radio option UK driving licence and click on Continue
-    Then I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I can see a radio button titled “DVLA”
     Then I can see a radio button titled “DVA”
     And I can see a I do not have a UK driving licence radio button titled I do not have a UK driving licence
@@ -25,7 +25,7 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario: User Does Not Have UK Driving Licence - Unhappy Path (STUB)
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     When I click I do not have UK Driving License and continue
     Then I should be navigated to Which photo ID would you like to use? page
     And The test is complete and I close the driver
@@ -35,9 +35,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVA Driving Licence Prove Your Identity Full Journey Route Happy Path (STUB)
     And I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVA radio button and Continue
-    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page
     When User enters DVA data as a <DVADrivingLicenceSubject>
     And User clicks on continue
     And I enter BA2 5AA in the Postcode field and find address
@@ -60,9 +60,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVA Prove Your Identity Full Journey Route - Retry Test Happy Path
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVA radio button and Continue
-    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page
     When User enters invalid Driving Licence DVA details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -88,9 +88,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVA Prove Your Identity Full Journey Route Unhappy Path - User Failed Second Attempt
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVA radio button and Continue
-    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page
     When User enters invalid Driving Licence DVA details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -106,11 +106,11 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario: DVA Prove Your Identity Full Journey Route - Back Button From DVA Details Entry Screen To Licence Issuer Page
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVA radio button and Continue
-    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page
     When User click on ‘Back' Link
-    Then I should be on `Who was your UK driving licence issued by` page
+    Then I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And The test is complete and I close the driver
 
 ############  DVLA  ############
@@ -118,9 +118,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVLA Driving Licence Prove Your Identity Full Journey Route Happy Path (STUB)
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVLA radio button and Continue
-    And I should be on `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page
     When User enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue
     And I enter BA2 5AA in the Postcode field and find address
@@ -143,9 +143,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVLA Prove Your Identity Full Journey Route - Retry Test Happy Path
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVLA radio button and Continue
-    And I should be on `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page
     When User enters invalid Driving Licence DVLA details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -171,9 +171,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVLA Prove Your Identity Full Journey Route Unhappy Path - User failed Second Attempt
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVLA radio button and Continue
-    And I should be on `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page
     When User enters invalid Driving Licence DVLA details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -189,9 +189,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario: DVLA Prove Your Identity Full Journey Route - Back Button From DVLA Details Entry Screen To Licence Issuer Page
     Given I select the radio option UK driving licence and click on Continue
-    And I should be on `Who was your UK driving licence issued by` page
+    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVLA radio button and Continue
-    And I should be on `Enter your details exactly as they appear on your UK driving licence` page
+    And I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page
     When User click on ‘Back' Link
-    Then I should be on `Who was your UK driving licence issued by` page
+    Then I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And The test is complete and I close the driver

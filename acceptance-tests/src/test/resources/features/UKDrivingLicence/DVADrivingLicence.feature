@@ -15,6 +15,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 3
     And JSON response should contain personal number 55667788 same as given Driving Licence
+    And Expiry date should not be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
       |DVADrivingLicenceSubject             |

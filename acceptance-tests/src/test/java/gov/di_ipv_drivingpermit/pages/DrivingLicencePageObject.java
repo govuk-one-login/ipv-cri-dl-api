@@ -25,8 +25,7 @@ import java.util.stream.Collectors;
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
 import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DrivingLicencePageObject extends UniversalSteps {
 
@@ -1094,5 +1093,22 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertDVLAContentLineTwo(String contentDVLALine2) {
         Assert.assertEquals(contentDVLALine2, dvlaSentenceTwo.getText());
+    }
+
+    private JsonNode getVCFromJson(String vc) throws JsonProcessingException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        return jsonNode.get(vc);
+    }
+
+    public void expiryAbsentFromVC(String checkType) throws JsonProcessingException {
+        JsonNode vcNode = getVCFromJson("vc");
+        JsonNode evidenceNode = vcNode.get("evidence").get(0);
+        boolean expInVC =
+                evidenceNode.findValues("expiryDate").stream()
+                        .anyMatch(x -> x.asText().equals(checkType));
+        assertFalse(expInVC);
     }
 }

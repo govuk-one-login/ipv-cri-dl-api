@@ -1,6 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -13,7 +14,6 @@ import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
 
 import javax.net.ssl.SSLContext;
 
@@ -30,12 +30,8 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 
-public class ServiceFactory {
-    private final IdentityVerificationService identityVerificationService;
-    private final ContraindicationMapper contraindicationMapper;
-    private final DcsCryptographyService dcsCryptographyService;
+public class CommonServiceFactory {
     private final ConfigurationService configurationService;
-    private final FormDataValidator formDataValidator;
     private final ObjectMapper objectMapper;
     private final CloseableHttpClient httpClient;
     private final AuditService auditService;
@@ -43,43 +39,28 @@ public class ServiceFactory {
     private final EventProbe eventProbe;
     private final Region awsRegion = Region.of(System.getenv("AWS_REGION"));
 
-    public ServiceFactory(ObjectMapper objectMapper)
+    public CommonServiceFactory(ObjectMapper objectMapper)
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
                     InvalidKeySpecException, KeyStoreException, IOException, HttpException {
         this.objectMapper = objectMapper;
         this.eventProbe = new EventProbe();
-        this.formDataValidator = new FormDataValidator();
         this.configurationService = createConfigurationService();
-        this.dcsCryptographyService = new DcsCryptographyService(configurationService);
-        this.contraindicationMapper = new ContraIndicatorRemoteMapper(configurationService);
         this.httpClient = generateHttpClient(configurationService);
         this.auditService = createAuditService(this.objectMapper);
         this.httpRetryer = new HttpRetryer(httpClient, eventProbe);
-        this.identityVerificationService = createIdentityVerificationService(this.auditService);
     }
 
+    /** Creates common services used across CRIs/lambdas */
     @ExcludeFromGeneratedCoverageReport
-    ServiceFactory(
-            ObjectMapper objectMapper,
-            EventProbe eventProbe,
-            ConfigurationService configurationService,
-            DcsCryptographyService dcsCryptographyService,
-            ContraindicationMapper contraindicationMapper,
-            FormDataValidator formDataValidator,
-            CloseableHttpClient httpClient,
-            AuditService auditService,
-            HttpRetryer httpRetryer)
-            throws NoSuchAlgorithmException, InvalidKeyException {
-        this.objectMapper = objectMapper;
-        this.eventProbe = eventProbe;
-        this.configurationService = configurationService;
-        this.dcsCryptographyService = dcsCryptographyService;
-        this.contraindicationMapper = contraindicationMapper;
-        this.formDataValidator = formDataValidator;
+    CommonServiceFactory(CloseableHttpClient httpClient, HttpRetryer httpRetryer)
+            throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
+                    InvalidKeySpecException {
+        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        this.eventProbe = new EventProbe();
+        this.configurationService = createConfigurationService();
         this.httpClient = httpClient;
-        this.auditService = auditService;
         this.httpRetryer = httpRetryer;
-        this.identityVerificationService = createIdentityVerificationService(this.auditService);
+        this.auditService = createAuditService(this.objectMapper);
     }
 
     private ConfigurationService createConfigurationService()
@@ -88,39 +69,6 @@ public class ServiceFactory {
                 ParamManager.getSecretsProvider(),
                 ParamManager.getSsmProvider(),
                 System.getenv("ENVIRONMENT"));
-    }
-
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
-    }
-
-    public IdentityVerificationService getIdentityVerificationService() {
-        return this.identityVerificationService;
-    }
-
-    private IdentityVerificationService createIdentityVerificationService(
-            AuditService auditService) {
-
-        ThirdPartyDocumentGateway thirdPartyGateway =
-                new ThirdPartyDocumentGateway(
-                        this.objectMapper,
-                        this.dcsCryptographyService,
-                        this.configurationService,
-                        this.httpRetryer,
-                        eventProbe);
-
-        return new IdentityVerificationService(
-                thirdPartyGateway,
-                this.formDataValidator,
-                this.contraindicationMapper,
-                auditService,
-                configurationService,
-                objectMapper,
-                eventProbe);
-    }
-
-    public AuditService getAuditService() {
-        return auditService;
     }
 
     private AuditService createAuditService(ObjectMapper objectMapper) {
@@ -197,5 +145,29 @@ public class ServiceFactory {
         }
 
         return keyStore;
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+
+    public EventProbe getEventProbe() {
+        return eventProbe;
+    }
+
+    public AuditService getAuditService() {
+        return auditService;
+    }
+
+    public CloseableHttpClient getHttpClient() {
+        return httpClient;
+    }
+
+    public HttpRetryer getHttpRetryer() {
+        return httpRetryer;
     }
 }

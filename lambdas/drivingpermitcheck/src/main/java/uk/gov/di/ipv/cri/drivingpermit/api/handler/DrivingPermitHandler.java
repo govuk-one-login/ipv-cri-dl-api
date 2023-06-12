@@ -30,9 +30,10 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.CRIServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.CommonServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
@@ -76,38 +77,36 @@ public class DrivingPermitHandler
             throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
                     InvalidKeySpecException, HttpException, KeyStoreException, IOException {
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        ServiceFactory serviceFactory = new ServiceFactory(objectMapper);
-        this.eventProbe = new EventProbe();
-        this.identityVerificationService = serviceFactory.getIdentityVerificationService();
+        CommonServiceFactory commonServiceFactory = new CommonServiceFactory(objectMapper);
+        CRIServiceFactory criServiceFactory = new CRIServiceFactory(commonServiceFactory);
+        this.eventProbe = commonServiceFactory.getEventProbe();
+        this.identityVerificationService = criServiceFactory.getIdentityVerificationService();
         this.personIdentityService = new PersonIdentityService();
         this.sessionService = new SessionService();
-        this.configurationService = serviceFactory.getConfigurationService();
+        this.configurationService = commonServiceFactory.getConfigurationService();
         this.dataStore =
                 new DataStore<>(
                         configurationService.getDocumentCheckResultTableName(),
                         DocumentCheckResultItem.class,
                         DataStore.getClient());
-        this.auditService = serviceFactory.getAuditService();
+        this.auditService = commonServiceFactory.getAuditService();
     }
 
     @ExcludeFromGeneratedCoverageReport
     public DrivingPermitHandler(
-            ServiceFactory serviceFactory,
-            ObjectMapper objectMapper,
-            EventProbe eventProbe,
+            CommonServiceFactory commonServiceFactory,
+            CRIServiceFactory criServiceFactory,
             PersonIdentityService personIdentityService,
             SessionService sessionService,
-            DataStore<DocumentCheckResultItem> dataStore,
-            ConfigurationService configurationService,
-            AuditService auditService) {
-        this.identityVerificationService = serviceFactory.getIdentityVerificationService();
-        this.objectMapper = objectMapper;
-        this.eventProbe = eventProbe;
+            DataStore<DocumentCheckResultItem> dataStore) {
+        this.identityVerificationService = criServiceFactory.getIdentityVerificationService();
+        this.objectMapper = commonServiceFactory.getObjectMapper();
+        this.eventProbe = commonServiceFactory.getEventProbe();
         this.personIdentityService = personIdentityService;
         this.sessionService = sessionService;
-        this.configurationService = configurationService;
+        this.configurationService = commonServiceFactory.getConfigurationService();
         this.dataStore = dataStore;
-        this.auditService = auditService;
+        this.auditService = commonServiceFactory.getAuditService();
     }
 
     @Override

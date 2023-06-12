@@ -14,6 +14,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
@@ -25,9 +26,10 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.CRIServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.CommonServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -54,7 +56,8 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 
 @ExtendWith(MockitoExtension.class)
 class DrivingPermitHandlerTest {
-    @Mock private ServiceFactory mockServiceFactory;
+    @Mock private CommonServiceFactory mockCommonServiceFactory;
+    @Mock private CRIServiceFactory mockCRIServiceFactory;
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private IdentityVerificationService mockIdentityVerificationService;
     @Mock private EventProbe mockEventProbe;
@@ -64,22 +67,20 @@ class DrivingPermitHandlerTest {
     @Mock private DataStore dataStore;
     @Mock private ConfigurationService configurationService;
     @Mock private AuditService auditService;
+    @Mock private SqsClient sqsClient;
     private DrivingPermitHandler drivingPermitHandler;
 
     @BeforeEach
     void setup() {
-        when(mockServiceFactory.getIdentityVerificationService())
+        when(mockCRIServiceFactory.getIdentityVerificationService())
                 .thenReturn(mockIdentityVerificationService);
         this.drivingPermitHandler =
                 new DrivingPermitHandler(
-                        mockServiceFactory,
-                        mockObjectMapper,
-                        mockEventProbe,
+                        mockCommonServiceFactory,
+                        mockCRIServiceFactory,
                         personIdentityService,
                         mockSessionService,
-                        dataStore,
-                        configurationService,
-                        auditService);
+                        dataStore);
     }
 
     @Test
@@ -124,6 +125,9 @@ class DrivingPermitHandlerTest {
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
         when(configurationService.getDocumentCheckItemExpirationEpoch()).thenReturn(1000L);
+
+        when(mockCommonServiceFactory.getEventProbe()).thenReturn(new EventProbe());
+        when(mockCommonServiceFactory.getAuditService()).thenReturn(auditService);
 
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
@@ -180,6 +184,9 @@ class DrivingPermitHandlerTest {
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
+        when(mockCommonServiceFactory.getEventProbe()).thenReturn(new EventProbe());
+        when(mockCommonServiceFactory.getAuditService()).thenReturn(auditService);
+
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
@@ -243,6 +250,8 @@ class DrivingPermitHandlerTest {
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
+        when(mockCommonServiceFactory.getEventProbe()).thenReturn(new EventProbe());
+        when(mockCommonServiceFactory.getAuditService()).thenReturn(auditService);
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
@@ -285,6 +294,8 @@ class DrivingPermitHandlerTest {
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
+        when(mockCommonServiceFactory.getEventProbe()).thenReturn(new EventProbe());
+        when(mockCommonServiceFactory.getAuditService()).thenReturn(auditService);
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
@@ -336,6 +347,8 @@ class DrivingPermitHandlerTest {
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
+        when(mockCommonServiceFactory.getEventProbe()).thenReturn(new EventProbe());
+        when(mockCommonServiceFactory.getAuditService()).thenReturn(auditService);
 
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);

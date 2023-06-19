@@ -35,8 +35,10 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVA Driving Licence Prove Your Identity Full Journey Route Happy Path (STUB)
     And I select the radio option UK driving licence and click on Continue
+    And I should be on `Who was your UK driving licence issued by? – Prove your identity – GOV.UK` page
     And I should be on `Who was your UK driving licence issued by` page
     And I click on DVA radio button and Continue
+    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page
     And I should be on DVA `Enter your details exactly as they appear on your UK driving licence` page
     When User enters DVA data as a <DVADrivingLicenceSubject>
     And User clicks on continue
@@ -120,6 +122,7 @@ Feature: Prove Your Identity Full Journey
     Given I select the radio option UK driving licence and click on Continue
     And I should be on `Who was your UK driving licence issued by` page
     And I click on DVLA radio button and Continue
+    And I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page
     And I should be on `Enter your details exactly as they appear on your UK driving licence` page
     When User enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue

@@ -261,9 +261,8 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         assertDVLAContentLineTwo(contentDVLALine2);
     }
 
-    @And("^(.*) should not be absent in the JSON payload")
-    public void expiryDateShouldNotBeAbsentInTheJSONPayload(String checkType)
-            throws JsonProcessingException {
-        expiryAbsentFromVC(checkType);
+    @And("^(.*) should not be present in the JSON payload$")
+    public void nbfAndExpiryInJsonResponse(String exp) throws JsonProcessingException {
+        expiryAbsentFromVC(exp);
     }
 }

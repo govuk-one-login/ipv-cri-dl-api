@@ -18,12 +18,15 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -1103,12 +1106,34 @@ public class DrivingLicencePageObject extends UniversalSteps {
         return jsonNode.get(vc);
     }
 
-    public void expiryAbsentFromVC(String checkType) throws JsonProcessingException {
-        JsonNode vcNode = getVCFromJson("vc");
-        JsonNode evidenceNode = vcNode.get("evidence").get(0);
-        boolean expInVC =
-                evidenceNode.findValues("expiryDate").stream()
-                        .anyMatch(x -> x.asText().equals(checkType));
-        assertFalse(expInVC);
+    public void expiryAbsentFromVC(String exp) throws JsonProcessingException {
+        assertNbfIsRecentAndExpiryIsNull();
+    }
+
+    private void assertNbfIsRecentAndExpiryIsNull() throws JsonProcessingException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode nbfNode = jsonNode.get("nbf");
+        JsonNode expNode = jsonNode.get("exp");
+        String nbf = jsonNode.get("nbf").asText();
+        LOGGER.info("nbf = " + nbfNode);
+        LOGGER.info("exp = " + expNode);
+        LocalDateTime nbfDateTime =
+                LocalDateTime.ofEpochSecond(Long.parseLong(nbf), 0, ZoneOffset.UTC);
+
+        assertNull(expNode);
+        assertFalse(isWithinRange(nbfDateTime));
+    }
+
+    boolean isWithinRange(LocalDateTime testDate) {
+        LocalDateTime nbfMin = LocalDateTime.now().minusSeconds(30);
+        LocalDateTime nbfMax = LocalDateTime.now().plusSeconds(30);
+        LOGGER.info("nbfMin " + nbfMin);
+        LOGGER.info("nbfMax " + nbfMax);
+        LOGGER.info("nbf " + testDate);
+
+        return testDate.isBefore(nbfMax) && testDate.isAfter(nbfMin);
     }
 }

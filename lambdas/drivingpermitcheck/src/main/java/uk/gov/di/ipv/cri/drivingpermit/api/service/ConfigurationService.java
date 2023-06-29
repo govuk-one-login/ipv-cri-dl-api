@@ -70,6 +70,8 @@ public class ConfigurationService {
     private final Clock clock;
 
     private final long documentCheckItemTtl;
+    private final boolean isPerformanceStub;
+    private final boolean logDcsResponse;
 
     public ConfigurationService(
             SecretsProvider secretsProvider, ParamProvider paramProvider, String env)
@@ -116,8 +118,12 @@ public class ConfigurationService {
                         getThumbprint((X509Certificate) cert, "SHA-256"));
         this.documentCheckItemTtl =
                 Long.parseLong(paramProvider.get(getCommonParameterName("SessionTtl")));
-        // *****************************Feature Toggles*******************************
 
+        // *****************************Feature Toggles*******************************
+        this.isPerformanceStub =
+                Boolean.parseBoolean(paramProvider.get(getParameterName("isPerformanceStub")));
+        this.logDcsResponse =
+                Boolean.parseBoolean(paramProvider.get(getParameterName("logDcsResponse")));
         // *********************************Secrets***********************************
 
     }
@@ -215,5 +221,13 @@ public class ConfigurationService {
 
     public long getDocumentCheckItemExpirationEpoch() {
         return clock.instant().plus(documentCheckItemTtl, ChronoUnit.SECONDS).getEpochSecond();
+    }
+
+    public boolean isPerformanceStub() {
+        return isPerformanceStub;
+    }
+
+    public boolean isLogDcsResponse() {
+        return logDcsResponse;
     }
 }

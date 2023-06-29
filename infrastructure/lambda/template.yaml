@@ -618,6 +618,22 @@ Resources:
       Value: !FindInMap [ JwtTtlUnitMapping, Environment, !Ref Environment ]
       Description: The unit for the time-to-live for an JWT e.g. (MONTHS)
 
+  IsPerformanceStubParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/isPerformanceStub"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow performance testing passed SSL
+
+  logDcsResponseParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/logDcsResponse"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow logging of DCS responses
+
   LoggingKmsKey:
     Type: AWS::KMS::Key
     Properties:

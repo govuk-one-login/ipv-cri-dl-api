@@ -216,6 +216,9 @@ public class ThirdPartyDocumentGateway {
             LOGGER.info("Third party response code {}", statusCode);
 
             try {
+                if (configurationService.isLogDcsResponse()) {
+                    LOGGER.info("DCS response " + responseBody);
+                }
                 DcsResponse unwrappedDcsResponse =
                         dcsCryptographyService.unwrapDcsResponse(responseBody);
                 validateDcsResponse(unwrappedDcsResponse);

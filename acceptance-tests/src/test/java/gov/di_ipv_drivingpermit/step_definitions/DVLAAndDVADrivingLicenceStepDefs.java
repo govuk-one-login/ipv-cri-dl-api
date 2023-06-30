@@ -1,5 +1,6 @@
 package gov.di_ipv_drivingpermit.step_definitions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import gov.di_ipv_drivingpermit.pages.*;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -258,5 +259,10 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void iSeeTheLineToFindOutMoreAboutHowYourDrivingLicenceDetailsWillBeUsedYouCanRead(
             String contentDVLALine2) {
         assertDVLAContentLineTwo(contentDVLALine2);
+    }
+
+    @And("^(.*) should not be present in the JSON payload$")
+    public void nbfAndExpiryInJsonResponse(String exp) throws JsonProcessingException {
+        expiryAbsentFromVC(exp);
     }
 }

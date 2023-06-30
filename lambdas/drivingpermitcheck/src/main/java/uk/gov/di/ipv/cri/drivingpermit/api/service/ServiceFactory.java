@@ -155,6 +155,9 @@ public class ServiceFactory {
                             configurationService.getDcsIntermediateCert()
                         });
 
+        if (configurationService.isPerformanceStub()) {
+            return contextSetup(keystoreTLS, null);
+        }
         return contextSetup(keystoreTLS, trustStore);
     }
 

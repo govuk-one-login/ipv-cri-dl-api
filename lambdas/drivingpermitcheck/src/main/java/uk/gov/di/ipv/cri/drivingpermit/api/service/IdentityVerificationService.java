@@ -24,17 +24,21 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 
 public class IdentityVerificationService {
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final String DOCUMENT_VALIDITY_CI = "D02";
+
+    private static final int MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE = 3;
+    private static final int MAX_DRIVING_PERMIT_GPG45_VALIDITY_VALUE = 2;
+    private static final int MIN_DRIVING_PERMIT_GPG45_VALUE = 0;
+    private static final int MAX_DRIVING_ACTIVITY_HISTORY_SCORE = 1;
+    private static final int MIN_DRIVING_ACTIVITY_HISTORY_SCORE = 0;
+
     private static final String ERROR_MSG_CONTEXT =
             "Error occurred when attempting to invoke the third party api";
     private static final String ERROR_DRIVING_PERMIT_CHECK_RESULT_RETURN_NULL =
             "Null DrivingPermitCheckResult returned when invoking third party API.";
     private static final String ERROR_DRIVING_PERMIT_CHECK_RESULT_NO_ERR_MSG =
             "DrivingPermitCheckResult had no error message.";
-    private static final int MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE = 3;
-    private static final int MAX_DRIVING_PERMIT_GPG45_VALIDITY_VALUE = 2;
-    private static final int MIN_DRIVING_PERMIT_GPG45_VALUE = 0;
-    private static final int MAX_DRIVING_ACTIVITY_HISTORY_SCORE = 1;
-    private static final int MIN_DRIVING_ACTIVITY_HISTORY_SCORE = 0;
 
     private final FormDataValidator formDataValidator;
     private final ThirdPartyDocumentGateway thirdPartyGateway;
@@ -160,6 +164,6 @@ public class IdentityVerificationService {
     }
 
     private List<String> calculateContraIndicators(DocumentCheckResult documentCheckResult) {
-        return documentCheckResult.isValid() ? null : List.of("DO2");
+        return documentCheckResult.isValid() ? null : List.of(DOCUMENT_VALIDITY_CI);
     }
 }

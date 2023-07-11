@@ -28,7 +28,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And JSON response should contain personal number PARKE610112PBFGI same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
@@ -64,7 +64,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -77,7 +77,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject      |
@@ -90,7 +90,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -103,7 +103,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -116,7 +116,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -129,7 +129,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -157,7 +157,7 @@ Feature: Driving Licence Test
     When User Re-enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -170,7 +170,7 @@ Feature: Driving Licence Test
     Then Proper error message for Could not find your details is displayed
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci DO2, validity score 0 and strength score 3
+    And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
 
   @DVLADrivingLicence_test @smoke

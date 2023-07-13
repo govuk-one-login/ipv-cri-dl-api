@@ -70,6 +70,7 @@ class DrivingPermitHandlerTest {
     void setup() {
         when(mockServiceFactory.getIdentityVerificationService())
                 .thenReturn(mockIdentityVerificationService);
+        when(mockServiceFactory.getAuditService()).thenReturn(auditService);
         this.drivingPermitHandler =
                 new DrivingPermitHandler(
                         mockServiceFactory,
@@ -78,8 +79,7 @@ class DrivingPermitHandlerTest {
                         personIdentityService,
                         mockSessionService,
                         dataStore,
-                        configurationService,
-                        auditService);
+                        configurationService);
     }
 
     @Test

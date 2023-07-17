@@ -98,8 +98,7 @@ public class DrivingPermitHandler
             PersonIdentityService personIdentityService,
             SessionService sessionService,
             DataStore<DocumentCheckResultItem> dataStore,
-            ConfigurationService configurationService,
-            AuditService auditService) {
+            ConfigurationService configurationService) {
         this.identityVerificationService = serviceFactory.getIdentityVerificationService();
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
@@ -107,7 +106,7 @@ public class DrivingPermitHandler
         this.sessionService = sessionService;
         this.configurationService = configurationService;
         this.dataStore = dataStore;
-        this.auditService = auditService;
+        this.auditService = serviceFactory.getAuditService();
     }
 
     @Override
@@ -303,5 +302,9 @@ public class DrivingPermitHandler
         documentCheckResultItem.setTransactionId(result.getTransactionId());
 
         return documentCheckResultItem;
+    }
+
+    public AuditService getAuditService() {
+        return auditService;
     }
 }

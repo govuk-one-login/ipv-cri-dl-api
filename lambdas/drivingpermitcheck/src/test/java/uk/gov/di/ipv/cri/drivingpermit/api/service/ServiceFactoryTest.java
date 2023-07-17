@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,22 +36,26 @@ class ServiceFactoryTest {
 
     @SystemStub private EnvironmentVariables environmentVariables;
 
-    @Test
-    void shouldCreateIdentityVerificationService()
-            throws NoSuchAlgorithmException, InvalidKeyException {
+    ServiceFactory serviceFactory;
+
+    @BeforeEach
+    void setup() throws NoSuchAlgorithmException, InvalidKeyException {
         environmentVariables.set("AWS_REGION", "eu-west-2");
 
-        ServiceFactory serviceFactory =
+        serviceFactory =
                 new ServiceFactory(
-                        mockObjectMapper,
                         mockEventProbe,
                         mockConfigurationService,
                         mockDcsCryptographyService,
                         mockContraindicationMapper,
                         mockFormDataValidator,
                         mockHttpClient,
-                        mockAuditService,
-                        mockHttpRetryer);
+                        mockAuditService);
+    }
+
+    @Test
+    void shouldCreateIdentityVerificationService()
+            throws NoSuchAlgorithmException, InvalidKeyException {
 
         IdentityVerificationService identityVerificationService =
                 serviceFactory.getIdentityVerificationService();

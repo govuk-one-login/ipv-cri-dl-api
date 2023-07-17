@@ -1,6 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -60,17 +61,15 @@ public class ServiceFactory {
 
     @ExcludeFromGeneratedCoverageReport
     ServiceFactory(
-            ObjectMapper objectMapper,
             EventProbe eventProbe,
             ConfigurationService configurationService,
             DcsCryptographyService dcsCryptographyService,
             ContraindicationMapper contraindicationMapper,
             FormDataValidator formDataValidator,
             CloseableHttpClient httpClient,
-            AuditService auditService,
-            HttpRetryer httpRetryer)
+            AuditService auditService)
             throws NoSuchAlgorithmException, InvalidKeyException {
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = eventProbe;
         this.configurationService = configurationService;
         this.dcsCryptographyService = dcsCryptographyService;
@@ -78,7 +77,7 @@ public class ServiceFactory {
         this.formDataValidator = formDataValidator;
         this.httpClient = httpClient;
         this.auditService = auditService;
-        this.httpRetryer = httpRetryer;
+        this.httpRetryer = new HttpRetryer(httpClient, eventProbe);
         this.identityVerificationService = createIdentityVerificationService(this.auditService);
     }
 
@@ -121,6 +120,10 @@ public class ServiceFactory {
 
     public AuditService getAuditService() {
         return auditService;
+    }
+
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
     }
 
     private AuditService createAuditService(ObjectMapper objectMapper) {

@@ -60,6 +60,12 @@ public class ConfigurationService {
     private final Certificate drivingPermitTlsSelfCert;
     private final Certificate dcsTlsRootCert;
     private final Certificate dcsIntermediateCert;
+    private final Certificate dvaEncryptionCert;
+    private final Certificate dvaSigningCert;
+    private final Certificate dvaTlsInterCert;
+    private final Certificate dvaTlsRootCert;
+    private final Certificate dvaTlsCert;
+
 
     private final PrivateKey drivingPermitEncryptionKey;
     private final PrivateKey drivingPermitCriSigningKey;
@@ -94,6 +100,8 @@ public class ConfigurationService {
         this.documentCheckResultTableName =
                 paramProvider.get(getParameterName("DocumentCheckResultTableName"));
 
+        // ****************************DCS Parameters****************************
+
         this.dcsSigningCert = getCertificate(paramProvider, "signingCertForDrivingPermitToVerify");
         this.dcsEncryptionCert =
                 getCertificate(paramProvider, "encryptionCertForDrivingPermitToEncrypt");
@@ -103,6 +111,18 @@ public class ConfigurationService {
         this.dcsTlsRootCert = getCertificate(paramProvider, "tlsRootCertificate");
 
         this.dcsIntermediateCert = getCertificate(paramProvider, "tlsIntermediateCertificate");
+
+        // ****************************DVA Parameters****************************
+
+        this.dvaEncryptionCert = getCertificate(paramProvider, "encryptionCertForDrivingPermitToEncrypt");
+
+        this.dvaSigningCert = getCertificate(paramProvider, "signingCertForDvaToVerify");
+
+        this.dvaTlsInterCert = getCertificate(paramProvider, "tlsIntermediateCertificate");
+
+        this.dvaTlsRootCert = getCertificate(paramProvider, "tlsRootCertificate");
+
+        this.dvaTlsCert = getCertificate(paramProvider, "tlsCert");
 
         this.drivingPermitTlsKey = getPrivateKey(paramProvider, "tlsKey");
 
@@ -218,6 +238,16 @@ public class ConfigurationService {
     public PrivateKey getDrivingPermitTlsKey() {
         return drivingPermitTlsKey;
     }
+
+    public Certificate getDvaEncryptionCert() { return dvaEncryptionCert; }
+
+    public Certificate getDvaSigningCert() { return dvaSigningCert; }
+
+    public Certificate getDvaTlsInterCert() { return dvaTlsInterCert; }
+
+    public Certificate getDvaTlsRootCert() { return dvaTlsRootCert; }
+
+    public Certificate getDvaTlsCert() { return dvaTlsCert; }
 
     public long getDocumentCheckItemExpirationEpoch() {
         return clock.instant().plus(documentCheckItemTtl, ChronoUnit.SECONDS).getEpochSecond();

@@ -65,6 +65,7 @@ public class ConfigurationService {
     private final String dcsEndpointUri;
     private final String parameterPrefix;
     private final String commonParameterPrefix;
+    private final boolean useLegacy;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
     private final Certificate drivingPermitTlsSelfCert;
@@ -163,6 +164,7 @@ public class ConfigurationService {
                 Long.parseLong(paramProvider.get(getCommonParameterName("SessionTtl")));
 
         // *****************************Feature Toggles*******************************
+        this.useLegacy = Boolean.parseBoolean(paramProvider.get(getParameterName("useLegacy")));
         this.isPerformanceStub =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("isPerformanceStub")));
         this.logDcsResponse =
@@ -280,6 +282,10 @@ public class ConfigurationService {
 
     public Certificate getDvaTlsSelfCert() {
         return dvaTlsSelfCert;
+    }
+
+    public boolean getUseLegacy() {
+        return useLegacy;
     }
 
     public long getDocumentCheckItemExpirationEpoch() {

@@ -47,6 +47,7 @@ class IdentityVerificationServiceTest {
 
     @BeforeEach
     void setup() {
+        when(configurationService.getUseLegacy()).thenReturn(true);
         this.identityVerificationService =
                 new IdentityVerificationService(
                         mockThirdPartyGateway,
@@ -124,5 +125,42 @@ class IdentityVerificationServiceTest {
 
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
         verify(mockEventProbe).counterMetric(DCS_CHECK_REQUEST_FAILED);
+    }
+
+    @Test
+    void verifyUseLegacyParameterRoutesUsersToDvaWhenFalse()
+            throws IOException, InterruptedException, CertificateException, ParseException,
+                    JOSEException, OAuthHttpResponseExceptionWithErrorBody {
+
+        when(configurationService.getUseLegacy()).thenReturn(false);
+        this.identityVerificationService =
+                new IdentityVerificationService(
+                        mockThirdPartyGateway,
+                        formDataValidator,
+                        mockContraindicationMapper,
+                        mockAuditService,
+                        configurationService,
+                        objectMapper,
+                        mockEventProbe);
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
+        testFraudCheckResult.setExecutedSuccessfully(true);
+        String[] thirdPartyFraudCodes = new String[] {"sample-code"};
+        String[] mappedFraudCodes = new String[] {"mapped-code"};
+        testFraudCheckResult.setValid(true);
+        when(formDataValidator.validate(drivingPermitForm))
+                .thenReturn(ValidationResult.createValidResult());
+        when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
+                .thenReturn(testFraudCheckResult);
+
+        DocumentCheckVerificationResult result =
+                this.identityVerificationService.verifyIdentity(drivingPermitForm);
+
+        assertNotNull(result);
+        verify(formDataValidator).validate(drivingPermitForm);
+        verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
+        // This below line will need to be updated to new performDvaDocumentCheck method once
+        // created
+        verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
     }
 }

@@ -45,6 +45,8 @@ public class IdentityVerificationService {
 
     private final EventProbe eventProbe;
 
+    private final boolean useDcs;
+
     IdentityVerificationService(
             ThirdPartyDocumentGateway thirdPartyGateway,
             FormDataValidator formDataValidator,
@@ -56,6 +58,7 @@ public class IdentityVerificationService {
         this.thirdPartyGateway = thirdPartyGateway;
         this.formDataValidator = formDataValidator;
         this.eventProbe = eventProbe;
+        this.useDcs = configurationService.getUseLegacy();
     }
 
     public DocumentCheckVerificationResult verifyIdentity(DrivingPermitForm drivingPermitData)
@@ -80,9 +83,14 @@ public class IdentityVerificationService {
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
 
-            DocumentCheckResult documentCheckResult =
-                    thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            DocumentCheckResult documentCheckResult = new DocumentCheckResult();
 
+            if (useDcs) {
+                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            } else {
+                // replace with new method in
+                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            }
             LOGGER.info("Third party response mapped");
             if (Objects.nonNull(documentCheckResult)) {
                 result.setExecutedSuccessfully(documentCheckResult.isExecutedSuccessfully());

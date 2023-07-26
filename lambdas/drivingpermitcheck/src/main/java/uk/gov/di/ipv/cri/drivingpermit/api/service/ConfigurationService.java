@@ -23,6 +23,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Objects;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DRIVING_PERMIT_CRI_SIGNING_CERT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DRIVING_PERMIT_CRI_SIGNING_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DRIVING_PERMIT_ENCRYPTION_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_ENCRYPTION_CERT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_CERT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_INTER_CERT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_ROOT_CERT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_SIGNING_CERT;
+
 public class ConfigurationService {
 
     static class KeyStoreParams {
@@ -60,17 +70,17 @@ public class ConfigurationService {
     private final Certificate drivingPermitTlsSelfCert;
     private final Certificate dcsTlsRootCert;
     private final Certificate dcsIntermediateCert;
-    private final Certificate dvaEncryptionCert;
-    private final Certificate dvaSigningCert;
-    private final Certificate dvaTlsInterCert;
-    private final Certificate dvaTlsRootCert;
-    private final Certificate dvaTlsCert;
-
-
     private final PrivateKey drivingPermitEncryptionKey;
     private final PrivateKey drivingPermitCriSigningKey;
     private final PrivateKey drivingPermitTlsKey;
-
+    private final Certificate dvaEncryptionCert;
+    private final Certificate dvaSigningCert;
+    private final Certificate dvaTlsIntermediateCert;
+    private final Certificate dvaTlsRootCert;
+    private final Certificate dvaTlsSelfCert;
+    private final PrivateKey dvaDrivingPermitEncryptionKey;
+    private final PrivateKey dvaDrivingPermitCriSigningKey;
+    private final PrivateKey dvaDrivingPermitTlsKey;
     private final Thumbprints signingCertThumbprints;
 
     private final Clock clock;
@@ -103,6 +113,7 @@ public class ConfigurationService {
         // ****************************DCS Parameters****************************
 
         this.dcsSigningCert = getCertificate(paramProvider, "signingCertForDrivingPermitToVerify");
+
         this.dcsEncryptionCert =
                 getCertificate(paramProvider, "encryptionCertForDrivingPermitToEncrypt");
 
@@ -112,26 +123,38 @@ public class ConfigurationService {
 
         this.dcsIntermediateCert = getCertificate(paramProvider, "tlsIntermediateCertificate");
 
-        // ****************************DVA Parameters****************************
-
-        this.dvaEncryptionCert = getCertificate(paramProvider, "encryptionCertForDrivingPermitToEncrypt");
-
-        this.dvaSigningCert = getCertificate(paramProvider, "signingCertForDvaToVerify");
-
-        this.dvaTlsInterCert = getCertificate(paramProvider, "tlsIntermediateCertificate");
-
-        this.dvaTlsRootCert = getCertificate(paramProvider, "tlsRootCertificate");
-
-        this.dvaTlsCert = getCertificate(paramProvider, "tlsCert");
-
         this.drivingPermitTlsKey = getPrivateKey(paramProvider, "tlsKey");
 
         this.drivingPermitEncryptionKey =
                 getPrivateKey(paramProvider, "encryptionKeyForDrivingPermitToDecrypt");
+
         this.drivingPermitCriSigningKey =
                 getPrivateKey(paramProvider, "signingKeyForDrivingPermitToSign");
 
         var cert = getCertificate(paramProvider, "signingCertForDcsToVerify");
+
+        // ****************************DVA Parameters****************************
+
+        this.dvaSigningCert = getCertificate(paramProvider, DVA_DRIVING_PERMIT_CRI_SIGNING_CERT);
+
+        this.dvaEncryptionCert = getCertificate(paramProvider, DVA_ENCRYPTION_CERT);
+
+        this.dvaTlsSelfCert = getCertificate(paramProvider, DVA_HTTPCLIENT_TLS_CERT);
+
+        this.dvaTlsRootCert = getCertificate(paramProvider, DVA_HTTPCLIENT_TLS_ROOT_CERT);
+
+        this.dvaTlsIntermediateCert = getCertificate(paramProvider, DVA_HTTPCLIENT_TLS_INTER_CERT);
+
+        this.dvaDrivingPermitTlsKey = getPrivateKey(paramProvider, DVA_HTTPCLIENT_TLS_KEY);
+
+        this.dvaDrivingPermitEncryptionKey =
+                getPrivateKey(paramProvider, DVA_DRIVING_PERMIT_ENCRYPTION_KEY);
+
+        this.dvaDrivingPermitCriSigningKey =
+                getPrivateKey(paramProvider, DVA_DRIVING_PERMIT_CRI_SIGNING_KEY);
+
+        var dvaCert = getCertificate(paramProvider, DVA_SIGNING_CERT);
+
         this.signingCertThumbprints =
                 new Thumbprints(
                         getThumbprint((X509Certificate) cert, "SHA-1"),
@@ -239,15 +262,25 @@ public class ConfigurationService {
         return drivingPermitTlsKey;
     }
 
-    public Certificate getDvaEncryptionCert() { return dvaEncryptionCert; }
+    public Certificate getDvaEncryptionCert() {
+        return dvaEncryptionCert;
+    }
 
-    public Certificate getDvaSigningCert() { return dvaSigningCert; }
+    public Certificate getDvaSigningCert() {
+        return dvaSigningCert;
+    }
 
-    public Certificate getDvaTlsInterCert() { return dvaTlsInterCert; }
+    public Certificate getDvaTlsIntermediateCert() {
+        return dvaTlsIntermediateCert;
+    }
 
-    public Certificate getDvaTlsRootCert() { return dvaTlsRootCert; }
+    public Certificate getDvaTlsRootCert() {
+        return dvaTlsRootCert;
+    }
 
-    public Certificate getDvaTlsCert() { return dvaTlsCert; }
+    public Certificate getDvaTlsSelfCert() {
+        return dvaTlsSelfCert;
+    }
 
     public long getDocumentCheckItemExpirationEpoch() {
         return clock.instant().plus(documentCheckItemTtl, ChronoUnit.SECONDS).getEpochSecond();

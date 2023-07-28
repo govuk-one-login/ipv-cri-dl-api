@@ -2,10 +2,13 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -27,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DCS_CHECK_REQUEST_FAILED;
@@ -47,6 +52,7 @@ class IdentityVerificationServiceTest {
 
     @BeforeEach
     void setup() {
+        when(configurationService.getUseLegacy()).thenReturn(true);
         this.identityVerificationService =
                 new IdentityVerificationService(
                         mockThirdPartyGateway,
@@ -62,24 +68,41 @@ class IdentityVerificationServiceTest {
     void verifyIdentityShouldReturnResultWhenValidInputProvided()
             throws IOException, InterruptedException, CertificateException, ParseException,
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody {
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-        DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
-        testFraudCheckResult.setExecutedSuccessfully(true);
-        String[] thirdPartyFraudCodes = new String[] {"sample-code"};
-        String[] mappedFraudCodes = new String[] {"mapped-code"};
-        testFraudCheckResult.setValid(true);
-        when(formDataValidator.validate(drivingPermitForm))
-                .thenReturn(ValidationResult.createValidResult());
-        when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
-                .thenReturn(testFraudCheckResult);
+        try (MockedStatic<LogManager> mockedLogManager = mockStatic(LogManager.class)) {
+            Logger mockedStaticLogger = mock(Logger.class);
+            mockedLogManager.when(LogManager::getLogger).thenReturn(mockedStaticLogger);
 
-        DocumentCheckVerificationResult result =
-                this.identityVerificationService.verifyIdentity(drivingPermitForm);
+            when(configurationService.getUseLegacy()).thenReturn(true);
+            this.identityVerificationService =
+                    new IdentityVerificationService(
+                            mockThirdPartyGateway,
+                            formDataValidator,
+                            mockContraindicationMapper,
+                            mockAuditService,
+                            configurationService,
+                            objectMapper,
+                            mockEventProbe);
 
-        assertNotNull(result);
-        verify(formDataValidator).validate(drivingPermitForm);
-        verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
-        verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
+            DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+            DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
+            testFraudCheckResult.setExecutedSuccessfully(true);
+            String[] thirdPartyFraudCodes = new String[] {"sample-code"};
+            String[] mappedFraudCodes = new String[] {"mapped-code"};
+            testFraudCheckResult.setValid(true);
+            when(formDataValidator.validate(drivingPermitForm))
+                    .thenReturn(ValidationResult.createValidResult());
+            when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
+                    .thenReturn(testFraudCheckResult);
+
+            DocumentCheckVerificationResult result =
+                    this.identityVerificationService.verifyIdentity(drivingPermitForm);
+
+            assertNotNull(result);
+            verify(formDataValidator).validate(drivingPermitForm);
+            verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
+            verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
+            verify(mockedStaticLogger).info("Performing document check (DCS)");
+        }
     }
 
     @Test
@@ -124,5 +147,50 @@ class IdentityVerificationServiceTest {
 
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
         verify(mockEventProbe).counterMetric(DCS_CHECK_REQUEST_FAILED);
+    }
+
+    @Test
+    void verifyUseLegacyParameterRoutesUsersToDvaWhenFalse()
+            throws IOException, InterruptedException, CertificateException, ParseException,
+                    JOSEException, OAuthHttpResponseExceptionWithErrorBody {
+        try (MockedStatic<LogManager> mockedLogManager = mockStatic(LogManager.class)) {
+            Logger mockedStaticLogger = mock(Logger.class);
+            mockedLogManager.when(LogManager::getLogger).thenReturn(mockedStaticLogger);
+
+            when(configurationService.getUseLegacy()).thenReturn(false);
+            this.identityVerificationService =
+                    new IdentityVerificationService(
+                            mockThirdPartyGateway,
+                            formDataValidator,
+                            mockContraindicationMapper,
+                            mockAuditService,
+                            configurationService,
+                            objectMapper,
+                            mockEventProbe);
+            DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+            DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
+            testFraudCheckResult.setExecutedSuccessfully(true);
+            String[] thirdPartyFraudCodes = new String[] {"sample-code"};
+            String[] mappedFraudCodes = new String[] {"mapped-code"};
+            testFraudCheckResult.setValid(true);
+            when(formDataValidator.validate(drivingPermitForm))
+                    .thenReturn(ValidationResult.createValidResult());
+            when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
+                    .thenReturn(testFraudCheckResult);
+
+            DocumentCheckVerificationResult result =
+                    this.identityVerificationService.verifyIdentity(drivingPermitForm);
+
+            assertNotNull(result);
+            verify(formDataValidator).validate(drivingPermitForm);
+            verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
+            /*
+            TODO: This below line will need to be updated to new performDvaDocumentCheck method once
+            created, also remove the verify logline and make logger in class static again
+             */
+
+            verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
+            verify(mockedStaticLogger).info("Performing document check (DVA direct)");
+        }
     }
 }

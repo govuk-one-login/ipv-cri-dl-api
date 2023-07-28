@@ -140,6 +140,14 @@ Mappings:
       integration: MONTHS
       production: MONTHS
 
+  useLegacyMapping:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "true"
+
   DrivingPermitCriAudienceMapping:
     Environment:
       dev: "https://review-d.dev.account.gov.uk"
@@ -387,6 +395,7 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/useLegacy"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
@@ -636,6 +645,14 @@ Resources:
       Type: String
       Value: "false"
       Description: Feature toggle to allow logging of DCS responses
+
+  useLegacyParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/useLegacy"
+      Type: String
+      Value: !FindInMap [ useLegacyMapping, Environment, !Ref Environment ]
+      Description: Feature toggle to switch between dcs/dva direct
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

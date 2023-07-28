@@ -23,6 +23,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Objects;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.*;
+
 public class ConfigurationService {
 
     static class KeyStoreParams {
@@ -60,11 +62,17 @@ public class ConfigurationService {
     private final Certificate drivingPermitTlsSelfCert;
     private final Certificate dcsTlsRootCert;
     private final Certificate dcsIntermediateCert;
-
     private final PrivateKey drivingPermitEncryptionKey;
     private final PrivateKey drivingPermitCriSigningKey;
     private final PrivateKey drivingPermitTlsKey;
-
+    private final Certificate dvaEncryptionCert;
+    private final Certificate dvaSigningCert;
+    private final Certificate dvaTlsIntermediateCert;
+    private final Certificate dvaTlsRootCert;
+    private final Certificate dvaTlsSelfCert;
+    private final PrivateKey dvaDrivingPermitEncryptionKey;
+    private final PrivateKey dvaDrivingPermitCriSigningKey;
+    private final PrivateKey dvaDrivingPermitTlsKey;
     private final Thumbprints signingCertThumbprints;
 
     private final Clock clock;
@@ -94,24 +102,50 @@ public class ConfigurationService {
         this.documentCheckResultTableName =
                 paramProvider.get(getParameterName("DocumentCheckResultTableName"));
 
-        this.dcsSigningCert = getCertificate(paramProvider, "signingCertForDrivingPermitToVerify");
-        this.dcsEncryptionCert =
-                getCertificate(paramProvider, "encryptionCertForDrivingPermitToEncrypt");
+        // ****************************DCS Parameters****************************
 
-        this.drivingPermitTlsSelfCert = getCertificate(paramProvider, "tlsCert");
+        this.dcsSigningCert = getCertificate(paramProvider, DCS_DRIVING_PERMIT_CRI_SIGNING_CERT);
 
-        this.dcsTlsRootCert = getCertificate(paramProvider, "tlsRootCertificate");
+        this.dcsEncryptionCert = getCertificate(paramProvider, DCS_ENCRYPTION_CERT);
 
-        this.dcsIntermediateCert = getCertificate(paramProvider, "tlsIntermediateCertificate");
+        this.drivingPermitTlsSelfCert = getCertificate(paramProvider, DCS_HTTPCLIENT_TLS_CERT);
 
-        this.drivingPermitTlsKey = getPrivateKey(paramProvider, "tlsKey");
+        this.dcsTlsRootCert = getCertificate(paramProvider, DCS_HTTPCLIENT_TLS_ROOT_CERT);
+
+        this.dcsIntermediateCert = getCertificate(paramProvider, DCS_HTTPCLIENT_TLS_INTER_CERT);
+
+        this.drivingPermitTlsKey = getPrivateKey(paramProvider, DCS_HTTPCLIENT_TLS_KEY);
 
         this.drivingPermitEncryptionKey =
-                getPrivateKey(paramProvider, "encryptionKeyForDrivingPermitToDecrypt");
-        this.drivingPermitCriSigningKey =
-                getPrivateKey(paramProvider, "signingKeyForDrivingPermitToSign");
+                getPrivateKey(paramProvider, DCS_DRIVING_PERMIT_ENCRYPTION_KEY);
 
-        var cert = getCertificate(paramProvider, "signingCertForDcsToVerify");
+        this.drivingPermitCriSigningKey =
+                getPrivateKey(paramProvider, DCS_DRIVING_PERMIT_CRI_SIGNING_KEY);
+
+        var cert = getCertificate(paramProvider, DCS_SIGNING_CERT);
+
+        // ****************************DVA Parameters****************************
+
+        this.dvaSigningCert = getCertificate(paramProvider, DVA_DRIVING_PERMIT_CRI_SIGNING_CERT);
+
+        this.dvaEncryptionCert = getCertificate(paramProvider, DVA_ENCRYPTION_CERT);
+
+        this.dvaTlsSelfCert = getCertificate(paramProvider, DVA_HTTPCLIENT_TLS_CERT);
+
+        this.dvaTlsRootCert = getCertificate(paramProvider, DVA_HTTPCLIENT_TLS_ROOT_CERT);
+
+        this.dvaTlsIntermediateCert = getCertificate(paramProvider, DVA_HTTPCLIENT_TLS_INTER_CERT);
+
+        this.dvaDrivingPermitTlsKey = getPrivateKey(paramProvider, DVA_HTTPCLIENT_TLS_KEY);
+
+        this.dvaDrivingPermitEncryptionKey =
+                getPrivateKey(paramProvider, DVA_DRIVING_PERMIT_ENCRYPTION_KEY);
+
+        this.dvaDrivingPermitCriSigningKey =
+                getPrivateKey(paramProvider, DVA_DRIVING_PERMIT_CRI_SIGNING_KEY);
+
+        var dvaCert = getCertificate(paramProvider, DVA_SIGNING_CERT);
+
         this.signingCertThumbprints =
                 new Thumbprints(
                         getThumbprint((X509Certificate) cert, "SHA-1"),
@@ -217,6 +251,26 @@ public class ConfigurationService {
 
     public PrivateKey getDrivingPermitTlsKey() {
         return drivingPermitTlsKey;
+    }
+
+    public Certificate getDvaEncryptionCert() {
+        return dvaEncryptionCert;
+    }
+
+    public Certificate getDvaSigningCert() {
+        return dvaSigningCert;
+    }
+
+    public Certificate getDvaTlsIntermediateCert() {
+        return dvaTlsIntermediateCert;
+    }
+
+    public Certificate getDvaTlsRootCert() {
+        return dvaTlsRootCert;
+    }
+
+    public Certificate getDvaTlsSelfCert() {
+        return dvaTlsSelfCert;
     }
 
     public long getDocumentCheckItemExpirationEpoch() {

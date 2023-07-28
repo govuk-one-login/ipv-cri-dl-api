@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.domain;
+package uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS;
 
 public class DcsSignedEncryptedResponse {
     private final String payload;

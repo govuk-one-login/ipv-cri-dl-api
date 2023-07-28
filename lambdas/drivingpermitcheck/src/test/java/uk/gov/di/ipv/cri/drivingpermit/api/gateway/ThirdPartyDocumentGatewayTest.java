@@ -26,13 +26,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DCS.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DVA.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
@@ -65,6 +66,7 @@ class ThirdPartyDocumentGatewayTest {
     private static class ExperianGatewayConstructorArgs {
         private final ObjectMapper objectMapper;
         private final DcsCryptographyService dcsCryptographyService;
+        private final DvaCryptographyService dvaCryptographyService;
         private final ConfigurationService configurationService;
         private final HttpRetryer httpRetryer;
         private final EventProbe eventProbe;
@@ -72,12 +74,14 @@ class ThirdPartyDocumentGatewayTest {
         private ExperianGatewayConstructorArgs(
                 ObjectMapper objectMapper,
                 DcsCryptographyService dcsCryptographyService,
+                DvaCryptographyService dvaCryptographyService,
                 ConfigurationService configurationService,
                 HttpRetryer httpRetryer,
                 EventProbe eventProbe) {
 
             this.objectMapper = objectMapper;
             this.dcsCryptographyService = dcsCryptographyService;
+            this.dvaCryptographyService = dvaCryptographyService;
             this.httpRetryer = httpRetryer;
             this.configurationService = configurationService;
             this.eventProbe = eventProbe;
@@ -94,6 +98,7 @@ class ThirdPartyDocumentGatewayTest {
     @Mock private ConfigurationService configurationService;
     @Mock private HttpRetryer httpRetryer;
     @Mock private DcsCryptographyService dcsCryptographyService;
+    @Mock private DvaCryptographyService dvaCryptographyService;
 
     @Mock private EventProbe mockEventProbe;
 
@@ -106,6 +111,7 @@ class ThirdPartyDocumentGatewayTest {
                 new ThirdPartyDocumentGateway(
                         mockObjectMapper,
                         dcsCryptographyService,
+                        dvaCryptographyService,
                         configurationService,
                         httpRetryer,
                         mockEventProbe);
@@ -368,11 +374,12 @@ class ThirdPartyDocumentGatewayTest {
         Map<String, ExperianGatewayConstructorArgs> testCases =
                 Map.of(
                         "objectMapper must not be null",
-                        new ExperianGatewayConstructorArgs(null, null, null, null, null),
+                        new ExperianGatewayConstructorArgs(null, null, null, null, null, null),
                         "crossCoreApiConfig must not be null",
                         new ExperianGatewayConstructorArgs(
                                 Mockito.mock(ObjectMapper.class),
                                 Mockito.mock(DcsCryptographyService.class),
+                                Mockito.mock(DvaCryptographyService.class),
                                 null,
                                 null,
                                 null));
@@ -385,6 +392,7 @@ class ThirdPartyDocumentGatewayTest {
                                         new ThirdPartyDocumentGateway(
                                                 constructorArgs.objectMapper,
                                                 constructorArgs.dcsCryptographyService,
+                                                constructorArgs.dvaCryptographyService,
                                                 constructorArgs.configurationService,
                                                 constructorArgs.httpRetryer,
                                                 constructorArgs.eventProbe),

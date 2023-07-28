@@ -16,14 +16,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DCS.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DVA.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
@@ -50,6 +51,7 @@ public class ThirdPartyDocumentGateway {
 
     private final ObjectMapper objectMapper;
     private final DcsCryptographyService dcsCryptographyService;
+    private final DvaCryptographyService dvaCryptographyService;
     private final ConfigurationService configurationService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
@@ -59,6 +61,7 @@ public class ThirdPartyDocumentGateway {
     public ThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             DcsCryptographyService dcsCryptographyService,
+            DvaCryptographyService dvaCryptographyService,
             ConfigurationService configurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
@@ -69,6 +72,7 @@ public class ThirdPartyDocumentGateway {
 
         this.objectMapper = objectMapper;
         this.dcsCryptographyService = dcsCryptographyService;
+        this.dvaCryptographyService = dvaCryptographyService;
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
@@ -79,6 +83,7 @@ public class ThirdPartyDocumentGateway {
             String endpointUrl,
             SleepHelper sleepHelper,
             DcsCryptographyService dcsCryptographyService,
+            DvaCryptographyService dvaCryptographyService,
             ConfigurationService configurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
@@ -92,6 +97,7 @@ public class ThirdPartyDocumentGateway {
         Objects.requireNonNull(sleepHelper, "sleepHelper must not be null");
         this.objectMapper = objectMapper;
         this.dcsCryptographyService = dcsCryptographyService;
+        this.dvaCryptographyService = dvaCryptographyService;
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
@@ -120,6 +126,7 @@ public class ThirdPartyDocumentGateway {
         LocalDate drivingPermitIssueDate = drivingPermitData.getIssueDate();
 
         String dcsEndpointUri = null;
+        boolean useDva = false;
         switch (issuingAuthority) {
             case DVA:
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/dva-driving-licence";
@@ -131,6 +138,9 @@ public class ThirdPartyDocumentGateway {
                 // api handling of that field
                 // Here (for the DVA request) it needs to be mapped back to date of issue
                 dcsPayload.setDateOfIssue(drivingPermitIssueDate);
+                if (!configurationService.getUseLegacy()) {
+                    useDva = true;
+                }
                 break;
             case DVLA:
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
@@ -146,8 +156,7 @@ public class ThirdPartyDocumentGateway {
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
-
-        JWSObject preparedDcsPayload = preparePayload(dcsPayload);
+        JWSObject preparedDcsPayload = preparePayload(dcsPayload, useDva);
 
         String requestBody = preparedDcsPayload.serialize();
 
@@ -177,8 +186,23 @@ public class ThirdPartyDocumentGateway {
         return documentCheckResult;
     }
 
-    private JWSObject preparePayload(DcsPayload dcsPayload)
+    private JWSObject preparePayload(DcsPayload dcsPayload, boolean useDva)
             throws OAuthHttpResponseExceptionWithErrorBody {
+        if (useDva) {
+            LOGGER.info("Preparing payload for DVA");
+            try {
+                return dvaCryptographyService.preparePayload(dcsPayload);
+            } catch (CertificateException
+                    | NoSuchAlgorithmException
+                    | InvalidKeySpecException
+                    | JOSEException
+                    | JsonProcessingException e) {
+                LOGGER.error(("Failed to prepare payload for DVA: " + e.getMessage()));
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_PREPARE_DCS_PAYLOAD);
+            }
+        }
         LOGGER.info("Preparing payload for DCS");
         try {
             return dcsCryptographyService.preparePayload(dcsPayload);

@@ -15,6 +15,8 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DCS.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DVA.DvaCryptographyService;
 
 import javax.net.ssl.SSLContext;
 
@@ -35,6 +37,7 @@ public class ServiceFactory {
     private final IdentityVerificationService identityVerificationService;
     private final ContraindicationMapper contraindicationMapper;
     private final DcsCryptographyService dcsCryptographyService;
+    private final DvaCryptographyService dvaCryptographyService;
     private final ConfigurationService configurationService;
     private final FormDataValidator formDataValidator;
     private final ObjectMapper objectMapper;
@@ -52,6 +55,7 @@ public class ServiceFactory {
         this.formDataValidator = new FormDataValidator();
         this.configurationService = createConfigurationService();
         this.dcsCryptographyService = new DcsCryptographyService(configurationService);
+        this.dvaCryptographyService = new DvaCryptographyService(configurationService);
         this.contraindicationMapper = new ContraIndicatorRemoteMapper(configurationService);
         this.httpClient = generateHttpClient(configurationService);
         this.auditService = createAuditService(this.objectMapper);
@@ -65,10 +69,12 @@ public class ServiceFactory {
             ConfigurationService configurationService,
             DcsCryptographyService dcsCryptographyService,
             ContraindicationMapper contraindicationMapper,
+            DvaCryptographyService dvaCryptographyService,
             FormDataValidator formDataValidator,
             CloseableHttpClient httpClient,
             AuditService auditService)
             throws NoSuchAlgorithmException, InvalidKeyException {
+        this.dvaCryptographyService = dvaCryptographyService;
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = eventProbe;
         this.configurationService = configurationService;
@@ -104,6 +110,7 @@ public class ServiceFactory {
                 new ThirdPartyDocumentGateway(
                         this.objectMapper,
                         this.dcsCryptographyService,
+                        this.dvaCryptographyService,
                         this.configurationService,
                         this.httpRetryer,
                         eventProbe);

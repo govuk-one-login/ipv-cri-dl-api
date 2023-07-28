@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.gateway.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DCS.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DVA.DvaCryptographyService;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -28,6 +30,7 @@ class ServiceFactoryTest {
     @Mock private FormDataValidator mockFormDataValidator;
     @Mock private CloseableHttpClient mockHttpClient;
     @Mock private DcsCryptographyService mockDcsCryptographyService;
+    @Mock private DvaCryptographyService mockDvaCryptographyService;
     @Mock private HttpRetryer mockHttpRetryer;
 
     @Mock private AuditService mockAuditService;
@@ -48,6 +51,7 @@ class ServiceFactoryTest {
                         mockConfigurationService,
                         mockDcsCryptographyService,
                         mockContraindicationMapper,
+                        mockDvaCryptographyService,
                         mockFormDataValidator,
                         mockHttpClient,
                         mockAuditService);

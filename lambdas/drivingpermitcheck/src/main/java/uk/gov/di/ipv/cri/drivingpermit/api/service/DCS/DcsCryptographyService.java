@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.service;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.DCS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,11 +18,12 @@ import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsSignedEncryptedResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ProtectedHeader;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -41,13 +42,13 @@ public class DcsCryptographyService {
         this.configurationService = configurationService;
     }
 
-    public JWSObject preparePayload(DcsPayload passportDetails)
+    public JWSObject preparePayload(DcsPayload documentDetails)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
                     JOSEException, JsonProcessingException {
-        JWSObject signedPassportDetails =
-                createJWS(objectMapper.writeValueAsString(passportDetails));
-        JWEObject encryptedPassportDetails = createJWE(signedPassportDetails.serialize());
-        return createJWS(encryptedPassportDetails.serialize());
+        JWSObject signedDocumentDetails =
+                createJWS(objectMapper.writeValueAsString(documentDetails));
+        JWEObject encryptedDocumentDetails = createJWE(signedDocumentDetails.serialize());
+        return createJWS(encryptedDocumentDetails.serialize());
     }
 
     public DcsResponse unwrapDcsResponse(String dcsSignedEncryptedResponseString)

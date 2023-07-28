@@ -23,7 +23,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_DATA_VALIDATION_PASS;
 
 public class IdentityVerificationService {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private final Logger LOGGER = LogManager.getLogger();
 
     private static final String DOCUMENT_VALIDITY_CI = "D02";
 
@@ -45,6 +45,8 @@ public class IdentityVerificationService {
 
     private final EventProbe eventProbe;
 
+    private final boolean useDcs;
+
     IdentityVerificationService(
             ThirdPartyDocumentGateway thirdPartyGateway,
             FormDataValidator formDataValidator,
@@ -56,6 +58,7 @@ public class IdentityVerificationService {
         this.thirdPartyGateway = thirdPartyGateway;
         this.formDataValidator = formDataValidator;
         this.eventProbe = eventProbe;
+        this.useDcs = configurationService.getUseLegacy();
     }
 
     public DocumentCheckVerificationResult verifyIdentity(DrivingPermitForm drivingPermitData)
@@ -80,8 +83,16 @@ public class IdentityVerificationService {
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
 
-            DocumentCheckResult documentCheckResult =
-                    thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            DocumentCheckResult documentCheckResult = new DocumentCheckResult();
+
+            if (useDcs) {
+                LOGGER.info("Performing document check (DCS)");
+                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            } else {
+                LOGGER.info("Performing document check (DVA direct)");
+                // replace with new method in LIME-685
+                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            }
 
             LOGGER.info("Third party response mapped");
             if (Objects.nonNull(documentCheckResult)) {

@@ -55,6 +55,7 @@ public class ConfigurationService {
     private final String dcsEndpointUri;
     private final String parameterPrefix;
     private final String commonParameterPrefix;
+    private final String dvaEndpoint;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
     private final Certificate drivingPermitTlsSelfCert;
@@ -118,6 +119,8 @@ public class ConfigurationService {
                         getThumbprint((X509Certificate) cert, "SHA-256"));
         this.documentCheckItemTtl =
                 Long.parseLong(paramProvider.get(getCommonParameterName("SessionTtl")));
+
+        this.dvaEndpoint = paramProvider.get(getParameterName("DVA_ENDPOINT"));
 
         // *****************************Feature Toggles*******************************
         this.isPerformanceStub =
@@ -229,5 +232,9 @@ public class ConfigurationService {
 
     public boolean isLogDcsResponse() {
         return logDcsResponse;
+    }
+
+    public String getDvaEndpoint() {
+        return dvaEndpoint;
     }
 }

@@ -33,6 +33,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 
 public class ServiceFactory {
+    private final RequestHashValidator requestHashValidator;
     private final ObjectMapper objectMapper;
     private final AuditService auditService;
     private final EventProbe eventProbe;
@@ -51,6 +52,7 @@ public class ServiceFactory {
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = new EventProbe();
         this.configurationService = createConfigurationService();
+        this.requestHashValidator = new RequestHashValidator();
         this.auditService = createAuditService(this.objectMapper);
         this.sessionService = new SessionService();
 
@@ -68,6 +70,7 @@ public class ServiceFactory {
             EventProbe eventProbe,
             ConfigurationService configurationService,
             SessionService sessionService,
+            RequestHashValidator requestHashValidator,
             AuditService auditService,
             DataStore<DocumentCheckResultItem> dataStore,
             PersonIdentityService personIdentityService) {
@@ -75,6 +78,7 @@ public class ServiceFactory {
         this.eventProbe = eventProbe;
         this.configurationService = configurationService;
         this.sessionService = sessionService;
+        this.requestHashValidator = requestHashValidator;
         this.auditService = auditService;
         this.dataStore = dataStore;
         this.personIdentityService = personIdentityService;
@@ -90,6 +94,10 @@ public class ServiceFactory {
 
     public ConfigurationService getConfigurationService() {
         return configurationService;
+    }
+
+    public RequestHashValidator getRequestHashValidator() {
+        return requestHashValidator;
     }
 
     public EventProbe getEventProbe() {

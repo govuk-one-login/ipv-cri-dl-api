@@ -26,6 +26,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionW
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
@@ -42,8 +43,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
@@ -83,7 +83,7 @@ class DvaThirdPartyDocumentGatewayTest {
     @Mock private ConfigurationService configurationService;
     @Mock private HttpRetryer httpRetryer;
     @Mock private DvaCryptographyService dvaCryptographyService;
-
+@Mock private RequestHashValidator requestHashValidator;
     @Mock private EventProbe mockEventProbe;
 
     @BeforeEach
@@ -95,6 +95,7 @@ class DvaThirdPartyDocumentGatewayTest {
                 new DvaThirdPartyDocumentGateway(
                         mockObjectMapper,
                         dvaCryptographyService,
+requestHashValidator,
                         configurationService,
                         httpRetryer,
                         mockEventProbe);
@@ -177,6 +178,20 @@ class DvaThirdPartyDocumentGatewayTest {
                 "application/jose",
                 httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
     }
+
+    @Test
+    void thirdPartyApiGatewayReturnsErrorOnHashValidation()
+            throws IOException, InterruptedException, CertificateException, ParseException,
+            JOSEException, OAuthHttpResponseExceptionWithErrorBody,
+            NoSuchAlgorithmException, InvalidKeySpecException {
+        final String testRequestBody = "serialisedCrossCoreApiRequest";
+
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
+
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
+        when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DvaPayload.class)))
+                .thenReturn(new DvaPayload());
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP400Response()

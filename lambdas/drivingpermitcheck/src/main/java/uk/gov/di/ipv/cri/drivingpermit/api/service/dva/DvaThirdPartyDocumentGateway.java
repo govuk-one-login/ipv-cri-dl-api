@@ -23,6 +23,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
@@ -61,6 +62,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     public DvaThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             DvaCryptographyService dvaCryptographyService,
+            RequestHashValidator requestHashValidator,
             ConfigurationService configurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {

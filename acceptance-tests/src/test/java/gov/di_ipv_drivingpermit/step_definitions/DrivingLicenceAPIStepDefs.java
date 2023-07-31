@@ -33,9 +33,10 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
 
     @When(
             "Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest (.*)$")
-    public void DL_user_sends_a_post_request_to_driving_licence_end_point(String dlJsonRequestBody)
+    public void DL_user_sends_a_post_request_to_driving_licence_end_point(
+            String dlJsonRequestBody, String documentCheckingRoute)
             throws IOException, InterruptedException {
-        postRequestToDrivingLicenceEndpoint(dlJsonRequestBody);
+        postRequestToDrivingLicenceEndpoint(dlJsonRequestBody, documentCheckingRoute);
     }
 
     @And("Driving Licence check response should contain Retry value as (.*)$")

@@ -54,6 +54,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 
 @ExtendWith(MockitoExtension.class)
 class DrivingPermitHandlerTest {
+    private static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
     @Mock private ServiceFactory mockServiceFactory;
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private IdentityVerificationService mockIdentityVerificationService;
@@ -101,7 +102,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", sessionId.toString());
+        Map<String, String> requestHeaders = Map.of("session_id", sessionId.toString(), HEADER_DOCUMENT_CHECKING_ROUTE, "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -119,7 +120,7 @@ class DrivingPermitHandlerTest {
                 .when(auditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm, "dcs".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE))))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -158,7 +159,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString(), HEADER_DOCUMENT_CHECKING_ROUTE, "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -176,7 +177,7 @@ class DrivingPermitHandlerTest {
                 .when(auditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm, "dcs".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE))))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -221,7 +222,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString(), HEADER_DOCUMENT_CHECKING_ROUTE, "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -239,7 +240,7 @@ class DrivingPermitHandlerTest {
                 .when(auditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm, "dcs".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE))))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -276,7 +277,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString(), HEADER_DOCUMENT_CHECKING_ROUTE, "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -316,7 +317,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString(), HEADER_DOCUMENT_CHECKING_ROUTE, "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -326,7 +327,7 @@ class DrivingPermitHandlerTest {
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
                 .thenReturn(drivingPermitForm);
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm, "dcs".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE))))
                 .thenReturn(testDocumentVerificationResult);
 
         verify(auditService, never())

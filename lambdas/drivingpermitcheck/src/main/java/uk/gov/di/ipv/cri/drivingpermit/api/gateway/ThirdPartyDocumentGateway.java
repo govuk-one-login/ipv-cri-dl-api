@@ -97,7 +97,7 @@ public class ThirdPartyDocumentGateway {
         this.eventProbe = eventProbe;
     }
 
-    public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
+    public DocumentCheckResult performDcsDocumentCheck(DrivingPermitForm drivingPermitData)
             throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
                     CertificateException, ParseException, JOSEException {
         LOGGER.info("Mapping person to third party document check request");
@@ -119,10 +119,10 @@ public class ThirdPartyDocumentGateway {
         String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
         LocalDate drivingPermitIssueDate = drivingPermitData.getIssueDate();
 
-        String dcsEndpointUri = null;
+        String dcsEndpointUri = configurationService.getDcsEndpointUri();
         switch (issuingAuthority) {
             case DVA:
-                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/dva-driving-licence";
+                dcsEndpointUri += "/dva-driving-licence";
 
                 dcsPayload.setExpiryDate(drivingPermitExpiryDate);
                 dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
@@ -133,7 +133,7 @@ public class ThirdPartyDocumentGateway {
                 dcsPayload.setDateOfIssue(drivingPermitIssueDate);
                 break;
             case DVLA:
-                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
+                dcsEndpointUri += "/driving-licence";
 
                 dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
 
@@ -147,7 +147,7 @@ public class ThirdPartyDocumentGateway {
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
 
-        JWSObject preparedDcsPayload = preparePayload(dcsPayload);
+        JWSObject preparedDcsPayload = prepareDcsPayload(dcsPayload);
 
         String requestBody = preparedDcsPayload.serialize();
 
@@ -177,7 +177,87 @@ public class ThirdPartyDocumentGateway {
         return documentCheckResult;
     }
 
-    private JWSObject preparePayload(DcsPayload dcsPayload)
+    public DocumentCheckResult performDvadDocumentCheck(DrivingPermitForm drivingPermitData)
+            throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
+            CertificateException, ParseException, JOSEException {
+        LOGGER.info("Mapping person to third party document check request");
+
+        DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
+
+        IssuingAuthority issuingAuthority;
+        try {
+            issuingAuthority = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+            LOGGER.info("Document Issuer {}", issuingAuthority);
+            eventProbe.counterMetric(
+                    ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
+        } catch (IllegalArgumentException e) {
+            throw new OAuthHttpResponseExceptionWithErrorBody(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
+        }
+        LocalDate drivingPermitExpiryDate = drivingPermitData.getExpiryDate();
+        String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
+        LocalDate drivingPermitIssueDate = drivingPermitData.getIssueDate();
+
+        String dvadEndpointUri = configurationService.getDcsEndpointUri();
+        switch (issuingAuthority) {
+            case DVA:
+                dvadEndpointUri += "/dva-driving-licence";
+
+                dcsPayload.setExpiryDate(drivingPermitExpiryDate);
+                dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
+
+                // Note: DateOfIssue is mapped to issueDate in the front end to simplify
+                // api handling of that field
+                // Here (for the DVA request) it needs to be mapped back to date of issue
+                dcsPayload.setDateOfIssue(drivingPermitIssueDate);
+                break;
+            case DVLA:
+                dvadEndpointUri += "/driving-licence";
+
+                dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
+
+                dcsPayload.setExpiryDate(drivingPermitExpiryDate);
+                dcsPayload.setLicenceNumber(drivingPermitDocumentNumber);
+                dcsPayload.setIssueDate(drivingPermitIssueDate);
+                break;
+            default:
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
+        }
+
+        JWSObject preparedDcsPayload = prepareDcsPayload(dcsPayload);
+
+        String requestBody = preparedDcsPayload.serialize();
+
+        URI endpoint = URI.create(dvadEndpointUri);
+        HttpPost request = requestBuilder(endpoint, requestBody);
+
+        eventProbe.counterMetric(THIRD_PARTY_REQUEST_CREATED);
+
+        LOGGER.info("Submitting document check request to third party...");
+        CloseableHttpResponse httpResponse = httpRetryer.sendHTTPRequestRetryIfAllowed(request);
+
+        DocumentCheckResult documentCheckResult = responseHandler(httpResponse);
+
+        if (documentCheckResult.isExecutedSuccessfully()) {
+            // Data capture for VC
+            CheckDetails checkDetails = new CheckDetails();
+            checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
+            checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
+
+            if (documentCheckResult.isValid()) {
+                // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
+                checkDetails.setActivityFrom(drivingPermitIssueDate.toString());
+            }
+            documentCheckResult.setCheckDetails(checkDetails);
+        }
+
+        return documentCheckResult;
+    }
+
+    private JWSObject prepareDcsPayload(DcsPayload dcsPayload)
             throws OAuthHttpResponseExceptionWithErrorBody {
         LOGGER.info("Preparing payload for DCS");
         try {

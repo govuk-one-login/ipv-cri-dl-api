@@ -137,7 +137,7 @@ class ThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         DocumentCheckResult actualDocumentCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                thirdPartyDocumentGateway.performDcsDocumentCheck(drivingPermitForm);
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/driving-licence",
@@ -175,7 +175,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    thirdPartyDocumentGateway.performDcsDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -219,7 +219,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    thirdPartyDocumentGateway.performDcsDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -264,7 +264,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    thirdPartyDocumentGateway.performDcsDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -307,7 +307,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    thirdPartyDocumentGateway.performDcsDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -350,7 +350,7 @@ class ThirdPartyDocumentGatewayTest {
                 .thenReturn(createSuccessDcsResponse());
 
         DocumentCheckResult actualFraudCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                thirdPartyDocumentGateway.performDcsDocumentCheck(drivingPermitForm);
 
         assertNotNull(actualFraudCheckResult);
         assertEquals(

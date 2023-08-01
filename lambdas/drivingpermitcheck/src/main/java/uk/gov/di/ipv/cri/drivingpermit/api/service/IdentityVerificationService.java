@@ -61,7 +61,7 @@ public class IdentityVerificationService {
         this.useDcs = configurationService.getUseLegacy();
     }
 
-    public DocumentCheckVerificationResult verifyIdentity(DrivingPermitForm drivingPermitData)
+    public DocumentCheckVerificationResult verifyIdentity(DrivingPermitForm drivingPermitData, boolean useNewThirdPartyApi)
             throws OAuthHttpResponseExceptionWithErrorBody {
         DocumentCheckVerificationResult result = new DocumentCheckVerificationResult();
 
@@ -85,11 +85,11 @@ public class IdentityVerificationService {
 
             DocumentCheckResult documentCheckResult = new DocumentCheckResult();
 
-            if (useDcs) {
-                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
+            if (useDcs && useNewThirdPartyApi) {
+                documentCheckResult = thirdPartyGateway.performDcsDocumentCheck(drivingPermitData);
             } else {
                 // replace with new method in
-                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
+                documentCheckResult = thirdPartyGateway.performDvadDocumentCheck(drivingPermitData);
             }
             LOGGER.info("Third party response mapped");
             if (Objects.nonNull(documentCheckResult)) {

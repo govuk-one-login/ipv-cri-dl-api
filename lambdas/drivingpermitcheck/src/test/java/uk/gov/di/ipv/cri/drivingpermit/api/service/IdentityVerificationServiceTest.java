@@ -35,6 +35,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 
 @ExtendWith(MockitoExtension.class)
 class IdentityVerificationServiceTest {
+    private static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
     @Mock private ThirdPartyDocumentGateway mockThirdPartyGateway;
     @Mock private FormDataValidator formDataValidator;
     @Mock private ContraindicationMapper mockContraindicationMapper;
@@ -71,16 +72,16 @@ class IdentityVerificationServiceTest {
         testFraudCheckResult.setValid(true);
         when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
-        when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
+        when(mockThirdPartyGateway.performDcsDocumentCheck(drivingPermitForm))
                 .thenReturn(testFraudCheckResult);
 
         DocumentCheckVerificationResult result =
-                this.identityVerificationService.verifyIdentity(drivingPermitForm);
+                this.identityVerificationService.verifyIdentity(drivingPermitForm, true);
 
         assertNotNull(result);
         verify(formDataValidator).validate(drivingPermitForm);
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
-        verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
+        verify(mockThirdPartyGateway).performDcsDocumentCheck(drivingPermitForm);
     }
 
     @Test
@@ -95,7 +96,7 @@ class IdentityVerificationServiceTest {
                 assertThrows(
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
-                            this.identityVerificationService.verifyIdentity(drivingPermitForm);
+                            this.identityVerificationService.verifyIdentity(drivingPermitForm, true);
                         });
 
         final String EXPECTED_ERROR = String.valueOf(ErrorResponse.FORM_DATA_FAILED_VALIDATION);
@@ -112,10 +113,10 @@ class IdentityVerificationServiceTest {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
-        when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm)).thenReturn(null);
+        when(mockThirdPartyGateway.performDcsDocumentCheck(drivingPermitForm)).thenReturn(null);
 
         DocumentCheckVerificationResult result =
-                this.identityVerificationService.verifyIdentity(drivingPermitForm);
+                this.identityVerificationService.verifyIdentity(drivingPermitForm, true);
 
         assertNotNull(result);
         assertFalse(result.isExecutedSuccessfully());
@@ -150,17 +151,17 @@ class IdentityVerificationServiceTest {
         testFraudCheckResult.setValid(true);
         when(formDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
-        when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
+        when(mockThirdPartyGateway.performDvadDocumentCheck(drivingPermitForm))
                 .thenReturn(testFraudCheckResult);
 
         DocumentCheckVerificationResult result =
-                this.identityVerificationService.verifyIdentity(drivingPermitForm);
+                this.identityVerificationService.verifyIdentity(drivingPermitForm, false);
 
         assertNotNull(result);
         verify(formDataValidator).validate(drivingPermitForm);
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
         // This below line will need to be updated to new performDvaDocumentCheck method once
         // created
-        verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
+        verify(mockThirdPartyGateway).performDvadDocumentCheck(drivingPermitForm);
     }
 }

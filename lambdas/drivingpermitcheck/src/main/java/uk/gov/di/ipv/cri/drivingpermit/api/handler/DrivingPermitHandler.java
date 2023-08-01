@@ -59,6 +59,7 @@ public class DrivingPermitHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
 
     private final IdentityVerificationService identityVerificationService;
     private final ObjectMapper objectMapper;
@@ -151,7 +152,7 @@ public class DrivingPermitHandler
             DrivingPermitForm drivingPermitFormData =
                     parseDrivingPermitFormRequest(input.getBody());
             DocumentCheckVerificationResult result =
-                    identityVerificationService.verifyIdentity(drivingPermitFormData);
+                    identityVerificationService.verifyIdentity(drivingPermitFormData, "dcs".equals(headers.get(HEADER_DOCUMENT_CHECKING_ROUTE)));
 
             result.setAttemptCount(sessionItem.getAttemptCount());
 

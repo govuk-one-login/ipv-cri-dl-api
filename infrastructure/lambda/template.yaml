@@ -140,13 +140,13 @@ Mappings:
       integration: MONTHS
       production: MONTHS
 
-  useLegacyMapping:
+  dvaDirectEnabledMapping:
     Environment:
       dev: "true"
-      build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
 
   DrivingPermitCriAudienceMapping:
     Environment:
@@ -395,7 +395,7 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/useLegacy"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvaDirectEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
@@ -646,12 +646,12 @@ Resources:
       Value: "false"
       Description: Feature toggle to allow logging of DCS responses
 
-  useLegacyParameter:
+  dvaDirectEnabledParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/useLegacy"
+      Name: !Sub "/${AWS::StackName}/dvaDirectEnabled"
       Type: String
-      Value: !FindInMap [ useLegacyMapping, Environment, !Ref Environment ]
+      Value: !FindInMap [ dvaDirectEnabledMapping, Environment, !Ref Environment ]
       Description: Feature toggle to switch between dcs/dva direct
 
   LoggingKmsKey:

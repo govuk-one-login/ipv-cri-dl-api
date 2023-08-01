@@ -53,8 +53,8 @@ class ConfigurationServiceTest {
         when(mockParamProvider.get(
                         String.format(SPECIFIC_KEY_FORMAT, env, "DocumentCheckResultTableName")))
                 .thenReturn("FraudTableName");
-        when(mockParamProvider.get(String.format(SPECIFIC_KEY_FORMAT, env, "useLegacy")))
-                .thenReturn("useLegacy");
+        when(mockParamProvider.get(String.format(SPECIFIC_KEY_FORMAT, env, "dvaDirectEnabled")))
+                .thenReturn("dvaDirectEnabled");
         when(mockParamProvider.get(
                         String.format(
                                 SPECIFIC_KEY_FORMAT,

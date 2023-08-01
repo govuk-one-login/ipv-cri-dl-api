@@ -123,10 +123,10 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
         String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
         LocalDate drivingPermitIssueDate = drivingPermitData.getIssueDate();
 
-        String dcsEndpointUri = null;
+        String dcsEndpointUri = configurationService.getDcsEndpointUri();
         switch (issuingAuthority) {
             case DVA:
-                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/dva-driving-licence";
+                dcsEndpointUri += "/dva-driving-licence";
 
                 dcsPayload.setExpiryDate(drivingPermitExpiryDate);
                 dcsPayload.setDriverNumber(drivingPermitDocumentNumber);
@@ -137,7 +137,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 dcsPayload.setDateOfIssue(drivingPermitIssueDate);
                 break;
             case DVLA:
-                dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
+                dcsEndpointUri += "/driving-licence";
 
                 dcsPayload.setIssueNumber(drivingPermitData.getIssueNumber());
 
@@ -150,7 +150,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
-        JWSObject preparedDcsPayload = preparePayload(dcsPayload);
+        JWSObject preparedDcsPayload = prepareDcsPayload(dcsPayload);
 
         String requestBody = preparedDcsPayload.serialize();
 
@@ -180,7 +180,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
         return documentCheckResult;
     }
 
-    private JWSObject preparePayload(DcsPayload dcsPayload)
+    private JWSObject prepareDcsPayload(DcsPayload dcsPayload)
             throws OAuthHttpResponseExceptionWithErrorBody {
         LOGGER.info("Preparing payload for DCS");
         try {

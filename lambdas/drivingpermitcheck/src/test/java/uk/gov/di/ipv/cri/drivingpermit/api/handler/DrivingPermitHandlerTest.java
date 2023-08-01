@@ -30,6 +30,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -56,6 +57,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 
 @ExtendWith(MockitoExtension.class)
 class DrivingPermitHandlerTest {
+    private static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private EventProbe mockEventProbe;
     @Mock private SessionService mockSessionService;
@@ -67,7 +69,7 @@ class DrivingPermitHandlerTest {
 
     @Mock private ServiceFactory mockServiceFactory;
     @Mock ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
-    @Mock ThirdPartyAPIService mockDcsThirdPartyDocumentGateway;
+    @Mock DcsThirdPartyDocumentGateway mockDcsThirdPartyDocumentGateway;
     @Mock private IdentityVerificationService mockIdentityVerificationService;
 
     private DrivingPermitHandler drivingPermitHandler;
@@ -111,7 +113,8 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", sessionId.toString());
+        Map<String, String> requestHeaders =
+                Map.of("session_id", sessionId.toString(), HEADER_DOCUMENT_CHECKING_ROUTE, "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -130,7 +133,7 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         // Choose API
-        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
                 .thenReturn(mockDcsThirdPartyDocumentGateway);
 
@@ -174,7 +177,12 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders =
+                Map.of(
+                        "session_id",
+                        UUID.randomUUID().toString(),
+                        HEADER_DOCUMENT_CHECKING_ROUTE,
+                        "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -192,7 +200,7 @@ class DrivingPermitHandlerTest {
                 .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
                 .thenReturn(mockDcsThirdPartyDocumentGateway);
 
@@ -242,7 +250,12 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders =
+                Map.of(
+                        "session_id",
+                        UUID.randomUUID().toString(),
+                        HEADER_DOCUMENT_CHECKING_ROUTE,
+                        "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -260,7 +273,7 @@ class DrivingPermitHandlerTest {
                 .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
                 .thenReturn(mockDcsThirdPartyDocumentGateway);
 
@@ -302,7 +315,12 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders =
+                Map.of(
+                        "session_id",
+                        UUID.randomUUID().toString(),
+                        HEADER_DOCUMENT_CHECKING_ROUTE,
+                        "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -342,7 +360,12 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
+        Map<String, String> requestHeaders =
+                Map.of(
+                        "session_id",
+                        UUID.randomUUID().toString(),
+                        HEADER_DOCUMENT_CHECKING_ROUTE,
+                        "dcs");
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -353,7 +376,7 @@ class DrivingPermitHandlerTest {
                 .thenReturn(drivingPermitForm);
 
         // Choose API
-        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
                 .thenReturn(mockDcsThirdPartyDocumentGateway);
 

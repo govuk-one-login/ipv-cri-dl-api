@@ -634,7 +634,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         enterYourDetailsExactlyDVLAPage.LicenceValidToYear.sendKeys("2030");
         enterYourDetailsExactlyDVLAPage.LicenceIssueDay.sendKeys("10");
         enterYourDetailsExactlyDVLAPage.LicenceIssueMonth.sendKeys("12");
-        enterYourDetailsExactlyDVLAPage.LicenceIssueYear.sendKeys("1970");
+        enterYourDetailsExactlyDVLAPage.LicenceIssueYear.sendKeys("2018");
         enterYourDetailsExactlyDVLAPage.IssueNumber.sendKeys("01");
         enterYourDetailsExactlyDVLAPage.Postcode.sendKeys("BS98 1AA");
         consentDVLACheckbox.click();

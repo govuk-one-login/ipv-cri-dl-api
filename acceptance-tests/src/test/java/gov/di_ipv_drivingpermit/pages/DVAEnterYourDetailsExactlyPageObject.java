@@ -172,7 +172,7 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         LicenceValidToYear.sendKeys("2030");
         dateOfIssueDay.sendKeys("10");
         dateOfIssueMonth.sendKeys("12");
-        dateOfIssueYear.sendKeys("1970");
+        dateOfIssueYear.sendKeys("2018");
         Postcode.sendKeys("BS98 1AA");
         consentDVACheckbox.click();
 

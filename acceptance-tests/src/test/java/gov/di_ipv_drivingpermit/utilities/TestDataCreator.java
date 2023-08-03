@@ -93,7 +93,7 @@ public class TestDataCreator {
                         "2042",
                         "19",
                         "04",
-                        "2001",
+                        "2018",
                         "NW3 5RG");
         selinaUnhappyPath =
                 new DVADrivingLicenceSubject(
@@ -109,7 +109,7 @@ public class TestDataCreator {
                         "2032",
                         "14",
                         "09",
-                        "2009",
+                        "2018",
                         "E20 2AQ");
 
         kennethDecerqueiraHappyPath =
@@ -126,7 +126,7 @@ public class TestDataCreator {
                         "2042",
                         "19",
                         "04",
-                        "2001",
+                        "2018",
                         "BA2 5AA");
 
         kennethDecerqueiraDvlaHappyPath =
@@ -143,7 +143,7 @@ public class TestDataCreator {
                         "2042",
                         "19",
                         "04",
-                        "2001",
+                        "2018",
                         "23",
                         "BA2 5AA");
 
@@ -161,7 +161,7 @@ public class TestDataCreator {
                         "2062",
                         "23",
                         "05",
-                        "1982",
+                        "2018",
                         "12",
                         "BS98 1TL");
 
@@ -203,7 +203,7 @@ public class TestDataCreator {
         billyBatsonIncorrectIssueDate = new DVADrivingLicenceSubject(billyBatsonHappyPath);
         billyBatsonIncorrectIssueDate.setIssueDay("14");
         billyBatsonIncorrectIssueDate.setIssueMonth("09");
-        billyBatsonIncorrectIssueDate.setIssueYear("2009");
+        billyBatsonIncorrectIssueDate.setIssueYear("2019");
 
         billyBatsonIncorrectValidToDate = new DVADrivingLicenceSubject(billyBatsonHappyPath);
         billyBatsonIncorrectValidToDate.setValidToDay("04");
@@ -381,7 +381,7 @@ public class TestDataCreator {
         peterIncorrectIssueDate = new DrivingLicenceSubject(peterHappyPath);
         peterIncorrectIssueDate.setIssueDay("14");
         peterIncorrectIssueDate.setIssueMonth("09");
-        peterIncorrectIssueDate.setIssueYear("2009");
+        peterIncorrectIssueDate.setIssueYear("2019");
 
         peterIncorrectLastName = new DrivingLicenceSubject(peterHappyPath);
         peterIncorrectLastName.setLastName("KYLE");

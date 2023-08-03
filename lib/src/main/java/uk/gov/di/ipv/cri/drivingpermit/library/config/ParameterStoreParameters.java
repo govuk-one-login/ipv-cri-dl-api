@@ -4,9 +4,9 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 
 public class ParameterStoreParameters {
 
-    public static final String DCS_HTTPCLIENT_TLS_CERT = "tlsCert";
+    public static final String DCS_HTTPCLIENT_TLS_CERT = "tlsCert-2023-08-03";
 
-    public static final String DCS_HTTPCLIENT_TLS_KEY = "tlsKey";
+    public static final String DCS_HTTPCLIENT_TLS_KEY = "tlsKey-2023-08-03";
 
     public static final String DCS_HTTPCLIENT_TLS_INTER_CERT = "tlsIntermediateCertificate";
 
@@ -17,16 +17,16 @@ public class ParameterStoreParameters {
     // Thumbprint (Header)
 
     public static final String DCS_DRIVING_PERMIT_CRI_SIGNING_KEY =
-            "signingKeyForDrivingPermitToSign"; // JWS RSA Signing Key
+            "signingKeyForDrivingPermitToSign-2023-08-03"; // JWS RSA Signing Key
 
     public static final String DCS_ENCRYPTION_CERT =
             "encryptionCertForDrivingPermitToEncrypt"; // JWE (Public Cert)
 
     public static final String DCS_SIGNING_CERT =
-            "signingCertForDcsToVerify"; // DCS JWE (Reply Signature)
+            "signingCertForDcsToVerify-2023-08-03"; // DCS JWE (Reply Signature)
 
     public static final String DCS_DRIVING_PERMIT_ENCRYPTION_KEY =
-            "encryptionKeyForDrivingPermitToDecrypt"; // DCS JWE (Private Key
+            "encryptionKeyForDrivingPermitToDecrypt-2023-08-03"; // DCS JWE (Private Key
     // Reply Decrypt)
 
     public static final String DVA_HTTPCLIENT_TLS_CERT = "DVA/HttpClient/tlsCert";

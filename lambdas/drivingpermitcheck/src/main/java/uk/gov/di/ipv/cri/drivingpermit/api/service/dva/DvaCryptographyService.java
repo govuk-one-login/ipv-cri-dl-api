@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.service.DVA;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,10 +18,10 @@ import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ProtectedHeader;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 
@@ -38,11 +38,12 @@ public class DvaCryptographyService {
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
+    // TODO there rest of this class for dva and check nothing crosswird with dcs
     public DvaCryptographyService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
     }
 
-    public JWSObject preparePayload(DcsPayload documentDetails)
+    public JWSObject preparePayload(DvaPayload documentDetails)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
                     JOSEException, JsonProcessingException {
         JWSObject signedDocumentDetails =
@@ -51,27 +52,27 @@ public class DvaCryptographyService {
         return createJWS(encryptedDocumentDetails.serialize());
     }
 
-    public DcsResponse unwrapDcsResponse(String dcsSignedEncryptedResponseString)
+    public DvaResponse unwrapDvaResponse(String DvaSignedEncryptedResponseString)
             throws JOSEException, ParseException, JsonProcessingException, CertificateException {
-        DcsSignedEncryptedResponse dcsSignedEncryptedResponse =
-                new DcsSignedEncryptedResponse(dcsSignedEncryptedResponseString);
-        JWSObject outerSignedPayload = JWSObject.parse(dcsSignedEncryptedResponse.getPayload());
+        DvaSignedEncryptedResponse DvaSignedEncryptedResponse =
+                new DvaSignedEncryptedResponse(DvaSignedEncryptedResponseString);
+        JWSObject outerSignedPayload = JWSObject.parse(DvaSignedEncryptedResponse.getPayload());
         if (isInvalidSignature(outerSignedPayload)) {
-            throw new IpvCryptoException("DCS Response Outer Signature invalid.");
+            throw new IpvCryptoException("Dva Response Outer Signature invalid.");
         }
         JWEObject encryptedSignedPayload =
                 JWEObject.parse(outerSignedPayload.getPayload().toString());
         JWSObject decryptedSignedPayload = decrypt(encryptedSignedPayload);
         if (isInvalidSignature(decryptedSignedPayload)) {
-            throw new IpvCryptoException("DCS Response Inner Signature invalid.");
+            throw new IpvCryptoException("Dva Response Inner Signature invalid.");
         }
         try {
             return objectMapper.readValue(
-                    decryptedSignedPayload.getPayload().toString(), DcsResponse.class);
+                    decryptedSignedPayload.getPayload().toString(), DvaResponse.class);
         } catch (JsonProcessingException exception) {
             throw new IpvCryptoException(
                     String.format(
-                            "Failed to parse decrypted DCS response: %s", exception.getMessage()));
+                            "Failed to parse decrypted Dva response: %s", exception.getMessage()));
         }
     }
 
@@ -136,7 +137,7 @@ public class DvaCryptographyService {
             return JWSObject.parse(encrypted.getPayload().toString());
         } catch (ParseException | JOSEException exception) {
             throw new IpvCryptoException(
-                    String.format("Cannot Decrypt DCS Payload: %s", exception.getMessage()));
+                    String.format("Cannot Decrypt Dva Payload: %s", exception.getMessage()));
         }
     }
 }

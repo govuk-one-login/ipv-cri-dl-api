@@ -6,7 +6,6 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,7 +13,6 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
@@ -31,8 +29,11 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResul
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.FormDataValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
@@ -40,7 +41,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHel
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -60,53 +60,58 @@ public class DrivingPermitHandler
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final IdentityVerificationService identityVerificationService;
-    private final ObjectMapper objectMapper;
-    private final EventProbe eventProbe;
-    private final PersonIdentityService personIdentityService;
-    private final SessionService sessionService;
-    private final DataStore<DocumentCheckResultItem> dataStore;
-    private final ConfigurationService configurationService;
-    private final AuditService auditService;
+    private ObjectMapper objectMapper;
+    private EventProbe eventProbe;
+    private PersonIdentityService personIdentityService;
+    private SessionService sessionService;
+    private DataStore<DocumentCheckResultItem> dataStore;
+    private ConfigurationService configurationService;
+    private AuditService auditService;
+
+    private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
+    private IdentityVerificationService identityVerificationService;
 
     // TODO move this to a parameter store variable
     private static final int MAX_ATTEMPTS = 2;
 
     public DrivingPermitHandler()
-            throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
-                    InvalidKeySpecException, HttpException, KeyStoreException, IOException {
-        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        ServiceFactory serviceFactory = new ServiceFactory(objectMapper);
-        this.eventProbe = new EventProbe();
-        this.identityVerificationService = serviceFactory.getIdentityVerificationService();
-        this.personIdentityService = new PersonIdentityService();
-        this.sessionService = new SessionService();
-        this.configurationService = serviceFactory.getConfigurationService();
-        this.dataStore =
-                new DataStore<>(
-                        configurationService.getDocumentCheckResultTableName(),
-                        DocumentCheckResultItem.class,
-                        DataStore.getClient());
-        this.auditService = serviceFactory.getAuditService();
+            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
+                    HttpException, KeyStoreException, IOException {
+        ServiceFactory serviceFactory = new ServiceFactory();
+        ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactoryNotAssignedYet =
+                new ThirdPartyAPIServiceFactory(serviceFactory);
+
+        IdentityVerificationService identityVerificationServiceNotAssignedYet =
+                createIdentityVerificationService(serviceFactory);
+
+        initializeLambdaServices(
+                serviceFactory,
+                thirdPartyAPIServiceFactoryNotAssignedYet,
+                identityVerificationServiceNotAssignedYet);
     }
 
-    @ExcludeFromGeneratedCoverageReport
     public DrivingPermitHandler(
             ServiceFactory serviceFactory,
-            ObjectMapper objectMapper,
-            EventProbe eventProbe,
-            PersonIdentityService personIdentityService,
-            SessionService sessionService,
-            DataStore<DocumentCheckResultItem> dataStore,
-            ConfigurationService configurationService) {
-        this.identityVerificationService = serviceFactory.getIdentityVerificationService();
-        this.objectMapper = objectMapper;
-        this.eventProbe = eventProbe;
-        this.personIdentityService = personIdentityService;
-        this.sessionService = sessionService;
-        this.configurationService = configurationService;
-        this.dataStore = dataStore;
+            ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
+            IdentityVerificationService identityVerificationService) {
+        initializeLambdaServices(
+                serviceFactory, thirdPartyAPIServiceFactory, identityVerificationService);
+    }
+
+    public void initializeLambdaServices(
+            ServiceFactory serviceFactory,
+            ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
+            IdentityVerificationService identityVerificationService) {
+        this.objectMapper = serviceFactory.getObjectMapper();
+        this.eventProbe = serviceFactory.getEventProbe();
+        this.sessionService = serviceFactory.getSessionService();
         this.auditService = serviceFactory.getAuditService();
+        this.personIdentityService = serviceFactory.getPersonIdentityService();
+
+        this.configurationService = serviceFactory.getConfigurationService();
+        this.dataStore = serviceFactory.getDataStore();
+        this.thirdPartyAPIServiceFactory = thirdPartyAPIServiceFactory;
+        this.identityVerificationService = identityVerificationService;
     }
 
     @Override
@@ -147,11 +152,15 @@ public class DrivingPermitHandler
                                 .TOO_MANY_RETRY_ATTEMPTS);
             }
 
-            LOGGER.info("Verifying document details...");
+            ThirdPartyAPIService thirdPartyAPIService = selectThirdPartyAPIService();
+
+            LOGGER.info(
+                    "Verifying document details using {}", thirdPartyAPIService.getServiceName());
             DrivingPermitForm drivingPermitFormData =
                     parseDrivingPermitFormRequest(input.getBody());
             DocumentCheckVerificationResult result =
-                    identityVerificationService.verifyIdentity(drivingPermitFormData);
+                    identityVerificationService.verifyIdentity(
+                            drivingPermitFormData, thirdPartyAPIService);
 
             result.setAttemptCount(sessionItem.getAttemptCount());
 
@@ -304,7 +313,21 @@ public class DrivingPermitHandler
         return documentCheckResultItem;
     }
 
-    public AuditService getAuditService() {
-        return auditService;
+    private IdentityVerificationService createIdentityVerificationService(
+            ServiceFactory serviceFactory) {
+
+        return new IdentityVerificationService(
+                new FormDataValidator(), null, serviceFactory.getEventProbe());
+    }
+
+    private ThirdPartyAPIService selectThirdPartyAPIService() {
+        // TODO Change to a switch for each api and read feature flag + header
+        if (configurationService.getUseLegacy()) {
+            // Legacy DCS
+            return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
+        } else {
+            // DVA
+            return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
+        }
     }
 }

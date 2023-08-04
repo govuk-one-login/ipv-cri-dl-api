@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.gateway;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dcs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,15 +16,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DCS.DcsCryptographyService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DVA.DvaCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
@@ -45,23 +45,23 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_CREATED;
 
-public class ThirdPartyDocumentGateway {
+public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
+    private static final String SERVICE_NAME = DcsThirdPartyDocumentGateway.class.getSimpleName();
+
     private final ObjectMapper objectMapper;
     private final DcsCryptographyService dcsCryptographyService;
-    private final DvaCryptographyService dvaCryptographyService;
     private final ConfigurationService configurationService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
     private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
     private static final String IDENTITY_CHECK_POLICY = "published";
 
-    public ThirdPartyDocumentGateway(
+    public DcsThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             DcsCryptographyService dcsCryptographyService,
-            DvaCryptographyService dvaCryptographyService,
             ConfigurationService configurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
@@ -72,18 +72,16 @@ public class ThirdPartyDocumentGateway {
 
         this.objectMapper = objectMapper;
         this.dcsCryptographyService = dcsCryptographyService;
-        this.dvaCryptographyService = dvaCryptographyService;
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
     }
 
-    public ThirdPartyDocumentGateway(
+    public DcsThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             String endpointUrl,
             SleepHelper sleepHelper,
             DcsCryptographyService dcsCryptographyService,
-            DvaCryptographyService dvaCryptographyService,
             ConfigurationService configurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
@@ -97,15 +95,15 @@ public class ThirdPartyDocumentGateway {
         Objects.requireNonNull(sleepHelper, "sleepHelper must not be null");
         this.objectMapper = objectMapper;
         this.dcsCryptographyService = dcsCryptographyService;
-        this.dvaCryptographyService = dvaCryptographyService;
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
     }
 
+    @Override
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
-            throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException {
+            throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
+                    CertificateException, ParseException, JOSEException, IOException {
         LOGGER.info("Mapping person to third party document check request");
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
@@ -126,7 +124,6 @@ public class ThirdPartyDocumentGateway {
         LocalDate drivingPermitIssueDate = drivingPermitData.getIssueDate();
 
         String dcsEndpointUri = null;
-        boolean useDva = false;
         switch (issuingAuthority) {
             case DVA:
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/dva-driving-licence";
@@ -138,9 +135,6 @@ public class ThirdPartyDocumentGateway {
                 // api handling of that field
                 // Here (for the DVA request) it needs to be mapped back to date of issue
                 dcsPayload.setDateOfIssue(drivingPermitIssueDate);
-                if (!configurationService.getUseLegacy()) {
-                    useDva = true;
-                }
                 break;
             case DVLA:
                 dcsEndpointUri = configurationService.getDcsEndpointUri() + "/driving-licence";
@@ -156,7 +150,7 @@ public class ThirdPartyDocumentGateway {
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
-        JWSObject preparedDcsPayload = preparePayload(dcsPayload, useDva);
+        JWSObject preparedDcsPayload = preparePayload(dcsPayload);
 
         String requestBody = preparedDcsPayload.serialize();
 
@@ -186,23 +180,8 @@ public class ThirdPartyDocumentGateway {
         return documentCheckResult;
     }
 
-    private JWSObject preparePayload(DcsPayload dcsPayload, boolean useDva)
+    private JWSObject preparePayload(DcsPayload dcsPayload)
             throws OAuthHttpResponseExceptionWithErrorBody {
-        if (useDva) {
-            LOGGER.info("Preparing payload for DVA");
-            try {
-                return dvaCryptographyService.preparePayload(dcsPayload);
-            } catch (CertificateException
-                    | NoSuchAlgorithmException
-                    | InvalidKeySpecException
-                    | JOSEException
-                    | JsonProcessingException e) {
-                LOGGER.error(("Failed to prepare payload for DVA: " + e.getMessage()));
-                throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR,
-                        ErrorResponse.FAILED_TO_PREPARE_DCS_PAYLOAD);
-            }
-        }
         LOGGER.info("Preparing payload for DCS");
         try {
             return dcsCryptographyService.preparePayload(dcsPayload);
@@ -318,5 +297,10 @@ public class ThirdPartyDocumentGateway {
             throw new IpvCryptoException(
                     String.format("Cannot Decrypt DCS Payload: %s", exception.getMessage()));
         }
+    }
+
+    @Override
+    public String getServiceName() {
+        return SERVICE_NAME;
     }
 }

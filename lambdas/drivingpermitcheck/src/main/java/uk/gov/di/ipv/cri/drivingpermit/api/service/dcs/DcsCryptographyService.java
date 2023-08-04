@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.service.DCS;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dcs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,10 +18,10 @@ import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DCS.DcsSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ProtectedHeader;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 

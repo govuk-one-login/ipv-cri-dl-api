@@ -1,17 +1,14 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
-import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
-import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 
 import java.util.List;
@@ -41,27 +38,20 @@ public class IdentityVerificationService {
             "DrivingPermitCheckResult had no error message.";
 
     private final FormDataValidator formDataValidator;
-    private final ThirdPartyDocumentGateway thirdPartyGateway;
-
+    private final ContraindicationMapper contraindicationMapper;
     private final EventProbe eventProbe;
 
-    private final boolean useDcs;
-
-    IdentityVerificationService(
-            ThirdPartyDocumentGateway thirdPartyGateway,
+    public IdentityVerificationService(
             FormDataValidator formDataValidator,
             ContraindicationMapper contraindicationMapper,
-            AuditService auditService,
-            ConfigurationService configurationService,
-            ObjectMapper objectMapper,
             EventProbe eventProbe) {
-        this.thirdPartyGateway = thirdPartyGateway;
         this.formDataValidator = formDataValidator;
+        this.contraindicationMapper = contraindicationMapper;
         this.eventProbe = eventProbe;
-        this.useDcs = configurationService.getUseLegacy();
     }
 
-    public DocumentCheckVerificationResult verifyIdentity(DrivingPermitForm drivingPermitData)
+    public DocumentCheckVerificationResult verifyIdentity(
+            DrivingPermitForm drivingPermitData, ThirdPartyAPIService thirdPartyAPIService)
             throws OAuthHttpResponseExceptionWithErrorBody {
         DocumentCheckVerificationResult result = new DocumentCheckVerificationResult();
 
@@ -83,16 +73,8 @@ public class IdentityVerificationService {
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
 
-            DocumentCheckResult documentCheckResult = new DocumentCheckResult();
-
-            if (useDcs) {
-                LOGGER.info("Performing document check (DCS)");
-                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
-            } else {
-                LOGGER.info("Performing document check (DVA direct)");
-                // replace with new method in LIME-685
-                documentCheckResult = thirdPartyGateway.performDocumentCheck(drivingPermitData);
-            }
+            DocumentCheckResult documentCheckResult =
+                    thirdPartyAPIService.performDocumentCheck(drivingPermitData);
 
             LOGGER.info("Third party response mapped");
             if (Objects.nonNull(documentCheckResult)) {

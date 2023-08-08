@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.gateway;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dcs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,14 +16,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
@@ -44,9 +45,11 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_CREATED;
 
-public class ThirdPartyDocumentGateway {
+public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final String SERVICE_NAME = DcsThirdPartyDocumentGateway.class.getSimpleName();
 
     private final ObjectMapper objectMapper;
     private final DcsCryptographyService dcsCryptographyService;
@@ -56,7 +59,7 @@ public class ThirdPartyDocumentGateway {
     private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
     private static final String IDENTITY_CHECK_POLICY = "published";
 
-    public ThirdPartyDocumentGateway(
+    public DcsThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             DcsCryptographyService dcsCryptographyService,
             ConfigurationService configurationService,
@@ -74,7 +77,7 @@ public class ThirdPartyDocumentGateway {
         this.eventProbe = eventProbe;
     }
 
-    public ThirdPartyDocumentGateway(
+    public DcsThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             String endpointUrl,
             SleepHelper sleepHelper,
@@ -97,9 +100,10 @@ public class ThirdPartyDocumentGateway {
         this.eventProbe = eventProbe;
     }
 
+    @Override
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
-            throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException {
+            throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
+                    CertificateException, ParseException, JOSEException, IOException {
         LOGGER.info("Mapping person to third party document check request");
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
@@ -146,7 +150,6 @@ public class ThirdPartyDocumentGateway {
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
-
         JWSObject preparedDcsPayload = preparePayload(dcsPayload);
 
         String requestBody = preparedDcsPayload.serialize();
@@ -294,5 +297,10 @@ public class ThirdPartyDocumentGateway {
             throw new IpvCryptoException(
                     String.format("Cannot Decrypt DCS Payload: %s", exception.getMessage()));
         }
+    }
+
+    @Override
+    public String getServiceName() {
+        return SERVICE_NAME;
     }
 }

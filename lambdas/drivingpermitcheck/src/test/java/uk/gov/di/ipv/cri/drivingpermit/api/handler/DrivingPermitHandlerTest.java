@@ -28,6 +28,8 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionW
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -54,33 +56,41 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 
 @ExtendWith(MockitoExtension.class)
 class DrivingPermitHandlerTest {
-    @Mock private ServiceFactory mockServiceFactory;
     @Mock private ObjectMapper mockObjectMapper;
-    @Mock private IdentityVerificationService mockIdentityVerificationService;
     @Mock private EventProbe mockEventProbe;
-    @Mock private Context context;
-    @Mock private PersonIdentityService personIdentityService;
     @Mock private SessionService mockSessionService;
-    @Mock private DataStore dataStore;
-    @Mock private ConfigurationService configurationService;
-    @Mock private AuditService auditService;
+    @Mock private AuditService mockAuditService;
+
+    @Mock private PersonIdentityService mockPersonIdentityService;
+    @Mock private DataStore<DocumentCheckResultItem> mockDataStore;
+    @Mock private ConfigurationService mockConfigurationService;
+
+    @Mock private ServiceFactory mockServiceFactory;
+    @Mock ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
+    @Mock ThirdPartyAPIService mockDcsThirdPartyDocumentGateway;
+    @Mock private IdentityVerificationService mockIdentityVerificationService;
+
     private DrivingPermitHandler drivingPermitHandler;
+    @Mock private Context context;
 
     @BeforeEach
     void setup() {
-        when(mockServiceFactory.getIdentityVerificationService())
-                .thenReturn(mockIdentityVerificationService);
-        when(mockServiceFactory.getAuditService()).thenReturn(auditService);
+
+        when(mockServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
+        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
+        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+
+        when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
+
+        when(mockServiceFactory.getConfigurationService()).thenReturn(mockConfigurationService);
+        when(mockServiceFactory.getDataStore()).thenReturn(mockDataStore);
 
         this.drivingPermitHandler =
                 new DrivingPermitHandler(
                         mockServiceFactory,
-                        mockObjectMapper,
-                        mockEventProbe,
-                        personIdentityService,
-                        mockSessionService,
-                        dataStore,
-                        configurationService);
+                        mockThirdPartyAPIServiceFactory,
+                        mockIdentityVerificationService);
     }
 
     @Test
@@ -113,18 +123,24 @@ class DrivingPermitHandlerTest {
                 .thenReturn(drivingPermitForm);
 
         doNothing()
-                .when(auditService)
+                .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
         doNothing()
-                .when(auditService)
+                .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        // Choose API
+        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
+                .thenReturn(mockDcsThirdPartyDocumentGateway);
+
+        when(mockIdentityVerificationService.verifyIdentity(
+                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
-        when(configurationService.getDocumentCheckItemExpirationEpoch()).thenReturn(1000L);
+        when(mockConfigurationService.getDocumentCheckItemExpirationEpoch()).thenReturn(1000L);
 
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
@@ -134,7 +150,7 @@ class DrivingPermitHandlerTest {
                 .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
 
-        verify(dataStore).create(documentCheckResultItem);
+        verify(mockDataStore).create(documentCheckResultItem);
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
         assertEquals("{\"redirectUrl\":null,\"retry\":false}", responseEvent.getBody());
@@ -170,13 +186,18 @@ class DrivingPermitHandlerTest {
                 .thenReturn(drivingPermitForm);
 
         doNothing()
-                .when(auditService)
+                .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
         doNothing()
-                .when(auditService)
+                .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
+                .thenReturn(mockDcsThirdPartyDocumentGateway);
+
+        when(mockIdentityVerificationService.verifyIdentity(
+                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -233,13 +254,18 @@ class DrivingPermitHandlerTest {
                 .thenReturn(drivingPermitForm);
 
         doNothing()
-                .when(auditService)
+                .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
         doNothing()
-                .when(auditService)
+                .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
+                .thenReturn(mockDcsThirdPartyDocumentGateway);
+
+        when(mockIdentityVerificationService.verifyIdentity(
+                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -326,13 +352,19 @@ class DrivingPermitHandlerTest {
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
                 .thenReturn(drivingPermitForm);
 
-        when(mockIdentityVerificationService.verifyIdentity(drivingPermitForm))
+        // Choose API
+        when(mockConfigurationService.getUseLegacy()).thenReturn(true);
+        when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
+                .thenReturn(mockDcsThirdPartyDocumentGateway);
+
+        when(mockIdentityVerificationService.verifyIdentity(
+                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
                 .thenReturn(testDocumentVerificationResult);
 
-        verify(auditService, never())
+        verify(mockAuditService, never())
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
 
-        verify(auditService, never())
+        verify(mockAuditService, never())
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         when(context.getFunctionName()).thenReturn("functionName");

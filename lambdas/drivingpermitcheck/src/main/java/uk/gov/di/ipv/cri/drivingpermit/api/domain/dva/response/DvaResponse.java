@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.domain;
+package uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,17 +7,17 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 import java.util.List;
 
 @ExcludeFromGeneratedCoverageReport
-public class DcsResponse {
+public class DvaResponse {
     private String correlationId;
     private String requestId;
     private boolean error;
     private boolean valid;
     private List<String> errorMessage;
 
-    public DcsResponse() {}
+    public DvaResponse() {}
 
     @JsonCreator
-    public DcsResponse(
+    public DvaResponse(
             @JsonProperty(value = "correlationId", required = true) String correlationId,
             @JsonProperty(value = "requestId", required = true) String requestId,
             @JsonProperty(value = "error") boolean error,

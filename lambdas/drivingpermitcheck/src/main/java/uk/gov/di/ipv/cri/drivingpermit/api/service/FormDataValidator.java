@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-class FormDataValidator {
+public class FormDataValidator {
 
     private static final Logger LOGGER = LogManager.getLogger();
     public static final int MIN_SUPPORTED_ADDRESSES = 1;

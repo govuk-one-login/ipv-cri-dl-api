@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.domain;
+package uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -18,7 +18,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 @ExcludeFromGeneratedCoverageReport
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-public class DcsPayload {
+public class DvaPayload {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String TIMESTAMP_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
@@ -49,10 +49,10 @@ public class DcsPayload {
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
     public LocalDate expiryDate;
 
-    public DcsPayload() {}
+    public DvaPayload() {}
 
     @JsonCreator
-    public DcsPayload(
+    public DvaPayload(
             @JsonProperty(value = "surname", required = true) String surname,
             @JsonProperty(value = "forenames", required = true) List<String> forenames,
             @JsonProperty(value = "dateOfBirth", required = true) LocalDate dateOfBirth,

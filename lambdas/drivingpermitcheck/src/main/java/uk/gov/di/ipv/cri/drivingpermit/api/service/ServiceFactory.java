@@ -10,16 +10,17 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
+import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.api.gateway.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.api.gateway.ThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import javax.net.ssl.SSLContext;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -32,53 +33,51 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 
 public class ServiceFactory {
-    private final IdentityVerificationService identityVerificationService;
-    private final ContraindicationMapper contraindicationMapper;
-    private final DcsCryptographyService dcsCryptographyService;
-    private final ConfigurationService configurationService;
-    private final FormDataValidator formDataValidator;
     private final ObjectMapper objectMapper;
-    private final CloseableHttpClient httpClient;
     private final AuditService auditService;
-    private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
+    private final SessionService sessionService;
+
+    private final PersonIdentityService personIdentityService;
+
+    private final ConfigurationService configurationService;
+
+    private final DataStore<DocumentCheckResultItem> dataStore;
+
     private final Region awsRegion = Region.of(System.getenv("AWS_REGION"));
 
-    public ServiceFactory(ObjectMapper objectMapper)
-            throws NoSuchAlgorithmException, InvalidKeyException, CertificateException,
-                    InvalidKeySpecException, KeyStoreException, IOException, HttpException {
-        this.objectMapper = objectMapper;
+    public ServiceFactory()
+            throws NoSuchAlgorithmException, CertificateException, InvalidKeySpecException {
+        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = new EventProbe();
-        this.formDataValidator = new FormDataValidator();
         this.configurationService = createConfigurationService();
-        this.dcsCryptographyService = new DcsCryptographyService(configurationService);
-        this.contraindicationMapper = new ContraIndicatorRemoteMapper(configurationService);
-        this.httpClient = generateHttpClient(configurationService);
         this.auditService = createAuditService(this.objectMapper);
-        this.httpRetryer = new HttpRetryer(httpClient, eventProbe);
-        this.identityVerificationService = createIdentityVerificationService(this.auditService);
+        this.sessionService = new SessionService();
+
+        this.dataStore =
+                new DataStore<>(
+                        configurationService.getDocumentCheckResultTableName(),
+                        DocumentCheckResultItem.class,
+                        DataStore.getClient());
+
+        this.personIdentityService = new PersonIdentityService();
     }
 
     @ExcludeFromGeneratedCoverageReport
     ServiceFactory(
             EventProbe eventProbe,
             ConfigurationService configurationService,
-            DcsCryptographyService dcsCryptographyService,
-            ContraindicationMapper contraindicationMapper,
-            FormDataValidator formDataValidator,
-            CloseableHttpClient httpClient,
-            AuditService auditService)
-            throws NoSuchAlgorithmException, InvalidKeyException {
+            SessionService sessionService,
+            AuditService auditService,
+            DataStore<DocumentCheckResultItem> dataStore,
+            PersonIdentityService personIdentityService) {
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = eventProbe;
         this.configurationService = configurationService;
-        this.dcsCryptographyService = dcsCryptographyService;
-        this.contraindicationMapper = contraindicationMapper;
-        this.formDataValidator = formDataValidator;
-        this.httpClient = httpClient;
+        this.sessionService = sessionService;
         this.auditService = auditService;
-        this.httpRetryer = new HttpRetryer(httpClient, eventProbe);
-        this.identityVerificationService = createIdentityVerificationService(this.auditService);
+        this.dataStore = dataStore;
+        this.personIdentityService = personIdentityService;
     }
 
     private ConfigurationService createConfigurationService()
@@ -93,29 +92,12 @@ public class ServiceFactory {
         return configurationService;
     }
 
-    public IdentityVerificationService getIdentityVerificationService() {
-        return this.identityVerificationService;
+    public EventProbe getEventProbe() {
+        return eventProbe;
     }
 
-    private IdentityVerificationService createIdentityVerificationService(
-            AuditService auditService) {
-
-        ThirdPartyDocumentGateway thirdPartyGateway =
-                new ThirdPartyDocumentGateway(
-                        this.objectMapper,
-                        this.dcsCryptographyService,
-                        this.configurationService,
-                        this.httpRetryer,
-                        eventProbe);
-
-        return new IdentityVerificationService(
-                thirdPartyGateway,
-                this.formDataValidator,
-                this.contraindicationMapper,
-                auditService,
-                configurationService,
-                objectMapper,
-                eventProbe);
+    public SessionService getSessionService() {
+        return sessionService;
     }
 
     public AuditService getAuditService() {
@@ -141,9 +123,18 @@ public class ServiceFactory {
                 new AuditEventFactory(commonLibConfigurationService, Clock.systemUTC()));
     }
 
+    public DataStore<DocumentCheckResultItem> getDataStore() {
+        return dataStore;
+    }
+
+    public PersonIdentityService getPersonIdentityService() {
+        return personIdentityService;
+    }
+
     private static final char[] password = "password".toCharArray();
 
-    public static CloseableHttpClient generateHttpClient(ConfigurationService configurationService)
+    public CloseableHttpClient generateDcsHttpClient(
+            ConfigurationService configurationService, boolean tlsOn)
             throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
                     HttpException {
         KeyStore keystoreTLS =
@@ -158,13 +149,57 @@ public class ServiceFactory {
                             configurationService.getDcsIntermediateCert()
                         });
 
-        if (configurationService.isPerformanceStub()) {
+        if (!tlsOn) {
             return contextSetup(keystoreTLS, null);
         }
         return contextSetup(keystoreTLS, trustStore);
     }
 
-    private static CloseableHttpClient contextSetup(KeyStore clientTls, KeyStore caBundle)
+    public CloseableHttpClient generateDvaHttpClient(
+            ConfigurationService configurationService, boolean tlsOn)
+            throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
+                    HttpException {
+        KeyStore keystoreTLS =
+                createKeyStore(
+                        configurationService.getDvaTlsSelfCert(),
+                        configurationService.getDvaDrivingPermitTlsKey());
+
+        KeyStore trustStore =
+                createTrustStore(
+                        new Certificate[] {
+                            configurationService.getDvaTlsRootCert(),
+                            configurationService.getDvaTlsIntermediateCert()
+                        });
+
+        if (!tlsOn) {
+            return contextSetup(keystoreTLS, null);
+        }
+        return contextSetup(keystoreTLS, trustStore);
+    }
+
+    public CloseableHttpClient generateDvlaHttpClient(
+            ConfigurationService configurationService, boolean tlsOn)
+            throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
+                    HttpException {
+        KeyStore keystoreTLS =
+                createKeyStore(
+                        null /*configurationService.getDvlaTlsSelfCert()*/,
+                        null /*configurationService.getDvlaDrivingPermitTlsKey()*/);
+
+        KeyStore trustStore =
+                createTrustStore(
+                        new Certificate[] {
+                            null /*configurationService.getDvlaTlsRootCert()*/,
+                            null /*configurationService.getDvlaTlsIntermediateCert()*/
+                        });
+
+        if (!tlsOn) {
+            return contextSetup(keystoreTLS, null);
+        }
+        return contextSetup(keystoreTLS, trustStore);
+    }
+
+    private CloseableHttpClient contextSetup(KeyStore clientTls, KeyStore caBundle)
             throws HttpException {
         try {
             SSLContext sslContext =
@@ -182,7 +217,7 @@ public class ServiceFactory {
         }
     }
 
-    private static KeyStore createKeyStore(Certificate cert, Key key)
+    private KeyStore createKeyStore(Certificate cert, Key key)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, password);
@@ -192,7 +227,7 @@ public class ServiceFactory {
         return keyStore;
     }
 
-    private static KeyStore createTrustStore(Certificate[] certificates)
+    private KeyStore createTrustStore(Certificate[] certificates)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, null);

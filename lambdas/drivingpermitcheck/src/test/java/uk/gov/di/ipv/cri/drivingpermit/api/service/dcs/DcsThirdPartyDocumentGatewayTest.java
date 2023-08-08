@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.gateway;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dcs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
@@ -26,13 +26,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DcsCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
@@ -60,7 +61,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ThirdPartyDocumentGatewayTest {
+class DcsThirdPartyDocumentGatewayTest {
 
     private static class ExperianGatewayConstructorArgs {
         private final ObjectMapper objectMapper;
@@ -87,13 +88,14 @@ class ThirdPartyDocumentGatewayTest {
     private static final String TEST_API_RESPONSE_BODY = "test-api-response-content";
     private static final String TEST_ENDPOINT_URL = "https://test-endpoint.co.uk";
     private static final int MOCK_HTTP_STATUS_CODE = -1;
-    private ThirdPartyDocumentGateway thirdPartyDocumentGateway;
+    private DcsThirdPartyDocumentGateway dcsThirdPartyDocumentGateway;
 
     @Mock private HttpClient mockHttpClient;
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private ConfigurationService configurationService;
     @Mock private HttpRetryer httpRetryer;
     @Mock private DcsCryptographyService dcsCryptographyService;
+    @Mock private DvaCryptographyService dvaCryptographyService;
 
     @Mock private EventProbe mockEventProbe;
 
@@ -102,8 +104,8 @@ class ThirdPartyDocumentGatewayTest {
         lenient()
                 .when(configurationService.getDcsEndpointUri())
                 .thenReturn("https://test-endpoint.co.uk");
-        this.thirdPartyDocumentGateway =
-                new ThirdPartyDocumentGateway(
+        this.dcsThirdPartyDocumentGateway =
+                new DcsThirdPartyDocumentGateway(
                         mockObjectMapper,
                         dcsCryptographyService,
                         configurationService,
@@ -137,7 +139,7 @@ class ThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         DocumentCheckResult actualDocumentCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                dcsThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/driving-licence",
@@ -175,7 +177,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -219,7 +221,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -264,7 +266,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -307,7 +309,7 @@ class ThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    thirdPartyDocumentGateway.performDocumentCheck(
+                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
@@ -350,7 +352,7 @@ class ThirdPartyDocumentGatewayTest {
                 .thenReturn(createSuccessDcsResponse());
 
         DocumentCheckResult actualFraudCheckResult =
-                thirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                dcsThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
         assertNotNull(actualFraudCheckResult);
         assertEquals(
@@ -382,7 +384,7 @@ class ThirdPartyDocumentGatewayTest {
                         assertThrows(
                                 NullPointerException.class,
                                 () ->
-                                        new ThirdPartyDocumentGateway(
+                                        new DcsThirdPartyDocumentGateway(
                                                 constructorArgs.objectMapper,
                                                 constructorArgs.dcsCryptographyService,
                                                 constructorArgs.configurationService,

@@ -263,6 +263,18 @@ public class ConfigurationService {
         return dvaSigningCert;
     }
 
+    public PrivateKey getDvaDrivingPermitEncryptionKey() {
+        return dvaDrivingPermitEncryptionKey;
+    }
+
+    public PrivateKey getDvaDrivingPermitCriSigningKey() {
+        return dvaDrivingPermitCriSigningKey;
+    }
+
+    public PrivateKey getDvaDrivingPermitTlsKey() {
+        return dvaDrivingPermitTlsKey;
+    }
+
     public Certificate getDvaTlsIntermediateCert() {
         return dvaTlsIntermediateCert;
     }

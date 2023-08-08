@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.gateway;
+package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -35,7 +35,7 @@ public class HttpRetryer {
         this.eventProbe = eventProbe;
     }
 
-    CloseableHttpResponse sendHTTPRequestRetryIfAllowed(HttpPost request)
+    public CloseableHttpResponse sendHTTPRequestRetryIfAllowed(HttpPost request)
             throws InterruptedException, IOException {
 
         CloseableHttpResponse httpResponse = null;

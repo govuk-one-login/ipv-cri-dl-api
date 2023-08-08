@@ -55,6 +55,8 @@ public class ParameterStoreParameters {
             "DVA/JWE/encryptionKeyForDrivingPermitToDecrypt"; // DVA JWE (Private Key
     // Reply Decrypt)
 
+    public static final String DVA_ENDPOINT = "DVA/dvaEndpoint";
+
     @ExcludeFromGeneratedCoverageReport
     private ParameterStoreParameters() {
         throw new IllegalStateException("Instantiation is not valid for this class.");

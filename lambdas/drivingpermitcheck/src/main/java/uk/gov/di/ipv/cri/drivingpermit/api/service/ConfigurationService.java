@@ -57,6 +57,7 @@ public class ConfigurationService {
     private final String dcsEndpointUri;
     private final String parameterPrefix;
     private final String commonParameterPrefix;
+    private final String dvaEndpointUri;
     private final boolean useLegacy;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
@@ -153,6 +154,8 @@ public class ConfigurationService {
                         getThumbprint((X509Certificate) cert, "SHA-256"));
         this.documentCheckItemTtl =
                 Long.parseLong(paramProvider.get(getCommonParameterName("SessionTtl")));
+
+        this.dvaEndpointUri = paramProvider.get(getParameterName(DVA_ENDPOINT));
 
         // *****************************Feature Toggles*******************************
         this.useLegacy = Boolean.parseBoolean(paramProvider.get(getParameterName("useLegacy")));
@@ -301,5 +304,9 @@ public class ConfigurationService {
 
     public boolean isLogDcsResponse() {
         return logDcsResponse;
+    }
+
+    public String getDvaEndpointUri() {
+        return dvaEndpointUri;
     }
 }

@@ -18,15 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DRIVING_PERMIT_CRI_SIGNING_CERT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DRIVING_PERMIT_CRI_SIGNING_KEY;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DRIVING_PERMIT_ENCRYPTION_KEY;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_ENCRYPTION_CERT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_CERT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_INTER_CERT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_KEY;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_ROOT_CERT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_SIGNING_CERT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.*;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationServiceTest {
@@ -128,6 +120,8 @@ class ConfigurationServiceTest {
         when(mockParamProvider.get("/null/" + DVA_DRIVING_PERMIT_CRI_SIGNING_KEY))
                 .thenReturn(
                         "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC2v2a0oUfphrV45PQX35Ik/xw8aVu1ECIlziud0PGYwPg56dwhgnT8/NexhKCRo2anqq+HWilfBua8HljQlKQzsk64cYHlypfvjo3n3u8mtaLuzh40L7kmFqyXQslwc9LHLCfyoKoLm8HbnwtEUTHeZPAxEu/qQyrriKq5DgkWzDYxTlk/UQ0hNrlHUozagwZiMhouTogYZFibI6zFQTWzIjvMdScwLR17KaINrbyvI7hGd7x330kzmkVnJLcW2bSkGyInU6kBzMjamY3DAtTyAxQENBAAHkrC4uftW+fpPwfdhLjLzGhCy1QCfVJB5Rc545Jly3CIYE7h14lzo10nAgMBAAECggEBAKPpXReaqUOeXdrHkOBw2UZxw0O0RFtM0zQRjjGJHYmjW4Gmbplnx8K6jkRc7yBx7Ttp7vJ6Pi1LpV0J4yOCjx0HS3BH7vjLFCf8Nu/Il7yiojeLjK/GNk0hfUBW2RMR7/ZRdqs6zAqJdAGmz5ZBNXeCFaYOlD4MbMzB0k8VdbWJhOKu41FD87BsStsglffZbUOV05mD3thVvR6bd4D+2uAEvVt31DRmytDdxioYYBRkKweYY9gCCymjqyj0zbH1rPYOdd4NBwKpYcV8nrwsjH2kbI4uGTnlCNuUI4sfgDwRa9ni+5L4vw3zFDykRG5L81bpX/8k5TblN7w7O9Oe/2ECgYEA3NRqgH6HifZwy8aCxohV0Li9KAXPijIIlHWhZM2aHG66F74EsVSfknvI15UobRAUBvPasIlHviW26eaSX94xOp352CEhWiSq5sxZHx0hZrV2HxLYVzJ5cL2VjXy2OSAID0g64twP4OhPZCxb5eSK1j2oNqxaBr24Xnl4NT7mBVkCgYEA09pRMaO1B9jfJ81/im2ZSfytc8Sgt0bs42xUHemr31dGUDdI5D/CQpvn1lfhp79OISl8lhlwC9gJ0WZshvDfLlwr4YsyVF62J22gSVSKJK/r2CT4xvUS24iac1zsQVPSIkyQUhCkWWeFy8KeHPXiDizbhni2ybwd7I0vmxOnpn8CgYAOGf5nEC1lkPgo+xc0yFX6iyGBIcXcBE/p8w0IW9zAfg2iIH86N7Ys63yqz5qSRFmTDBVl+o47RTtF+nRUbOLl5FqlA5CWqgrDzD7QrtKINYRCfbiU8OMyYNjg/RrB0RrSpwEjpXvaF9uiAPcpWgvHnI5WV3E0Rv80ATu84rRbmQKBgB3fRd2jAM7HdMfvARHq3FeDao3NZwAQ3yw+RSomndaTPtXmxb9xghnUU/90StxVbFXevLOJiLQS1WeScrEgW8f0tTdLYmBlLngmzBgq9IOxzqaep/md6vfLrkOgEawwfovZkewQbqwwnbwaiCL7RNHM33N5qASQIwQM8G6EefpPAoGAXS+1QdS3gT0Xq/Zgu2BowRZpBfJUJamNwi/gryCm2w+nDK04/Q9MDkJOJHBmRbn3i+Mk3Vi0dtIKRfathzlDiUGUklXUT61mNAmK7dtkiLbcPGxM8iUWZ465fPEYHS9+5iLHVl/DMb5/UWhV+b5MUrNneaPBE6F6jv7W21pePzE=");
+
+        when(mockParamProvider.get("/null/" + DVA_ENDPOINT)).thenReturn("DVA/dvaEndpoint");
 
         when(mockParamProvider.get("/null/SessionTtl")).thenReturn("600");
 

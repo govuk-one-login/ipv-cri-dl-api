@@ -27,6 +27,12 @@ public class DrivingPermitFormTestDataGenerator {
         return generate(IssuingAuthority.DVLA);
     }
 
+    public static DrivingPermitForm generateDva() {
+        DrivingPermitForm drivingPermitForm = new DrivingPermitForm();
+
+        return generate(IssuingAuthority.DVA);
+    }
+
     public static DrivingPermitForm generate(IssuingAuthority issuingAuthority) {
         DrivingPermitForm drivingPermitForm = new DrivingPermitForm();
 

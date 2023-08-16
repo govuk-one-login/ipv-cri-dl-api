@@ -51,6 +51,17 @@ public class Definitions {
     public static final String THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR =
             "third_party_dcs_response_type_error";
 
+    // Third Party Response Type DVA
+    public static final String THIRD_PARTY_DVA_RESPONSE_OK = "third_party_dva_response_ok";
+    public static final String THIRD_PARTY_DVA_RESPONSE_TYPE_ERROR =
+            "third_party_dva_response_type_error";
+
+    public static final String THIRD_PARTY_DVA_INVALID_REQUEST_ERROR =
+            "third_party_dva_invalid_request_error";
+
+    public static final String THIRD_PARTY_DVA_UNAUTHORIZED_ERROR =
+            "third_party_dva_unauthorized_error";
+
     private Definitions() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

@@ -38,7 +38,6 @@ public class DvaCryptographyService {
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
-    // TODO there rest of this class for dva and check nothing crosswird with dcs
     public DvaCryptographyService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
     }
@@ -81,8 +80,8 @@ public class DvaCryptographyService {
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
                         JWSAlgorithm.RS256.toString(),
-                        configurationService.getSigningCertThumbprints().getSha1Thumbprint(),
-                        configurationService.getSigningCertThumbprints().getSha256Thumbprint());
+                        configurationService.getSigningCertThumbprintsDva().getSha1Thumbprint(),
+                        configurationService.getSigningCertThumbprintsDva().getSha256Thumbprint());
 
         String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
 

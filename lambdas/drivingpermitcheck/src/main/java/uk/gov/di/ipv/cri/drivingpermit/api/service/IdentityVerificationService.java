@@ -10,6 +10,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +19,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DCS_CH
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DCS_CHECK_REQUEST_SUCCEEDED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_DATA_VALIDATION_FAIL;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_DATA_VALIDATION_PASS;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.ISSUING_AUTHORITY_PREFIX;
 
 public class IdentityVerificationService {
     private final Logger LOGGER = LogManager.getLogger();
@@ -72,6 +74,18 @@ public class IdentityVerificationService {
             }
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
+
+            IssuingAuthority issuingAuthority;
+            try {
+                issuingAuthority = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+                LOGGER.info("Document Issuer {}", issuingAuthority);
+                eventProbe.counterMetric(
+                        ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
+            } catch (IllegalArgumentException e) {
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
+            }
 
             DocumentCheckResult documentCheckResult =
                     thirdPartyAPIService.performDocumentCheck(drivingPermitData);

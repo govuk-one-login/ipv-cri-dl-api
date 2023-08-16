@@ -18,6 +18,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.List;
@@ -55,7 +56,8 @@ class IdentityVerificationServiceTest {
     @Test
     void verifyIdentityShouldReturnResultWhenValidInputProvided()
             throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody {
+                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
+                    NoSuchAlgorithmException {
 
         this.identityVerificationService =
                 new IdentityVerificationService(
@@ -108,7 +110,7 @@ class IdentityVerificationServiceTest {
     @Test
     void verifyIdentityShouldReturnErrorWhenThirdPartyCallFails()
             throws IOException, InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException {
+                    CertificateException, ParseException, JOSEException, NoSuchAlgorithmException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         when(mockFormDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());

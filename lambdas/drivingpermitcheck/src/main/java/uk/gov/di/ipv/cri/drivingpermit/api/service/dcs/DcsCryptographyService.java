@@ -80,8 +80,8 @@ public class DcsCryptographyService {
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
                         JWSAlgorithm.RS256.toString(),
-                        configurationService.getSigningCertThumbprints().getSha1Thumbprint(),
-                        configurationService.getSigningCertThumbprints().getSha256Thumbprint());
+                        configurationService.getSigningCertThumbprintsDcs().getSha1Thumbprint(),
+                        configurationService.getSigningCertThumbprintsDcs().getSha256Thumbprint());
 
         String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
 

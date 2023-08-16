@@ -40,7 +40,6 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Objects;
 
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.ISSUING_AUTHORITY_PREFIX;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_OK;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_CREATED;
@@ -108,17 +107,9 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
 
-        IssuingAuthority issuingAuthority;
-        try {
-            issuingAuthority = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
-            LOGGER.info("Document Issuer {}", issuingAuthority);
-            eventProbe.counterMetric(
-                    ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
-        } catch (IllegalArgumentException e) {
-            throw new OAuthHttpResponseExceptionWithErrorBody(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
-        }
+        IssuingAuthority issuingAuthority =
+                IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+
         LocalDate drivingPermitExpiryDate = drivingPermitData.getExpiryDate();
         String drivingPermitDocumentNumber = drivingPermitData.getDrivingLicenceNumber();
         LocalDate drivingPermitIssueDate = drivingPermitData.getIssueDate();
@@ -219,7 +210,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
             LOGGER.info("Third party response code {}", statusCode);
 
             try {
-                if (configurationService.isLogDcsResponse()) {
+                if (configurationService.isLogThirdPartyResponse()) {
                     LOGGER.info("DCS response " + responseBody);
                 }
                 DcsResponse unwrappedDcsResponse =

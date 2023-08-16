@@ -31,7 +31,21 @@ public enum ErrorResponse {
     DCS_ERROR_HTTP_40X(1023, "DCS Responded with a HTTP Client Error status code"),
     DCS_ERROR_HTTP_50X(1024, "DCS Responded with a HTTP Server Error status code"),
     DCS_ERROR_HTTP_X(1025, "DCS Responded with an unhandled HTTP status code"),
-    TOO_MANY_RETRY_ATTEMPTS(1026, "Too many retry attempts made");
+    TOO_MANY_RETRY_ATTEMPTS(1026, "Too many retry attempts made"),
+
+    /**************************************DVA Specific Errors************************************/
+    FAILED_TO_PREPARE_DVA_PAYLOAD(1027, "Failed to prepare DCS payload"),
+    ERROR_CONTACTING_DVA(1028, "Error when contacting DCS for document check"),
+    FAILED_TO_UNWRAP_DVA_RESPONSE(1029, "Failed to unwrap Dcs response"),
+    DVA_RETURNED_AN_ERROR(1030, "DVA returned an error response"),
+    DVA_ERROR_HTTP_30X(1031, "DVA Responded with a HTTP Redirection status code"),
+    DVA_ERROR_HTTP_40X(1032, "DVA Responded with a HTTP Client Error status code"),
+
+    DVA_ERROR_HTTP_400(1033, "DVA Responded with an Invalid Request Error status code"),
+    DVA_ERROR_HTTP_401(1034, "DVA Responded with an Unauthorized Error status code"),
+    DVA_ERROR_HTTP_50X(1035, "DVA Responded with a HTTP Server Error status code"),
+    DVA_ERROR_HTTP_X(1036, "DVA Responded with an unhandled HTTP status code"),
+    DVA_RETURNED_AN_INCOMPLETE_RESPONSE(1037, "DVA returned a response with missing values");
 
     private final int code;
     private final String message;

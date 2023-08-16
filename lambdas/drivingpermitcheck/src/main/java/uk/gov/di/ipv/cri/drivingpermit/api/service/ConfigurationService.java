@@ -75,13 +75,15 @@ public class ConfigurationService {
     private final PrivateKey dvaDrivingPermitEncryptionKey;
     private final PrivateKey dvaDrivingPermitCriSigningKey;
     private final PrivateKey dvaDrivingPermitTlsKey;
-    private final Thumbprints signingCertThumbprints;
-
+    private final Thumbprints signingCertThumbprintsDcs;
+    private final Thumbprints signingCertThumbprintsDva;
+    private final String dvaUserName;
+    private final String dvaPassword;
     private final Clock clock;
 
     private final long documentCheckItemTtl;
     private final boolean isPerformanceStub;
-    private final boolean logDcsResponse;
+    private final boolean logThirdPartyResponse;
 
     public ConfigurationService(
             SecretsProvider secretsProvider, ParamProvider paramProvider, String env)
@@ -126,6 +128,11 @@ public class ConfigurationService {
 
         var cert = getCertificate(paramProvider, DCS_SIGNING_CERT);
 
+        this.signingCertThumbprintsDcs =
+                new Thumbprints(
+                        getThumbprint((X509Certificate) cert, "SHA-1"),
+                        getThumbprint((X509Certificate) cert, "SHA-256"));
+
         // ****************************DVA Parameters****************************
 
         this.dvaSigningCert = getCertificate(paramProvider, DVA_DRIVING_PERMIT_CRI_SIGNING_CERT);
@@ -148,21 +155,26 @@ public class ConfigurationService {
 
         var dvaCert = getCertificate(paramProvider, DVA_SIGNING_CERT);
 
-        this.signingCertThumbprints =
+        this.signingCertThumbprintsDva =
                 new Thumbprints(
-                        getThumbprint((X509Certificate) cert, "SHA-1"),
-                        getThumbprint((X509Certificate) cert, "SHA-256"));
+                        getThumbprint((X509Certificate) dvaCert, "SHA-1"),
+                        getThumbprint((X509Certificate) dvaCert, "SHA-256"));
+
         this.documentCheckItemTtl =
                 Long.parseLong(paramProvider.get(getCommonParameterName("SessionTtl")));
 
         this.dvaEndpointUri = paramProvider.get(getParameterName(DVA_ENDPOINT));
+
+        this.dvaUserName = paramProvider.get(getParameterName(DVA_USERNAME));
+
+        this.dvaPassword = paramProvider.get(getParameterName(DVA_PASSWORD));
 
         // *****************************Feature Toggles*******************************
         this.dvaDirectEnabled =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("dvaDirectEnabled")));
         this.isPerformanceStub =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("isPerformanceStub")));
-        this.logDcsResponse =
+        this.logThirdPartyResponse =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("logDcsResponse")));
         // *********************************Secrets***********************************
 
@@ -227,8 +239,12 @@ public class ConfigurationService {
         return drivingPermitEncryptionKey;
     }
 
-    public Thumbprints getSigningCertThumbprints() {
-        return signingCertThumbprints;
+    public Thumbprints getSigningCertThumbprintsDcs() {
+        return signingCertThumbprintsDcs;
+    }
+
+    public Thumbprints getSigningCertThumbprintsDva() {
+        return signingCertThumbprintsDva;
     }
 
     public PrivateKey getDrivingPermitCriSigningKey() {
@@ -299,12 +315,20 @@ public class ConfigurationService {
         return clock.instant().plus(documentCheckItemTtl, ChronoUnit.SECONDS).getEpochSecond();
     }
 
+    public String getDvaUserName() {
+        return dvaUserName;
+    }
+
+    public String getDvaPassword() {
+        return dvaPassword;
+    }
+
     public boolean isPerformanceStub() {
         return isPerformanceStub;
     }
 
-    public boolean isLogDcsResponse() {
-        return logDcsResponse;
+    public boolean isLogThirdPartyResponse() {
+        return logThirdPartyResponse;
     }
 
     public String getDvaEndpointUri() {

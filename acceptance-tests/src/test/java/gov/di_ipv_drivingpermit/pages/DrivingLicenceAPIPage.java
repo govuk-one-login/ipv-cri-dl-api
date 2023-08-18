@@ -81,25 +81,21 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
-    public void postRequestToDrivingLicenceEndpoint(
-            String dlJsonRequestBody, String documentCheckingRoute)
+    public void postRequestToDrivingLicenceEndpoint(String dlJsonRequestBody)
             throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         JsonNode dlJsonNode =
                 objectMapper.readTree(
                         new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"));
         String dlInputJsonString = dlJsonNode.toString();
-        HttpRequest.Builder builder = HttpRequest.newBuilder();
         HttpRequest request =
-                builder.uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
+                HttpRequest.newBuilder()
+                        .uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session_id", SESSION_ID)
                         .POST(HttpRequest.BodyPublishers.ofString(dlInputJsonString))
                         .build();
-        if (documentCheckingRoute != null && !"not-provided".equals(documentCheckingRoute)) {
-            builder.setHeader("document-checking-route", documentCheckingRoute);
-        }
         LOGGER.info("drivingLicenceRequestBody = " + dlInputJsonString);
         String drivingLicenceCheckResponse = sendHttpRequest(request).body();
         LOGGER.info("drivingLicenceCheckResponse = " + drivingLicenceCheckResponse);
@@ -178,7 +174,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
-            throws URISyntaxException, IOException, InterruptedException, ParseException {
+            throws IOException, InterruptedException, ParseException {
         String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
         scoreIs(validityScore, strengthScore, drivingLicenceCRIVC);
     }

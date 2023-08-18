@@ -6,7 +6,7 @@ Feature: DrivingLicence CRI API
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-shared-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
     And Driving Licence user gets a session-id
-    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAValidJsonPayload and document checking route is dcs
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAValidJsonPayload
     And Driving Licence user gets authorisation code
     And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-shared-dev
     Then User requests Driving Licence CRI VC
@@ -30,7 +30,7 @@ Feature: DrivingLicence CRI API
     And Driving Licence user gets a session-id
     When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAInvalidJsonPayload
     Then Driving Licence check response should contain Retry value as true
-    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAValidJsonPayload and document checking route is dcs
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAValidJsonPayload
     And Driving Licence check response should contain Retry value as false
     And Driving Licence user gets authorisation code
     And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-shared-dev

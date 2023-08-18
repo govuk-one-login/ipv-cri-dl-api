@@ -1,6 +1,9 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.HashFactory;
+
+import java.security.NoSuchAlgorithmException;
 
 public class RequestHashValidator {
     private final HashFactory hashFactory;
@@ -13,7 +16,7 @@ public class RequestHashValidator {
         this.hashFactory = hashFactory;
     }
 
-    public boolean valid(String request, String hash) {
+    public boolean valid(DvaPayload request, String hash) throws NoSuchAlgorithmException {
         return hashFactory.getHash(request).equals(hash);
     }
 }

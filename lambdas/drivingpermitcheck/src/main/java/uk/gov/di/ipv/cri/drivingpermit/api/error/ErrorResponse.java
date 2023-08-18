@@ -46,7 +46,9 @@ public enum ErrorResponse {
     DVA_ERROR_HTTP_50X(1035, "DVA Responded with a HTTP Server Error status code"),
     DVA_ERROR_HTTP_X(1036, "DVA Responded with an unhandled HTTP status code"),
     DVA_RETURNED_AN_INCOMPLETE_RESPONSE(1037, "DVA returned a response with missing values"),
-    DVA_D_HASH_VALIDATION_ERROR(1038, "DVA Direct response was unable to be hash validated");
+    DVA_D_HASH_VALIDATION_ERROR(1038, "DVA Direct response was unable to be hash validated"),
+    INCORRECT_HASH_VALIDATION_ALGORITHM_ERROR(
+            1039, "Request hash validator was given an invalid algorithm");
 
     private final int code;
     private final String message;

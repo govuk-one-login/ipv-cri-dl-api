@@ -25,7 +25,6 @@ dependencies {
 test {
 	useJUnitPlatform()
 	finalizedBy jacocoTestReport
-	testLogging.showStandardStreams true
 }
 
 jacocoTestReport {

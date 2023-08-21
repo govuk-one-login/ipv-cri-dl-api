@@ -327,7 +327,7 @@ public class DrivingPermitHandler
     private ThirdPartyAPIService selectThirdPartyAPIService(
             boolean dvaDirectEnabled, String documentCheckingRouteHeader) {
         // TODO Change to a switch for each api and read feature flag + header
-        if (dvaDirectEnabled && "dva direct".equalsIgnoreCase(documentCheckingRouteHeader)) {
+        if (dvaDirectEnabled && "dva-direct".equalsIgnoreCase(documentCheckingRouteHeader)) {
             // DVA
             return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
         } else {

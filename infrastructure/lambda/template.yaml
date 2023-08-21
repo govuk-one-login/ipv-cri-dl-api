@@ -143,8 +143,8 @@ Mappings:
   dvaDirectEnabledMapping:
     Environment:
       dev: "true"
-      build: "false"
-      staging: "false"
+      build: "true"
+      staging: "true"
       integration: "false"
       production: "false"
 

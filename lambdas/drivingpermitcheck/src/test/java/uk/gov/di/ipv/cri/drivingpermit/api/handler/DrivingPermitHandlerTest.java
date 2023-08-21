@@ -31,6 +31,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -68,8 +69,10 @@ class DrivingPermitHandlerTest {
     @Mock private ConfigurationService mockConfigurationService;
 
     @Mock private ServiceFactory mockServiceFactory;
-    @Mock ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
-    @Mock DcsThirdPartyDocumentGateway mockDcsThirdPartyDocumentGateway;
+    @Mock private ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
+    @Mock private DcsThirdPartyDocumentGateway mockDcsThirdPartyDocumentGateway;
+
+    @Mock private DvaThirdPartyDocumentGateway mockDvaThirdPartyDocumentGateway;
     @Mock private IdentityVerificationService mockIdentityVerificationService;
 
     private DrivingPermitHandler drivingPermitHandler;
@@ -113,8 +116,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders =
-                Map.of("session_id", sessionId.toString(), HEADER_DOCUMENT_CHECKING_ROUTE, "dcs");
+        Map<String, String> requestHeaders = Map.of("session_id", sessionId.toString());
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -153,6 +155,77 @@ class DrivingPermitHandlerTest {
                 .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
 
+        verify(mockIdentityVerificationService)
+                .verifyIdentity(drivingPermitForm, mockDcsThirdPartyDocumentGateway);
+        verify(mockDataStore).create(documentCheckResultItem);
+        assertNotNull(responseEvent);
+        assertEquals(200, responseEvent.getStatusCode());
+        assertEquals("{\"redirectUrl\":null,\"retry\":false}", responseEvent.getBody());
+    }
+
+    @Test
+    void handleResponseShouldReturnOkResponseWhenValidInputProvidedUsingDvaDirectRoute()
+            throws IOException, SqsException, OAuthHttpResponseExceptionWithErrorBody {
+        String testRequestBody = "request body";
+        UUID sessionId = UUID.randomUUID();
+
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+
+        DocumentCheckVerificationResult testDocumentVerificationResult =
+                DocumentCheckVerificationResultDataGenerator.generate(drivingPermitForm);
+        DocumentCheckResultItem documentCheckResultItem =
+                generateDocCheckResultItem(
+                        sessionId, drivingPermitForm, testDocumentVerificationResult);
+
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
+        Map<String, String> requestHeaders =
+                Map.of(
+                        "session_id",
+                        sessionId.toString(),
+                        HEADER_DOCUMENT_CHECKING_ROUTE,
+                        "dva-direct");
+        when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
+
+        final var sessionItem = new SessionItem();
+        sessionItem.setSessionId(sessionId);
+        sessionItem.setAttemptCount(0); // No previous attempt
+        when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
+
+        when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
+                .thenReturn(drivingPermitForm);
+
+        doNothing()
+                .when(mockAuditService)
+                .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
+        doNothing()
+                .when(mockAuditService)
+                .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
+
+        // Choose API
+        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(true);
+        when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
+                .thenReturn(mockDvaThirdPartyDocumentGateway);
+
+        when(mockIdentityVerificationService.verifyIdentity(
+                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
+                .thenReturn(testDocumentVerificationResult);
+
+        when(context.getFunctionName()).thenReturn("functionName");
+        when(context.getFunctionVersion()).thenReturn("1.0");
+        when(mockConfigurationService.getDocumentCheckItemExpirationEpoch()).thenReturn(1000L);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                drivingPermitHandler.handleRequest(mockRequestEvent, context);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+        verify(mockIdentityVerificationService)
+                .verifyIdentity(drivingPermitForm, mockDvaThirdPartyDocumentGateway);
         verify(mockDataStore).create(documentCheckResultItem);
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
@@ -177,12 +250,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders =
-                Map.of(
-                        "session_id",
-                        UUID.randomUUID().toString(),
-                        HEADER_DOCUMENT_CHECKING_ROUTE,
-                        "dcs");
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -218,6 +286,8 @@ class DrivingPermitHandlerTest {
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
             inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+            verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDcsThirdPartyDocumentGateway);
 
             assertNotNull(responseEvent);
             assertEquals(200, responseEvent.getStatusCode());
@@ -226,6 +296,8 @@ class DrivingPermitHandlerTest {
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY);
             inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+            verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDcsThirdPartyDocumentGateway);
 
             assertNotNull(responseEvent);
             assertEquals(200, responseEvent.getStatusCode());
@@ -250,12 +322,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders =
-                Map.of(
-                        "session_id",
-                        UUID.randomUUID().toString(),
-                        HEADER_DOCUMENT_CHECKING_ROUTE,
-                        "dcs");
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -294,6 +361,9 @@ class DrivingPermitHandlerTest {
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED);
         }
+        verify(mockIdentityVerificationService)
+                .verifyIdentity(drivingPermitForm, mockDcsThirdPartyDocumentGateway);
+
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
@@ -315,12 +385,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders =
-                Map.of(
-                        "session_id",
-                        UUID.randomUUID().toString(),
-                        HEADER_DOCUMENT_CHECKING_ROUTE,
-                        "dcs");
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -360,12 +425,7 @@ class DrivingPermitHandlerTest {
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
-        Map<String, String> requestHeaders =
-                Map.of(
-                        "session_id",
-                        UUID.randomUUID().toString(),
-                        HEADER_DOCUMENT_CHECKING_ROUTE,
-                        "dcs");
+        Map<String, String> requestHeaders = Map.of("session_id", UUID.randomUUID().toString());
         when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
 
         final var sessionItem = new SessionItem();
@@ -397,6 +457,8 @@ class DrivingPermitHandlerTest {
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
         verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+        verify(mockIdentityVerificationService)
+                .verifyIdentity(drivingPermitForm, mockDcsThirdPartyDocumentGateway);
 
         assertNotNull(responseEvent);
         assertEquals(500, responseEvent.getStatusCode());

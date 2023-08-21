@@ -58,7 +58,7 @@ public class ConfigurationService {
     private final String parameterPrefix;
     private final String commonParameterPrefix;
     private final String dvaEndpointUri;
-    private final boolean useLegacy;
+    private final boolean dvaDirectEnabled;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
     private final Certificate drivingPermitTlsSelfCert;
@@ -158,7 +158,8 @@ public class ConfigurationService {
         this.dvaEndpointUri = paramProvider.get(getParameterName(DVA_ENDPOINT));
 
         // *****************************Feature Toggles*******************************
-        this.useLegacy = Boolean.parseBoolean(paramProvider.get(getParameterName("useLegacy")));
+        this.dvaDirectEnabled =
+                Boolean.parseBoolean(paramProvider.get(getParameterName("dvaDirectEnabled")));
         this.isPerformanceStub =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("isPerformanceStub")));
         this.logDcsResponse =
@@ -290,8 +291,8 @@ public class ConfigurationService {
         return dvaTlsSelfCert;
     }
 
-    public boolean getUseLegacy() {
-        return useLegacy;
+    public boolean getDvaDirectEnabled() {
+        return dvaDirectEnabled;
     }
 
     public long getDocumentCheckItemExpirationEpoch() {

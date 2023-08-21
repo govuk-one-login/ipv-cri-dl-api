@@ -129,14 +129,14 @@ class IdentityVerificationServiceTest {
     }
 
     //    @Test
-    //    void verifyUseLegacyParameterRoutesUsersToDvaWhenFalse()
+    //    void verifyDvaDirectEnabledParameterRoutesUsersToDvaWhenTrue()
     //            throws IOException, InterruptedException, CertificateException, ParseException,
     //                    JOSEException, OAuthHttpResponseExceptionWithErrorBody {
     //        try (MockedStatic<LogManager> mockedLogManager = mockStatic(LogManager.class)) {
     //            Logger mockedStaticLogger = mock(Logger.class);
     //            mockedLogManager.when(LogManager::getLogger).thenReturn(mockedStaticLogger);
     //
-    //            when(configurationService.getUseLegacy()).thenReturn(false);
+    //            when(configurationService.getDvaDirectEnabled()).thenReturn(true);
     //            this.identityVerificationService =
     //                    new IdentityVerificationService(
     //                            mockFormDataValidator, mockContraindicationMapper,

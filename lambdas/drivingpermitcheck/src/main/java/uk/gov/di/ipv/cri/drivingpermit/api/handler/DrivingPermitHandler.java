@@ -59,6 +59,7 @@ public class DrivingPermitHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
 
     private ObjectMapper objectMapper;
     private EventProbe eventProbe;
@@ -152,7 +153,10 @@ public class DrivingPermitHandler
                                 .TOO_MANY_RETRY_ATTEMPTS);
             }
 
-            ThirdPartyAPIService thirdPartyAPIService = selectThirdPartyAPIService();
+            ThirdPartyAPIService thirdPartyAPIService =
+                    selectThirdPartyAPIService(
+                            configurationService.getDvaDirectEnabled(),
+                            headers.get(HEADER_DOCUMENT_CHECKING_ROUTE));
 
             LOGGER.info(
                     "Verifying document details using {}", thirdPartyAPIService.getServiceName());
@@ -320,14 +324,15 @@ public class DrivingPermitHandler
                 new FormDataValidator(), null, serviceFactory.getEventProbe());
     }
 
-    private ThirdPartyAPIService selectThirdPartyAPIService() {
+    private ThirdPartyAPIService selectThirdPartyAPIService(
+            boolean dvaDirectEnabled, String documentCheckingRouteHeader) {
         // TODO Change to a switch for each api and read feature flag + header
-        if (configurationService.getUseLegacy()) {
-            // Legacy DCS
-            return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
-        } else {
+        if (dvaDirectEnabled && "dva-direct".equalsIgnoreCase(documentCheckingRouteHeader)) {
             // DVA
             return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
+        } else {
+            // Legacy DCS
+            return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
         }
     }
 }

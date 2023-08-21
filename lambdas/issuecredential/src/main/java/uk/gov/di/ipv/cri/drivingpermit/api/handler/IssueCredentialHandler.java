@@ -125,7 +125,7 @@ public class IssueCredentialHandler
                             sessionItem.getSessionId());
 
             if (documentCheckResult == null) {
-                LOGGER.error("User has arrived in issue credential withou completing check");
+                LOGGER.error("User has arrived in issue credential without completing check");
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         OauthErrorResponse.ACCESS_DENIED_ERROR);

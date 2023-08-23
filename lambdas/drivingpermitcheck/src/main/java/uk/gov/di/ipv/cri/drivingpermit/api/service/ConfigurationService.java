@@ -176,7 +176,7 @@ public class ConfigurationService {
         this.dvaDirectEnabled =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("dvaDirectEnabled")));
         this.dvlaDirectEnabled =
-                Boolean.parseBoolean(paramProvider.get(getParameterName("dlvaDirectEnabled")));
+                Boolean.parseBoolean(paramProvider.get(getParameterName("dvlaDirectEnabled")));
         this.isPerformanceStub =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("isPerformanceStub")));
         this.logThirdPartyResponse =

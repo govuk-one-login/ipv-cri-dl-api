@@ -177,26 +177,8 @@ public class ServiceFactory {
         return contextSetup(keystoreTLS, trustStore);
     }
 
-    public CloseableHttpClient generateDvlaHttpClient(
-            ConfigurationService configurationService, boolean tlsOn)
-            throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
-                    HttpException {
-        KeyStore keystoreTLS =
-                createKeyStore(
-                        null /*configurationService.getDvlaTlsSelfCert()*/,
-                        null /*configurationService.getDvlaDrivingPermitTlsKey()*/);
-
-        KeyStore trustStore =
-                createTrustStore(
-                        new Certificate[] {
-                            null /*configurationService.getDvlaTlsRootCert()*/,
-                            null /*configurationService.getDvlaTlsIntermediateCert()*/
-                        });
-
-        if (!tlsOn) {
-            return contextSetup(keystoreTLS, null);
-        }
-        return contextSetup(keystoreTLS, trustStore);
+    public CloseableHttpClient generateDvlaHttpClient() {
+        return HttpClients.custom().build();
     }
 
     private CloseableHttpClient contextSetup(KeyStore clientTls, KeyStore caBundle)

@@ -103,7 +103,7 @@ public class ThirdPartyAPIServiceFactory {
         DvlaEndpointFactory dvlaEndpointFactory = new DvlaEndpointFactory(configurationService);
 
         CloseableHttpClient httpClient =
-                serviceFactory.generateDvlaHttpClient(configurationService, tlsOn);
+                serviceFactory.generateDvlaHttpClient(/*configurationService, tlsOn*/ );
 
         HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe);
 

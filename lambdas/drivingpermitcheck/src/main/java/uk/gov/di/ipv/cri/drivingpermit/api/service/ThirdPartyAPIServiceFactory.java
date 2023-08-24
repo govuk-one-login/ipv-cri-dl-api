@@ -37,7 +37,7 @@ public class ThirdPartyAPIServiceFactory {
         thirdPartyAPIServices[DCS] = createDcsThirdPartyDocumentGateway(serviceFactory, tlsOnDCS);
         thirdPartyAPIServices[DVA] = createDvaThirdPartyDocumentGateway(serviceFactory, tlsOnDva);
         thirdPartyAPIServices[DVLA] =
-                null; // createDvlaThirdPartyDocumentGateway(serviceFactory, tlsOnDvla);
+                createDvlaThirdPartyDocumentGateway(serviceFactory, tlsOnDvla);
     }
 
     private ThirdPartyAPIService createDcsThirdPartyDocumentGateway(

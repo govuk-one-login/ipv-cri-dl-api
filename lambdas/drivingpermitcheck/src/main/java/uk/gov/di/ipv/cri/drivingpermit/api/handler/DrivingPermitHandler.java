@@ -153,15 +153,18 @@ public class DrivingPermitHandler
                                 .TOO_MANY_RETRY_ATTEMPTS);
             }
 
+            DrivingPermitForm drivingPermitFormData =
+                    parseDrivingPermitFormRequest(input.getBody());
+
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(
                             configurationService.getDvaDirectEnabled(),
-                            headers.get(HEADER_DOCUMENT_CHECKING_ROUTE));
+                            configurationService.getDvlaDirectEnabled(),
+                            headers.get(HEADER_DOCUMENT_CHECKING_ROUTE),
+                            drivingPermitFormData.getLicenceIssuer());
 
             LOGGER.info(
                     "Verifying document details using {}", thirdPartyAPIService.getServiceName());
-            DrivingPermitForm drivingPermitFormData =
-                    parseDrivingPermitFormRequest(input.getBody());
             DocumentCheckVerificationResult result =
                     identityVerificationService.verifyIdentity(
                             drivingPermitFormData, thirdPartyAPIService);
@@ -325,13 +328,20 @@ public class DrivingPermitHandler
     }
 
     private ThirdPartyAPIService selectThirdPartyAPIService(
-            boolean dvaDirectEnabled, String documentCheckingRouteHeader) {
-        // TODO Change to a switch for each api and read feature flag + header
-        if (dvaDirectEnabled && "dva-direct".equalsIgnoreCase(documentCheckingRouteHeader)) {
-            // DVA
+            boolean dvaDirectEnabled,
+            boolean dvlaDirectEnabled,
+            String documentCheckingRoute,
+            String licenseIssuer) {
+
+        IssuingAuthority issuingAuthority = IssuingAuthority.valueOf(licenseIssuer);
+
+        boolean direct = "direct".equals(documentCheckingRoute);
+
+        if (direct && (issuingAuthority == IssuingAuthority.DVA) && dvaDirectEnabled) {
             return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
+        } else if (direct && (issuingAuthority == IssuingAuthority.DVLA) && dvlaDirectEnabled) {
+            return thirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService();
         } else {
-            // Legacy DCS
             return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
         }
     }

@@ -148,6 +148,14 @@ Mappings:
       integration: "false"
       production: "false"
 
+  dvlaDirectEnabledMapping:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "false"
+      production: "false"
+
   DrivingPermitCriAudienceMapping:
     Environment:
       dev: "https://review-d.dev.account.gov.uk"
@@ -396,6 +404,7 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvaDirectEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvlaDirectEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
@@ -653,6 +662,14 @@ Resources:
       Type: String
       Value: !FindInMap [ dvaDirectEnabledMapping, Environment, !Ref Environment ]
       Description: Feature toggle to switch between dcs/dva direct
+
+  dvlaDirectEnabledParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/dvlaDirectEnabled"
+      Type: String
+      Value: !FindInMap [ dvlaDirectEnabledMapping, Environment, !Ref Environment ]
+      Description: Feature toggle to switch between dcs/dvla direct
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

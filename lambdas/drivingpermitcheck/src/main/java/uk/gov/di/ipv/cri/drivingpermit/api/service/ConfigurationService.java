@@ -51,6 +51,12 @@ public class ConfigurationService {
     private static final String KEY_FORMAT = "/%s/credentialIssuers/driving-permit/%s";
     private static final String PARAMETER_NAME_FORMAT = "/%s/%s";
 
+    // Feature toggles
+    private final boolean dvaDirectEnabled;
+    private final boolean dvlaDirectEnabled;
+    private final boolean isPerformanceStub;
+    private final boolean logThirdPartyResponse;
+
     private final String thirdPartyId;
     private final String documentCheckResultTableName;
     private final String contraindicationMappings;
@@ -58,7 +64,6 @@ public class ConfigurationService {
     private final String parameterPrefix;
     private final String commonParameterPrefix;
     private final String dvaEndpointUri;
-    private final boolean dvaDirectEnabled;
     private final Certificate dcsSigningCert;
     private final Certificate dcsEncryptionCert;
     private final Certificate drivingPermitTlsSelfCert;
@@ -82,8 +87,6 @@ public class ConfigurationService {
     private final Clock clock;
 
     private final long documentCheckItemTtl;
-    private final boolean isPerformanceStub;
-    private final boolean logThirdPartyResponse;
 
     public ConfigurationService(
             SecretsProvider secretsProvider, ParamProvider paramProvider, String env)
@@ -172,12 +175,13 @@ public class ConfigurationService {
         // *****************************Feature Toggles*******************************
         this.dvaDirectEnabled =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("dvaDirectEnabled")));
+        this.dvlaDirectEnabled =
+                Boolean.parseBoolean(paramProvider.get(getParameterName("dlvaDirectEnabled")));
         this.isPerformanceStub =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("isPerformanceStub")));
         this.logThirdPartyResponse =
                 Boolean.parseBoolean(paramProvider.get(getParameterName("logDcsResponse")));
         // *********************************Secrets***********************************
-
     }
 
     private PrivateKey getPrivateKey(ParamProvider paramProvider, String parameterName)
@@ -309,6 +313,10 @@ public class ConfigurationService {
 
     public boolean getDvaDirectEnabled() {
         return dvaDirectEnabled;
+    }
+
+    public boolean getDvlaDirectEnabled() {
+        return dvlaDirectEnabled;
     }
 
     public long getDocumentCheckItemExpirationEpoch() {

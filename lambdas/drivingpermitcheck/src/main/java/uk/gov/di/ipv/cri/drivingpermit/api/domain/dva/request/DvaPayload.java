@@ -23,14 +23,11 @@ public class DvaPayload {
     private static final String TIMESTAMP_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
     private static final String TIME_ZONE = "UTC";
-
-    @JsonProperty private UUID correlationId;
     @JsonProperty private UUID requestId;
+    @JsonProperty private String issuerId;
     @JsonProperty private String timestamp;
-    @JsonProperty private String licenceNumber;
-    @JsonProperty private String driverNumber;
+    @JsonProperty private String driverLicenceNumber;
     @JsonProperty private String postcode;
-    @JsonProperty private String clientId = "di-ipv-passport-test-2021-12";
     @JsonProperty private String surname;
     @JsonProperty private String issueNumber;
 
@@ -53,31 +50,24 @@ public class DvaPayload {
 
     @JsonCreator
     public DvaPayload(
-            @JsonProperty(value = "surname", required = true) String surname,
-            @JsonProperty(value = "forenames", required = true) List<String> forenames,
+            @JsonProperty(value = "requestId", required = true) UUID requestId,
+            @JsonProperty(value = "familyName", required = true) String surname,
+            @JsonProperty(value = "givenNames", required = true) List<String> forenames,
             @JsonProperty(value = "dateOfBirth", required = true) LocalDate dateOfBirth,
-            @JsonProperty(value = "issueDate", required = false) LocalDate issueDate,
-            @JsonProperty(value = "dateOfIssue", required = false) LocalDate dateOfIssue,
-            @JsonProperty(value = "expiryDate", required = true) LocalDate expiryDate,
-            @JsonProperty(value = "postcode", required = true) String postcode) {
+            @JsonProperty(value = "validFrom", required = true) LocalDate dateOfIssue,
+            @JsonProperty(value = "validTo", required = true) LocalDate expiryDate,
+            @JsonProperty(value = "driverLicenceNumber", required = true)
+                    String driverLicenceNumber,
+            @JsonProperty(value = "address", required = true) String postcode) {
+        this.requestId = requestId;
         this.surname = surname;
         this.forenames = forenames;
         this.dateOfBirth = dateOfBirth;
-        this.issueDate = issueDate;
         this.dateOfIssue = dateOfIssue;
         this.expiryDate = expiryDate;
-        this.correlationId = UUID.randomUUID();
-        this.requestId = UUID.randomUUID();
+        this.driverLicenceNumber = driverLicenceNumber;
         this.timestamp = new SimpleDateFormat(TIMESTAMP_DATE_FORMAT).format(new Date());
         this.postcode = postcode;
-    }
-
-    public UUID getCorrelationId() {
-        return correlationId;
-    }
-
-    public void setCorrelationId(UUID correlationId) {
-        this.correlationId = correlationId;
     }
 
     public UUID getRequestId() {
@@ -94,14 +84,6 @@ public class DvaPayload {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public String getLicenceNumber() {
-        return licenceNumber;
-    }
-
-    public void setLicenceNumber(String licenceNumber) {
-        this.licenceNumber = licenceNumber;
     }
 
     public String getSurname() {
@@ -136,12 +118,12 @@ public class DvaPayload {
         this.expiryDate = expiryDate;
     }
 
-    public String getDriverNumber() {
-        return driverNumber;
+    public String getDriverLicenceNumber() {
+        return driverLicenceNumber;
     }
 
-    public void setDriverNumber(String driverNumber) {
-        this.driverNumber = driverNumber;
+    public void setDriverLicenceNumber(String driverLicenceNumber) {
+        this.driverLicenceNumber = driverLicenceNumber;
     }
 
     public String getPostcode() {
@@ -150,14 +132,6 @@ public class DvaPayload {
 
     public void setPostcode(String postcode) {
         this.postcode = postcode;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
     }
 
     public LocalDate getIssueDate() {
@@ -184,43 +158,38 @@ public class DvaPayload {
         this.issueNumber = issueNumber;
     }
 
+    public String getIssuerId() {
+        return issuerId;
+    }
+
+    public void setIssuerId(String issuerId) {
+        this.issuerId = issuerId;
+    }
+
     @Override
     public String toString() {
-        return "DcsPayload{"
-                + "correlationId="
-                + correlationId
-                + ", requestId="
+        return "DvaPayload{"
+                + "requestId="
                 + requestId
                 + ", timestamp='"
                 + timestamp
                 + '\''
-                + ", licenceNumber='"
-                + licenceNumber
+                + ", driverLicenceNumber='"
+                + driverLicenceNumber
                 + '\''
-                + ", driverNumber='"
-                + driverNumber
-                + '\''
-                + ", postcode='"
+                + ", address='"
                 + postcode
                 + '\''
-                + ", clientId='"
-                + clientId
-                + '\''
-                + ", surname='"
+                + ", familyName='"
                 + surname
                 + '\''
-                + ", issueNumber='"
-                + issueNumber
-                + '\''
-                + ", forenames="
+                + ", givenNames="
                 + forenames
                 + ", dateOfBirth="
                 + dateOfBirth
-                + ", issueDate="
-                + issueDate
-                + ", dateOfIssue="
+                + ", validFrom="
                 + dateOfIssue
-                + ", expiryDate="
+                + ", validTo="
                 + expiryDate
                 + '}';
     }

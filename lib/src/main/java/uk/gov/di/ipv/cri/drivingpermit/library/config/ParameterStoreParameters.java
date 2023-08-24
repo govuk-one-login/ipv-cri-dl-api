@@ -57,6 +57,10 @@ public class ParameterStoreParameters {
 
     public static final String DVA_ENDPOINT = "DVA/dvaEndpoint";
 
+    public static final String DVA_USERNAME = "DVA/Username";
+
+    public static final String DVA_PASSWORD = "DVA/Password";
+
     @ExcludeFromGeneratedCoverageReport
     private ParameterStoreParameters() {
         throw new IllegalStateException("Instantiation is not valid for this class.");

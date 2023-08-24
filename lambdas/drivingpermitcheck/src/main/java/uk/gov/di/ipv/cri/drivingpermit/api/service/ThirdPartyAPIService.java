@@ -6,6 +6,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionW
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 
@@ -14,5 +15,6 @@ public interface ThirdPartyAPIService {
 
     DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitForm)
             throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException, IOException;
+                    CertificateException, ParseException, JOSEException, IOException,
+                    NoSuchAlgorithmException;
 }

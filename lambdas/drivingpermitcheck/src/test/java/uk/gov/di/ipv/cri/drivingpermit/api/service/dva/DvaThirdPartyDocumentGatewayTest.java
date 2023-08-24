@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.service.dcs;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
@@ -13,17 +13,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
@@ -42,29 +43,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
 
 @ExtendWith(MockitoExtension.class)
-class DcsThirdPartyDocumentGatewayTest {
+class DvaThirdPartyDocumentGatewayTest {
 
-    private static class DCSGatewayConstructorArgs {
+    private static class DVAGatewayConstructorArgs {
         private final ObjectMapper objectMapper;
-        private final DcsCryptographyService dcsCryptographyService;
+        private final DvaCryptographyService dvaCryptographyService;
         private final ConfigurationService configurationService;
         private final HttpRetryer httpRetryer;
         private final EventProbe eventProbe;
 
-        private DCSGatewayConstructorArgs(
+        private DVAGatewayConstructorArgs(
                 ObjectMapper objectMapper,
-                DcsCryptographyService dcsCryptographyService,
+                DvaCryptographyService dvaCryptographyService,
                 ConfigurationService configurationService,
                 HttpRetryer httpRetryer,
                 EventProbe eventProbe) {
 
             this.objectMapper = objectMapper;
-            this.dcsCryptographyService = dcsCryptographyService;
+            this.dvaCryptographyService = dvaCryptographyService;
             this.httpRetryer = httpRetryer;
             this.configurationService = configurationService;
             this.eventProbe = eventProbe;
@@ -74,13 +76,12 @@ class DcsThirdPartyDocumentGatewayTest {
     private static final String TEST_API_RESPONSE_BODY = "test-api-response-content";
     private static final String TEST_ENDPOINT_URL = "https://test-endpoint.co.uk";
     private static final int MOCK_HTTP_STATUS_CODE = -1;
-    private DcsThirdPartyDocumentGateway dcsThirdPartyDocumentGateway;
+    private DvaThirdPartyDocumentGateway dvaThirdPartyDocumentGateway;
 
     @Mock private HttpClient mockHttpClient;
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private ConfigurationService configurationService;
     @Mock private HttpRetryer httpRetryer;
-    @Mock private DcsCryptographyService dcsCryptographyService;
     @Mock private DvaCryptographyService dvaCryptographyService;
 
     @Mock private EventProbe mockEventProbe;
@@ -88,12 +89,12 @@ class DcsThirdPartyDocumentGatewayTest {
     @BeforeEach
     void setUp() {
         lenient()
-                .when(configurationService.getDcsEndpointUri())
+                .when(configurationService.getDvaEndpointUri())
                 .thenReturn("https://test-endpoint.co.uk");
-        this.dcsThirdPartyDocumentGateway =
-                new DcsThirdPartyDocumentGateway(
+        this.dvaThirdPartyDocumentGateway =
+                new DvaThirdPartyDocumentGateway(
                         mockObjectMapper,
-                        dcsCryptographyService,
+                        dvaCryptographyService,
                         configurationService,
                         httpRetryer,
                         mockEventProbe);
@@ -106,29 +107,27 @@ class DcsThirdPartyDocumentGatewayTest {
                     NoSuchAlgorithmException, InvalidKeySpecException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
-        when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
-                .thenReturn(new DcsPayload());
 
         CloseableHttpResponse httpResponse = createHttpResponse(200);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
-        when(this.dcsCryptographyService.unwrapDcsResponse(anyString()))
-                .thenReturn(createSuccessDcsResponse());
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(createSuccessDvaResponse());
         JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
         jwsObject.sign(new MyJwsSigner());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
         DocumentCheckResult actualDocumentCheckResult =
-                dcsThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                dvaThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
         assertEquals(
-                TEST_ENDPOINT_URL + "/driving-licence",
+                TEST_ENDPOINT_URL + "/api/ukverify",
                 httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
@@ -142,15 +141,14 @@ class DcsThirdPartyDocumentGatewayTest {
             throws IOException, InterruptedException, CertificateException, ParseException,
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
-        when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
-                .thenReturn(new DcsPayload());
+
         JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
         jwsObject.sign(new MyJwsSigner());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse = createHttpResponse(300);
@@ -163,15 +161,15 @@ class DcsThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
+                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_30X.getMessage();
+        final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_30X.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
-                TEST_ENDPOINT_URL + "/driving-licence",
+                TEST_ENDPOINT_URL + "/api/ukverify",
                 httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
@@ -186,15 +184,14 @@ class DcsThirdPartyDocumentGatewayTest {
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
 
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
-        when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
-                .thenReturn(new DcsPayload());
+
         JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
         jwsObject.sign(new MyJwsSigner());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse = createHttpResponse(400);
@@ -207,15 +204,15 @@ class DcsThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
+                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_40X.getMessage();
+        final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_400.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
-                TEST_ENDPOINT_URL + "/driving-licence",
+                TEST_ENDPOINT_URL + "/api/ukverify",
                 httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
@@ -230,16 +227,14 @@ class DcsThirdPartyDocumentGatewayTest {
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
 
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
-        when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
-                .thenReturn(new DcsPayload());
 
         JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
         jwsObject.sign(new MyJwsSigner());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse = createHttpResponse(500);
@@ -252,15 +247,15 @@ class DcsThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
+                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_50X.getMessage();
+        final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_50X.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
-                TEST_ENDPOINT_URL + "/driving-licence",
+                TEST_ENDPOINT_URL + "/api/ukverify",
                 httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
@@ -275,14 +270,13 @@ class DcsThirdPartyDocumentGatewayTest {
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
                     NoSuchAlgorithmException, InvalidKeySpecException {
 
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
-        when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
-                .thenReturn(new DcsPayload());
+
         JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
         jwsObject.sign(new MyJwsSigner());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse = createHttpResponse(-1);
@@ -295,15 +289,15 @@ class DcsThirdPartyDocumentGatewayTest {
                         OAuthHttpResponseExceptionWithErrorBody.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
-                                    dcsThirdPartyDocumentGateway.performDocumentCheck(
+                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_X.getMessage();
+        final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_X.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
-                TEST_ENDPOINT_URL + "/driving-licence",
+                TEST_ENDPOINT_URL + "/api/ukverify",
                 httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
@@ -320,29 +314,28 @@ class DcsThirdPartyDocumentGatewayTest {
                     NoSuchAlgorithmException, InvalidKeySpecException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
-        when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
-                .thenReturn(new DcsPayload());
+
         JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
         jwsObject.sign(new MyJwsSigner());
-        when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse = createHttpResponse(200);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
-        when(this.dcsCryptographyService.unwrapDcsResponse(anyString()))
-                .thenReturn(createSuccessDcsResponse());
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(createSuccessDvaResponse());
 
         DocumentCheckResult actualFraudCheckResult =
-                dcsThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                dvaThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
 
         assertNotNull(actualFraudCheckResult);
         assertEquals(
-                TEST_ENDPOINT_URL + "/driving-licence",
+                TEST_ENDPOINT_URL + "/api/ukverify",
                 httpRequestCaptor.getValue().getURI().toString());
         assertEquals("POST", httpRequestCaptor.getValue().getMethod());
 
@@ -353,14 +346,14 @@ class DcsThirdPartyDocumentGatewayTest {
 
     @Test
     void shouldThrowNullPointerExceptionWhenInvalidConstructorArgumentsProvided() {
-        Map<String, DCSGatewayConstructorArgs> testCases =
+        Map<String, DVAGatewayConstructorArgs> testCases =
                 Map.of(
                         "objectMapper must not be null",
-                        new DCSGatewayConstructorArgs(null, null, null, null, null),
+                        new DVAGatewayConstructorArgs(null, null, null, null, null),
                         "crossCoreApiConfig must not be null",
-                        new DCSGatewayConstructorArgs(
+                        new DVAGatewayConstructorArgs(
                                 Mockito.mock(ObjectMapper.class),
-                                Mockito.mock(DcsCryptographyService.class),
+                                Mockito.mock(DvaCryptographyService.class),
                                 null,
                                 null,
                                 null));
@@ -370,9 +363,9 @@ class DcsThirdPartyDocumentGatewayTest {
                         assertThrows(
                                 NullPointerException.class,
                                 () ->
-                                        new DcsThirdPartyDocumentGateway(
+                                        new DvaThirdPartyDocumentGateway(
                                                 constructorArgs.objectMapper,
-                                                constructorArgs.dcsCryptographyService,
+                                                constructorArgs.dvaCryptographyService,
                                                 constructorArgs.configurationService,
                                                 constructorArgs.httpRetryer,
                                                 constructorArgs.eventProbe),
@@ -385,11 +378,12 @@ class DcsThirdPartyDocumentGatewayTest {
         return Stream.concat(retryStatusCodes, serverErrorRetryStatusCodes);
     }
 
-    private static DcsResponse createSuccessDcsResponse() {
-        DcsResponse dcsResponse = new DcsResponse();
-        dcsResponse.setCorrelationId("1234");
-        dcsResponse.setRequestId("4321");
-        dcsResponse.setValid(true);
-        return dcsResponse;
+    private static DvaResponse createSuccessDvaResponse() {
+        DvaResponse dvaResponse = new DvaResponse();
+        // below is request hash for kenneth test user
+        dvaResponse.setRequestHash(
+                "5687a54991970a188bc670ab6e8f867c42216811d0a7d705b02d8e6e10d7ef84");
+        dvaResponse.setValidDocument(true);
+        return dvaResponse;
     }
 }

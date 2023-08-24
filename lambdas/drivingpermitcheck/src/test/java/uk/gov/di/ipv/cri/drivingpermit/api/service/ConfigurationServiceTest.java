@@ -123,6 +123,9 @@ class ConfigurationServiceTest {
 
         when(mockParamProvider.get("/null/" + DVA_ENDPOINT)).thenReturn("DVA/dvaEndpoint");
 
+        when(mockParamProvider.get("/null/" + DVA_USERNAME)).thenReturn("DVA/Username");
+        when(mockParamProvider.get("/null/" + DVA_PASSWORD)).thenReturn("DVA/Password");
+
         when(mockParamProvider.get("/null/SessionTtl")).thenReturn("600");
 
         ConfigurationService configurationService =

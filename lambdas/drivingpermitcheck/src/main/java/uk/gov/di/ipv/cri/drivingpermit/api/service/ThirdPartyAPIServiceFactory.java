@@ -77,6 +77,8 @@ public class ThirdPartyAPIServiceFactory {
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(configurationService);
 
+        RequestHashValidator requestHashValidator = new RequestHashValidator();
+
         CloseableHttpClient httpClient =
                 serviceFactory.generateDvaHttpClient(configurationService, tlsOn);
 
@@ -85,6 +87,7 @@ public class ThirdPartyAPIServiceFactory {
         return new DvaThirdPartyDocumentGateway(
                 objectMapper,
                 dvaCryptographyService,
+                requestHashValidator,
                 configurationService,
                 httpRetryer,
                 eventProbe);

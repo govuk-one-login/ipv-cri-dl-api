@@ -62,7 +62,7 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     @And("Driving Licence VC should contain validityScore (.*) and strengthScore (.*)$")
     public void DL_vc_should_contain_validity_score_and_strength_score(
             String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
+            throws IOException, InterruptedException, ParseException {
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
 }

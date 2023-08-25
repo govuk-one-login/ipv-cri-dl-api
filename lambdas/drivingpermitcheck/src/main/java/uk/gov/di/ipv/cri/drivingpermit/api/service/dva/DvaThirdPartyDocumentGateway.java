@@ -23,6 +23,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
@@ -50,7 +51,8 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final String SERVICE_NAME = DvaThirdPartyDocumentGateway.class.getSimpleName();
     private static final Logger LOGGER = LogManager.getLogger();
-    private DvaCryptographyService dvaCryptographyService;
+    private final DvaCryptographyService dvaCryptographyService;
+    private final RequestHashValidator requestHashValidator;
     private final ObjectMapper objectMapper;
     private final ConfigurationService configurationService;
     private final HttpRetryer httpRetryer;
@@ -61,16 +63,19 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     public DvaThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             DvaCryptographyService dvaCryptographyService,
+            RequestHashValidator requestHashValidator,
             ConfigurationService configurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
         Objects.requireNonNull(objectMapper, "objectMapper must not be null");
+        Objects.requireNonNull(objectMapper, "requestHashValidator must not be null");
         Objects.requireNonNull(dvaCryptographyService, "dvaCryptographyService must not be null");
         Objects.requireNonNull(configurationService, "configurationService must not be null");
         Objects.requireNonNull(httpRetryer, "httpRetryer must not be null");
 
         this.objectMapper = objectMapper;
         this.dvaCryptographyService = dvaCryptographyService;
+        this.requestHashValidator = requestHashValidator;
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
@@ -134,7 +139,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         try (CloseableHttpResponse httpResponse =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request)) {
             documentCheckResult =
-                    responseHandler(httpResponse, dvaPayload.getRequestId().toString());
+                    responseHandler(dvaPayload, httpResponse, dvaPayload.getRequestId().toString());
         }
 
         if (documentCheckResult.isExecutedSuccessfully()) {
@@ -183,10 +188,16 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         }
     }
 
-    private void validateDvaResponse(DvaResponse dvaResponse)
-            throws OAuthHttpResponseExceptionWithErrorBody {
+    private void validateDvaResponse(DvaPayload dvaPayload, DvaResponse dvaResponse)
+            throws OAuthHttpResponseExceptionWithErrorBody, NoSuchAlgorithmException {
         if (Objects.nonNull(dvaResponse.getRequestHash())) {
-            // RequestHash check
+            LOGGER.error("Validating DVA Direct response hash");
+            if (!requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash())) {
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.BAD_REQUEST, ErrorResponse.DVA_D_HASH_VALIDATION_ERROR);
+            } else {
+                LOGGER.error("Successfully validated DVA Direct response hash");
+            }
         } else {
             LOGGER.error("DVA returned an incomplete response");
             throw new OAuthHttpResponseExceptionWithErrorBody(
@@ -195,7 +206,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     }
 
     private DocumentCheckResult responseHandler(
-            CloseableHttpResponse httpResponse, String requestId)
+            DvaPayload dvaPayload, CloseableHttpResponse httpResponse, String requestId)
             throws IOException, ParseException, JOSEException, CertificateException,
                     OAuthHttpResponseExceptionWithErrorBody {
         int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -212,7 +223,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 }
                 DvaResponse unwrappedDvaResponse =
                         dvaCryptographyService.unwrapDvaResponse(responseBody);
-                validateDvaResponse(unwrappedDvaResponse);
+                validateDvaResponse(dvaPayload, unwrappedDvaResponse);
 
                 LOGGER.info("Third party response successfully mapped");
                 eventProbe.counterMetric(THIRD_PARTY_DVA_RESPONSE_OK);
@@ -232,6 +243,10 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 throw new OAuthHttpResponseExceptionWithErrorBody(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE);
+            } catch (NoSuchAlgorithmException e) {
+                throw new OAuthHttpResponseExceptionWithErrorBody(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.INCORRECT_HASH_VALIDATION_ALGORITHM_ERROR);
             }
         } else {
 

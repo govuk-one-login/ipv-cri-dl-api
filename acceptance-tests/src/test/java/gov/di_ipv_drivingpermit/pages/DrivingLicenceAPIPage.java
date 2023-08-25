@@ -174,7 +174,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
-            throws URISyntaxException, IOException, InterruptedException, ParseException {
+            throws IOException, InterruptedException, ParseException {
         String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
         scoreIs(validityScore, strengthScore, drivingLicenceCRIVC);
     }

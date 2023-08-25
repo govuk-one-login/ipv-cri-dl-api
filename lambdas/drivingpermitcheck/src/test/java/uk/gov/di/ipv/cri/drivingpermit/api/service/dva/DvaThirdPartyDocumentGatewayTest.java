@@ -25,6 +25,8 @@ import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.RequestHashValidator;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.HashFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
@@ -35,15 +37,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
@@ -54,6 +54,7 @@ class DvaThirdPartyDocumentGatewayTest {
     private static class DVAGatewayConstructorArgs {
         private final ObjectMapper objectMapper;
         private final DvaCryptographyService dvaCryptographyService;
+        private final RequestHashValidator requestHashValidator;
         private final ConfigurationService configurationService;
         private final HttpRetryer httpRetryer;
         private final EventProbe eventProbe;
@@ -61,12 +62,14 @@ class DvaThirdPartyDocumentGatewayTest {
         private DVAGatewayConstructorArgs(
                 ObjectMapper objectMapper,
                 DvaCryptographyService dvaCryptographyService,
+                RequestHashValidator requestHashValidator,
                 ConfigurationService configurationService,
                 HttpRetryer httpRetryer,
                 EventProbe eventProbe) {
 
             this.objectMapper = objectMapper;
             this.dvaCryptographyService = dvaCryptographyService;
+            this.requestHashValidator = requestHashValidator;
             this.httpRetryer = httpRetryer;
             this.configurationService = configurationService;
             this.eventProbe = eventProbe;
@@ -83,7 +86,7 @@ class DvaThirdPartyDocumentGatewayTest {
     @Mock private ConfigurationService configurationService;
     @Mock private HttpRetryer httpRetryer;
     @Mock private DvaCryptographyService dvaCryptographyService;
-
+    @Mock private RequestHashValidator requestHashValidator;
     @Mock private EventProbe mockEventProbe;
 
     @BeforeEach
@@ -95,6 +98,7 @@ class DvaThirdPartyDocumentGatewayTest {
                 new DvaThirdPartyDocumentGateway(
                         mockObjectMapper,
                         dvaCryptographyService,
+                        requestHashValidator,
                         configurationService,
                         httpRetryer,
                         mockEventProbe);
@@ -122,6 +126,7 @@ class DvaThirdPartyDocumentGatewayTest {
         jwsObject.sign(new MyJwsSigner());
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString())).thenReturn(true);
 
         DocumentCheckResult actualDocumentCheckResult =
                 dvaThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
@@ -134,6 +139,26 @@ class DvaThirdPartyDocumentGatewayTest {
         assertEquals(
                 "application/jose",
                 httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
+    }
+
+    @Test
+    void thirdPartyApiReturnsErrorOnHashValidation() throws NoSuchAlgorithmException {
+        HashFactory hashFactory = new HashFactory();
+        this.requestHashValidator = new RequestHashValidator(hashFactory);
+
+        DvaPayload dvaPayload = new DvaPayload();
+        dvaPayload.setSurname("Sur");
+        dvaPayload.setForenames(Arrays.asList("Fore"));
+
+        DvaResponse dvaResponse = new DvaResponse();
+        dvaResponse.setRequestHash(hashFactory.getHash(dvaPayload) + "0");
+
+        boolean isValidHash =
+                this.requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash());
+
+        // Request Hash  = ad8[...]a5f
+        // Response Hash = ad8[...]a5f0
+        assertFalse(isValidHash);
     }
 
     @Test
@@ -322,6 +347,7 @@ class DvaThirdPartyDocumentGatewayTest {
         jwsObject.sign(new MyJwsSigner());
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString())).thenReturn(true);
 
         CloseableHttpResponse httpResponse = createHttpResponse(200);
 
@@ -349,11 +375,12 @@ class DvaThirdPartyDocumentGatewayTest {
         Map<String, DVAGatewayConstructorArgs> testCases =
                 Map.of(
                         "objectMapper must not be null",
-                        new DVAGatewayConstructorArgs(null, null, null, null, null),
+                        new DVAGatewayConstructorArgs(null, null, null, null, null, null),
                         "crossCoreApiConfig must not be null",
                         new DVAGatewayConstructorArgs(
                                 Mockito.mock(ObjectMapper.class),
                                 Mockito.mock(DvaCryptographyService.class),
+                                null,
                                 null,
                                 null,
                                 null));
@@ -366,6 +393,7 @@ class DvaThirdPartyDocumentGatewayTest {
                                         new DvaThirdPartyDocumentGateway(
                                                 constructorArgs.objectMapper,
                                                 constructorArgs.dvaCryptographyService,
+                                                constructorArgs.requestHashValidator,
                                                 constructorArgs.configurationService,
                                                 constructorArgs.httpRetryer,
                                                 constructorArgs.eventProbe),

@@ -11,7 +11,7 @@ cri_identifier="$3"
 
 if [ -z "$stack_name" ]
 then
-echo -e "😱 ${RED}stack name expected as first argument, e.g. ${GREEN}./deploy.sh my-ukpassport-api${NOCOLOR}"
+echo -e "😱 ${RED}stack name expected as first argument, e.g. ${GREEN}./deploy.sh my-di-ipv-cri-dl-api${NOCOLOR}"
 exit 1
 fi
 
@@ -26,7 +26,7 @@ then
 fi
 
 
-echo -e "👉 deploying di-ipv-cri-uk-passport-api with:"
+echo -e "👉 deploying di-ipv-cri-dl-api with:"
 echo -e "\tstack name: ${GREEN}$stack_name${NOCOLOR}"
 echo -e "\tAuditEventNamePrefix SSM key ${GREEN}$audit_event_name_prefix${NOCOLOR}"
 echo -e "\tCriIdentifier SSM key ${GREEN}$cri_identifier${NOCOLOR}"

@@ -49,48 +49,49 @@ public class DcsConfiguration {
     public DcsConfiguration(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
 
-        this.endpointUri = parameterStoreService.getParameter(DCS_ENDPOINT);
+        this.endpointUri = parameterStoreService.getParameterValue(DCS_ENDPOINT);
 
         // TLS
         this.tlsSelfCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DCS_HTTPCLIENT_TLS_CERT));
+                        parameterStoreService.getParameterValue(DCS_HTTPCLIENT_TLS_CERT));
         this.tlsKey =
                 KeyCertHelper.getDecodedPrivateRSAKey(
-                        parameterStoreService.getEncryptedParameter(DCS_HTTPCLIENT_TLS_KEY));
+                        parameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_KEY));
         this.tlsRootCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DCS_HTTPCLIENT_TLS_ROOT_CERT));
+                        parameterStoreService.getParameterValue(DCS_HTTPCLIENT_TLS_ROOT_CERT));
         this.tlsIntermediateCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DCS_HTTPCLIENT_TLS_INTER_CERT));
+                        parameterStoreService.getParameterValue(DCS_HTTPCLIENT_TLS_INTER_CERT));
 
         // JWS SHA-1 Certificate Thumbprint (Header)
         Certificate cert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DCS_SIGNING_CERT_THUMB));
+                        parameterStoreService.getParameterValue(DCS_SIGNING_CERT_THUMB));
         this.signingCertThumbprints = KeyCertHelper.makeThumbprint((X509Certificate) cert);
 
         // JWS RSA Signing Key
         this.signingKey =
                 KeyCertHelper.getDecodedPrivateRSAKey(
-                        parameterStoreService.getEncryptedParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 DCS_DRIVING_PERMIT_CRI_SIGNING_KEY));
 
         // JWE (Public Key)
         this.encryptionCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DCS_ENCRYPTION_CERT));
+                        parameterStoreService.getParameterValue(DCS_ENCRYPTION_CERT));
 
         // JWS (Reply Signature)
         this.signingCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DCS_DRIVING_PERMIT_CRI_SIGNING_CERT));
+                        parameterStoreService.getParameterValue(
+                                DCS_DRIVING_PERMIT_CRI_SIGNING_CERT));
 
         // DCS JWE (Private Key Reply Decrypt)
         this.encryptionKey =
                 KeyCertHelper.getDecodedPrivateRSAKey(
-                        parameterStoreService.getEncryptedParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 DCS_DRIVING_PERMIT_ENCRYPTION_KEY));
     }
 

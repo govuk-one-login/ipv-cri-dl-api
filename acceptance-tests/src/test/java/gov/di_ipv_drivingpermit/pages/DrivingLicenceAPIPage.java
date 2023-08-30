@@ -113,6 +113,11 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         String coreStubUrl = configurationService.getCoreStubUrl(false);
 
+        String coreStubClientId = "ipv-core-stub";
+        if (!configurationService.isUsingLocalStub()) {
+            coreStubClientId += "-aws-prod";
+        }
+
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(
@@ -122,7 +127,8 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                                                 + coreStubUrl
                                                 + "/callback&state="
                                                 + STATE
-                                                + "&scope=openid&response_type=code&client_id=ipv-core-stub"))
+                                                + "&scope=openid&response_type=code&client_id="
+                                                + coreStubClientId))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session-id", SESSION_ID)

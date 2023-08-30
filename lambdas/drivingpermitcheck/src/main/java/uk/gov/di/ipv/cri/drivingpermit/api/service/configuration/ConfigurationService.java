@@ -49,39 +49,47 @@ public class ConfigurationService {
         // ****************************Private Parameters****************************
 
         this.contraindicationMappings =
-                parameterStoreService.getParameter(CONTRAINDICATION_MAPPINGS);
+                parameterStoreService.getParameterValue(CONTRAINDICATION_MAPPINGS);
 
         this.documentCheckResultTableName =
-                parameterStoreService.getStackParameter(DOCUMENT_CHECK_RESULT_TABLE_NAME);
+                parameterStoreService.getStackParameterValue(DOCUMENT_CHECK_RESULT_TABLE_NAME);
 
         this.documentCheckItemTtl =
                 Long.parseLong(
-                        parameterStoreService.getCommonParameterName(
+                        parameterStoreService.getCommonParameterValue(
                                 DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
 
         this.maxAttempts =
-                Integer.parseInt(parameterStoreService.getStackParameter(MAXIMUM_ATTEMPT_COUNT));
+                Integer.parseInt(
+                        parameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT));
 
         // *****************************Feature Toggles*******************************
 
         this.dvaDirectEnabled =
-                Boolean.parseBoolean(parameterStoreService.getStackParameter(DVA_DIRECT_ENABLED));
+                Boolean.parseBoolean(
+                        parameterStoreService.getStackParameterValue(DVA_DIRECT_ENABLED));
 
         this.dvlaDirectEnabled =
-                Boolean.parseBoolean(parameterStoreService.getStackParameter(DVLA_DIRECT_ENABLED));
+                Boolean.parseBoolean(
+                        parameterStoreService.getStackParameterValue(DVLA_DIRECT_ENABLED));
 
         this.isDcsPerformanceStub =
-                Boolean.parseBoolean(parameterStoreService.getParameter(IS_DCS_PERFORMANCE_STUB));
+                Boolean.parseBoolean(
+                        parameterStoreService.getParameterValue(IS_DCS_PERFORMANCE_STUB));
         this.isDvaPerformanceStub =
-                Boolean.parseBoolean(parameterStoreService.getParameter(IS_DVA_PERFORMANCE_STUB));
+                Boolean.parseBoolean(
+                        parameterStoreService.getParameterValue(IS_DVA_PERFORMANCE_STUB));
         this.isDvlaPerformanceStub =
-                Boolean.parseBoolean(parameterStoreService.getParameter(IS_DVLA_PERFORMANCE_STUB));
+                Boolean.parseBoolean(
+                        parameterStoreService.getParameterValue(IS_DVLA_PERFORMANCE_STUB));
 
         this.logDcsResponse =
-                Boolean.parseBoolean(parameterStoreService.getStackParameter(LOG_DCS_RESPONSE));
+                Boolean.parseBoolean(
+                        parameterStoreService.getStackParameterValue(LOG_DCS_RESPONSE));
 
         this.logDvaResponse =
-                Boolean.parseBoolean(parameterStoreService.getStackParameter(LOG_DVA_RESPONSE));
+                Boolean.parseBoolean(
+                        parameterStoreService.getStackParameterValue(LOG_DVA_RESPONSE));
 
         // **************************** DCS ****************************
 

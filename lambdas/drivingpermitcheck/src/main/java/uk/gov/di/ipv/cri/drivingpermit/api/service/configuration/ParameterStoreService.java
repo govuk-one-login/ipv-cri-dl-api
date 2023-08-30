@@ -31,22 +31,22 @@ public class ParameterStoreService {
         this.commonParameterPrefix = System.getenv("COMMON_PARAMETER_NAME_PREFIX");
     }
 
-    public String getParameter(String parameterName) {
+    public String getParameterValue(String parameterName) {
 
         LOGGER.info(
                 "{} {}",
-                "getParameter",
+                "getParameterValue",
                 String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
 
         return ssmProvider.get(
                 String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
     }
 
-    public String getEncryptedParameter(String parameterName) {
+    public String getEncryptedParameterValue(String parameterName) {
 
         LOGGER.info(
                 "{} {}",
-                "getEncryptedParameter",
+                "getEncryptedParameterValue",
                 String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
 
         return ssmProvider
@@ -54,18 +54,24 @@ public class ParameterStoreService {
                 .get(String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
     }
 
-    public String getStackParameter(String parameterName) {
+    public String getStackParameterValue(String parameterName) {
 
         LOGGER.info(
                 "{} {}",
-                "getStackParameter",
+                "getStackParameterValue",
                 String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, parameterName));
 
         return ssmProvider.get(
-                String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
+                String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, parameterName));
     }
 
-    public String getCommonParameterName(String parameterName) {
+    public String getCommonParameterValue(String parameterName) {
+
+        LOGGER.info(
+                "{} {}",
+                "getCommonParameterValue",
+                String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, parameterName));
+
         return ssmProvider.get(
                 String.format(PARAMETER_NAME_FORMAT, commonParameterPrefix, parameterName));
     }

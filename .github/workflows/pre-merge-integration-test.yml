@@ -54,21 +54,11 @@ jobs:
       - name: SAM deploy integration test stack
         run: |
           STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
-          aws ssm put-parameter --name "/${STACK_NAME}/contraindicationMappings" --type "String" --value "${{ secrets.SENSTIVE_PARAM_CI_MAPPINGS }}" 2>&1 > /dev/null
-          aws ssm put-parameter --name "/${STACK_NAME}/dcsEndpoint" --type "String" --value "${{ secrets.SENSTIVE_PARAM_DCS_ENDPOINT }}" 2>&1 > /dev/null
-          aws ssm put-parameter --name "/${STACK_NAME}/encryptionCertForDrivingPermitToEncrypt" --type "String" --value "${{ secrets.SENSTIVE_PARAM_ENCRYPTION_FOR_DRIVING_PERMIT_TO_ENCRYPT }}" 2>&1 > /dev/null     
-          aws ssm put-parameter --name "/${STACK_NAME}/signingCertForDcsToVerify-2023-08-03" --type "String" --value "${{ secrets.SENSTIVE_PARAM_SIGNING_CERT_FOR_DCS_TO_VERIFY }}" 2>&1 > /dev/null               
-          aws ssm put-parameter --name "/${STACK_NAME}/signingCertForDrivingPermitToVerify" --type "String" --value "${{ secrets.SENSTIVE_PARAM_SIGNING_CERT_FOR_DRIVING_PERMIT_TO_VERIFY }}" 2>&1 > /dev/null                              
-          aws ssm put-parameter --name "/${STACK_NAME}/signingKeyForDrivingPermitToSign-2023-08-03" --type "String" --value "${{ secrets.SENSTIVE_PARAM_SIGNING_KEY_FOR_DRIVING_PERMIT_TO_SIGN }}" 2>&1 > /dev/null
-          aws ssm put-parameter --name "/${STACK_NAME}/tlsCert-2023-08-03" --type "String" --value "${{ secrets.SENSTIVE_PARAM_TLS_CERT }}" 2>&1 > /dev/null
-          aws ssm put-parameter --name "/${STACK_NAME}/tlsIntermediateCertificate" --type "String" --value "${{ secrets.SENSTIVE_PARAM_TLS_INTERMEDIATE_CERTIFICATE}}" 2>&1 > /dev/null
-          aws ssm put-parameter --name "/${STACK_NAME}/tlsKey-2023-08-03" --type "String" --value "${{ secrets.SENSTIVE_PARAM_TLS_KEY}}" 2>&1 > /dev/null
-          aws ssm put-parameter --name "/${STACK_NAME}/tlsRootCertificate" --type "String" --value "${{ secrets.SENSTIVE_PARAM_TLS_ROOT_CERTIFICATE}}" 2>&1 > /dev/null
-          aws ssm put-parameter --name "/${STACK_NAME}/encryptionKeyForDrivingPermitToDecrypt-2023-08-03" --type "String" --value "${{ secrets.SENSTIVE_PARAM_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT}}" 2>&1 > /dev/null                                                                        
+          
           sam deploy \
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
-            --parameter-overrides "Environment=${{ env.ENVIRONMENT }} CodeSigningEnabled=false AuditEventNamePrefix=/common-cri-parameters/AuditEventNamePrefix CriIdentifier=/common-cri-parameters/CriIdentifier CommonStackName=common-cri-api" \
+            --parameter-overrides "DeploymentType=pre-merge-integration UseApiKey=\"\" ParameterPrefix=${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }} Environment=${{ env.ENVIRONMENT }} VpcStackName=${{ secrets.PREMERGE_VPC_STACK_NAME }}" \
             --stack-name $STACK_NAME \
             --s3-bucket ${{ secrets.AWS_DL_DEV_CONFIG_BUCKET }} \
             --s3-prefix $STACK_NAME \
@@ -92,19 +82,8 @@ jobs:
           export API_GATEWAY_ID_PUBLIC=$API_GATEWAY_ID_PUBLIC
           cd acceptance-tests && ./gradlew clean cucumber -P tags=@pre-merge
 
-      - name: Delete integration test stack
-        if: always()
-        run: |
-          STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
-          aws ssm delete-parameter --name "/${STACK_NAME}/contraindicationMappings" 2>&1 > /dev/null
-          aws ssm delete-parameter --name "/${STACK_NAME}/dcsEndpoint" 2>&1 > /dev/null
-          aws ssm delete-parameter --name "/${STACK_NAME}/encryptionCertForDrivingPermitToEncrypt" 2>&1 > /dev/null     
-          aws ssm delete-parameter --name "/${STACK_NAME}/signingCertForDcsToVerify-2023-08-03" 2>&1 > /dev/null               
-          aws ssm delete-parameter --name "/${STACK_NAME}/signingCertForDrivingPermitToVerify" 2>&1 > /dev/null                              
-          aws ssm delete-parameter --name "/${STACK_NAME}/signingKeyForDrivingPermitToSign-2023-08-03" 2>&1 > /dev/null
-          aws ssm delete-parameter --name "/${STACK_NAME}/tlsCert-2023-08-03" 2>&1 > /dev/null
-          aws ssm delete-parameter --name "/${STACK_NAME}/tlsIntermediateCertificate" 2>&1 > /dev/null
-          aws ssm delete-parameter --name "/${STACK_NAME}/tlsKey-2023-08-03" 2>&1 > /dev/null
-          aws ssm delete-parameter --name "/${STACK_NAME}/tlsRootCertificate" 2>&1 > /dev/null
-          aws ssm delete-parameter --name "/${STACK_NAME}/encryptionKeyForDrivingPermitToDecrypt-2023-08-03" 2>&1 > /dev/null
-          aws cloudformation delete-stack --region ${{ env.AWS_REGION }} --stack-name $STACK_NAME
+#      - name: Delete integration test stack
+#        if: always()
+#        run: |
+#          STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
+#          aws cloudformation delete-stack --region ${{ env.AWS_REGION }} --stack-name $STACK_NAME

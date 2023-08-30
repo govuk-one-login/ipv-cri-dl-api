@@ -53,50 +53,51 @@ public class DvaConfiguration {
     public DvaConfiguration(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
 
-        this.endpointUri = parameterStoreService.getParameter(DVA_ENDPOINT);
-        this.userName = parameterStoreService.getParameter(DVA_USERNAME);
-        this.password = parameterStoreService.getParameter(DVA_PASSWORD);
+        this.endpointUri = parameterStoreService.getParameterValue(DVA_ENDPOINT);
+        this.userName = parameterStoreService.getParameterValue(DVA_USERNAME);
+        this.password = parameterStoreService.getParameterValue(DVA_PASSWORD);
 
         // TLS
         this.tlsSelfCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DVA_HTTPCLIENT_TLS_CERT));
+                        parameterStoreService.getParameterValue(DVA_HTTPCLIENT_TLS_CERT));
         this.tlsKey =
                 KeyCertHelper.getDecodedPrivateRSAKey(
-                        parameterStoreService.getEncryptedParameter(DVA_HTTPCLIENT_TLS_KEY));
+                        parameterStoreService.getEncryptedParameterValue(DVA_HTTPCLIENT_TLS_KEY));
         this.tlsRootCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DVA_HTTPCLIENT_TLS_ROOT_CERT));
+                        parameterStoreService.getParameterValue(DVA_HTTPCLIENT_TLS_ROOT_CERT));
         this.tlsIntermediateCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DVA_HTTPCLIENT_TLS_INTER_CERT));
+                        parameterStoreService.getParameterValue(DVA_HTTPCLIENT_TLS_INTER_CERT));
 
         // JWS SHA-1 Certificate Thumbprint (Header)
         Certificate cert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DVA_SIGNING_CERT_THUMB));
+                        parameterStoreService.getParameterValue(DVA_SIGNING_CERT_THUMB));
         this.signingCertThumbprints = KeyCertHelper.makeThumbprint((X509Certificate) cert);
 
         // JWS RSA Signing Key
         this.signingKey =
                 KeyCertHelper.getDecodedPrivateRSAKey(
-                        parameterStoreService.getEncryptedParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 DVA_DRIVING_PERMIT_CRI_SIGNING_KEY));
 
         // JWE (Public Key)
         this.encryptionCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DVA_ENCRYPTION_CERT));
+                        parameterStoreService.getParameterValue(DVA_ENCRYPTION_CERT));
 
         // JWS (Reply Signature)
         this.signingCert =
                 KeyCertHelper.getDecodedX509Certificate(
-                        parameterStoreService.getParameter(DVA_DRIVING_PERMIT_CRI_SIGNING_CERT));
+                        parameterStoreService.getParameterValue(
+                                DVA_DRIVING_PERMIT_CRI_SIGNING_CERT));
 
         // JWE (Private Key Reply Decrypt)
         this.encryptionKey =
                 KeyCertHelper.getDecodedPrivateRSAKey(
-                        parameterStoreService.getEncryptedParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 DVA_DRIVING_PERMIT_ENCRYPTION_KEY));
     }
 

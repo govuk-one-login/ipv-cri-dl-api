@@ -10,33 +10,36 @@ public class ParameterStoreParameters {
 
     // **************************** DCS ****************************
 
-    public static final String DCS_ENDPOINT = "dcsEndpoint";
+    public static final String DCS_ENDPOINT = "DCS/dcsEndpoint";
 
-    public static final String DCS_HTTPCLIENT_TLS_CERT = "tlsCert-2023-08-03";
+    public static final String DCS_HTTPCLIENT_TLS_CERT = "DCS/HttpClient/tlsCert-2023-08-03";
 
-    public static final String DCS_HTTPCLIENT_TLS_KEY = "tlsKey-2023-08-03";
+    public static final String DCS_HTTPCLIENT_TLS_KEY = "DCS/HttpClient/tlsKey-2023-08-03";
 
-    public static final String DCS_HTTPCLIENT_TLS_INTER_CERT = "tlsIntermediateCertificate";
+    public static final String DCS_HTTPCLIENT_TLS_INTER_CERT =
+            "DCS/HttpClient/tlsIntermediateCertificate";
 
-    public static final String DCS_HTTPCLIENT_TLS_ROOT_CERT = "tlsRootCertificate";
+    public static final String DCS_HTTPCLIENT_TLS_ROOT_CERT = "DCS/HttpClient/tlsRootCertificate";
 
     // JWS SHA-1 Certificate - Thumbprint (Header)
-    public static final String DCS_SIGNING_CERT_THUMB = "signingCertForDcsToVerify-2023-08-03";
+    public static final String DCS_SIGNING_CERT_THUMB =
+            "DCS/JWS/signingCertForDcsToVerify-2023-08-03";
 
     // JWS RSA Signing Key
     public static final String DCS_DRIVING_PERMIT_CRI_SIGNING_KEY =
-            "signingKeyForDrivingPermitToSign-2023-08-03";
+            "DCS/JWS/signingKeyForDrivingPermitToSign-2023-08-03";
 
     // JWE (Public Key) - not a typo
-    public static final String DCS_ENCRYPTION_CERT = "encryptionCertForDrivingPermitToEncrypt";
+    public static final String DCS_ENCRYPTION_CERT =
+            "DCS/JWE/encryptionCertForDrivingPermitToEncrypt";
 
     // JWE (Reply Signature)
     public static final String DCS_DRIVING_PERMIT_CRI_SIGNING_CERT =
-            "signingCertForDrivingPermitToVerify";
+            "DCS/JWE/signingCertForDrivingPermitToVerify";
 
     // JWE (Private Key Reply Decrypt)
     public static final String DCS_DRIVING_PERMIT_ENCRYPTION_KEY =
-            "encryptionKeyForDrivingPermitToDecrypt-2023-08-03"; // DCS JWE (Private Key
+            "DCS/JWE/encryptionKeyForDrivingPermitToDecrypt-2023-08-03"; // DCS JWE (Private Key
 
     // **************************** DVA ****************************
 

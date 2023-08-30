@@ -6,7 +6,28 @@ public class ParameterStoreParameters {
 
     // **************************** CRI ****************************
 
-    // TODO
+    public static final String CONTRAINDICATION_MAPPINGS = "contraindicationMappings";
+
+    public static final String DOCUMENT_CHECK_RESULT_TABLE_NAME = "DocumentCheckResultTableName";
+    public static final String DOCUMENT_CHECK_RESULT_TTL_PARAMETER =
+            "SessionTtl"; // Linked to Common SessionTTL
+
+    public static final String MAXIMUM_ATTEMPT_COUNT = "maximumAttemptCount"; // Max Form Attempts
+
+    public static final String IS_DCS_PERFORMANCE_STUB =
+            "isDcsPerformanceStub"; // Always false unless using stubs
+
+    public static final String IS_DVA_PERFORMANCE_STUB =
+            "isDvaPerformanceStub"; // Always false unless using stubs
+
+    public static final String IS_DVLA_PERFORMANCE_STUB =
+            "isDvlaPerformanceStub"; // Always false unless using stubs
+
+    public static final String DVA_DIRECT_ENABLED = "dvaDirectEnabled";
+    public static final String DVLA_DIRECT_ENABLED = "dvlaDirectEnabled";
+
+    public static final String LOG_DCS_RESPONSE = "logDcsResponse";
+    public static final String LOG_DVA_RESPONSE = "logDvaResponse";
 
     // **************************** DCS ****************************
 

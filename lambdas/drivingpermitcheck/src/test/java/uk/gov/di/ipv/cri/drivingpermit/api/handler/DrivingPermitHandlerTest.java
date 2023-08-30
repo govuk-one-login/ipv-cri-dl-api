@@ -66,7 +66,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 
 @ExtendWith(MockitoExtension.class)
 class DrivingPermitHandlerTest {
-    private static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private EventProbe mockEventProbe;
     @Mock private SessionService mockSessionService;
@@ -151,6 +150,8 @@ class DrivingPermitHandlerTest {
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
                 .thenReturn(mockThirdPartyAPIService);
 
+        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
+
         when(mockIdentityVerificationService.verifyIdentity(
                         any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
                 .thenReturn(testDocumentVerificationResult);
@@ -214,6 +215,8 @@ class DrivingPermitHandlerTest {
         when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
                 .thenReturn(mockThirdPartyAPIService);
+
+        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
 
         when(mockIdentityVerificationService.verifyIdentity(
                         any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
@@ -287,6 +290,8 @@ class DrivingPermitHandlerTest {
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
                 .thenReturn(mockThirdPartyAPIService);
 
+        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
+
         when(mockIdentityVerificationService.verifyIdentity(
                         any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
                 .thenReturn(testDocumentVerificationResult);
@@ -336,6 +341,8 @@ class DrivingPermitHandlerTest {
         sessionItem.setAttemptCount(2); // Two previous attempts
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
 
+        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
+
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
         APIGatewayProxyResponseEvent responseEvent =
@@ -384,9 +391,10 @@ class DrivingPermitHandlerTest {
         verify(mockAuditService, never())
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
+        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
+
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
-
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 

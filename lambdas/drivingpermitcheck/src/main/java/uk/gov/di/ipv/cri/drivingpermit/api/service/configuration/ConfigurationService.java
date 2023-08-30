@@ -1,28 +1,40 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.configuration;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 
-public class ConfigurationService {
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.CONTRAINDICATION_MAPPINGS;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TABLE_NAME;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DIRECT_ENABLED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_DIRECT_ENABLED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.IS_DCS_PERFORMANCE_STUB;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.IS_DVA_PERFORMANCE_STUB;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.IS_DVLA_PERFORMANCE_STUB;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.LOG_DCS_RESPONSE;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.LOG_DVA_RESPONSE;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+public class ConfigurationService {
 
     private final Clock clock;
 
     // Feature toggles
     private final boolean dvaDirectEnabled;
     private final boolean dvlaDirectEnabled;
-    private final boolean isPerformanceStub;
-    private final boolean logThirdPartyResponse;
+    private final boolean isDcsPerformanceStub;
+    private final boolean isDvaPerformanceStub;
+    private final boolean isDvlaPerformanceStub;
+    private final boolean logDcsResponse;
+    private final boolean logDvaResponse;
 
     private final String documentCheckResultTableName;
     private final long documentCheckItemTtl;
+
+    private final int maxAttempts;
 
     private final String contraindicationMappings;
 
@@ -37,27 +49,39 @@ public class ConfigurationService {
         // ****************************Private Parameters****************************
 
         this.contraindicationMappings =
-                parameterStoreService.getParameter("contraindicationMappings");
+                parameterStoreService.getParameter(CONTRAINDICATION_MAPPINGS);
 
         this.documentCheckResultTableName =
-                parameterStoreService.getStackParameter("DocumentCheckResultTableName");
+                parameterStoreService.getStackParameter(DOCUMENT_CHECK_RESULT_TABLE_NAME);
 
         this.documentCheckItemTtl =
-                Long.parseLong(parameterStoreService.getCommonParameterName("SessionTtl"));
+                Long.parseLong(
+                        parameterStoreService.getCommonParameterName(
+                                DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
+
+        this.maxAttempts =
+                Integer.parseInt(parameterStoreService.getStackParameter(MAXIMUM_ATTEMPT_COUNT));
 
         // *****************************Feature Toggles*******************************
 
         this.dvaDirectEnabled =
-                Boolean.parseBoolean(parameterStoreService.getParameter("dvaDirectEnabled"));
+                Boolean.parseBoolean(parameterStoreService.getStackParameter(DVA_DIRECT_ENABLED));
 
         this.dvlaDirectEnabled =
-                Boolean.parseBoolean(parameterStoreService.getParameter("dvlaDirectEnabled"));
+                Boolean.parseBoolean(parameterStoreService.getStackParameter(DVLA_DIRECT_ENABLED));
 
-        this.isPerformanceStub =
-                Boolean.parseBoolean(parameterStoreService.getParameter("isPerformanceStub"));
+        this.isDcsPerformanceStub =
+                Boolean.parseBoolean(parameterStoreService.getParameter(IS_DCS_PERFORMANCE_STUB));
+        this.isDvaPerformanceStub =
+                Boolean.parseBoolean(parameterStoreService.getParameter(IS_DVA_PERFORMANCE_STUB));
+        this.isDvlaPerformanceStub =
+                Boolean.parseBoolean(parameterStoreService.getParameter(IS_DVLA_PERFORMANCE_STUB));
 
-        this.logThirdPartyResponse =
-                Boolean.parseBoolean(parameterStoreService.getParameter("logDcsResponse"));
+        this.logDcsResponse =
+                Boolean.parseBoolean(parameterStoreService.getStackParameter(LOG_DCS_RESPONSE));
+
+        this.logDvaResponse =
+                Boolean.parseBoolean(parameterStoreService.getStackParameter(LOG_DVA_RESPONSE));
 
         // **************************** DCS ****************************
 
@@ -80,12 +104,20 @@ public class ConfigurationService {
         return contraindicationMappings;
     }
 
-    public boolean isPerformanceStub() {
-        return isPerformanceStub;
+    public int getMaxAttempts() {
+        return maxAttempts;
     }
 
-    public boolean isLogThirdPartyResponse() {
-        return logThirdPartyResponse;
+    public boolean isDcsPerformanceStub() {
+        return isDcsPerformanceStub;
+    }
+
+    public boolean isDvaPerformanceStub() {
+        return isDvaPerformanceStub;
+    }
+
+    public boolean isDvlaPerformanceStub() {
+        return isDvlaPerformanceStub;
     }
 
     public boolean getDvaDirectEnabled() {
@@ -94,6 +126,14 @@ public class ConfigurationService {
 
     public boolean getDvlaDirectEnabled() {
         return dvlaDirectEnabled;
+    }
+
+    public boolean isLogDcsResponse() {
+        return logDcsResponse;
+    }
+
+    public boolean isLogDvaResponse() {
+        return logDvaResponse;
     }
 
     public DcsConfiguration getDcsConfiguration() {

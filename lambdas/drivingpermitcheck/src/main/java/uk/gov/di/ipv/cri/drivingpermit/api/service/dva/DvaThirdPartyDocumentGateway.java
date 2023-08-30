@@ -195,7 +195,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
         if (statusCode == 200) {
             try {
-                if (configurationService.isLogThirdPartyResponse()) {
+                if (configurationService.isLogDvaResponse()) {
                     LOGGER.info("DVA response " + responseBody);
                 }
                 DvaResponse unwrappedDvaResponse =

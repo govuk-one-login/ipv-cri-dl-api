@@ -38,26 +38,30 @@ class ConfigurationServiceTest {
 
     private void mockPrivateParameters(String env) {
 
-        when(mockParameterStoreService.getParameter("contraindicationMappings"))
+        when(mockParameterStoreService.getParameter(CONTRAINDICATION_MAPPINGS))
                 .thenReturn("contraindicationMappings");
 
-        when(mockParameterStoreService.getStackParameter("DocumentCheckResultTableName"))
+        when(mockParameterStoreService.getStackParameter(MAXIMUM_ATTEMPT_COUNT)).thenReturn("2");
+
+        when(mockParameterStoreService.getStackParameter(DOCUMENT_CHECK_RESULT_TABLE_NAME))
                 .thenReturn("DocumentCheckResultTableName");
 
-        when(mockParameterStoreService.getCommonParameterName("SessionTtl"))
+        when(mockParameterStoreService.getCommonParameterName(DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
                 .thenReturn("600"); // documentCheckItemTtl
     }
 
     private void mockFeatureToggles(String env) {
-        when(mockParameterStoreService.getParameter("dvaDirectEnabled"))
+        when(mockParameterStoreService.getStackParameter(DVA_DIRECT_ENABLED))
                 .thenReturn("dvaDirectEnabled");
-        when(mockParameterStoreService.getParameter("dvlaDirectEnabled"))
+        when(mockParameterStoreService.getStackParameter(DVLA_DIRECT_ENABLED))
                 .thenReturn("dvlaDirectEnabled");
 
-        when(mockParameterStoreService.getParameter("isPerformanceStub"))
-                .thenReturn("isPerformanceStub");
+        when(mockParameterStoreService.getParameter(IS_DCS_PERFORMANCE_STUB)).thenReturn("false");
+        when(mockParameterStoreService.getParameter(IS_DVA_PERFORMANCE_STUB)).thenReturn("false");
+        when(mockParameterStoreService.getParameter(IS_DVLA_PERFORMANCE_STUB)).thenReturn("false");
 
-        when(mockParameterStoreService.getParameter("logDcsResponse")).thenReturn("logDcsResponse");
+        when(mockParameterStoreService.getStackParameter(LOG_DCS_RESPONSE)).thenReturn("false");
+        when(mockParameterStoreService.getStackParameter(LOG_DVA_RESPONSE)).thenReturn("false");
     }
 
     private void mockDcsConfig(String paramPath) {

@@ -67,8 +67,8 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     @Override
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
-            throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException, IOException {
+            throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody, ParseException,
+                    JOSEException, IOException {
         LOGGER.info("Mapping person to third party document check request");
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
@@ -174,7 +174,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
             LOGGER.info("Third party response code {}", statusCode);
 
             try {
-                if (configurationService.isLogThirdPartyResponse()) {
+                if (configurationService.isLogDcsResponse()) {
                     LOGGER.info("DCS response " + responseBody);
                 }
                 DcsResponse unwrappedDcsResponse =

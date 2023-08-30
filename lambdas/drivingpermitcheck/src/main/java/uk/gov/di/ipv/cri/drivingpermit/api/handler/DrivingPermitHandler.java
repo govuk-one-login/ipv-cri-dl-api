@@ -72,9 +72,6 @@ public class DrivingPermitHandler
     private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
     private IdentityVerificationService identityVerificationService;
 
-    // TODO move this to a parameter store variable
-    private static final int MAX_ATTEMPTS = 2;
-
     public DrivingPermitHandler()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
                     HttpException, KeyStoreException, IOException {
@@ -136,6 +133,9 @@ public class DrivingPermitHandler
 
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
 
+            // Attempt Start
+            final int MAX_ATTEMPTS = configurationService.getMaxAttempts();
+
             // Stop being called more than MAX_ATTEMPTS
             if (sessionItem.getAttemptCount() > MAX_ATTEMPTS) {
 
@@ -147,6 +147,7 @@ public class DrivingPermitHandler
                 // Driving Permit Lambda Completed with an Error
                 eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
+                // TODO change this to a redirect onwards
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse

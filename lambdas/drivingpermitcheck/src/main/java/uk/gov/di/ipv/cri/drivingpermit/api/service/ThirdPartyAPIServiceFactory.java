@@ -31,10 +31,9 @@ public class ThirdPartyAPIServiceFactory {
                     IOException {
         ConfigurationService configurationService = serviceFactory.getConfigurationService();
 
-        // TODO We need three of these one for each api/stub
-        boolean tlsOnDCS = !configurationService.isPerformanceStub();
-        boolean tlsOnDva = !configurationService.isPerformanceStub();
-        boolean tlsOnDvla = !configurationService.isPerformanceStub();
+        boolean tlsOnDCS = !configurationService.isDcsPerformanceStub();
+        boolean tlsOnDva = !configurationService.isDvaPerformanceStub();
+        boolean tlsOnDvla = !configurationService.isDvlaPerformanceStub();
 
         thirdPartyAPIServices[DCS] = createDcsThirdPartyDocumentGateway(serviceFactory, tlsOnDCS);
         thirdPartyAPIServices[DVA] = createDvaThirdPartyDocumentGateway(serviceFactory, tlsOnDva);

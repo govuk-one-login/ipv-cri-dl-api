@@ -123,6 +123,15 @@ Globals:
         PARAMETER_PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
 
 Mappings:
+
+  MaximumAttemptCountMapping:
+    Environment:
+      dev: 2
+      build: 2
+      staging: 2
+      integration: 2
+      production: 2
+
   MemorySizeMapping:
     Environment:
       dev: 512
@@ -397,18 +406,18 @@ Resources:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
         - DynamoDBWritePolicy:
             TableName: !Ref DocumentCheckResultTable
-        - Statement:
-            - Sid: ReadParameterStorePolicy
-              Effect: Allow
-              Action:
-                - 'ssm:GetParameter*'
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/driving-permit*'
-        - Statement:
-            - Sid: ReadSecretsPolicy
-              Effect: Allow
-              Action:
-                - 'secretsmanager:GetSecretValue'
-              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/driving-permit*'
+#        - Statement:
+#            - Sid: ReadParameterStorePolicy
+#              Effect: Allow
+#              Action:
+#                - 'ssm:GetParameter*'
+#              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/driving-permit*'
+#        - Statement:
+#            - Sid: ReadSecretsPolicy
+#              Effect: Allow
+#              Action:
+#                - 'secretsmanager:GetSecretValue'
+#              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/driving-permit*'
         - Statement:
             Effect: Allow
             Action:
@@ -426,17 +435,38 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/ContraindicationMappings"
-                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/maximumAttemptCount"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvaDirectEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvlaDirectEnabled"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDvaResponse"
+
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/contraindicationMappings"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDcsPerformanceStub"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDvaPerformanceStub"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDvlaPerformanceStub"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA*"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
         - Statement:
             - Effect: Allow
               Action:
@@ -445,8 +475,8 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${AWS::StackName}/*"
+#        - SSMParameterReadPolicy:
+#            ParameterName: !Sub "${AWS::StackName}/*"
       ProvisionedConcurrencyConfig:
         !If
         - AddProvisionedConcurrency
@@ -677,10 +707,26 @@ Resources:
       Value: !FindInMap [ JwtTtlUnitMapping, Environment, !Ref Environment ]
       Description: The unit for the time-to-live for an JWT e.g. (MONTHS)
 
-  IsPerformanceStubParameter:
+  IsDcsPerformanceStubParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/isPerformanceStub"
+      Name: !Sub "/${AWS::StackName}/isDcsPerformanceStub"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow performance testing passed SSL
+
+  IsDvaPerformanceStubParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/isDvaPerformanceStub"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow performance testing passed SSL
+
+  IsDvlaPerformanceStubParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/isDvlaPerformanceStub"
       Type: String
       Value: "false"
       Description: Feature toggle to allow performance testing passed SSL
@@ -692,6 +738,14 @@ Resources:
       Type: String
       Value: "false"
       Description: Feature toggle to allow logging of DCS responses
+
+  logDvaResponseParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/logDvaResponse"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow logging of DVA responses
 
   dvaDirectEnabledParameter:
     Type: AWS::SSM::Parameter
@@ -708,6 +762,14 @@ Resources:
       Type: String
       Value: !FindInMap [ dvlaDirectEnabledMapping, Environment, !Ref Environment ]
       Description: Feature toggle to switch between dcs/dvla direct
+
+  MaximumAttemptCountParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/maximumAttemptCount"
+      Value: !FindInMap [MaximumAttemptCountMapping, Environment, !Ref 'Environment']
+      Type: String
+      Description: maximum passport verification attempts
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

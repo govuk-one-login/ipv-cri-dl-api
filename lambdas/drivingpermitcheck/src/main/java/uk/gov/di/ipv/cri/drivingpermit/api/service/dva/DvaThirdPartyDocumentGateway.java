@@ -3,9 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.crypto.RSADecrypter;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -21,10 +19,10 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 
@@ -33,7 +31,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Base64;
@@ -67,12 +64,6 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
             ConfigurationService configurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
-        Objects.requireNonNull(objectMapper, "objectMapper must not be null");
-        Objects.requireNonNull(objectMapper, "requestHashValidator must not be null");
-        Objects.requireNonNull(dvaCryptographyService, "dvaCryptographyService must not be null");
-        Objects.requireNonNull(configurationService, "configurationService must not be null");
-        Objects.requireNonNull(httpRetryer, "httpRetryer must not be null");
-
         this.objectMapper = objectMapper;
         this.dvaCryptographyService = dvaCryptographyService;
         this.requestHashValidator = requestHashValidator;
@@ -89,8 +80,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     @Override
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
             throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException, IOException,
-                    NoSuchAlgorithmException {
+                    CertificateException, ParseException, JOSEException, IOException {
         LOGGER.info("Mapping person to third party document check request");
         DvaPayload dvaPayload = new DvaPayload();
 
@@ -102,13 +92,15 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         String drivingPermitDriverLicenceNumber = drivingPermitData.getDrivingLicenceNumber();
         String drivingPermitAddress = drivingPermitData.getPostcode();
 
+        DvaConfiguration dvaConfiguration = configurationService.getDvaConfiguration();
+
         String dvaEndpointUri = null;
 
         // Note: dva direct request fields have different names/mappings to the
         // drivingPermitForm
         // the below is for mapping the form fields into the correct dva field names
 
-        dvaEndpointUri = configurationService.getDvaEndpointUri() + "/api/ukverify";
+        dvaEndpointUri = dvaConfiguration.getEndpointUri() + "/api/ukverify";
         dvaPayload.setRequestId(UUID.randomUUID());
         dvaPayload.setSurname(drivingPermitFamilyName);
         dvaPayload.setForenames(drivingPermitGivenNames);
@@ -129,7 +121,9 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         String requestBody = preparedDvaPayload.serialize();
 
         URI endpoint = URI.create(dvaEndpointUri);
-        HttpPost request = requestBuilder(endpoint, requestBody);
+        String username = dvaConfiguration.getUserName();
+        String password = dvaConfiguration.getPassword();
+        HttpPost request = requestBuilder(endpoint, username, password, requestBody);
 
         eventProbe.counterMetric(THIRD_PARTY_REQUEST_CREATED);
 
@@ -158,29 +152,12 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         return documentCheckResult;
     }
 
-    public JWSObject decrypt(JWEObject encrypted) {
-        try {
-            RSADecrypter rsaDecrypter =
-                    new RSADecrypter(configurationService.getDrivingPermitEncryptionKey());
-            encrypted.decrypt(rsaDecrypter);
-
-            return JWSObject.parse(encrypted.getPayload().toString());
-        } catch (ParseException | JOSEException exception) {
-            throw new IpvCryptoException(
-                    String.format("Cannot Decrypt DVA Payload: %s", exception.getMessage()));
-        }
-    }
-
     private JWSObject preparePayload(DvaPayload dvaPayload)
             throws OAuthHttpResponseExceptionWithErrorBody {
         LOGGER.info("Preparing payload for DVA");
         try {
             return dvaCryptographyService.preparePayload(dvaPayload);
-        } catch (CertificateException
-                | NoSuchAlgorithmException
-                | InvalidKeySpecException
-                | JOSEException
-                | JsonProcessingException e) {
+        } catch (CertificateException | JOSEException | JsonProcessingException e) {
             LOGGER.error(("Failed to prepare payload for DVA: " + e.getMessage()));
             throw new OAuthHttpResponseExceptionWithErrorBody(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -207,7 +184,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private DocumentCheckResult responseHandler(
             DvaPayload dvaPayload, CloseableHttpResponse httpResponse, String requestId)
-            throws IOException, ParseException, JOSEException, CertificateException,
+            throws IOException, ParseException, JOSEException,
                     OAuthHttpResponseExceptionWithErrorBody {
         int statusCode = httpResponse.getStatusLine().getStatusCode();
 
@@ -294,14 +271,13 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         }
     }
 
-    private HttpPost requestBuilder(URI endpointUri, String requestBody)
+    private HttpPost requestBuilder(
+            URI endpointUri, String userName, String password, String requestBody)
             throws UnsupportedEncodingException {
-        String user = configurationService.getDvaUserName();
-        String pass = configurationService.getDvaPassword();
         HttpPost request = new HttpPost(endpointUri);
         request.addHeader("Content-Type", "application/jose");
         // basic auth
-        request.addHeader("Authorization", getBasicAuthenticationHeader(user, pass));
+        request.addHeader("Authorization", getBasicAuthenticationHeader(userName, password));
         request.setEntity(new StringEntity(requestBody));
 
         return request;

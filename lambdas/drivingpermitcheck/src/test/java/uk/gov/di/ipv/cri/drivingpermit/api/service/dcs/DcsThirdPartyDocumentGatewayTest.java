@@ -21,9 +21,9 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
@@ -34,7 +34,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
-import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -49,28 +48,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createH
 @ExtendWith(MockitoExtension.class)
 class DcsThirdPartyDocumentGatewayTest {
 
-    private static class DCSGatewayConstructorArgs {
-        private final ObjectMapper objectMapper;
-        private final DcsCryptographyService dcsCryptographyService;
-        private final ConfigurationService configurationService;
-        private final HttpRetryer httpRetryer;
-        private final EventProbe eventProbe;
-
-        private DCSGatewayConstructorArgs(
-                ObjectMapper objectMapper,
-                DcsCryptographyService dcsCryptographyService,
-                ConfigurationService configurationService,
-                HttpRetryer httpRetryer,
-                EventProbe eventProbe) {
-
-            this.objectMapper = objectMapper;
-            this.dcsCryptographyService = dcsCryptographyService;
-            this.httpRetryer = httpRetryer;
-            this.configurationService = configurationService;
-            this.eventProbe = eventProbe;
-        }
-    }
-
     private static final String TEST_API_RESPONSE_BODY = "test-api-response-content";
     private static final String TEST_ENDPOINT_URL = "https://test-endpoint.co.uk";
     private static final int MOCK_HTTP_STATUS_CODE = -1;
@@ -78,23 +55,25 @@ class DcsThirdPartyDocumentGatewayTest {
 
     @Mock private HttpClient mockHttpClient;
     @Mock private ObjectMapper mockObjectMapper;
-    @Mock private ConfigurationService configurationService;
+    @Mock private ConfigurationService mockConfigurationService;
+    @Mock private DcsConfiguration mockDcsConfiguration;
+
     @Mock private HttpRetryer httpRetryer;
     @Mock private DcsCryptographyService dcsCryptographyService;
-    @Mock private DvaCryptographyService dvaCryptographyService;
 
     @Mock private EventProbe mockEventProbe;
 
     @BeforeEach
     void setUp() {
-        lenient()
-                .when(configurationService.getDcsEndpointUri())
-                .thenReturn("https://test-endpoint.co.uk");
+
+        when(mockConfigurationService.getDcsConfiguration()).thenReturn(mockDcsConfiguration);
+        when(mockDcsConfiguration.getEndpointUri()).thenReturn(TEST_ENDPOINT_URL);
+
         this.dcsThirdPartyDocumentGateway =
                 new DcsThirdPartyDocumentGateway(
                         mockObjectMapper,
                         dcsCryptographyService,
-                        configurationService,
+                        mockConfigurationService,
                         httpRetryer,
                         mockEventProbe);
     }
@@ -349,34 +328,6 @@ class DcsThirdPartyDocumentGatewayTest {
         assertEquals(
                 "application/jose",
                 httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
-    }
-
-    @Test
-    void shouldThrowNullPointerExceptionWhenInvalidConstructorArgumentsProvided() {
-        Map<String, DCSGatewayConstructorArgs> testCases =
-                Map.of(
-                        "objectMapper must not be null",
-                        new DCSGatewayConstructorArgs(null, null, null, null, null),
-                        "crossCoreApiConfig must not be null",
-                        new DCSGatewayConstructorArgs(
-                                Mockito.mock(ObjectMapper.class),
-                                Mockito.mock(DcsCryptographyService.class),
-                                null,
-                                null,
-                                null));
-
-        testCases.forEach(
-                (errorMessage, constructorArgs) ->
-                        assertThrows(
-                                NullPointerException.class,
-                                () ->
-                                        new DcsThirdPartyDocumentGateway(
-                                                constructorArgs.objectMapper,
-                                                constructorArgs.dcsCryptographyService,
-                                                constructorArgs.configurationService,
-                                                constructorArgs.httpRetryer,
-                                                constructorArgs.eventProbe),
-                                errorMessage));
     }
 
     private static Stream<Integer> getRetryStatusCodes() {

@@ -11,7 +11,6 @@ import gov.di_ipv_drivingpermit.utilities.Driver;
 import gov.di_ipv_drivingpermit.utilities.TestDataCreator;
 import gov.di_ipv_drivingpermit.utilities.TestInput;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -26,9 +25,10 @@ import java.util.stream.Collectors;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DrivingLicencePageObject extends UniversalSteps {
 
@@ -373,7 +373,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void whyWeNeedToKnowThis() {
-        Assert.assertTrue(whyWeText.isDisplayed());
+        assertTrue(whyWeText.isDisplayed());
         LOGGER.info(whyWeText.getText());
     }
 
@@ -382,7 +382,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void paragraphValidation() {
-        Assert.assertTrue(whyWePara.isDisplayed());
+        assertTrue(whyWePara.isDisplayed());
         LOGGER.info(whyWePara.getText());
     }
 
@@ -432,7 +432,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void betaBannerSentence(String expectedText) {
-        Assert.assertEquals(expectedText, betaBannerText.getText());
+        assertEquals(expectedText, betaBannerText.getText());
         LOGGER.info("actualText = " + betaBannerText.getText());
     }
 
@@ -441,7 +441,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void rejectCookieSentence(String rejectanalysisSentence) {
-        Assert.assertEquals(rejectanalysisSentence, rejectanalysisActual.getText());
+        assertEquals(rejectanalysisSentence, rejectanalysisActual.getText());
         LOGGER.info(rejectanalysisActual.getText());
     }
 
@@ -467,7 +467,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void noDrivingLicenceBtn(String expectedText) {
         noDLOption.isDisplayed();
-        Assert.assertEquals(expectedText, noDLOption.getText());
+        assertEquals(expectedText, noDLOption.getText());
         noDLRadioBtn.isDisplayed();
     }
 
@@ -500,7 +500,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertErrorTitle(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidDocumentIssuerInSummary.getText());
+        assertEquals(expectedText, InvalidDocumentIssuerInSummary.getText());
     }
 
     public void errorMessage() {
@@ -515,7 +515,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public void validateErrorText() {
         String expectedText = "Error:\n" + "You must choose an option to continue";
         String actualText = radioButtonError.getText();
-        Assert.assertEquals(expectedText, actualText);
+        assertEquals(expectedText, actualText);
     }
 
     public void drivingLicencePageURLValidationWelsh() {
@@ -523,7 +523,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertOrLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, orLabel.getText());
+        assertEquals(expectedText, orLabel.getText());
     }
 
     // -----------------------
@@ -544,7 +544,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         String actUrl = Driver.get().getCurrentUrl();
         LOGGER.info("expectedUrl = " + expUrl);
         LOGGER.info("actualUrl = " + actUrl);
-        Assert.assertEquals(actUrl, expUrl);
+        assertEquals(actUrl, expUrl);
     }
 
     public void jsonErrorResponse(String expectedErrorDescription, String expectedErrorStatusCode)
@@ -565,30 +565,31 @@ public class DrivingLicencePageObject extends UniversalSteps {
         LOGGER.info("testErrorDescription = " + expectedErrorDescription);
         LOGGER.info("testStatusCode = " + expectedErrorStatusCode);
 
-        Assert.assertEquals(expectedErrorDescription, ActualErrorDescription);
-        Assert.assertEquals(expectedErrorStatusCode, ActualStatusCode);
+        assertEquals(expectedErrorDescription, ActualErrorDescription);
+        assertEquals(expectedErrorStatusCode, ActualStatusCode);
     }
 
     public void checkScoreInStubIs(String validityScore, String strengthScore) throws IOException {
         scoreIs(validityScore, strengthScore, JSONPayload.getText());
     }
 
-    public void scoreIs(String validityScore, String strengthScore, String jsonPayloadText)
+    public void scoreIs(
+            String expectedValidityScore, String expectedStrengthScore, String jsonPayloadText)
             throws IOException {
         String result = jsonPayloadText;
         LOGGER.info("result = " + result);
         JsonNode vcNode = getJsonNode(result, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
 
-        String ValidityScore = evidence.get(0).get("validityScore").asText();
-        assertEquals(ValidityScore, validityScore);
+        String validityScore = evidence.get(0).get("validityScore").asText();
+        assertEquals(expectedValidityScore, validityScore);
 
-        String StrengthScore = evidence.get(0).get("strengthScore").asText();
-        assertEquals(StrengthScore, strengthScore);
+        String strengthScore = evidence.get(0).get("strengthScore").asText();
+        assertEquals(expectedStrengthScore, strengthScore);
     }
 
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
-        Assert.assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
+        assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }
 
@@ -754,84 +755,75 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertInvalidDoBInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidDOBErrorInSummary.getText());
+        assertEquals(expectedText, InvalidDOBErrorInSummary.getText());
     }
 
     public void assertInvalidDoBOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidDateOfBirthFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidDateOfBirthFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidIssueDateInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidIssueDateErrorInSummary.getText());
+        assertEquals(expectedText, InvalidIssueDateErrorInSummary.getText());
     }
 
     public void assertInvalidIssueDateOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidIssueDateFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidIssueDateFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidValidToDateInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidValidToDateErrorInSummary.getText());
+        assertEquals(expectedText, InvalidValidToDateErrorInSummary.getText());
     }
 
     public void assertInvalidValidToDateOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidValidToDateFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidValidToDateFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidLicenceNumberInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidDrivingLicenceErrorInSummary.getText());
+        assertEquals(expectedText, InvalidDrivingLicenceErrorInSummary.getText());
     }
 
     public void assertInvalidLicenceNumberOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, DrivingLicenceFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, DrivingLicenceFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidIssueNumberInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidIssueNumberErrorInSummary.getText());
+        assertEquals(expectedText, InvalidIssueNumberErrorInSummary.getText());
     }
 
     public void assertInvalidIssueNumberOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidIssueNumberFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidIssueNumberFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidPostcodeInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidPostcodeErrorInSummary.getText());
+        assertEquals(expectedText, InvalidPostcodeErrorInSummary.getText());
     }
 
     public void assertInvalidPostcodeOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidPostcodeFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidPostcodeFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidLastNameInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidLastNameErrorInSummary.getText());
+        assertEquals(expectedText, InvalidLastNameErrorInSummary.getText());
     }
 
     public void assertInvalidLastNameOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidLastNameFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidLastNameFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidFirstNameInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidFirstNameErrorInSummary.getText());
+        assertEquals(expectedText, InvalidFirstNameErrorInSummary.getText());
     }
 
     public void assertInvalidFirstNameOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidFirstNameFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidFirstNameFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidMiddleNameInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidMiddleNamesErrorInSummary.getText());
+        assertEquals(expectedText, InvalidMiddleNamesErrorInSummary.getText());
     }
 
     public void assertInvalidMiddleNameOnField(String expectedText) {
-        Assert.assertEquals(
-                expectedText, InvalidMiddleNamesFieldError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, InvalidMiddleNamesFieldError.getText().trim().replace("\n", ""));
     }
 
     public void ciInVC(String ci) throws IOException {
@@ -874,27 +866,27 @@ public class DrivingLicencePageObject extends UniversalSteps {
         String actualTitle = Driver.get().getTitle();
 
         LOGGER.info("Page title: " + actualTitle);
-        Assert.assertEquals(expTitle, actualTitle);
+        assertEquals(expTitle, actualTitle);
     }
 
     public void assertPageHeading(String expectedText) {
-        Assert.assertEquals(expectedText, pageHeader.getText().split("\n")[0]);
+        assertEquals(expectedText, pageHeader.getText().split("\n")[0]);
     }
 
     public void assertProveAnotherWayLinkText(String expectedText) {
-        Assert.assertEquals(expectedText, getParent(proveAnotherWay).getText());
+        assertEquals(expectedText, getParent(proveAnotherWay).getText());
     }
 
     public void assertErrorPrefix(String expectedText) {
-        Assert.assertEquals(expectedText, errorText.getText());
+        assertEquals(expectedText, errorText.getText());
     }
 
     public void assertFirstLineOfUserNotFoundText(String expectedText) {
-        Assert.assertEquals(expectedText, userNotFoundInThirdPartyBanner.getText().split("\n")[0]);
+        assertEquals(expectedText, userNotFoundInThirdPartyBanner.getText().split("\n")[0]);
     }
 
     public void youWillBeAbleToFindSentence(String expectedText) {
-        Assert.assertEquals(expectedText, thereWasAProblemFirstSentence.getText());
+        assertEquals(expectedText, thereWasAProblemFirstSentence.getText());
     }
 
     public void assertPageSourceContains(String expectedText) {
@@ -902,11 +894,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertLastNameLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, getLabel(getParent(LastName)).getText());
+        assertEquals(expectedText, getLabel(getParent(LastName)).getText());
     }
 
     public void assertGivenNameLegendText(String expectedText) {
-        Assert.assertEquals(
+        assertEquals(
                 expectedText,
                 FirstName.findElement(By.xpath("./../../.."))
                         .findElement(By.tagName("legend"))
@@ -914,96 +906,96 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertMiddleNameLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, getLabel(getParent(MiddleNames)).getText());
+        assertEquals(expectedText, getLabel(getParent(MiddleNames)).getText());
     }
 
     public void assertGivenNameDescription(String expectedText) {
-        Assert.assertEquals(
+        assertEquals(
                 expectedText, getLabel(firstNameHint.findElement(By.xpath("./../.."))).getText());
     }
 
     public void assertGivenNameHint(String expectedText) {
-        Assert.assertEquals(expectedText, firstNameHint.getText());
+        assertEquals(expectedText, firstNameHint.getText());
     }
 
     public void assertMiddleNameHint(String expectedText) {
-        Assert.assertEquals(expectedText, middleNameHint.getText());
+        assertEquals(expectedText, middleNameHint.getText());
     }
 
     public void assertDateOfBirthLegendText(String expectedText) {
-        Assert.assertEquals(expectedText, dateOfBirthLegend.getText());
+        assertEquals(expectedText, dateOfBirthLegend.getText());
     }
 
     public void assertDateOfBirthHintText(String expectedText) {
-        Assert.assertEquals(expectedText, dateOfBirthHint.getText());
+        assertEquals(expectedText, dateOfBirthHint.getText());
     }
 
     public void assertBirthDayLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, getLabel(getParent(birthDay)).getText());
+        assertEquals(expectedText, getLabel(getParent(birthDay)).getText());
     }
 
     public void assertBirthMonthLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, getLabel(getParent(birthMonth)).getText());
+        assertEquals(expectedText, getLabel(getParent(birthMonth)).getText());
     }
 
     public void assertBirthYearLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, getLabel(getParent(birthYear)).getText());
+        assertEquals(expectedText, getLabel(getParent(birthYear)).getText());
     }
 
     public void assertIssueDateLegendText(String expectedText) {
-        Assert.assertEquals(expectedText, issueDateLegend.getText());
+        assertEquals(expectedText, issueDateLegend.getText());
     }
 
     public void assertIssueDateHintText(String expectedText) {
-        Assert.assertEquals(expectedText, issueDateHint.getText());
+        assertEquals(expectedText, issueDateHint.getText());
     }
 
     public void assertValidToHintText(String expectedText) {
-        Assert.assertEquals(expectedText, validToHint.getText());
+        assertEquals(expectedText, validToHint.getText());
     }
 
     public void assertValidToHintTextDVA(String expectedText) {
-        Assert.assertEquals(expectedText, validToHint.getText());
+        assertEquals(expectedText, validToHint.getText());
     }
 
     public void assertLicenceNumberLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, licenceNumberFieldLabel.getText());
+        assertEquals(expectedText, licenceNumberFieldLabel.getText());
     }
 
     public void assertLicenceNumberHintText(String expectedText) {
-        Assert.assertEquals(expectedText, licenceNumberHint.getText());
+        assertEquals(expectedText, licenceNumberHint.getText());
     }
 
     public void assertIssueNumberLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, issueNumberFieldLabel.getText());
+        assertEquals(expectedText, issueNumberFieldLabel.getText());
     }
 
     public void assertIssueNumberHintText(String expectedText) {
-        Assert.assertEquals(expectedText, issueNumberHint.getText());
+        assertEquals(expectedText, issueNumberHint.getText());
     }
 
     public void assertPostcodeLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, postcodeLabel.getText());
+        assertEquals(expectedText, postcodeLabel.getText());
     }
 
     public void assertPostcodeHintText(String expectedText) {
-        Assert.assertEquals(expectedText, postcodeHint.getText());
+        assertEquals(expectedText, postcodeHint.getText());
     }
 
     public void assertPageDescription(String expectedText) {
-        Assert.assertEquals(expectedText, pageDescriptionHeading.getText());
+        assertEquals(expectedText, pageDescriptionHeading.getText());
     }
 
     public void assertValidToLegend(String expectedText) {
-        Assert.assertEquals(expectedText, validToLegend.getText());
+        assertEquals(expectedText, validToLegend.getText());
     }
 
     public void assertErrorSummaryText(String expectedText) {
-        Assert.assertEquals(expectedText, errorSummaryTitle.getText());
+        assertEquals(expectedText, errorSummaryTitle.getText());
     }
 
     public void assertIssueNumberDescriptionText(String expectedText) {
-        Assert.assertEquals(
+        assertEquals(
                 expectedText,
                 getParent(issueNumberFieldLabel)
                         .findElement(By.tagName("p"))
@@ -1059,12 +1051,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertDVLAConsentErrorInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, DVLAConsentErrorInSummary.getText());
+        assertEquals(expectedText, DVLAConsentErrorInSummary.getText());
     }
 
     public void assertDVLAConsentErrorOnCheckbox(String expectedText) {
-        Assert.assertEquals(
-                expectedText, DVLAConsentCheckboxError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, DVLAConsentCheckboxError.getText().trim().replace("\n", ""));
     }
 
     public void goToPage(String page) {
@@ -1072,11 +1063,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertConsentSection(String consentSection) {
-        Assert.assertEquals(consentSection, DVLAConsentSection.getText());
+        assertEquals(consentSection, DVLAConsentSection.getText());
     }
 
     public void assertOneLoginPrivacyLink(String oneLoginPrivacyLink) {
-        Assert.assertEquals(oneLoginPrivacyLink, oneLoginLink.getText());
+        assertEquals(oneLoginPrivacyLink, oneLoginLink.getText());
         String oneLoginDVLALinkUrl = oneLoginLink.getAttribute("href");
 
         checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
@@ -1084,18 +1075,18 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertDVLAPrivacyLink(String dvlaPrivacyLink) {
-        Assert.assertEquals(dvlaPrivacyLink, dvlaLink.getText());
+        assertEquals(dvlaPrivacyLink, dvlaLink.getText());
         String oneLoginDVLALinkUrl = dvlaLink.getAttribute("href");
 
         checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
     }
 
     public void assertDVLAContent(String contentDVLA) {
-        Assert.assertEquals(contentDVLA, dvlaSentence.getText());
+        assertEquals(contentDVLA, dvlaSentence.getText());
     }
 
     public void assertDVLAContentLineTwo(String contentDVLALine2) {
-        Assert.assertEquals(contentDVLALine2, dvlaSentenceTwo.getText());
+        assertEquals(contentDVLALine2, dvlaSentenceTwo.getText());
     }
 
     private JsonNode getVCFromJson(String vc) throws JsonProcessingException {

@@ -9,7 +9,6 @@ import gov.di_ipv_drivingpermit.model.DocumentCheckResponse;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import gov.di_ipv_drivingpermit.step_definitions.DrivingLicenceAPIStepDefs;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +21,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
@@ -39,18 +39,18 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static final Logger LOGGER =
             Logger.getLogger(DrivingLicenceAPIStepDefs.class.getName());
 
-    public String getAuthorisationJwtFromStub(String criId, Integer LindaDuffExperianRowNumber)
+    public String getAuthorisationJwtFromStub(String criId, Integer rowNumber)
             throws URISyntaxException, IOException, InterruptedException {
         String coreStubUrl = configurationService.getCoreStubUrl(false);
         if (coreStubUrl == null) {
             throw new IllegalArgumentException("Environment variable IPV_CORE_STUB_URL is not set");
         }
-        return getClaimsForUser(coreStubUrl, criId, LindaDuffExperianRowNumber);
+        return getClaimsForUser(coreStubUrl, criId, rowNumber);
     }
 
-    public void dlUserIdentityAsJwtString(String criId, Integer LindaDuffExperianRowNumber)
+    public void dlUserIdentityAsJwtString(String criId, Integer rowNumber)
             throws URISyntaxException, IOException, InterruptedException {
-        String jsonString = getAuthorisationJwtFromStub(criId, LindaDuffExperianRowNumber);
+        String jsonString = getAuthorisationJwtFromStub(criId, rowNumber);
         LOGGER.info("jsonString = " + jsonString);
         String coreStubUrl = configurationService.getCoreStubUrl(false);
         SESSION_REQUEST_BODY = createRequest(coreStubUrl, criId, jsonString);
@@ -106,7 +106,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void retryValueInDLCheckResponse(Boolean retry) {
-        Assert.assertEquals(retry, RETRY);
+        assertEquals(RETRY, retry);
     }
 
     public void getAuthorisationCodeforDL() throws IOException, InterruptedException {

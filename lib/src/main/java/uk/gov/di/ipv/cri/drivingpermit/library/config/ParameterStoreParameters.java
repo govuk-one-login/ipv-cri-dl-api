@@ -4,6 +4,14 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 
 public class ParameterStoreParameters {
 
+    // **************************** CRI ****************************
+
+    // TODO
+
+    // **************************** DCS ****************************
+
+    public static final String DCS_ENDPOINT = "dcsEndpoint";
+
     public static final String DCS_HTTPCLIENT_TLS_CERT = "tlsCert-2023-08-03";
 
     public static final String DCS_HTTPCLIENT_TLS_KEY = "tlsKey-2023-08-03";
@@ -12,22 +20,31 @@ public class ParameterStoreParameters {
 
     public static final String DCS_HTTPCLIENT_TLS_ROOT_CERT = "tlsRootCertificate";
 
-    public static final String DCS_DRIVING_PERMIT_CRI_SIGNING_CERT =
-            "signingCertForDrivingPermitToVerify"; // JWS SHA-1 Certificate
-    // Thumbprint (Header)
+    // JWS SHA-1 Certificate - Thumbprint (Header)
+    public static final String DCS_SIGNING_CERT_THUMB = "signingCertForDcsToVerify-2023-08-03";
 
+    // JWS RSA Signing Key
     public static final String DCS_DRIVING_PERMIT_CRI_SIGNING_KEY =
-            "signingKeyForDrivingPermitToSign-2023-08-03"; // JWS RSA Signing Key
+            "signingKeyForDrivingPermitToSign-2023-08-03";
 
-    public static final String DCS_ENCRYPTION_CERT =
-            "encryptionCertForDrivingPermitToEncrypt"; // JWE (Public Cert)
+    // JWE (Public Key) - not a typo
+    public static final String DCS_ENCRYPTION_CERT = "encryptionCertForDrivingPermitToEncrypt";
 
-    public static final String DCS_SIGNING_CERT =
-            "signingCertForDcsToVerify-2023-08-03"; // DCS JWE (Reply Signature)
+    // JWE (Reply Signature)
+    public static final String DCS_DRIVING_PERMIT_CRI_SIGNING_CERT =
+            "signingCertForDrivingPermitToVerify";
 
+    // JWE (Private Key Reply Decrypt)
     public static final String DCS_DRIVING_PERMIT_ENCRYPTION_KEY =
             "encryptionKeyForDrivingPermitToDecrypt-2023-08-03"; // DCS JWE (Private Key
-    // Reply Decrypt)
+
+    // **************************** DVA ****************************
+
+    public static final String DVA_ENDPOINT = "DVA/dvaEndpoint";
+
+    public static final String DVA_USERNAME = "DVA/Username";
+
+    public static final String DVA_PASSWORD = "DVA/Password";
 
     public static final String DVA_HTTPCLIENT_TLS_CERT = "DVA/HttpClient/tlsCert";
 
@@ -38,28 +55,26 @@ public class ParameterStoreParameters {
 
     public static final String DVA_HTTPCLIENT_TLS_ROOT_CERT = "DVA/HttpClient/tlsRootCertificate";
 
-    public static final String DVA_DRIVING_PERMIT_CRI_SIGNING_CERT =
-            "DVA/JWS/signingCertForDrivingPermitToVerify"; // JWS SHA-1 Certificate
-    // Thumbprint (Header)
+    // JWS SHA-1 Certificate - Thumbprint (Header)
+    public static final String DVA_SIGNING_CERT_THUMB = "DVA/JWS/signingCertForDvaToVerify";
 
+    // JWS RSA Signing Key
     public static final String DVA_DRIVING_PERMIT_CRI_SIGNING_KEY =
-            "DVA/JWS/signingKeyForDrivingPermitToSign"; // JWS RSA Signing Key
+            "DVA/JWS/signingKeyForDrivingPermitToSign";
 
+    // JWE (Public Key) - not a typo
     public static final String DVA_ENCRYPTION_CERT =
-            "DVA/JWE/encryptionCertForDrivingPermitToEncrypt"; // JWE (Public Cert)
+            "DVA/JWE/encryptionCertForDrivingPermitToEncrypt";
 
-    public static final String DVA_SIGNING_CERT =
-            "DVA/JWE/signingCertForDvaToVerify"; // DVA JWE (Reply Signature)
+    // JWE (Reply Signature)
+    public static final String DVA_DRIVING_PERMIT_CRI_SIGNING_CERT =
+            "DVA/JWE/signingCertForDrivingPermitToVerify";
 
+    // JWE (Private Key Reply Decrypt)
     public static final String DVA_DRIVING_PERMIT_ENCRYPTION_KEY =
-            "DVA/JWE/encryptionKeyForDrivingPermitToDecrypt"; // DVA JWE (Private Key
-    // Reply Decrypt)
+            "DVA/JWE/encryptionKeyForDrivingPermitToDecrypt";
 
-    public static final String DVA_ENDPOINT = "DVA/dvaEndpoint";
-
-    public static final String DVA_USERNAME = "DVA/Username";
-
-    public static final String DVA_PASSWORD = "DVA/Password";
+    // **************************** DVLA ****************************
 
     @ExcludeFromGeneratedCoverageReport
     private ParameterStoreParameters() {

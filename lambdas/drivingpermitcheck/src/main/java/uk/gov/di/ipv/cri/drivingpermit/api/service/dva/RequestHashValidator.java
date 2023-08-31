@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.service;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.HashFactory;

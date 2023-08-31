@@ -126,7 +126,7 @@ class DvaThirdPartyDocumentGatewayTest {
         jwsObject.sign(new MyJwsSigner());
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
-        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString())).thenReturn(true);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean())).thenReturn(true);
 
         DocumentCheckResult actualDocumentCheckResult =
                 dvaThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
@@ -151,10 +151,10 @@ class DvaThirdPartyDocumentGatewayTest {
         dvaPayload.setForenames(Arrays.asList("Fore"));
 
         DvaResponse dvaResponse = new DvaResponse();
-        dvaResponse.setRequestHash(hashFactory.getHash(dvaPayload) + "0");
+        dvaResponse.setRequestHash(hashFactory.getHash(dvaPayload, true) + "0");
 
         boolean isValidHash =
-                this.requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash());
+                this.requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash(), true);
 
         // Request Hash  = ad8[...]a5f
         // Response Hash = ad8[...]a5f0
@@ -347,7 +347,7 @@ class DvaThirdPartyDocumentGatewayTest {
         jwsObject.sign(new MyJwsSigner());
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
-        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString())).thenReturn(true);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean())).thenReturn(true);
 
         CloseableHttpResponse httpResponse = createHttpResponse(200);
 

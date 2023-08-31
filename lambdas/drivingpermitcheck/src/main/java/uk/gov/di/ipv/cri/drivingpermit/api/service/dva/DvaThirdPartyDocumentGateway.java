@@ -192,7 +192,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
             throws OAuthHttpResponseExceptionWithErrorBody, NoSuchAlgorithmException {
         if (Objects.nonNull(dvaResponse.getRequestHash())) {
             LOGGER.error("Validating DVA Direct response hash");
-            if (!requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash())) {
+            if (!requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash(), configurationService.isPerformanceStub())) {
                 throw new OAuthHttpResponseExceptionWithErrorBody(
                         HttpStatusCode.BAD_REQUEST, ErrorResponse.DVA_D_HASH_VALIDATION_ERROR);
             } else {

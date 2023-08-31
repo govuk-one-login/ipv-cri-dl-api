@@ -159,6 +159,11 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         dvaEnterYourDetailsExactlyPage.consentDVACheckbox.click();
     }
 
+    public void dvaDirectRequestHeader() {
+
+
+    }
+
     // Why is this invalid?
     public void userEntersInvalidDVADrivingDetails() {
         dvaLicenceNumber.sendKeys("11110610");

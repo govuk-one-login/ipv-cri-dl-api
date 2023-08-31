@@ -16,7 +16,7 @@ public class RequestHashValidator {
         this.hashFactory = hashFactory;
     }
 
-    public boolean valid(DvaPayload request, String hash) throws NoSuchAlgorithmException {
-        return hashFactory.getHash(request).equals(hash);
+    public boolean valid(DvaPayload request, String hash, boolean isNonProd) throws NoSuchAlgorithmException {
+        return hashFactory.getHash(request, isNonProd).equals(hash);
     }
 }

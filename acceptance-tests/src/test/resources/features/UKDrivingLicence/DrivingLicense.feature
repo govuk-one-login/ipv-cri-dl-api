@@ -9,6 +9,7 @@ Feature: Driving License Test
     When I click the drop-down on the component
     Then I see the message begins with We need to make sure is shown
     And I assert the url path contains licence-issuer
+    And I set the document checking route
 
  @DrivingLicenceTest @build @staging @integration @smoke
   Scenario:3 options and Radio button available in Driving Licence page

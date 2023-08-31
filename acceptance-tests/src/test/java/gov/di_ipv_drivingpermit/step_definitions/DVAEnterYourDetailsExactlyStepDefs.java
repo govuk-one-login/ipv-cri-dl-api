@@ -14,6 +14,11 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
         userEntersData("DVA", drivingLicenceSubject);
     }
 
+    @And("^DVA Direct is passed in request header")
+    public void dva_direct_request_header() {
+        dvaDirectRequestHeader();
+    }
+
     @When("^I see the Issue date field titled (.*) for DVA$")
     public void iCanSeeTheIssueDateFieldTitledForDVADyddiadCyhoeddi(String expectedText) {
         assertDateOfIssueLegendText(expectedText);

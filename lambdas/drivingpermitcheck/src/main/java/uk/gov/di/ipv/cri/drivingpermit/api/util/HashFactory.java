@@ -20,19 +20,36 @@ public class HashFactory {
         this.messageDigestFactory = messageDigestFactory;
     }
 
-    public String getHash(DvaPayload request) throws NoSuchAlgorithmException {
-        String message =
-                request.getIssuerId()
-                        + request.getRequestId()
-                        + Objects.toString(request.getSurname(), "")
-                        + request.getForenames().stream()
-                                .filter(Objects::nonNull)
-                                .reduce("", String::concat)
-                        + Objects.toString(request.getDateOfBirth(), "")
-                        + request.getIssueDate()
-                        + request.getExpiryDate()
-                        + request.getDriverLicenceNumber()
-                        + Objects.toString(request.getPostcode(), "");
+    public String getHash(DvaPayload request, boolean isNonProd) throws NoSuchAlgorithmException {
+        String message;
+        if(isNonProd) {
+            LOGGER.info("Removing requestId from request hash");
+            message =
+                    request.getIssuerId()
+                            + Objects.toString(request.getSurname(), "")
+                            + request.getForenames().stream()
+                            .filter(Objects::nonNull)
+                            .reduce("", String::concat)
+                            + Objects.toString(request.getDateOfBirth(), "")
+                            + request.getIssueDate()
+                            + request.getExpiryDate()
+                            + request.getDriverLicenceNumber()
+                            + Objects.toString(request.getPostcode(), "");
+        } else {
+            message =
+                    request.getIssuerId()
+                            + request.getRequestId()
+                            + Objects.toString(request.getSurname(), "")
+                            + request.getForenames().stream()
+                            .filter(Objects::nonNull)
+                            .reduce("", String::concat)
+                            + Objects.toString(request.getDateOfBirth(), "")
+                            + request.getIssueDate()
+                            + request.getExpiryDate()
+                            + request.getDriverLicenceNumber()
+                            + Objects.toString(request.getPostcode(), "");
+
+        }
         MessageDigest sha256;
         try {
             sha256 = messageDigestFactory.getInstance();

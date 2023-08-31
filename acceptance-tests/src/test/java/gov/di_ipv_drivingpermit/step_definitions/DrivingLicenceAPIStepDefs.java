@@ -38,6 +38,13 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         postRequestToDrivingLicenceEndpoint(dlJsonRequestBody);
     }
 
+    @When(
+            "Driving Licence user sends a POST request to DVA Direct endpoint using jsonRequest (.*)$")
+    public void DL_user_sends_a_post_request_to_dva_direct_end_point(String dlJsonRequestBody)
+            throws IOException, InterruptedException {
+        postRequestToDVADirectEndpoint(dlJsonRequestBody);
+    }
+
     @And("Driving Licence check response should contain Retry value as (.*)$")
     public void DL_check_response_should_contain_Retry_value(Boolean retry) {
         retryValueInDLCheckResponse(retry);

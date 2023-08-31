@@ -105,6 +105,34 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         LOGGER.info("RETRY = " + RETRY);
     }
 
+    public void postRequestToDVADirectEndpoint(String dlJsonRequestBody)
+            throws IOException, InterruptedException {
+        String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
+        String valueToEncode = "USER" + ":" + "PASS";
+        String headerEncoded = "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+        JsonNode dlJsonNode =
+                objectMapper.readTree(
+                        new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"));
+        String dlInputJsonString = dlJsonNode.toString();
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
+                        .setHeader("Accept", "application/json")
+                        .setHeader("Content-Type", "application/json")
+                        .setHeader("session_id", SESSION_ID)
+                        .setHeader("Authorization", headerEncoded)
+                        .POST(HttpRequest.BodyPublishers.ofString(dlInputJsonString))
+                        .build();
+
+        LOGGER.info("drivingLicenceRequestBody = " + dlInputJsonString);
+        String drivingLicenceCheckResponse = sendHttpRequest(request).body();
+        LOGGER.info("drivingLicenceCheckResponse = " + drivingLicenceCheckResponse);
+        DocumentCheckResponse documentCheckResponse =
+                objectMapper.readValue(drivingLicenceCheckResponse, DocumentCheckResponse.class);
+        RETRY = documentCheckResponse.getRetry();
+        LOGGER.info("RETRY = " + RETRY);
+    }
+
     public void retryValueInDLCheckResponse(Boolean retry) {
         Assert.assertEquals(retry, RETRY);
     }

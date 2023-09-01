@@ -3,7 +3,6 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 import org.junit.jupiter.api.Test;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.HashFactory;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -14,7 +13,7 @@ class RequestHashValidatorTest {
 
     @Test
     void requestHashValidatorReturnsFalseOnHashValidationFail() throws NoSuchAlgorithmException {
-        HashFactory hashFactory = new HashFactory();
+        RequestHashValidator.HashFactory hashFactory = new RequestHashValidator.HashFactory();
         RequestHashValidator requestHashValidator = new RequestHashValidator(hashFactory);
 
         DvaPayload dvaPayload = new DvaPayload();

@@ -4,9 +4,11 @@ Feature: DVA Driving Licence Test
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     And I search for Driving Licence user number 5 in the Experian table
-    And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
+    Then I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
+    And I should see DVA as an option
     And I click on DVA radio button and Continue
-    And I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I see a form requesting DVA LicenceNumber
 
   @DVADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVA Driving Licence details page happy path

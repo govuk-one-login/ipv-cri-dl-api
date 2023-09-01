@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.util;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,14 +17,17 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class HashFactoryTest {
-    private HashFactory hashFactory;
-    @Mock private HashFactory.Sha256MessageDigestFactory mockSha256MessageDigestFactory;
+    private RequestHashValidator.HashFactory hashFactory;
+
+    @Mock
+    private RequestHashValidator.HashFactory.Sha256MessageDigestFactory
+            mockSha256MessageDigestFactory;
 
     @Test
     void hashValidationSuccess() throws NoSuchAlgorithmException {
         DvaPayload dvaPayload = createSuccessDvaPayload();
         DvaResponse dvaResponse = createSuccessDvaResponse();
-        hashFactory = new HashFactory();
+        hashFactory = new RequestHashValidator.HashFactory();
 
         assertDoesNotThrow(() -> hashFactory.getHash(createSuccessDvaPayload()));
         assertEquals(hashFactory.getHash(dvaPayload), dvaResponse.getRequestHash());
@@ -32,7 +35,7 @@ public class HashFactoryTest {
 
     @Test
     void hashValidationAlgorithmException() throws NoSuchAlgorithmException {
-        hashFactory = new HashFactory(mockSha256MessageDigestFactory);
+        hashFactory = new RequestHashValidator.HashFactory(mockSha256MessageDigestFactory);
         when(mockSha256MessageDigestFactory.getInstance())
                 .thenThrow(new NoSuchAlgorithmException());
         assertThrows(

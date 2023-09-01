@@ -7,8 +7,9 @@ import com.nimbusds.jwt.SignedJWT;
 import gov.di_ipv_drivingpermit.model.AuthorisationResponse;
 import gov.di_ipv_drivingpermit.model.DocumentCheckResponse;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
-import gov.di_ipv_drivingpermit.step_definitions.DrivingLicenceAPIStepDefs;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +19,6 @@ import java.net.http.HttpRequest;
 import java.text.ParseException;
 import java.util.Base64;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,8 +36,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
-    private static final Logger LOGGER =
-            Logger.getLogger(DrivingLicenceAPIStepDefs.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public String getAuthorisationJwtFromStub(String criId, Integer rowNumber)
             throws URISyntaxException, IOException, InterruptedException {

@@ -475,8 +475,6 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
-#        - SSMParameterReadPolicy:
-#            ParameterName: !Sub "${AWS::StackName}/*"
       ProvisionedConcurrencyConfig:
         !If
         - AddProvisionedConcurrency

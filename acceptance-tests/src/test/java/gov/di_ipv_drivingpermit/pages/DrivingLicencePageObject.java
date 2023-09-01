@@ -11,6 +11,8 @@ import gov.di_ipv_drivingpermit.utilities.Driver;
 import gov.di_ipv_drivingpermit.utilities.TestDataCreator;
 import gov.di_ipv_drivingpermit.utilities.TestInput;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -20,7 +22,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class DrivingLicencePageObject extends UniversalSteps {
 
     private final ConfigurationService configurationService;
-    private static final Logger LOGGER = Logger.getLogger(DrivingLicencePageObject.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger();
 
     // Should be separate stub page
 
@@ -369,7 +370,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public void navigateToIPVCoreStub() {
         String coreStubUrl = configurationService.getCoreStubUrl(true);
         Driver.get().get(coreStubUrl);
-        waitForTextToAppear(IPV_CORE_STUB);
+        assertPageTitle(IPV_CORE_STUB, true);
     }
 
     public void whyWeNeedToKnowThis() {
@@ -533,7 +534,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertUserRoutedToIpvCore() {
-        assertPageTitle("IPV Core Stub - GOV.UK");
+        assertPageTitle("IPV Core Stub - GOV.UK", false);
     }
 
     public void assertUserRoutedToIpvCoreErrorPage() {
@@ -862,13 +863,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
         }
     }
 
-    public void assertPageTitle(String expTitle) {
-        String actualTitle = Driver.get().getTitle();
-
-        LOGGER.info("Page title: " + actualTitle);
-        assertEquals(expTitle, actualTitle);
-    }
-
     public void assertPageHeading(String expectedText) {
         assertEquals(expectedText, pageHeader.getText().split("\n")[0]);
     }
@@ -1059,7 +1053,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void goToPage(String page) {
-        waitForTextToAppear(page);
+        assertPageTitle(page, false);
     }
 
     public void assertConsentSection(String consentSection) {

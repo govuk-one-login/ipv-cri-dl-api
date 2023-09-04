@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaEndpointFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
 
@@ -29,15 +31,14 @@ public class ThirdPartyAPIServiceFactory {
                     IOException {
         ConfigurationService configurationService = serviceFactory.getConfigurationService();
 
-        // TODO We need three of these one for each api/stub
-        boolean tlsOnDCS = !configurationService.isPerformanceStub();
-        boolean tlsOnDva = !configurationService.isPerformanceStub();
-        boolean tlsOnDvla = !configurationService.isPerformanceStub();
+        boolean tlsOnDCS = !configurationService.isDcsPerformanceStub();
+        boolean tlsOnDva = !configurationService.isDvaPerformanceStub();
+        boolean tlsOnDvla = !configurationService.isDvlaPerformanceStub();
 
         thirdPartyAPIServices[DCS] = createDcsThirdPartyDocumentGateway(serviceFactory, tlsOnDCS);
         thirdPartyAPIServices[DVA] = createDvaThirdPartyDocumentGateway(serviceFactory, tlsOnDva);
         thirdPartyAPIServices[DVLA] =
-                null; // createDvlaThirdPartyDocumentGateway(serviceFactory, tlsOnDvla);
+                createDvlaThirdPartyDocumentGateway(serviceFactory, tlsOnDvla);
     }
 
     private ThirdPartyAPIService createDcsThirdPartyDocumentGateway(
@@ -106,7 +107,7 @@ public class ThirdPartyAPIServiceFactory {
         DvlaEndpointFactory dvlaEndpointFactory = new DvlaEndpointFactory(configurationService);
 
         CloseableHttpClient httpClient =
-                serviceFactory.generateDvlaHttpClient(configurationService, tlsOn);
+                serviceFactory.generateDvlaHttpClient(/*configurationService, tlsOn*/ );
 
         HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe);
 

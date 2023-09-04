@@ -3,9 +3,12 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: "Digital Identity Driving Permit Credential Issuer API"
 
 Parameters:
-  CodeSigningEnabled:
-    Type: "String"
-    Default: "true"
+  VpcStackName:
+    Description: >
+      The name of the stack that defines the VPC in which this container will
+      run.
+    Type: String
+    Default: "cri-vpc"
   CodeSigningConfigArn:
     Type: String
     Default: "none"
@@ -37,54 +40,69 @@ Parameters:
     Description: "The name of the stack containing the common CRI lambdas/infra"
     Type: String
     Default: "common-cri-api"
+  ParameterPrefix:
+    Type: String
+    Default: "none"
+    Description: If set the this value will be used for ParameterStore prefix instead of AWS::StackName
+  DeploymentType:
+    Type: String
+    Default: "pipeline"
+    Description: Private Api gateway resources are not be reachable in stacks deployed via pipelines, this override enables less restrictive settings for manual/pre-merge-test deployments.
 
 Conditions:
-  EnforceCodeSigning: !Equals
-    - !Ref CodeSigningEnabled
-    - true
-  CreateDevResources: !Equals
+  IsDeployedFromPipeline: !Equals
+    - !Ref DeploymentType
+    - "pipeline"
+  # This is a special case fix to avoid setting this environment wide feature flag in dev.
+  # As it becomes owned by the first stack using it. Remove once the feature flag is removed and feature is permanent.
+  OverrideSettingOfEnvironmentWideFeatureFlag: !Equals
     - !Ref Environment
     - dev
-  IsStubEnvironment: !Or
-    - !Equals [ !Ref Environment, dev]
-    - !Equals [ !Ref Environment, build ]
-    - !Equals [ !Ref Environment, staging ]
-    - !Equals [ !Ref Environment, integration ]
-  IsProdLikeEnvironment: !Or
-    - !Equals [ !Ref Environment, staging ]
-    - !Equals [ !Ref Environment, integration ]
-    - !Equals [ !Ref Environment, production ]
+#  IsNotCRIDevEnv:
+#    Fn::Not:
+#      - Fn::Equals:
+#          - !Ref DevEnvironment
+#          - "cri-dev"
+  UsingCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
+  # Don't send logs in dev to avoid overwhelming the destination with debug
+  LogSendingEnabled: !And
+    - !Not [!Equals [!Ref Environment, "dev"]]
+    - !Condition IsDeployedFromPipeline
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
-  IsPerformance: !Or
-    - !Equals [ !Ref Environment, build ]
-    - !Equals [ !Ref Environment, production ]
-  IsDevEnvironment: !Equals
-    - !Ref Environment
-    - dev
-  IsNotDevEnvironment: !Not
-    - Condition: IsDevEnvironment
-
+  AddProvisionedConcurrency: !Not
+    - !Equals
+      - !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
+      -  0
   UsePermissionsBoundary:
     Fn::Not:
       - Fn::Equals:
           - !Ref PermissionsBoundary
           - "none"
+  UseParameterPrefix:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref ParameterPrefix
+          - "none"
 Globals:
   Function:
-    VpcConfig:
-      SecurityGroupIds:
-        - !ImportValue cri-vpc-LambdaSecurityGroup
-      SubnetIds: !Split [ ",", !ImportValue cri-vpc-PrivateSubnets ]
+    CodeSigningConfigArn: !If
+      - UsingCodeSigning
+      - !Ref CodeSigningConfigArn
+      - !Ref AWS::NoValue
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
       - !Ref AWS::NoValue
-    CodeSigningConfigArn: !If
-      - EnforceCodeSigning
-      - !Ref CodeSigningConfigArn
-      - !Ref AWS::NoValue
+    VpcConfig:
+      SecurityGroupIds:
+        - !ImportValue cri-vpc-LambdaSecurityGroup
+      SubnetIds: !Split [ ",", !ImportValue cri-vpc-PrivateSubnets ]
     Timeout: 30 # seconds
     Runtime: java11
     AutoPublishAlias: live
@@ -102,12 +120,18 @@ Globals:
         POWERTOOLS_METRICS_NAMESPACE: !Ref CriIdentifier
         COMMON_PARAMETER_NAME_PREFIX: !Ref CommonStackName
         ENVIRONMENT: !Ref Environment
-    ProvisionedConcurrencyConfig: !If
-      - IsPerformance
-      - ProvisionedConcurrentExecutions: 1
-      - !Ref AWS::NoValue
+        PARAMETER_PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
 
 Mappings:
+
+  MaximumAttemptCountMapping:
+    Environment:
+      dev: 2
+      build: 2
+      staging: 2
+      integration: 2
+      production: 2
+
   MemorySizeMapping:
     Environment:
       dev: 512
@@ -142,11 +166,27 @@ Mappings:
 
   dvaDirectEnabledMapping:
     Environment:
-      dev: "true"
-      build: "true"
-      staging: "true"
+      dev: "false"
+      build: "false"
+      staging: "false"
       integration: "false"
       production: "false"
+
+  dvlaDirectEnabledMapping:
+    Environment:
+      dev: "false"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
+
+  ProvisionedConcurrency:
+    Environment:
+      dev: 0
+      build: 1
+      staging: 1
+      integration: 1
+      production: 1
 
   DrivingPermitCriAudienceMapping:
     Environment:
@@ -160,7 +200,7 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# API Gateway                                                 #
+# API Gateway                                                      #
 #                                                                  #
 ####################################################################
 
@@ -235,7 +275,7 @@ Resources:
                   type: "string"
           securitySchemes:
             !If
-            - IsNotDevEnvironment
+            - IsDeployedFromPipeline
             -
               api_key:
                 type: "apiKey"
@@ -254,7 +294,7 @@ Resources:
 
   PublicDrivingPermitApiAccessLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevEnvironment
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
@@ -302,7 +342,7 @@ Resources:
             Location: './private-api.yaml'
       OpenApiVersion: 3.0.1
       EndpointConfiguration:
-        Type: !If [IsNotDevEnvironment, PRIVATE, REGIONAL]
+        Type: !If [IsDeployedFromPipeline, PRIVATE, REGIONAL]
       Auth:
         ResourcePolicy:
           CustomStatements:
@@ -311,17 +351,19 @@ Resources:
               Principal: '*'
               Resource:
                 - 'execute-api:/*'
-            - Action: 'execute-api:Invoke'
-              Effect: !If [IsNotDevEnvironment, Deny, Allow]
-              Principal: '*'
-              Resource:
-                - 'execute-api:/*'
-              Condition:
-                StringNotEquals:
-                  aws:SourceVpce: !If
-                    - CreateDevResources
-                    - vpce-082cab7c78139eb54
-                    - !ImportValue cri-vpc-ApiGatewayVpcEndpointId
+            - !If
+              - IsDeployedFromPipeline
+              - Action: 'execute-api:Invoke'
+                Effect: Deny
+                Principal: '*'
+                Resource:
+                  - 'execute-api:/*'
+                Condition:
+                  StringNotEquals:
+                    aws:SourceVpce:
+                      - Fn::ImportValue:
+                          !Sub "${VpcStackName}-ApiGatewayVpcEndpointId"
+              - !Ref AWS::NoValue
 
   PrivateDrivingPermitApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -331,7 +373,7 @@ Resources:
 
   PrivateDrivingPermitApiAccessLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevEnvironment
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
@@ -364,18 +406,18 @@ Resources:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
         - DynamoDBWritePolicy:
             TableName: !Ref DocumentCheckResultTable
-        - Statement:
-            - Sid: ReadParameterStorePolicy
-              Effect: Allow
-              Action:
-                - 'ssm:GetParameter*'
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/driving-permit*'
-        - Statement:
-            - Sid: ReadSecretsPolicy
-              Effect: Allow
-              Action:
-                - 'secretsmanager:GetSecretValue'
-              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/driving-permit*'
+#        - Statement:
+#            - Sid: ReadParameterStorePolicy
+#              Effect: Allow
+#              Action:
+#                - 'ssm:GetParameter*'
+#              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/driving-permit*'
+#        - Statement:
+#            - Sid: ReadSecretsPolicy
+#              Effect: Allow
+#              Action:
+#                - 'secretsmanager:GetSecretValue'
+#              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/driving-permit*'
         - Statement:
             Effect: Allow
             Action:
@@ -393,13 +435,38 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/maximumAttemptCount"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvaDirectEnabled"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvlaDirectEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDvaResponse"
+
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/contraindicationMappings"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDcsPerformanceStub"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDvaPerformanceStub"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDvlaPerformanceStub"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA*"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
         - Statement:
             - Effect: Allow
               Action:
@@ -408,8 +475,11 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${AWS::StackName}/*"
+      ProvisionedConcurrencyConfig:
+        !If
+        - AddProvisionedConcurrency
+        - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
+        - !Ref AWS::NoValue
 
   DrivingPermitCheckingFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -419,7 +489,7 @@ Resources:
 
   DrivingPermitCheckingFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevEnvironment
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
@@ -445,7 +515,7 @@ Resources:
       CodeUri: ../../lambdas/issuecredential
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: !Sub "{CriIdenitifier}-issuecredential"
+          POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -467,7 +537,6 @@ Resources:
             Action:
               - ssm:GetParameter
             Resource:
-              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/contraindicationMappings"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
@@ -484,6 +553,11 @@ Resources:
               - kms:GenerateDataKey
             Resource:
               - !ImportValue AuditEventQueueEncryptionKeyArn
+      ProvisionedConcurrencyConfig:
+        !If
+        - AddProvisionedConcurrency
+        - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
+        - !Ref AWS::NoValue
 
   IssueCredentialFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -493,7 +567,7 @@ Resources:
 
   IssueCredentialFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsNotDevEnvironment
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
@@ -535,7 +609,7 @@ Resources:
 
   PublicDrivingPermitApiUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
-    Condition: IsNotDevEnvironment
+    Condition: IsDeployedFromPipeline
     DependsOn:
       - PublicDrivingPermitApiStage
     Properties:
@@ -551,7 +625,7 @@ Resources:
 
   PrivateDrivingPermitApiUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
-    Condition: IsNotDevEnvironment
+    Condition: IsDeployedFromPipeline
     DependsOn:
       - PrivateDrivingPermitApiStage
     Properties:
@@ -567,7 +641,7 @@ Resources:
 
   LinkUsagePlanApiKey1:
     Type: AWS::ApiGateway::UsagePlanKey
-    Condition: IsNotDevEnvironment
+    Condition: IsDeployedFromPipeline
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey1
       KeyType: API_KEY
@@ -575,7 +649,7 @@ Resources:
 
   LinkUsagePlanApiKey2:
     Type: AWS::ApiGateway::UsagePlanKey
-    Condition: IsNotDevEnvironment
+    Condition: IsDeployedFromPipeline
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey2
       KeyType: API_KEY
@@ -591,7 +665,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !If
-        - IsDevEnvironment
+        - OverrideSettingOfEnvironmentWideFeatureFlag
         - !Sub "/${AWS::StackName}/release-flags-vc-expiry-removed-not-used-in-dev"
         - !Sub "/release-flags/vc-expiry-removed"
       Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
@@ -630,10 +704,26 @@ Resources:
       Value: !FindInMap [ JwtTtlUnitMapping, Environment, !Ref Environment ]
       Description: The unit for the time-to-live for an JWT e.g. (MONTHS)
 
-  IsPerformanceStubParameter:
+  IsDcsPerformanceStubParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/isPerformanceStub"
+      Name: !Sub "/${AWS::StackName}/isDcsPerformanceStub"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow performance testing passed SSL
+
+  IsDvaPerformanceStubParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/isDvaPerformanceStub"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow performance testing passed SSL
+
+  IsDvlaPerformanceStubParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/isDvlaPerformanceStub"
       Type: String
       Value: "false"
       Description: Feature toggle to allow performance testing passed SSL
@@ -646,6 +736,14 @@ Resources:
       Value: "false"
       Description: Feature toggle to allow logging of DCS responses
 
+  logDvaResponseParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/logDvaResponse"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow logging of DVA responses
+
   dvaDirectEnabledParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -653,6 +751,22 @@ Resources:
       Type: String
       Value: !FindInMap [ dvaDirectEnabledMapping, Environment, !Ref Environment ]
       Description: Feature toggle to switch between dcs/dva direct
+
+  dvlaDirectEnabledParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/dvlaDirectEnabled"
+      Type: String
+      Value: !FindInMap [ dvlaDirectEnabledMapping, Environment, !Ref Environment ]
+      Description: Feature toggle to switch between dcs/dvla direct
+
+  MaximumAttemptCountParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/maximumAttemptCount"
+      Value: !FindInMap [MaximumAttemptCountMapping, Environment, !Ref 'Environment']
+      Type: String
+      Description: maximum passport verification attempts
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

@@ -15,7 +15,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
@@ -23,10 +22,9 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.RequestHashValidator;
-import uk.gov.di.ipv.cri.drivingpermit.api.util.HashFactory;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
@@ -35,47 +33,20 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.lenient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
 
 @ExtendWith(MockitoExtension.class)
 class DvaThirdPartyDocumentGatewayTest {
-
-    private static class DVAGatewayConstructorArgs {
-        private final ObjectMapper objectMapper;
-        private final DvaCryptographyService dvaCryptographyService;
-        private final RequestHashValidator requestHashValidator;
-        private final ConfigurationService configurationService;
-        private final HttpRetryer httpRetryer;
-        private final EventProbe eventProbe;
-
-        private DVAGatewayConstructorArgs(
-                ObjectMapper objectMapper,
-                DvaCryptographyService dvaCryptographyService,
-                RequestHashValidator requestHashValidator,
-                ConfigurationService configurationService,
-                HttpRetryer httpRetryer,
-                EventProbe eventProbe) {
-
-            this.objectMapper = objectMapper;
-            this.dvaCryptographyService = dvaCryptographyService;
-            this.requestHashValidator = requestHashValidator;
-            this.httpRetryer = httpRetryer;
-            this.configurationService = configurationService;
-            this.eventProbe = eventProbe;
-        }
-    }
-
     private static final String TEST_API_RESPONSE_BODY = "test-api-response-content";
     private static final String TEST_ENDPOINT_URL = "https://test-endpoint.co.uk";
     private static final int MOCK_HTTP_STATUS_CODE = -1;
@@ -83,7 +54,9 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Mock private HttpClient mockHttpClient;
     @Mock private ObjectMapper mockObjectMapper;
-    @Mock private ConfigurationService configurationService;
+    @Mock private ConfigurationService mockConfigurationService;
+    @Mock private DvaConfiguration mockDvaConfiguration;
+
     @Mock private HttpRetryer httpRetryer;
     @Mock private DvaCryptographyService dvaCryptographyService;
     @Mock private RequestHashValidator requestHashValidator;
@@ -91,15 +64,16 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @BeforeEach
     void setUp() {
-        lenient()
-                .when(configurationService.getDvaEndpointUri())
-                .thenReturn("https://test-endpoint.co.uk");
+
+        when(mockConfigurationService.getDvaConfiguration()).thenReturn(mockDvaConfiguration);
+        when(mockDvaConfiguration.getEndpointUri()).thenReturn(TEST_ENDPOINT_URL);
+
         this.dvaThirdPartyDocumentGateway =
                 new DvaThirdPartyDocumentGateway(
                         mockObjectMapper,
                         dvaCryptographyService,
                         requestHashValidator,
-                        configurationService,
+                        mockConfigurationService,
                         httpRetryer,
                         mockEventProbe);
     }
@@ -108,7 +82,7 @@ class DvaThirdPartyDocumentGatewayTest {
     void shouldInvokeThirdPartyAPI()
             throws IOException, InterruptedException, CertificateException, ParseException,
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+                    NoSuchAlgorithmException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -142,30 +116,8 @@ class DvaThirdPartyDocumentGatewayTest {
     }
 
     @Test
-    void thirdPartyApiReturnsErrorOnHashValidation() throws NoSuchAlgorithmException {
-        HashFactory hashFactory = new HashFactory();
-        this.requestHashValidator = new RequestHashValidator(hashFactory);
-
-        DvaPayload dvaPayload = new DvaPayload();
-        dvaPayload.setSurname("Sur");
-        dvaPayload.setForenames(Arrays.asList("Fore"));
-
-        DvaResponse dvaResponse = new DvaResponse();
-        dvaResponse.setRequestHash(hashFactory.getHash(dvaPayload) + "0");
-
-        boolean isValidHash =
-                this.requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash());
-
-        // Request Hash  = ad8[...]a5f
-        // Response Hash = ad8[...]a5f0
-        assertFalse(isValidHash);
-    }
-
-    @Test
     void thirdPartyApiReturnsErrorOnHTTP300Response()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, InterruptedException, CertificateException, JOSEException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
@@ -205,9 +157,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP400Response()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, InterruptedException, CertificateException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
@@ -248,9 +198,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP500Response()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, InterruptedException, CertificateException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
@@ -291,9 +239,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnUnhandledHTTPResponse()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, InterruptedException, CertificateException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
 
@@ -336,7 +282,7 @@ class DvaThirdPartyDocumentGatewayTest {
     void retryThirdPartyApiHTTPResponseForStatusCode(int initialStatusCodeResponse)
             throws IOException, InterruptedException, CertificateException, ParseException,
                     JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+                    NoSuchAlgorithmException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -368,36 +314,6 @@ class DvaThirdPartyDocumentGatewayTest {
         assertEquals(
                 "application/jose",
                 httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
-    }
-
-    @Test
-    void shouldThrowNullPointerExceptionWhenInvalidConstructorArgumentsProvided() {
-        Map<String, DVAGatewayConstructorArgs> testCases =
-                Map.of(
-                        "objectMapper must not be null",
-                        new DVAGatewayConstructorArgs(null, null, null, null, null, null),
-                        "crossCoreApiConfig must not be null",
-                        new DVAGatewayConstructorArgs(
-                                Mockito.mock(ObjectMapper.class),
-                                Mockito.mock(DvaCryptographyService.class),
-                                null,
-                                null,
-                                null,
-                                null));
-
-        testCases.forEach(
-                (errorMessage, constructorArgs) ->
-                        assertThrows(
-                                NullPointerException.class,
-                                () ->
-                                        new DvaThirdPartyDocumentGateway(
-                                                constructorArgs.objectMapper,
-                                                constructorArgs.dvaCryptographyService,
-                                                constructorArgs.requestHashValidator,
-                                                constructorArgs.configurationService,
-                                                constructorArgs.httpRetryer,
-                                                constructorArgs.eventProbe),
-                                errorMessage));
     }
 
     private static Stream<Integer> getRetryStatusCodes() {

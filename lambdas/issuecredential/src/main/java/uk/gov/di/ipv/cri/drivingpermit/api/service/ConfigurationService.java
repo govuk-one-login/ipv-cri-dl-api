@@ -6,10 +6,11 @@ import software.amazon.lambda.powertools.parameters.SecretsProvider;
 
 import java.util.Objects;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TABLE_NAME;
+
 public class ConfigurationService {
 
     private final String documentCheckResultTableName;
-    private final String contraindicationMappings;
     private final String parameterPrefix;
 
     public ConfigurationService(
@@ -21,18 +22,12 @@ public class ConfigurationService {
         }
 
         this.parameterPrefix = System.getenv("AWS_STACK_NAME");
-        this.contraindicationMappings =
-                paramProvider.get(getParameterName("contraindicationMappings"));
         this.documentCheckResultTableName =
-                paramProvider.get(getParameterName("DocumentCheckResultTableName"));
+                paramProvider.get(getParameterName(DOCUMENT_CHECK_RESULT_TABLE_NAME));
     }
 
     public String getDocumentCheckResultTableName() {
         return documentCheckResultTableName;
-    }
-
-    public String getContraindicationMappings() {
-        return contraindicationMappings;
     }
 
     public String getParameterName(String parameterName) {

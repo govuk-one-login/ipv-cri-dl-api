@@ -8,6 +8,8 @@ import gov.di_ipv_drivingpermit.model.Address;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
 import gov.di_ipv_drivingpermit.utilities.Driver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -20,7 +22,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.ORCHESTRATOR_STUB;
 import static org.junit.Assert.assertEquals;
@@ -29,8 +30,7 @@ import static org.junit.Assert.assertTrue;
 public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
 
     private final ConfigurationService configurationService;
-    private static final Logger LOGGER =
-            Logger.getLogger(DLProveYourIdentityFullJourneyPageObject.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger();
 
     @FindBy(xpath = "//*[@value=\"Full journey route\"]")
     public WebElement fullJourneyRouteButton;
@@ -161,7 +161,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
 
         String orchestratorStubUrl = configurationService.getOrchestratorStubUrl();
         Driver.get().get(orchestratorStubUrl);
-        waitForTextToAppear(ORCHESTRATOR_STUB);
+        assertPageTitle(ORCHESTRATOR_STUB, true);
     }
 
     public void clickOnFullJourneyRouteButton() {

@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 
 import java.util.*;
 import java.util.stream.Collectors;

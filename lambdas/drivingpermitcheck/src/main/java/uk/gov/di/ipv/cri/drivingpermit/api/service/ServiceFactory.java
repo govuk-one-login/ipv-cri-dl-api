@@ -16,6 +16,10 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import javax.net.ssl.SSLContext;
@@ -82,10 +86,11 @@ public class ServiceFactory {
 
     private ConfigurationService createConfigurationService()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return new ConfigurationService(
-                ParamManager.getSecretsProvider(),
-                ParamManager.getSsmProvider(),
-                System.getenv("ENVIRONMENT"));
+
+        ParameterStoreService parameterStoreService =
+                new ParameterStoreService((ParamManager.getSsmProvider()));
+
+        return new ConfigurationService(parameterStoreService);
     }
 
     public ConfigurationService getConfigurationService() {
@@ -137,16 +142,17 @@ public class ServiceFactory {
             ConfigurationService configurationService, boolean tlsOn)
             throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
                     HttpException {
+
+        DcsConfiguration dcsConfiguration = configurationService.getDcsConfiguration();
+
         KeyStore keystoreTLS =
-                createKeyStore(
-                        configurationService.getDrivingPermitTlsSelfCert(),
-                        configurationService.getDrivingPermitTlsKey());
+                createKeyStore(dcsConfiguration.getTlsSelfCert(), dcsConfiguration.getTlsKey());
 
         KeyStore trustStore =
                 createTrustStore(
                         new Certificate[] {
-                            configurationService.getDcsTlsRootCert(),
-                            configurationService.getDcsIntermediateCert()
+                            dcsConfiguration.getTlsRootCert(),
+                            dcsConfiguration.getTlsIntermediateCert()
                         });
 
         if (!tlsOn) {
@@ -159,16 +165,17 @@ public class ServiceFactory {
             ConfigurationService configurationService, boolean tlsOn)
             throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
                     HttpException {
+
+        DvaConfiguration dvaConfiguration = configurationService.getDvaConfiguration();
+
         KeyStore keystoreTLS =
-                createKeyStore(
-                        configurationService.getDvaTlsSelfCert(),
-                        configurationService.getDvaDrivingPermitTlsKey());
+                createKeyStore(dvaConfiguration.getTlsSelfCert(), dvaConfiguration.getTlsKey());
 
         KeyStore trustStore =
                 createTrustStore(
                         new Certificate[] {
-                            configurationService.getDvaTlsRootCert(),
-                            configurationService.getDvaTlsIntermediateCert()
+                            dvaConfiguration.getTlsRootCert(),
+                            dvaConfiguration.getTlsIntermediateCert()
                         });
 
         if (!tlsOn) {
@@ -177,26 +184,8 @@ public class ServiceFactory {
         return contextSetup(keystoreTLS, trustStore);
     }
 
-    public CloseableHttpClient generateDvlaHttpClient(
-            ConfigurationService configurationService, boolean tlsOn)
-            throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
-                    HttpException {
-        KeyStore keystoreTLS =
-                createKeyStore(
-                        null /*configurationService.getDvlaTlsSelfCert()*/,
-                        null /*configurationService.getDvlaDrivingPermitTlsKey()*/);
-
-        KeyStore trustStore =
-                createTrustStore(
-                        new Certificate[] {
-                            null /*configurationService.getDvlaTlsRootCert()*/,
-                            null /*configurationService.getDvlaTlsIntermediateCert()*/
-                        });
-
-        if (!tlsOn) {
-            return contextSetup(keystoreTLS, null);
-        }
-        return contextSetup(keystoreTLS, trustStore);
+    public CloseableHttpClient generateDvlaHttpClient() {
+        return HttpClients.custom().build();
     }
 
     private CloseableHttpClient contextSetup(KeyStore clientTls, KeyStore caBundle)

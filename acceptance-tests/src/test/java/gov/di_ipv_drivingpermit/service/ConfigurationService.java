@@ -111,4 +111,8 @@ public class ConfigurationService {
         LOGGER.info("publicGatewayId =>" + publicGatewayId);
         return "https://" + publicGatewayId + ".execute-api.eu-west-2.amazonaws.com/" + stage;
     }
+
+    public boolean isUsingLocalStub() {
+        return usingLocalStub;
+    }
 }

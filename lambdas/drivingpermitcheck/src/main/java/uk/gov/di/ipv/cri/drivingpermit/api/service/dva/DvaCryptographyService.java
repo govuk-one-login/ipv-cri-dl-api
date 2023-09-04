@@ -23,39 +23,38 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.util.Map;
 
 public class DvaCryptographyService {
 
-    private final ConfigurationService configurationService;
+    private final DvaConfiguration dvaConfiguration;
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
     public DvaCryptographyService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
+        this.dvaConfiguration = configurationService.getDvaConfiguration();
     }
 
     public JWSObject preparePayload(DvaPayload documentDetails)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
-                    JOSEException, JsonProcessingException {
+            throws CertificateException, JOSEException, JsonProcessingException {
         JWSObject signedDocumentDetails =
                 createJWS(objectMapper.writeValueAsString(documentDetails));
         JWEObject encryptedDocumentDetails = createJWE(signedDocumentDetails.serialize());
         return createJWS(encryptedDocumentDetails.serialize());
     }
 
-    public DvaResponse unwrapDvaResponse(String DvaSignedEncryptedResponseString)
-            throws JOSEException, ParseException, JsonProcessingException, CertificateException {
-        DvaSignedEncryptedResponse DvaSignedEncryptedResponse =
-                new DvaSignedEncryptedResponse(DvaSignedEncryptedResponseString);
-        JWSObject outerSignedPayload = JWSObject.parse(DvaSignedEncryptedResponse.getPayload());
+    public DvaResponse unwrapDvaResponse(String dvaSignedEncryptedResponseString)
+            throws JOSEException, ParseException {
+        DvaSignedEncryptedResponse dvaSignedEncryptedResponse =
+                new DvaSignedEncryptedResponse(dvaSignedEncryptedResponseString);
+        JWSObject outerSignedPayload = JWSObject.parse(dvaSignedEncryptedResponse.getPayload());
         if (isInvalidSignature(outerSignedPayload)) {
             throw new IpvCryptoException("Dva Response Outer Signature invalid.");
         }
@@ -77,11 +76,13 @@ public class DvaCryptographyService {
 
     private JWSObject createJWS(String stringToSign) throws JOSEException, JsonProcessingException {
 
+        Thumbprints thumbprints = dvaConfiguration.getSigningCertThumbprints();
+
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
                         JWSAlgorithm.RS256.toString(),
-                        configurationService.getSigningCertThumbprintsDva().getSha1Thumbprint(),
-                        configurationService.getSigningCertThumbprintsDva().getSha256Thumbprint());
+                        thumbprints.getSha1Thumbprint(),
+                        thumbprints.getSha256Thumbprint());
 
         String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
 
@@ -95,7 +96,7 @@ public class DvaCryptographyService {
                                 .build(),
                         new Payload(stringToSign));
 
-        jwsObject.sign(new RSASSASigner(configurationService.getDrivingPermitCriSigningKey()));
+        jwsObject.sign(new RSASSASigner(dvaConfiguration.getSigningKey()));
 
         return jwsObject;
     }
@@ -110,7 +111,7 @@ public class DvaCryptographyService {
 
         jwe.encrypt(
                 new RSAEncrypter(
-                        (RSAPublicKey) configurationService.getDvaEncryptionCert().getPublicKey()));
+                        (RSAPublicKey) dvaConfiguration.getEncryptionCert().getPublicKey()));
 
         if (!jwe.getState().equals(JWEObject.State.ENCRYPTED)) {
             throw new IpvCryptoException("Something went wrong, couldn't encrypt JWE");
@@ -119,18 +120,15 @@ public class DvaCryptographyService {
         return jwe;
     }
 
-    private boolean isInvalidSignature(JWSObject jwsObject)
-            throws CertificateException, JOSEException {
+    private boolean isInvalidSignature(JWSObject jwsObject) throws JOSEException {
         RSASSAVerifier rsassaVerifier =
-                new RSASSAVerifier(
-                        (RSAPublicKey) configurationService.getDvaSigningCert().getPublicKey());
+                new RSASSAVerifier((RSAPublicKey) dvaConfiguration.getSigningCert().getPublicKey());
         return !jwsObject.verify(rsassaVerifier);
     }
 
     public JWSObject decrypt(JWEObject encrypted) {
         try {
-            RSADecrypter rsaDecrypter =
-                    new RSADecrypter(configurationService.getDvaDrivingPermitEncryptionKey());
+            RSADecrypter rsaDecrypter = new RSADecrypter(dvaConfiguration.getEncryptionKey());
             encrypted.decrypt(rsaDecrypter);
 
             return JWSObject.parse(encrypted.getPayload().toString());

@@ -23,28 +23,27 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.util.Map;
 
 public class DcsCryptographyService {
 
-    private final ConfigurationService configurationService;
+    private final DcsConfiguration dcsConfiguration;
+
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
     public DcsCryptographyService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
+        dcsConfiguration = configurationService.getDcsConfiguration();
     }
 
     public JWSObject preparePayload(DcsPayload documentDetails)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
-                    JOSEException, JsonProcessingException {
+            throws CertificateException, JOSEException, JsonProcessingException {
         JWSObject signedDocumentDetails =
                 createJWS(objectMapper.writeValueAsString(documentDetails));
         JWEObject encryptedDocumentDetails = createJWE(signedDocumentDetails.serialize());
@@ -52,7 +51,7 @@ public class DcsCryptographyService {
     }
 
     public DcsResponse unwrapDcsResponse(String dcsSignedEncryptedResponseString)
-            throws JOSEException, ParseException, JsonProcessingException, CertificateException {
+            throws JOSEException, ParseException {
         DcsSignedEncryptedResponse dcsSignedEncryptedResponse =
                 new DcsSignedEncryptedResponse(dcsSignedEncryptedResponseString);
         JWSObject outerSignedPayload = JWSObject.parse(dcsSignedEncryptedResponse.getPayload());
@@ -80,8 +79,8 @@ public class DcsCryptographyService {
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
                         JWSAlgorithm.RS256.toString(),
-                        configurationService.getSigningCertThumbprintsDcs().getSha1Thumbprint(),
-                        configurationService.getSigningCertThumbprintsDcs().getSha256Thumbprint());
+                        dcsConfiguration.getSigningCertThumbprints().getSha1Thumbprint(),
+                        dcsConfiguration.getSigningCertThumbprints().getSha256Thumbprint());
 
         String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
 
@@ -95,7 +94,7 @@ public class DcsCryptographyService {
                                 .build(),
                         new Payload(stringToSign));
 
-        jwsObject.sign(new RSASSASigner(configurationService.getDrivingPermitCriSigningKey()));
+        jwsObject.sign(new RSASSASigner(dcsConfiguration.getSigningKey()));
 
         return jwsObject;
     }
@@ -110,7 +109,7 @@ public class DcsCryptographyService {
 
         jwe.encrypt(
                 new RSAEncrypter(
-                        (RSAPublicKey) configurationService.getDcsEncryptionCert().getPublicKey()));
+                        (RSAPublicKey) dcsConfiguration.getEncryptionCert().getPublicKey()));
 
         if (!jwe.getState().equals(JWEObject.State.ENCRYPTED)) {
             throw new IpvCryptoException("Something went wrong, couldn't encrypt JWE");
@@ -119,18 +118,15 @@ public class DcsCryptographyService {
         return jwe;
     }
 
-    private boolean isInvalidSignature(JWSObject jwsObject)
-            throws CertificateException, JOSEException {
+    private boolean isInvalidSignature(JWSObject jwsObject) throws JOSEException {
         RSASSAVerifier rsassaVerifier =
-                new RSASSAVerifier(
-                        (RSAPublicKey) configurationService.getDcsSigningCert().getPublicKey());
+                new RSASSAVerifier((RSAPublicKey) dcsConfiguration.getSigningCert().getPublicKey());
         return !jwsObject.verify(rsassaVerifier);
     }
 
     public JWSObject decrypt(JWEObject encrypted) {
         try {
-            RSADecrypter rsaDecrypter =
-                    new RSADecrypter(configurationService.getDrivingPermitEncryptionKey());
+            RSADecrypter rsaDecrypter = new RSADecrypter(dcsConfiguration.getEncryptionKey());
             encrypted.decrypt(rsaDecrypter);
 
             return JWSObject.parse(encrypted.getPayload().toString());

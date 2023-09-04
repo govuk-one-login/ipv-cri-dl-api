@@ -15,6 +15,7 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @When("User clicks on continue")
     public void user_clicks_on_continue() {
         Continue.click();
+        ImplicitlyWait();
     }
 
     @Then("Proper error message for Could not find your details is displayed")
@@ -127,26 +128,22 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         clickOnIDoNotHaveAUKDrivingLicenceRadioButton();
     }
 
-    @Then(
+    @And(
             "I should be on `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page")
     public void
             i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_prove_your_identity_gov_uk_page() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
     }
 
-    @Then(
-            "I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page")
-    public void
-            i_should_be_on_DVA_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_prove_your_identity_gov_uk_page() {
+    @And("I see a form requesting DVA LicenceNumber")
+    public void i_see_a_form_requesting_DVA_LicenceNumber() {
         Assert.assertTrue(
                 new DVAEnterYourDetailsExactlyPageObject().dvaLicenceNumber.isDisplayed());
     }
 
-    @Then(
-            "I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page")
-    public void
-            i_should_be_on_who_was_your_uk_driving_licence_issued_by_prove_your_identity_gov_uk_page() {
-        Assert.assertTrue(new DrivingLicencePageObject().optionDVLA.isDisplayed());
+    @And("I should see DVA as an option")
+    public void i_should_see_DVA_as_an_option() {
+        Assert.assertTrue(new DrivingLicencePageObject().optionDVA.isDisplayed());
     }
 
     @And("^JSON payload should contain ci (.*), validity score (.*) and strength score (.*)$")
@@ -237,16 +234,13 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         assertDVLAPrivacyLink(dvlaPrivacyLink);
     }
 
-    @And(
-            "I should be on `Who was your UK driving licence issued by? – Prove your identity – GOV.UK` page")
-    public void iShouldBeOnWhoWasYourUKDrivingLicenceIssuedByProveYourIdentityGOVUKPage() {
-        Assert.assertTrue(new DrivingLicencePageObject().optionDVA.isDisplayed());
+    @And("I should see DVLA as an option")
+    public void i_should_see_DVLA_as_an_option() {
+        Assert.assertTrue(new DrivingLicencePageObject().optionDVLA.isDisplayed());
     }
 
-    @And(
-            "I should be on `Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK` page")
-    public void
-            iShouldBeOnEnterYourDetailsExactlyAsTheyAppearOnYourUKDrivingLicenceProveYourIdentityGOVUKPage() {
+    @And("I see a form requesting DVLA LicenceNumber")
+    public void i_see_a_form_requesting_DVLA_LicenceNumber() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
     }
 

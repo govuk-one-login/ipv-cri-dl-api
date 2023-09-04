@@ -28,12 +28,12 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.FormDataValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
@@ -71,9 +71,6 @@ public class DrivingPermitHandler
 
     private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
     private IdentityVerificationService identityVerificationService;
-
-    // TODO move this to a parameter store variable
-    private static final int MAX_ATTEMPTS = 2;
 
     public DrivingPermitHandler()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
@@ -136,6 +133,9 @@ public class DrivingPermitHandler
 
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
 
+            // Attempt Start
+            final int MAX_ATTEMPTS = configurationService.getMaxAttempts();
+
             // Stop being called more than MAX_ATTEMPTS
             if (sessionItem.getAttemptCount() > MAX_ATTEMPTS) {
 
@@ -147,21 +147,25 @@ public class DrivingPermitHandler
                 // Driving Permit Lambda Completed with an Error
                 eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
+                // TODO change this to a redirect onwards
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse
                                 .TOO_MANY_RETRY_ATTEMPTS);
             }
 
+            DrivingPermitForm drivingPermitFormData =
+                    parseDrivingPermitFormRequest(input.getBody());
+
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(
                             configurationService.getDvaDirectEnabled(),
-                            headers.get(HEADER_DOCUMENT_CHECKING_ROUTE));
+                            configurationService.getDvlaDirectEnabled(),
+                            headers.get(HEADER_DOCUMENT_CHECKING_ROUTE),
+                            drivingPermitFormData.getLicenceIssuer());
 
             LOGGER.info(
                     "Verifying document details using {}", thirdPartyAPIService.getServiceName());
-            DrivingPermitForm drivingPermitFormData =
-                    parseDrivingPermitFormRequest(input.getBody());
             DocumentCheckVerificationResult result =
                     identityVerificationService.verifyIdentity(
                             drivingPermitFormData, thirdPartyAPIService);
@@ -325,13 +329,20 @@ public class DrivingPermitHandler
     }
 
     private ThirdPartyAPIService selectThirdPartyAPIService(
-            boolean dvaDirectEnabled, String documentCheckingRouteHeader) {
-        // TODO Change to a switch for each api and read feature flag + header
-        if (dvaDirectEnabled && "dva-direct".equalsIgnoreCase(documentCheckingRouteHeader)) {
-            // DVA
+            boolean dvaDirectEnabled,
+            boolean dvlaDirectEnabled,
+            String documentCheckingRoute,
+            String licenseIssuer) {
+
+        IssuingAuthority issuingAuthority = IssuingAuthority.valueOf(licenseIssuer);
+
+        boolean direct = "direct".equals(documentCheckingRoute);
+
+        if (direct && (issuingAuthority == IssuingAuthority.DVA) && dvaDirectEnabled) {
             return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
+        } else if (direct && (issuingAuthority == IssuingAuthority.DVLA) && dvlaDirectEnabled) {
+            return thirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService();
         } else {
-            // Legacy DCS
             return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
         }
     }

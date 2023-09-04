@@ -4,19 +4,18 @@ import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
 import gov.di_ipv_drivingpermit.utilities.Driver;
 import gov.di_ipv_drivingpermit.utilities.TestDataCreator;
 import gov.di_ipv_drivingpermit.utilities.TestInput;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
-import java.util.logging.Logger;
-
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
 
 public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObject {
 
-    private static final Logger LOGGER =
-            Logger.getLogger(DVAEnterYourDetailsExactlyPageObject.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger();
 
     @FindBy(id = "dvaDateOfBirth-day")
     public WebElement birthDay;

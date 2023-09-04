@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.domain;
+package uk.gov.di.ipv.cri.drivingpermit.library.domain;
 
 public class Thumbprints {
 

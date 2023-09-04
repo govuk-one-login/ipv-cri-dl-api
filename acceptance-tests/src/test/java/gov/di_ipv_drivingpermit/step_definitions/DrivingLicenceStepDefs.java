@@ -32,7 +32,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @Given("^I check the page title is (.*)$")
     public void i_check_the_page_titled(String pageTitle) {
-        assertPageTitle(pageTitle);
+        assertPageTitle(pageTitle, false);
     }
 
     @Given("I can see a radio button titled “DVLA”")

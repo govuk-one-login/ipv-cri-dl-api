@@ -19,8 +19,9 @@ public class RequestHashValidator {
         this.hashFactory = hashFactory;
     }
 
-    public boolean valid(DvaPayload request, String hash) throws NoSuchAlgorithmException {
-        return hashFactory.getHash(request).equals(hash);
+    public boolean valid(DvaPayload request, String hash, boolean isImposterStub)
+            throws NoSuchAlgorithmException {
+        return hashFactory.getHash(request, isImposterStub).equals(hash);
     }
 
     public static class HashFactory {
@@ -35,19 +36,36 @@ public class RequestHashValidator {
             this.messageDigestFactory = messageDigestFactory;
         }
 
-        public String getHash(DvaPayload request) throws NoSuchAlgorithmException {
-            String message =
-                    request.getIssuerId()
-                            + request.getRequestId()
-                            + Objects.toString(request.getSurname(), "")
-                            + request.getForenames().stream()
-                                    .filter(Objects::nonNull)
-                                    .reduce("", String::concat)
-                            + Objects.toString(request.getDateOfBirth(), "")
-                            + request.getIssueDate()
-                            + request.getExpiryDate()
-                            + request.getDriverLicenceNumber()
-                            + Objects.toString(request.getPostcode(), "");
+        public String getHash(DvaPayload request, boolean isImposterStub)
+                throws NoSuchAlgorithmException {
+            String message;
+            if (isImposterStub) {
+                // no requestId used in hash generation if connecting to imposter stub
+                message =
+                        request.getIssuerId()
+                                + Objects.toString(request.getSurname(), "")
+                                + request.getForenames().stream()
+                                        .filter(Objects::nonNull)
+                                        .reduce("", String::concat)
+                                + Objects.toString(request.getDateOfBirth(), "")
+                                + request.getIssueDate()
+                                + request.getExpiryDate()
+                                + request.getDriverLicenceNumber()
+                                + Objects.toString(request.getPostcode(), "");
+            } else {
+                message =
+                        request.getIssuerId()
+                                + request.getRequestId()
+                                + Objects.toString(request.getSurname(), "")
+                                + request.getForenames().stream()
+                                        .filter(Objects::nonNull)
+                                        .reduce("", String::concat)
+                                + Objects.toString(request.getDateOfBirth(), "")
+                                + request.getIssueDate()
+                                + request.getExpiryDate()
+                                + request.getDriverLicenceNumber()
+                                + Objects.toString(request.getPostcode(), "");
+            }
             MessageDigest sha256;
             try {
                 sha256 = messageDigestFactory.getInstance();

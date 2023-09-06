@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
@@ -100,7 +101,8 @@ class DvaThirdPartyDocumentGatewayTest {
         jwsObject.sign(new MyJwsSigner());
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
-        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString())).thenReturn(true);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
+                .thenReturn(true);
 
         DocumentCheckResult actualDocumentCheckResult =
                 dvaThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
@@ -293,7 +295,8 @@ class DvaThirdPartyDocumentGatewayTest {
         jwsObject.sign(new MyJwsSigner());
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
-        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString())).thenReturn(true);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
+                .thenReturn(true);
 
         CloseableHttpResponse httpResponse = createHttpResponse(200);
 

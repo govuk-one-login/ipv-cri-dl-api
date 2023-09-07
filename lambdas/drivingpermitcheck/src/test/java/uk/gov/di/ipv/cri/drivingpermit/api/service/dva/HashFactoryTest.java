@@ -29,8 +29,8 @@ public class HashFactoryTest {
         DvaResponse dvaResponse = createSuccessDvaResponse();
         hashFactory = new RequestHashValidator.HashFactory();
 
-        assertDoesNotThrow(() -> hashFactory.getHash(createSuccessDvaPayload()));
-        assertEquals(hashFactory.getHash(dvaPayload), dvaResponse.getRequestHash());
+        assertDoesNotThrow(() -> hashFactory.getHash(createSuccessDvaPayload(), false));
+        assertEquals(hashFactory.getHash(dvaPayload, false), dvaResponse.getRequestHash());
     }
 
     @Test
@@ -40,7 +40,7 @@ public class HashFactoryTest {
                 .thenThrow(new NoSuchAlgorithmException());
         assertThrows(
                 NoSuchAlgorithmException.class,
-                () -> hashFactory.getHash(createSuccessDvaPayload()));
+                () -> hashFactory.getHash(createSuccessDvaPayload(), false));
     }
 
     private DvaPayload createSuccessDvaPayload() {

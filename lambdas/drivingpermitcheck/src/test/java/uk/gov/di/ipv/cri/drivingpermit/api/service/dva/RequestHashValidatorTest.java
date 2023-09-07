@@ -21,9 +21,10 @@ class RequestHashValidatorTest {
         dvaPayload.setForenames(Arrays.asList("Fore"));
 
         DvaResponse dvaResponse = new DvaResponse();
-        dvaResponse.setRequestHash(hashFactory.getHash(dvaPayload) + "0");
+        dvaResponse.setRequestHash(hashFactory.getHash(dvaPayload, false) + "0");
 
-        boolean isValidHash = requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash());
+        boolean isValidHash =
+                requestHashValidator.valid(dvaPayload, dvaResponse.getRequestHash(), false);
 
         // Request Hash  = ad8[...]a5f
         // Response Hash = ad8[...]a5f0

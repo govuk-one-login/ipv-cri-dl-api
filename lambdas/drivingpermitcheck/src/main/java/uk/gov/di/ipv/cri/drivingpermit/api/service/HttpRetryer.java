@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,8 +35,8 @@ public class HttpRetryer {
         this.eventProbe = eventProbe;
     }
 
-    public CloseableHttpResponse sendHTTPRequestRetryIfAllowed(HttpPost request)
-            throws InterruptedException, IOException {
+    public CloseableHttpResponse sendHTTPRequestRetryIfAllowed(HttpUriRequest request)
+            throws IOException {
 
         CloseableHttpResponse httpResponse = null;
 
@@ -51,7 +51,7 @@ public class HttpRetryer {
             }
 
             // Wait before sending request (0ms for first try)
-            sleepHelper.sleepWithExponentialBackOff(tryCount);
+            sleepHelper.busyWaitWithExponentialBackOff(tryCount);
 
             try {
                 httpResponse = httpClient.execute(request);

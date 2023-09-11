@@ -29,15 +29,19 @@ public class Definitions {
     // IssuingAuthority
     public static final String ISSUING_AUTHORITY_PREFIX = "issuing_authority_";
 
-    // DCS
-    public static final String DCS_CHECK_REQUEST_SUCCEEDED = "dcs_check_request_succeeded";
-    public static final String DCS_CHECK_REQUEST_FAILED = "dcs_check_request_failed";
+    // DocumentDataVerification (Request Status)
+    public static final String DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED =
+            "document_data_verification_request_succeeded";
+    public static final String DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED =
+            "document_data_verification_request_failed";
 
     // VC Contra Indicators (CI is Appended)
     public static final String DRIVING_PERMIT_CI_PREFIX = "driving_permit_ci_";
 
-    // HTTP Connection Send (Both)
+    // HTTP Connection Send (DVA)
     public static final String THIRD_PARTY_REQUEST_CREATED = "third_party_requests_created";
+
+    // HTTP Retries (DCS/DVA/DVLA)
     public static final String THIRD_PARTY_REQUEST_SEND_RETRY = "third_party_requests_send_retry";
     public static final String THIRD_PARTY_REQUEST_SEND_OK = "third_party_request_send_ok";
     public static final String THIRD_PARTY_REQUEST_SEND_ERROR = "third_party_request_send_error";
@@ -45,11 +49,6 @@ public class Definitions {
             "third_party_request_send_max_retries";
     public static final String THIRD_PARTY_REQUEST_SEND_FAIL =
             "third_party_requests_send_fail"; // IOException
-
-    // Third Party Response Type DCS
-    public static final String THIRD_PARTY_DCS_RESPONSE_OK = "third_party_dcs_response_ok";
-    public static final String THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR =
-            "third_party_dcs_response_type_error";
 
     // Third Party Response Type DVA
     public static final String THIRD_PARTY_DVA_RESPONSE_OK = "third_party_dva_response_ok";

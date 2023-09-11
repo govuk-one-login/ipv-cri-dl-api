@@ -25,7 +25,6 @@ import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
@@ -37,6 +36,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGa
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
@@ -111,7 +111,7 @@ class DrivingPermitHandlerTest {
 
     @Test
     void handleResponseShouldReturnOkResponseWhenValidInputProvided()
-            throws IOException, SqsException, OAuthHttpResponseExceptionWithErrorBody {
+            throws IOException, SqsException, OAuthErrorResponseException {
         String testRequestBody = "request body";
         UUID sessionId = UUID.randomUUID();
 
@@ -180,7 +180,7 @@ class DrivingPermitHandlerTest {
     @MethodSource("getDocumentVerifiedStatus")
     void handleResponseShouldReturnCorrectResponsesForAttemptOneVerifiedStatus(
             boolean documentVerified)
-            throws IOException, SqsException, OAuthHttpResponseExceptionWithErrorBody {
+            throws IOException, SqsException, OAuthErrorResponseException {
         String testRequestBody = "request body";
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
@@ -254,7 +254,7 @@ class DrivingPermitHandlerTest {
     @ParameterizedTest
     @MethodSource("getDocumentVerifiedStatus")
     void handleResponseShouldReturnCorrectResponsesForVerifiedStatus(boolean documentVerified)
-            throws IOException, SqsException, OAuthHttpResponseExceptionWithErrorBody {
+            throws IOException, SqsException, OAuthErrorResponseException {
         String testRequestBody = "request body";
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
@@ -353,13 +353,13 @@ class DrivingPermitHandlerTest {
         assertNotNull(responseEvent);
         assertEquals(500, responseEvent.getStatusCode());
         assertEquals(
-                "{\"code\":1026,\"message\":\"Too many retry attempts made\"}",
+                "{\"code\":1002,\"message\":\"Too many retry attempts made\"}",
                 responseEvent.getBody());
     }
 
     @Test
     void handleResponseShouldReturnInternalServerErrorResponseWhenUnableToContactThirdPartyApi()
-            throws JsonProcessingException, SqsException, OAuthHttpResponseExceptionWithErrorBody {
+            throws JsonProcessingException, SqsException, OAuthErrorResponseException {
         String testRequestBody = "request body";
         String errorMessage = "error message";
         DrivingPermitForm drivingPermitForm = new DrivingPermitForm();

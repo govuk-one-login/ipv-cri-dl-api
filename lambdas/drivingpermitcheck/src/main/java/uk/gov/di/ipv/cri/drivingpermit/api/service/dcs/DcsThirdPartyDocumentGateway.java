@@ -4,11 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
-import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
@@ -16,33 +16,43 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.HTTPReply;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.time.LocalDate;
 
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_OK;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_CREATED;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource.DCS;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_CREATED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_SEND_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_INVALID;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_VALID;
 
 public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String SERVICE_NAME = DcsThirdPartyDocumentGateway.class.getSimpleName();
+
+    private static final APIResultSource API_RESULT_SOURCE = DCS;
 
     private final ObjectMapper objectMapper;
     private final DcsCryptographyService dcsCryptographyService;
@@ -51,6 +61,8 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private final EventProbe eventProbe;
     private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
     private static final String IDENTITY_CHECK_POLICY = "published";
+
+    private final RequestConfig defaultRequestConfig;
 
     public DcsThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
@@ -63,12 +75,13 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
+
+        this.defaultRequestConfig = new HttpRequestConfig().getDefaultRequestConfig();
     }
 
     @Override
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
-            throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody, ParseException,
-                    JOSEException, IOException {
+            throws OAuthErrorResponseException {
         LOGGER.info("Mapping person to third party document check request");
 
         DcsPayload dcsPayload = objectMapper.convertValue(drivingPermitData, DcsPayload.class);
@@ -105,7 +118,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 dcsPayload.setIssueDate(drivingPermitIssueDate);
                 break;
             default:
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
@@ -116,143 +129,151 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
         URI endpoint = URI.create(dcsEndpointUri);
         HttpPost request = requestBuilder(endpoint, requestBody);
 
-        eventProbe.counterMetric(THIRD_PARTY_REQUEST_CREATED);
+        eventProbe.counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
 
+        // Enforce connection timeout values
+        request.setConfig(defaultRequestConfig);
+
+        final HTTPReply httpReply;
         LOGGER.info("Submitting document check request to third party...");
-        CloseableHttpResponse httpResponse = httpRetryer.sendHTTPRequestRetryIfAllowed(request);
+        try (CloseableHttpResponse response = httpRetryer.sendHTTPRequestRetryIfAllowed(request)) {
+            eventProbe.counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
+            // throws OAuthErrorResponseException on error
+            httpReply =
+                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(
+                            response, API_RESULT_SOURCE.getName());
 
-        DocumentCheckResult documentCheckResult = responseHandler(httpResponse);
-
-        if (documentCheckResult.isExecutedSuccessfully()) {
-            // Data capture for VC
-            CheckDetails checkDetails = new CheckDetails();
-            checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
-            checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
-
-            if (documentCheckResult.isValid()) {
-                // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
-                checkDetails.setActivityFrom(drivingPermitIssueDate.toString());
+            if (configurationService.isLogDcsResponse()) {
+                LOGGER.info("DCS response {}", httpReply.responseBody);
             }
-            documentCheckResult.setCheckDetails(checkDetails);
+        } catch (IOException e) {
+            LOGGER.error("IOException executing http request {}", e.getMessage());
+            eventProbe.counterMetric(DCS_REQUEST_SEND_ERROR.withEndpointPrefix());
+            throw new OAuthErrorResponseException(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.ERROR_CONTACTING_DCS);
         }
+
+        DocumentCheckResult documentCheckResult = thirdPartyAPIResponseHandler(httpReply);
+
+        documentCheckResult.setApiResultSource(API_RESULT_SOURCE);
+
+        // TODO Move CheckDetails+setActivityFrom to IdentityVerificationService to avoid
+        // duplicating in all API's
+
+        // Data capture for VC
+        CheckDetails checkDetails = new CheckDetails();
+        checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
+        checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
+
+        if (documentCheckResult.isValid()) {
+            // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
+            checkDetails.setActivityFrom(drivingPermitIssueDate.toString());
+        }
+
+        documentCheckResult.setCheckDetails(checkDetails);
 
         return documentCheckResult;
     }
 
-    private JWSObject prepareDcsPayload(DcsPayload dcsPayload)
-            throws OAuthHttpResponseExceptionWithErrorBody {
+    private JWSObject prepareDcsPayload(DcsPayload dcsPayload) throws OAuthErrorResponseException {
         LOGGER.info("Preparing payload for DCS");
         try {
             return dcsCryptographyService.preparePayload(dcsPayload);
         } catch (CertificateException | JOSEException | JsonProcessingException e) {
             LOGGER.error(("Failed to prepare payload for DCS: " + e.getMessage()));
-            throw new OAuthHttpResponseExceptionWithErrorBody(
+            throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_PREPARE_DCS_PAYLOAD);
         }
     }
 
-    private void validateDcsResponse(DcsResponse dcsResponse)
-            throws OAuthHttpResponseExceptionWithErrorBody {
-        if (dcsResponse.isError()) {
-            String errorMessage = dcsResponse.getErrorMessage().toString();
-            LOGGER.error("DCS encountered an error: {}", errorMessage);
-            throw new OAuthHttpResponseExceptionWithErrorBody(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_RETURNED_AN_ERROR);
-        }
-    }
+    private DocumentCheckResult thirdPartyAPIResponseHandler(HTTPReply httpReply)
+            throws OAuthErrorResponseException {
 
-    private DocumentCheckResult responseHandler(CloseableHttpResponse httpResponse)
-            throws IOException, ParseException, JOSEException,
-                    OAuthHttpResponseExceptionWithErrorBody {
-        int statusCode = httpResponse.getStatusLine().getStatusCode();
+        if (httpReply.statusCode == 200) {
+            LOGGER.info("Third party response code {}", httpReply.statusCode);
 
-        HttpEntity entity = httpResponse.getEntity();
-        String responseBody = EntityUtils.toString(entity);
+            eventProbe.counterMetric(DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
 
-        if (statusCode == 200) {
-            LOGGER.info("Third party response code {}", statusCode);
-
+            DcsResponse unwrappedDcsResponse;
             try {
-                if (configurationService.isLogDcsResponse()) {
-                    LOGGER.info("DCS response " + responseBody);
-                }
-                DcsResponse unwrappedDcsResponse =
-                        dcsCryptographyService.unwrapDcsResponse(responseBody);
-                validateDcsResponse(unwrappedDcsResponse);
-
-                LOGGER.info("Third party response successfully mapped");
-                eventProbe.counterMetric(THIRD_PARTY_DCS_RESPONSE_OK);
-
-                DocumentCheckResult documentCheckResult = new DocumentCheckResult();
-                documentCheckResult.setExecutedSuccessfully(true);
-                documentCheckResult.setTransactionId(unwrappedDcsResponse.getRequestId());
-                documentCheckResult.setValid(unwrappedDcsResponse.isValid());
-
-                return documentCheckResult;
+                unwrappedDcsResponse =
+                        dcsCryptographyService.unwrapDcsResponse(httpReply.responseBody);
             } catch (IpvCryptoException e) {
-                // Seen when a signing cert has expired and all message signatures fail verification
-                // We need to log this specific error message from the IpvCryptoException for
-                // context
-                LOGGER.error(e.getMessage(), e);
-                eventProbe.counterMetric(THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR);
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+
+                // Thrown from unwrapDcsResponse - IpvCryptoException (CRI internal exception) is
+                // seen when a signing cert has expired and all message signatures fail verification
+                // will also occur if object mapping fails and may contain all response PII
+                // TODO break unwrapDcsResponse into stages to allow testing and suppress PII
+                LOGGER.error(e.getMessage());
+
+                eventProbe.counterMetric(DCS_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+
+                throw new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_UNWRAP_DCS_RESPONSE);
+            } catch (ParseException | JOSEException e) {
+
+                // Thrown from unwrapDcsResponse -
+                // TODO rework unwrapDcsResponse into stages and review these exceptions for PII
+
+                LOGGER.error(e.getMessage());
+
+                eventProbe.counterMetric(DCS_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_UNWRAP_DCS_RESPONSE);
             }
+
+            // isError flag is non-recoverable
+            if (unwrappedDcsResponse.isError()) {
+
+                // Logging null as errorMessage if ever null is intended
+                String errorMessage = null;
+                if (unwrappedDcsResponse.getErrorMessage() != null) {
+                    errorMessage = unwrappedDcsResponse.getErrorMessage().toString();
+                }
+
+                LOGGER.error("DCS encountered an error: {}", errorMessage);
+
+                eventProbe.counterMetric(
+                        DCS_RESPONSE_TYPE_ERROR.withEndpointPrefix()); // A Specific Error from API
+
+                throw new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.DCS_RETURNED_AN_ERROR_RESPONSE);
+            }
+
+            DocumentCheckResult documentCheckResult = new DocumentCheckResult();
+            documentCheckResult.setExecutedSuccessfully(true);
+            documentCheckResult.setTransactionId(unwrappedDcsResponse.getRequestId());
+            documentCheckResult.setValid(unwrappedDcsResponse.isValid());
+            LOGGER.info("Third party response Valid");
+            eventProbe.counterMetric(DCS_RESPONSE_TYPE_VALID.withEndpointPrefix());
+
+            return documentCheckResult;
         } else {
 
-            String responseText = responseBody == null ? "No Text Found" : responseBody;
-
             LOGGER.error(
-                    "DCS replied with HTTP status code {}, response text: {}",
-                    statusCode,
-                    responseText);
+                    "Third party replied with Unexpected HTTP status code {}, response text: {}",
+                    httpReply.statusCode,
+                    httpReply.responseBody);
 
-            eventProbe.counterMetric(THIRD_PARTY_DCS_RESPONSE_TYPE_ERROR);
+            eventProbe.counterMetric(DCS_RESPONSE_TYPE_ERROR.withEndpointPrefix());
 
-            if (statusCode >= 300 && statusCode <= 399) {
-                // Not Seen
-                throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_30X);
-            } else if (statusCode >= 400 && statusCode <= 499) {
-                // Seen when a cert has expired
-                throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_40X);
-            } else if (statusCode >= 500 && statusCode <= 599) {
-                // Error on DCS side
-                throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_50X);
-            } else {
-                // Any other status codes
-                throw new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DCS_ERROR_HTTP_X);
-            }
+            throw new OAuthErrorResponseException(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    ErrorResponse.ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE);
         }
     }
 
-    private HttpPost requestBuilder(URI endpointUri, String requestBody)
-            throws UnsupportedEncodingException {
+    private HttpPost requestBuilder(URI endpointUri, String requestBody) {
         HttpPost request = new HttpPost(endpointUri);
         request.addHeader("Content-Type", "application/jose");
-
-        request.setEntity(new StringEntity(requestBody));
-
+        request.setEntity(new StringEntity(requestBody, ContentType.DEFAULT_TEXT));
         return request;
     }
-
-    //    public JWSObject decrypt(JWEObject encrypted) {
-    //        try {
-    //            RSADecrypter rsaDecrypter =
-    //                    new RSADecrypter(configurationService.getDrivingPermitEncryptionKey());
-    //            encrypted.decrypt(rsaDecrypter);
-    //
-    //            return JWSObject.parse(encrypted.getPayload().toString());
-    //        } catch (ParseException | JOSEException exception) {
-    //            throw new IpvCryptoException(
-    //                    String.format("Cannot Decrypt DCS Payload: %s", exception.getMessage()));
-    //        }
-    //    }
 
     @Override
     public String getServiceName() {

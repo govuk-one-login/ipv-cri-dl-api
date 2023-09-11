@@ -7,6 +7,7 @@ import com.nimbusds.jose.JWSObject;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,18 +17,17 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -79,8 +79,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     @Override
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
-            throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException, IOException {
+            throws OAuthErrorResponseException, ParseException, JOSEException {
         LOGGER.info("Mapping person to third party document check request");
         DvaPayload dvaPayload = new DvaPayload();
 
@@ -134,6 +133,9 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request)) {
             documentCheckResult =
                     responseHandler(dvaPayload, httpResponse, dvaPayload.getRequestId().toString());
+        } catch (IOException e) {
+            throw new OAuthErrorResponseException(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.ERROR_CONTACTING_DVA);
         }
 
         if (documentCheckResult.isExecutedSuccessfully()) {
@@ -152,43 +154,41 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         return documentCheckResult;
     }
 
-    private JWSObject preparePayload(DvaPayload dvaPayload)
-            throws OAuthHttpResponseExceptionWithErrorBody {
+    private JWSObject preparePayload(DvaPayload dvaPayload) throws OAuthErrorResponseException {
         LOGGER.info("Preparing payload for DVA");
         try {
             return dvaCryptographyService.preparePayload(dvaPayload);
         } catch (CertificateException | JOSEException | JsonProcessingException e) {
             LOGGER.error(("Failed to prepare payload for DVA: " + e.getMessage()));
-            throw new OAuthHttpResponseExceptionWithErrorBody(
+            throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_PREPARE_DVA_PAYLOAD);
         }
     }
 
     private void validateDvaResponse(DvaPayload dvaPayload, DvaResponse dvaResponse)
-            throws OAuthHttpResponseExceptionWithErrorBody, NoSuchAlgorithmException {
+            throws OAuthErrorResponseException, NoSuchAlgorithmException {
         if (Objects.nonNull(dvaResponse.getRequestHash())) {
             LOGGER.error("Validating DVA Direct response hash");
             if (!requestHashValidator.valid(
                     dvaPayload,
                     dvaResponse.getRequestHash(),
                     configurationService.isDvaPerformanceStub())) {
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.BAD_REQUEST, ErrorResponse.DVA_D_HASH_VALIDATION_ERROR);
             } else {
                 LOGGER.error("Successfully validated DVA Direct response hash");
             }
         } else {
             LOGGER.error("DVA returned an incomplete response");
-            throw new OAuthHttpResponseExceptionWithErrorBody(
+            throw new OAuthErrorResponseException(
                     HttpStatusCode.BAD_GATEWAY, ErrorResponse.DVA_RETURNED_AN_INCOMPLETE_RESPONSE);
         }
     }
 
     private DocumentCheckResult responseHandler(
             DvaPayload dvaPayload, CloseableHttpResponse httpResponse, String requestId)
-            throws IOException, ParseException, JOSEException,
-                    OAuthHttpResponseExceptionWithErrorBody {
+            throws IOException, ParseException, JOSEException, OAuthErrorResponseException {
         int statusCode = httpResponse.getStatusLine().getStatusCode();
 
         HttpEntity entity = httpResponse.getEntity();
@@ -220,11 +220,11 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 // context
                 LOGGER.error(e.getMessage(), e);
                 eventProbe.counterMetric(THIRD_PARTY_DVA_RESPONSE_TYPE_ERROR);
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE);
             } catch (NoSuchAlgorithmException e) {
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.INCORRECT_HASH_VALIDATION_ALGORITHM_ERROR);
             }
@@ -241,7 +241,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
             if (statusCode >= 300 && statusCode <= 399) {
                 // Not Seen
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_30X);
             } else if (statusCode >= 400 && statusCode <= 499) {
                 if (statusCode == 400) {
@@ -249,39 +249,38 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                             "DVA replied with an InvalidRequestError. Please check the schema and request sent to DVA");
                     eventProbe.counterMetric(THIRD_PARTY_DVA_INVALID_REQUEST_ERROR);
 
-                    throw new OAuthHttpResponseExceptionWithErrorBody(
+                    throw new OAuthErrorResponseException(
                             HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_400);
                 } else if (statusCode == 401) {
                     LOGGER.error(
                             "DVA replied with an UnauthorizedError. Please check the schema and request sent to DVA");
                     eventProbe.counterMetric(THIRD_PARTY_DVA_UNAUTHORIZED_ERROR);
 
-                    throw new OAuthHttpResponseExceptionWithErrorBody(
+                    throw new OAuthErrorResponseException(
                             HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_401);
                 }
                 // Seen when a cert has expired
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_40X);
             } else if (statusCode >= 500 && statusCode <= 599) {
                 // Error on DCS side
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_50X);
             } else {
                 // Any other status codes
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_X);
             }
         }
     }
 
     private HttpPost requestBuilder(
-            URI endpointUri, String userName, String password, String requestBody)
-            throws UnsupportedEncodingException {
+            URI endpointUri, String userName, String password, String requestBody) {
         HttpPost request = new HttpPost(endpointUri);
         request.addHeader("Content-Type", "application/jose");
         // basic auth
         request.addHeader("Authorization", getBasicAuthenticationHeader(userName, password));
-        request.setEntity(new StringEntity(requestBody));
+        request.setEntity(new StringEntity(requestBody, ContentType.DEFAULT_TEXT));
 
         return request;
     }

@@ -20,13 +20,13 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.io.IOException;
@@ -82,8 +82,7 @@ class DvaThirdPartyDocumentGatewayTest {
     @Test
     void shouldInvokeThirdPartyAPI()
             throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException {
+                    JOSEException, OAuthErrorResponseException, NoSuchAlgorithmException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -119,7 +118,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP300Response()
-            throws IOException, InterruptedException, CertificateException, JOSEException {
+            throws IOException, CertificateException, JOSEException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
@@ -135,9 +134,9 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -176,9 +175,9 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -217,9 +216,9 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -257,9 +256,9 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -283,8 +282,7 @@ class DvaThirdPartyDocumentGatewayTest {
     @MethodSource("getRetryStatusCodes") // Retry status codes
     void retryThirdPartyApiHTTPResponseForStatusCode(int initialStatusCodeResponse)
             throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException {
+                    JOSEException, OAuthErrorResponseException, NoSuchAlgorithmException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();

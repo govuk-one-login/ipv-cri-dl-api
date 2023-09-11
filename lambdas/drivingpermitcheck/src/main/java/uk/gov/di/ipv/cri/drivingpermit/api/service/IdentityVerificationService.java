@@ -7,16 +7,16 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
 import java.util.List;
 import java.util.Objects;
 
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DCS_CHECK_REQUEST_FAILED;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DCS_CHECK_REQUEST_SUCCEEDED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_DATA_VALIDATION_FAIL;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_DATA_VALIDATION_PASS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.ISSUING_AUTHORITY_PREFIX;
@@ -54,7 +54,7 @@ public class IdentityVerificationService {
 
     public DocumentCheckVerificationResult verifyIdentity(
             DrivingPermitForm drivingPermitData, ThirdPartyAPIService thirdPartyAPIService)
-            throws OAuthHttpResponseExceptionWithErrorBody {
+            throws OAuthErrorResponseException {
         DocumentCheckVerificationResult result = new DocumentCheckVerificationResult();
 
         try {
@@ -68,7 +68,7 @@ public class IdentityVerificationService {
                         ErrorResponse.FORM_DATA_FAILED_VALIDATION.getMessage(),
                         errorMessages);
                 eventProbe.counterMetric(FORM_DATA_VALIDATION_FAIL);
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FORM_DATA_FAILED_VALIDATION);
             }
@@ -82,7 +82,7 @@ public class IdentityVerificationService {
                 eventProbe.counterMetric(
                         ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
             } catch (IllegalArgumentException e) {
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
             }
@@ -107,7 +107,9 @@ public class IdentityVerificationService {
                             documentStrengthScore,
                             documentValidityScore,
                             activityHistoryScore);
-                    eventProbe.counterMetric(DCS_CHECK_REQUEST_SUCCEEDED);
+
+                    // Verification Request Completed
+                    eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED);
 
                     LOGGER.info(
                             "Third party transaction id {}",
@@ -125,7 +127,7 @@ public class IdentityVerificationService {
                     result.setVerified(documentCheckResult.isValid());
                 } else {
                     LOGGER.warn("Driving licence check failed");
-                    eventProbe.counterMetric(DCS_CHECK_REQUEST_FAILED);
+                    eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
 
                     if (Objects.nonNull(documentCheckResult.getErrorMessage())) {
                         result.setError(documentCheckResult.getErrorMessage());
@@ -137,19 +139,14 @@ public class IdentityVerificationService {
                 return result;
             }
             LOGGER.error(ERROR_DRIVING_PERMIT_CHECK_RESULT_RETURN_NULL);
-            eventProbe.counterMetric(DCS_CHECK_REQUEST_FAILED);
+            eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
 
             result.setError(ERROR_MSG_CONTEXT);
             result.setExecutedSuccessfully(false);
-        } catch (OAuthHttpResponseExceptionWithErrorBody e) {
-            eventProbe.counterMetric(DCS_CHECK_REQUEST_FAILED);
-            // Specific exception for non-recoverable DCS related errors
+        } catch (OAuthErrorResponseException e) {
+            eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
+            // Specific exception for all non-recoverable ThirdPartyAPI related errors
             throw e;
-        } catch (InterruptedException ie) {
-            LOGGER.error(ERROR_MSG_CONTEXT, ie);
-            Thread.currentThread().interrupt();
-            result.setError(ERROR_MSG_CONTEXT + ": " + ie.getMessage());
-            result.setExecutedSuccessfully(false);
         } catch (Exception e) {
             LOGGER.error(ERROR_MSG_CONTEXT, e);
             result.setError(ERROR_MSG_CONTEXT + ": " + e.getMessage());

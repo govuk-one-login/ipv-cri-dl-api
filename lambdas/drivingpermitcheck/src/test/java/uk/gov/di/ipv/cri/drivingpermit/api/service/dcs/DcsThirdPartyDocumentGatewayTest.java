@@ -19,20 +19,18 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -80,9 +78,8 @@ class DcsThirdPartyDocumentGatewayTest {
 
     @Test
     void shouldInvokeThirdPartyAPI()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, CertificateException, ParseException, JOSEException,
+                    OAuthErrorResponseException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
@@ -118,9 +115,7 @@ class DcsThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP300Response()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, CertificateException, JOSEException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
@@ -137,16 +132,17 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_30X.getMessage();
+        final String EXPECTED_ERROR =
+                ErrorResponse.ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
@@ -161,9 +157,7 @@ class DcsThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP400Response()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, CertificateException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
@@ -181,16 +175,17 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_40X.getMessage();
+        final String EXPECTED_ERROR =
+                ErrorResponse.ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
@@ -205,9 +200,7 @@ class DcsThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP500Response()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, CertificateException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
@@ -226,16 +219,17 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_50X.getMessage();
+        final String EXPECTED_ERROR =
+                ErrorResponse.ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
@@ -250,9 +244,7 @@ class DcsThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnUnhandledHTTPResponse()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, CertificateException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
@@ -269,16 +261,17 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dcsThirdPartyDocumentGateway.performDocumentCheck(
                                             drivingPermitForm);
                         });
 
-        final String EXPECTED_ERROR = ErrorResponse.DCS_ERROR_HTTP_X.getMessage();
+        final String EXPECTED_ERROR =
+                ErrorResponse.ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE.getMessage();
         assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
 
         assertEquals(
@@ -294,9 +287,8 @@ class DcsThirdPartyDocumentGatewayTest {
     @ParameterizedTest
     @MethodSource("getRetryStatusCodes") // Retry status codes
     void retryThirdPartyApiHTTPResponseForStatusCode(int initialStatusCodeResponse)
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException, InvalidKeySpecException {
+            throws IOException, CertificateException, ParseException, JOSEException,
+                    OAuthErrorResponseException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();

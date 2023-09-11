@@ -19,7 +19,7 @@ public class ThirdPartyAddress {
 
     private String postalCode;
 
-    private String addressCountry;
+    private final String addressCountry = "GB";
 
     public String getId() {
         return id;
@@ -86,10 +86,10 @@ public class ThirdPartyAddress {
     }
 
     public String getAddressCountry() {
-        return "GB";
+        return addressCountry;
     }
 
     public void setAddressCountry(String addressCountry) {
-        this.addressCountry = addressCountry;
+        /* DO NOTHING */
     }
 }

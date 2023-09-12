@@ -8,6 +8,7 @@ Feature: Driving Licence Test
     And I should see DVLA as an option
     And I click on DVLA radio button and Continue
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I set the document checking route
     And I see a form requesting DVLA LicenceNumber
 
   @DVLADrivingLicence_test @build @staging @integration @smoke

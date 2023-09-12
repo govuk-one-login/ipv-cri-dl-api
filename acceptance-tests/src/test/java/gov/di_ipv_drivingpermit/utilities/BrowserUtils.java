@@ -429,6 +429,27 @@ public class BrowserUtils {
         Driver.get().get(newURL);
     }
 
+    public static void setFeatureSet(final String featureSet) {
+        LOGGER.info("Setting feature set : {}", featureSet);
+
+        String currentURL = Driver.get().getCurrentUrl();
+
+        String featureKeyValuePair = "featureSet=" + featureSet;
+        int li = currentURL.lastIndexOf('?');
+        String newURL;
+
+        if (li == -1) {
+            // First parameter
+            newURL = currentURL + "?" + featureKeyValuePair;
+        } else {
+            // Additional parameter
+            newURL = currentURL + "&" + featureKeyValuePair;
+        }
+
+        LOGGER.debug("newURL with feature set : {}", newURL);
+        Driver.get().get(newURL);
+    }
+
     public static HttpResponse<String> sendHttpRequest(HttpRequest request)
             throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder().build();

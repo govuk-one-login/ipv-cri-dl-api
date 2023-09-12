@@ -128,4 +128,58 @@ class FormDataValidatorTest {
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
     }
+
+    @Test
+    void testFormDataValidatorPostcodeCannotBeNull() {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        FormDataValidator formDataValidator = new FormDataValidator();
+
+        final List<Address> TEST_ADDRESSES = drivingPermitForm.getAddresses();
+        TEST_ADDRESSES.get(0).setPostalCode(null);
+
+        drivingPermitForm.setAddresses(TEST_ADDRESSES);
+
+        ValidationResult<List<String>> validationResult =
+                formDataValidator.validate(drivingPermitForm);
+
+        final String TEST_INTEGER_NAME = "Addresses";
+        final int TEST_VALUE = TEST_ADDRESSES.size();
+
+        final String EXPECTED_ERROR =
+                "Postcode" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
+
+        LOGGER.info(validationResult.getError().toString());
+
+        assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
+        assertEquals(1, validationResult.getError().size());
+        assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
+        assertFalse(validationResult.isValid());
+    }
+
+    @Test
+    void testFormDataValidatorPostcodeCannotBeEmpty() {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        FormDataValidator formDataValidator = new FormDataValidator();
+
+        final List<Address> TEST_ADDRESSES = drivingPermitForm.getAddresses();
+        TEST_ADDRESSES.get(0).setPostalCode("");
+
+        drivingPermitForm.setAddresses(TEST_ADDRESSES);
+
+        ValidationResult<List<String>> validationResult =
+                formDataValidator.validate(drivingPermitForm);
+
+        final String TEST_INTEGER_NAME = "Addresses";
+        final int TEST_VALUE = TEST_ADDRESSES.size();
+
+        final String EXPECTED_ERROR =
+                "Postcode" + JsonValidationUtility.IS_EMPTY_ERROR_MESSAGE_SUFFIX;
+
+        LOGGER.info(validationResult.getError().toString());
+
+        assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
+        assertEquals(1, validationResult.getError().size());
+        assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
+        assertFalse(validationResult.isValid());
+    }
 }

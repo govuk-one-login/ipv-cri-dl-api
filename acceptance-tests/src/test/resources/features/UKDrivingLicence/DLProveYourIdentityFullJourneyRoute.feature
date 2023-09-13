@@ -38,6 +38,7 @@ Feature: Prove Your Identity Full Journey
     And I should be on `Who was your UK driving licence issued by? - Prove your identity - GOV.UK` page
     And I click on DVA radio button and Continue
     And I should be on DVA `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page
+    And I set the document checking route
     When User enters DVA data as a <DVADrivingLicenceSubject>
     And User clicks on continue
     And I enter BA2 5AA in the Postcode field and find address

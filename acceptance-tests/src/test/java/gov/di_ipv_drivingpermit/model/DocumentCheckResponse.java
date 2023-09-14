@@ -33,5 +33,4 @@ public class DocumentCheckResponse {
     public String getState() {
         return state;
     }
-
 }

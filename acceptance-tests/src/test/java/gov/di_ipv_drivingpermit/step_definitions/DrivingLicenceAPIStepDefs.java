@@ -66,12 +66,13 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
 
-//    Commenting this out until the endpoint is available
-//    @When(
-//            "Driving Licence user sends a POST request to DL endpoint using jsonRequest (.*) and document checking route is (.*)$")
-//    public void passport_user_sends_a_post_request_to_dl_end_point(
-//            String dlJsonRequestBody, String documentCheckingRoute)
-//            throws IOException, InterruptedException {
-//        postRequestToDlEndpoint(dlJsonRequestBody, documentCheckingRoute);
-//    }
+    //    Commenting this out until the endpoint is available
+    //    @When(
+    //            "Driving Licence user sends a POST request to DL endpoint using jsonRequest (.*)
+    // and document checking route is (.*)$")
+    //    public void passport_user_sends_a_post_request_to_dl_end_point(
+    //            String dlJsonRequestBody, String documentCheckingRoute)
+    //            throws IOException, InterruptedException {
+    //        postRequestToDlEndpoint(dlJsonRequestBody, documentCheckingRoute);
+    //    }
 }

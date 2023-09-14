@@ -8,7 +8,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class DrivingPermitFormTestDataGenerator {
 
@@ -53,28 +52,6 @@ public class DrivingPermitFormTestDataGenerator {
         drivingPermitForm.setAddresses(List.of(address));
 
         return drivingPermitForm;
-    }
-
-    private static Address createAddress(int id) {
-
-        Address address = new Address();
-
-        final int yearsBetweenAddresses = 2;
-
-        int startYear = id + (id + yearsBetweenAddresses);
-        int endYear = id + id;
-
-        address.setValidFrom(LocalDate.now().minusYears(startYear));
-
-        address.setValidUntil(
-                (id == 0 ? null : LocalDate.now().minusYears(endYear).minusMonths(1)));
-
-        address.setBuildingNumber(String.valueOf(ThreadLocalRandom.current().nextInt()));
-        address.setPostalCode("Postcode" + id);
-        address.setStreetName("Street Name" + id);
-        address.setAddressLocality("PostTown" + id);
-
-        return address;
     }
 
     public static DrivingPermit deriveDrivingPermit(DrivingPermitForm data) {

@@ -1,6 +1,7 @@
 package gov.di_ipv_drivingpermit.pages;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
@@ -32,6 +33,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static String AUTHCODE;
     private static String ACCESS_TOKEN;
     private static Boolean RETRY;
+    private static String RETRY1;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final ConfigurationService configurationService =
@@ -111,7 +113,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     public void getAuthorisationCodeforDL() throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         String coreStubUrl = configurationService.getCoreStubUrl(false);
-
         String coreStubClientId = "ipv-core-stub";
         if (!configurationService.isUsingLocalStub()) {
             coreStubClientId += "-aws-prod";
@@ -258,4 +259,47 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .build();
         return sendHttpRequest(request).body();
     }
+
+//    Commenting this out until the endpoint is available
+//    public void postRequestToDlEndpoint(
+//            String dlJsonRequestBody, String documentCheckingRoute)
+//            throws IOException, InterruptedException {
+//        String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
+//        JsonNode dlJsonNode =
+//                objectMapper.readTree(
+//                        new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"));
+//        String dlInputJsonString = dlJsonNode.toString();
+//        HttpRequest.Builder builder = HttpRequest.newBuilder();
+//        builder.uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
+//                .setHeader("Accept", "application/json")
+//                .setHeader("Content-Type", "application/json")
+//                .setHeader("session_id", SESSION_ID)
+//                .POST(HttpRequest.BodyPublishers.ofString(dlInputJsonString));
+//        if (documentCheckingRoute != null && !"not-provided".equals(documentCheckingRoute)) {
+//            builder.setHeader("document-checking-route", documentCheckingRoute);
+//        }
+//        HttpRequest request = builder.build();
+//        LOGGER.info("driving licence request body = " + dlInputJsonString);
+//        String drivingLicenceCheckResponse = sendHttpRequest(request).body();
+//
+//        LOGGER.info("drivingLicenceCheckResponse = " + drivingLicenceCheckResponse);
+//
+//        try {
+//            DocumentCheckResponse documentCheckResponse =
+//                    objectMapper.readValue(
+//                            drivingLicenceCheckResponse, DocumentCheckResponse.class);
+//
+//            STATE = documentCheckResponse.getState();
+//            SESSION_ID = documentCheckResponse.getDlSessionId();
+//
+//            LOGGER.info("Found a documentCheckResponse");
+//
+//        } catch (JsonMappingException e) {
+//            LOGGER.info("Not a documentCheckResponse");
+//
+//            RETRY1 = drivingLicenceCheckResponse;
+//            LOGGER.info("RETRY1 = " + RETRY1);
+//        }
+//    }
+
 }

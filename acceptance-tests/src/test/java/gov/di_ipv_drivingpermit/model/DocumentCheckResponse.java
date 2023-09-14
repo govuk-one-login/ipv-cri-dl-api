@@ -7,6 +7,8 @@ public class DocumentCheckResponse {
 
     private boolean retry;
     private String redirectUrl;
+    private String dlSessionId;
+    private String state;
 
     public String getRedirectUrl() {
         return redirectUrl;
@@ -23,4 +25,13 @@ public class DocumentCheckResponse {
     public void setRetry(Boolean retry) {
         this.retry = retry;
     }
+
+    public String getDlSessionId() {
+        return dlSessionId;
+    }
+
+    public String getState() {
+        return state;
+    }
+
 }

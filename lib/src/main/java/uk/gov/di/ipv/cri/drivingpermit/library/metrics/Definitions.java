@@ -38,9 +38,6 @@ public class Definitions {
     // VC Contra Indicators (CI is Appended)
     public static final String DRIVING_PERMIT_CI_PREFIX = "driving_permit_ci_";
 
-    // HTTP Connection Send (DVA)
-    public static final String THIRD_PARTY_REQUEST_CREATED = "third_party_requests_created";
-
     // HTTP Retries (DCS/DVA/DVLA)
     public static final String THIRD_PARTY_REQUEST_SEND_RETRY = "third_party_requests_send_retry";
     public static final String THIRD_PARTY_REQUEST_SEND_OK = "third_party_request_send_ok";
@@ -49,17 +46,6 @@ public class Definitions {
             "third_party_request_send_max_retries";
     public static final String THIRD_PARTY_REQUEST_SEND_FAIL =
             "third_party_requests_send_fail"; // IOException
-
-    // Third Party Response Type DVA
-    public static final String THIRD_PARTY_DVA_RESPONSE_OK = "third_party_dva_response_ok";
-    public static final String THIRD_PARTY_DVA_RESPONSE_TYPE_ERROR =
-            "third_party_dva_response_type_error";
-
-    public static final String THIRD_PARTY_DVA_INVALID_REQUEST_ERROR =
-            "third_party_dva_invalid_request_error";
-
-    public static final String THIRD_PARTY_DVA_UNAUTHORIZED_ERROR =
-            "third_party_dva_unauthorized_error";
 
     private Definitions() {
         throw new IllegalStateException("Instantiation is not valid for this class.");

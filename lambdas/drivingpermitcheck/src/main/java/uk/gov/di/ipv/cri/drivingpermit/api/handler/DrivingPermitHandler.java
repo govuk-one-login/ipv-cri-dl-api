@@ -18,7 +18,6 @@ import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.SharedClaims;
-import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
@@ -238,14 +237,24 @@ public class DrivingPermitHandler
                     e.getStatusCode(), // Status Code determined by throw location
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         } catch (Exception e) {
-            // Driving Permit Lambda Completed with an Error
-            LOGGER.error("Exception while handling lambda {}", context.getFunctionName());
+            // This is where unexpected exceptions will reach (null pointers etc)
+            // Expected exceptions should be caught and thrown as
+            // OAuthErrorResponseException
+            // We should not log unknown exceptions, due to possibility of PII
+            LOGGER.error(
+                    "Unhandled Exception while handling lambda {} exception {}",
+                    context.getFunctionName(),
+                    e.getClass());
+
+            if (LOGGER.isDebugEnabled()) {
+                e.printStackTrace();
+            }
+
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
-            LOGGER.debug(e.getMessage(), e);
-
             return ApiGatewayResponseGenerator.proxyJsonResponse(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.GENERIC_SERVER_ERROR);
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         }
     }
 

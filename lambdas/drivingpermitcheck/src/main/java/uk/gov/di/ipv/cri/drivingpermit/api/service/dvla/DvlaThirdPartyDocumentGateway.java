@@ -1,17 +1,10 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.TokenRequestService;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
@@ -21,30 +14,11 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // private DvlaConfiguration dvlaConfiguration;
-
     private final TokenRequestService tokenRequestService;
 
-    public DvlaThirdPartyDocumentGateway(
-            ObjectMapper objectMapper,
-            DvlaEndpointFactory endpointFactory,
-            ConfigurationService configurationService,
-            HttpRetryer httpRetryer,
-            EventProbe eventProbe) {
+    public DvlaThirdPartyDocumentGateway(DvlaEndpointFactory endpointFactory) {
 
-        // Same on all endpoints
-        final RequestConfig defaultRequestConfig =
-                new HttpRequestConfig().getDefaultRequestConfig();
-
-        DvlaConfiguration dvlaConfiguration = configurationService.getDvlaConfiguration();
-
-        tokenRequestService =
-                new TokenRequestService(
-                        dvlaConfiguration,
-                        httpRetryer,
-                        defaultRequestConfig,
-                        objectMapper,
-                        eventProbe);
+        tokenRequestService = endpointFactory.getTokenRequestService();
     }
 
     @Override
@@ -56,17 +30,11 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitForm)
             throws OAuthErrorResponseException {
 
-        String token = tokenRequestService.requestAccessToken(true);
+        String token = tokenRequestService.requestAccessToken(false);
 
-        LOGGER.info("Token {}", token);
-        // Fetch Token from Dynamo
-        // Got Token?
-        // > No? Token Request
-        // >> Token Request Ok > Continue
-        // >> Token Request Fail > Exception
-        // > Yes? Continue
+        LOGGER.info("Token value {}", token);
 
-        // Do Check
+        // TODO Perform Check
         // Check Ack? -> Valid True
         // Check Nack? -> Valid False
         // Check Fail -> Exception
@@ -74,6 +42,7 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         DocumentCheckResult documentCheckResult = new DocumentCheckResult();
 
         documentCheckResult.setValid(true);
+        documentCheckResult.setExecutedSuccessfully(documentCheckResult.isValid());
 
         return documentCheckResult;
     }

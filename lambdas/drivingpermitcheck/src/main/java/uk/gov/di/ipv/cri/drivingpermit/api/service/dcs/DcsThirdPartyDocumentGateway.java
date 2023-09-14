@@ -25,7 +25,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguratio
 import uk.gov.di.ipv.cri.drivingpermit.api.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.HTTPReplyHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
@@ -59,8 +58,6 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private final ConfigurationService configurationService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
-    private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
-    private static final String IDENTITY_CHECK_POLICY = "published";
 
     private final RequestConfig defaultRequestConfig;
 
@@ -156,21 +153,6 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
         DocumentCheckResult documentCheckResult = thirdPartyAPIResponseHandler(httpReply);
 
         documentCheckResult.setApiResultSource(API_RESULT_SOURCE);
-
-        // TODO Move CheckDetails+setActivityFrom to IdentityVerificationService to avoid
-        // duplicating in all API's
-
-        // Data capture for VC
-        CheckDetails checkDetails = new CheckDetails();
-        checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
-        checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
-
-        if (documentCheckResult.isValid()) {
-            // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
-            checkDetails.setActivityFrom(drivingPermitIssueDate.toString());
-        }
-
-        documentCheckResult.setCheckDetails(checkDetails);
 
         return documentCheckResult;
     }

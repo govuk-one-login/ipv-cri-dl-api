@@ -40,6 +40,7 @@ public class ConfigurationService {
 
     private final DcsConfiguration dcsConfiguration;
     private final DvaConfiguration dvaConfiguration;
+    private final DvlaConfiguration dvlaConfiguration;
 
     public ConfigurationService(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -101,7 +102,7 @@ public class ConfigurationService {
 
         // **************************** DVLA ****************************
 
-        // TODO dvlaConfiguration = new DvlaConfiguration(parameterStoreService);
+        dvlaConfiguration = new DvlaConfiguration(parameterStoreService);
     }
 
     public String getDocumentCheckResultTableName() {
@@ -150,6 +151,10 @@ public class ConfigurationService {
 
     public DvaConfiguration getDvaConfiguration() {
         return dvaConfiguration;
+    }
+
+    public DvlaConfiguration getDvlaConfiguration() {
+        return dvlaConfiguration;
     }
 
     public long getDocumentCheckItemExpirationEpoch() {

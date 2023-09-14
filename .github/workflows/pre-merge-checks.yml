@@ -125,9 +125,11 @@ jobs:
           path: |
             */build/jacoco/
             */build/reports/
+      - name: Generate Aggregate Coverage Report
+        run: ./gradlew report
       - name: Run SonarCloud Analysis
         if: ${{ github.actor != 'dependabot[bot]' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarqube -x test -x spotlessApply -x spotlessCheck
+        run: ./gradlew sonar -x test -x spotlessApply -x spotlessCheck

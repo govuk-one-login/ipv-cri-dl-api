@@ -4,7 +4,9 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.oauth2.sdk.OAuth2Error;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +38,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGa
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
@@ -402,9 +405,24 @@ class DrivingPermitHandlerTest {
 
         assertNotNull(responseEvent);
         assertEquals(500, responseEvent.getStatusCode());
-        final String EXPECTED_ERROR =
-                "{\"code\":1025,\"message\":\"Request failed due to a server error\",\"errorSummary\":\"1025: Request failed due to a server error\"}";
-        assertEquals(EXPECTED_ERROR, responseEvent.getBody());
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(
+                        OAuth2Error.SERVER_ERROR, OAuth2Error.SERVER_ERROR.getDescription());
+
+        // Assert CommonExpress OAuth error format
+        assertEquals(
+                "oauth_error",
+                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
     }
 
     private DocumentCheckResultItem generateDocCheckResultItem(

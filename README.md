@@ -22,6 +22,18 @@ cd into each submodule (folders are `/common-lib` and `/common-lambdas`) and run
 
 Build with `./gradlew`
 
+By default, this also calls spotlessApply and runs unit tests
+
+## Linting
+
+Check with `./gradlew :spotlessCheck`
+
+Apply with `./gradlew :spotlessApply`
+
+## Coverage Reports
+
+Generate with `./gradlew reports` placed in `build/reports`
+
 ## Deploy
 
 ### Prerequisites

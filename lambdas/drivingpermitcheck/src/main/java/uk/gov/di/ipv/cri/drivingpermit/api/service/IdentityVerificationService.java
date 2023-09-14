@@ -7,6 +7,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
@@ -22,7 +23,10 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.ISSUING_AUTHORITY_PREFIX;
 
 public class IdentityVerificationService {
-    private final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
+    private static final String IDENTITY_CHECK_POLICY = "published";
 
     private static final String DOCUMENT_VALIDITY_CI = "D02";
 
@@ -61,6 +65,13 @@ public class IdentityVerificationService {
             LOGGER.info("Validating form data...");
             ValidationResult<List<String>> validationResult =
                     this.formDataValidator.validate(drivingPermitData);
+
+            IssuingAuthority issuingAuthority =
+                    IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+            LOGGER.info("Document Issuer {}", issuingAuthority);
+            eventProbe.counterMetric(
+                    ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
+
             if (!validationResult.isValid()) {
                 String errorMessages = String.join(",", validationResult.getError());
                 LOGGER.error(
@@ -74,18 +85,6 @@ public class IdentityVerificationService {
             }
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
-
-            IssuingAuthority issuingAuthority;
-            try {
-                issuingAuthority = IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
-                LOGGER.info("Document Issuer {}", issuingAuthority);
-                eventProbe.counterMetric(
-                        ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
-            } catch (IllegalArgumentException e) {
-                throw new OAuthErrorResponseException(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR,
-                        ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
-            }
 
             DocumentCheckResult documentCheckResult =
                     thirdPartyAPIService.performDocumentCheck(drivingPermitData);
@@ -121,6 +120,10 @@ public class IdentityVerificationService {
                     result.setValidityScore(documentValidityScore);
                     result.setActivityHistoryScore(activityHistoryScore);
 
+                    // Data capture for VC
+                    documentCheckResult.setCheckDetails(
+                            getCheckDetails(drivingPermitData, documentCheckResult));
+
                     result.setCheckDetails(documentCheckResult.getCheckDetails());
 
                     result.setTransactionId(documentCheckResult.getTransactionId());
@@ -147,12 +150,27 @@ public class IdentityVerificationService {
             eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
             // Specific exception for all non-recoverable ThirdPartyAPI related errors
             throw e;
-        } catch (Exception e) {
-            LOGGER.error(ERROR_MSG_CONTEXT, e);
-            result.setError(ERROR_MSG_CONTEXT + ": " + e.getMessage());
-            result.setExecutedSuccessfully(false);
+        } catch (IllegalArgumentException e) {
+            throw new OAuthErrorResponseException(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
+
         return result;
+    }
+
+    private static CheckDetails getCheckDetails(
+            DrivingPermitForm drivingPermitData, DocumentCheckResult documentCheckResult) {
+        CheckDetails checkDetails = new CheckDetails();
+        checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);
+        checkDetails.setIdentityCheckPolicy(IDENTITY_CHECK_POLICY);
+
+        if (documentCheckResult.isValid()) {
+            // Map ActivityFrom to documentIssueDate (IssueDate / DateOfIssue)
+            // Note: DateOfIssue/issueDate is mapped to the same field - issueDate
+            checkDetails.setActivityFrom(drivingPermitData.getIssueDate().toString());
+        }
+        return checkDetails;
     }
 
     private int calculateValidity(DocumentCheckResult documentCheckResult) {

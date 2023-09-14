@@ -35,6 +35,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
+import java.util.UUID;
 
 public class ServiceFactory {
     private final ObjectMapper objectMapper;
@@ -49,6 +50,10 @@ public class ServiceFactory {
     private final DataStore<DocumentCheckResultItem> dataStore;
 
     private final Region awsRegion = Region.of(System.getenv("AWS_REGION"));
+
+    // Used internally at runtime when loading/retrieving keys into/from the SSL Keystore
+    private static final char[] RANDOM_RUN_TIME_KEYSTORE_PASSWORD =
+            UUID.randomUUID().toString().toCharArray();
 
     public ServiceFactory()
             throws NoSuchAlgorithmException, CertificateException, InvalidKeySpecException {
@@ -136,8 +141,6 @@ public class ServiceFactory {
         return personIdentityService;
     }
 
-    private static final char[] password = "password".toCharArray();
-
     public CloseableHttpClient generateDcsHttpClient(
             ConfigurationService configurationService, boolean tlsOn)
             throws NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException,
@@ -193,7 +196,7 @@ public class ServiceFactory {
         try {
             SSLContext sslContext =
                     SSLContexts.custom()
-                            .loadKeyMaterial(clientTls, password)
+                            .loadKeyMaterial(clientTls, RANDOM_RUN_TIME_KEYSTORE_PASSWORD)
                             .loadTrustMaterial(caBundle, null)
                             .build();
 
@@ -209,9 +212,10 @@ public class ServiceFactory {
     private KeyStore createKeyStore(Certificate cert, Key key)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(null, password);
+        keyStore.load(null, RANDOM_RUN_TIME_KEYSTORE_PASSWORD);
 
-        keyStore.setKeyEntry("TlSKey", key, password, new Certificate[] {cert});
+        keyStore.setKeyEntry(
+                "TlSKey", key, RANDOM_RUN_TIME_KEYSTORE_PASSWORD, new Certificate[] {cert});
         keyStore.setCertificateEntry("my-ca-1", cert);
         return keyStore;
     }

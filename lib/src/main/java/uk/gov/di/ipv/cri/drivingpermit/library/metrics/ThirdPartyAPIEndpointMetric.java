@@ -12,6 +12,9 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_OK;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DCS_THIRD_PARTY_API_DCS_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVA_THIRD_PARTY_API_DVA_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_MATCH_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 public enum ThirdPartyAPIEndpointMetric {
 
@@ -32,15 +35,64 @@ public enum ThirdPartyAPIEndpointMetric {
     DCS_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-// DVA End Point Metrics                                                                     //
-///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // DVA End Point Metrics                                                                     //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    DVA_REQUEST_CREATED(DVA_THIRD_PARTY_API_DVA_ENDPOINT, REQUEST_CREATED),
+    DVA_REQUEST_SEND_OK(DVA_THIRD_PARTY_API_DVA_ENDPOINT, REQUEST_SEND_OK),
+    DVA_REQUEST_SEND_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, REQUEST_SEND_ERROR),
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-// DLVA End Point Metrics                                                                    //
-///////////////////////////////////////////////////////////////////////////////////////////////
+    DVA_RESPONSE_TYPE_VALID(DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_VALID),
+    DVA_RESPONSE_TYPE_INVALID(DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_INVALID),
 
-;
+    DVA_RESPONSE_TYPE_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_ERROR),
+
+    DVA_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
+            DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
+    DVA_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
+            DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    DVA_INVALID_REQUEST_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, "invalid_request_error"),
+    DVA_REQUEST_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, "request_error"),
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // DLVA Token End Point Metrics                                                              //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    DVLA_TOKEN_REQUEST_REUSING_CACHED_TOKEN(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, "reusing_cached_token"), // Unique to DVLA Token
+
+    DVLA_TOKEN_REQUEST_CREATED(DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, REQUEST_CREATED),
+    DVLA_TOKEN_REQUEST_SEND_OK(DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, REQUEST_SEND_OK),
+
+    DVLA_TOKEN_REQUEST_SEND_ERROR(DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, REQUEST_SEND_ERROR),
+
+    DVLA_TOKEN_RESPONSE_TYPE_VALID(DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_VALID),
+    DVLA_TOKEN_RESPONSE_TYPE_INVALID(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_INVALID),
+
+    DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
+    DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // DLVA Match End Point Metrics                                                              //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    DVLA_MATCH_REQUEST_CREATED(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, REQUEST_CREATED),
+    DVLA_MATCH_REQUEST_SEND_OK(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, REQUEST_SEND_OK),
+
+    DVLA_MATCH_REQUEST_SEND_ERROR(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, REQUEST_SEND_ERROR),
+
+    DVLA_MATCH_RESPONSE_TYPE_VALID(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_VALID),
+    DVLA_MATCH_RESPONSE_TYPE_INVALID(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_INVALID),
+
+    DVLA_RESPONSE_TYPE_ERROR(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_ERROR),
+
+    DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
+    DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS);
 
     private static final String METRIC_FORMAT = "%s_%s";
     private static final String METRIC_CAUSE_FORMAT = METRIC_FORMAT;

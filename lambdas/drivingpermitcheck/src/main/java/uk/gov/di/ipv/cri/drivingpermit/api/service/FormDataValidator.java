@@ -13,7 +13,7 @@ public class FormDataValidator {
     public static final int MAX_SUPPORTED_ADDRESSES = 1; // One address with just postcode
     private static final int POSTCODE_STRING_MAX_LEN = 8;
 
-    private static final int NAME_STRING_MAX_LEN = 30;
+    private static final int NAME_STRING_MAX_LEN = 1024;
 
     ValidationResult<List<String>> validate(DrivingPermitForm drivingPermitForm) {
         List<String> validationErrors = new ArrayList<>();

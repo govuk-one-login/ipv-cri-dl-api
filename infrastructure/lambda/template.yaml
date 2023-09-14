@@ -406,18 +406,10 @@ Resources:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
         - DynamoDBWritePolicy:
             TableName: !Ref DocumentCheckResultTable
-#        - Statement:
-#            - Sid: ReadParameterStorePolicy
-#              Effect: Allow
-#              Action:
-#                - 'ssm:GetParameter*'
-#              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/credentialIssuers/driving-permit*'
-#        - Statement:
-#            - Sid: ReadSecretsPolicy
-#              Effect: Allow
-#              Action:
-#                - 'secretsmanager:GetSecretValue'
-#              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${Environment}/credentialIssuers/driving-permit*'
+        - DynamoDBReadPolicy:
+            TableName: !Ref DvlaTokenTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref DvlaTokenTable
         - Statement:
             Effect: Allow
             Action:
@@ -436,6 +428,7 @@ Resources:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/TokenTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/maximumAttemptCount"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvaDirectEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvlaDirectEnabled"
@@ -461,6 +454,9 @@ Resources:
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA*"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
 
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
@@ -601,6 +597,24 @@ Resources:
         AttributeName: expiry
         Enabled: true
 
+  DvlaTokenTable:
+    Type: "AWS::DynamoDB::Table" # enable encryption with customer managed kms key. Will need new kms key
+    Properties:
+      TableName: !Sub "dvla-token-${AWS::StackName}"
+      BillingMode: "PAY_PER_REQUEST"
+      AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "id"
+          KeyType: "HASH"
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+
 ####################################################################
 #                                                                  #
 # API config                                                       #
@@ -679,6 +693,14 @@ Resources:
       Value: !Sub document-check-${AWS::StackName}
       Type: String
       Description: Document check result dynamodb table name
+
+  ParameterDvlaTokenTableName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DVLA/TokenTableName"
+      Value: !Sub dvla-token-${AWS::StackName}
+      Type: String
+      Description: Dvla Token dynamodb table name
 
   MaxJwtTtlParameter:
     Type: AWS::SSM::Parameter

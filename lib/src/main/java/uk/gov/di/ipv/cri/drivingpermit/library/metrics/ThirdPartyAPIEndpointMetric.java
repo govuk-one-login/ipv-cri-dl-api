@@ -76,7 +76,7 @@ public enum ThirdPartyAPIEndpointMetric {
             DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DLVA Match End Point Metrics                                                              //
+    // DVLA Match End Point Metrics                                                              //
     ///////////////////////////////////////////////////////////////////////////////////////////////
     DVLA_MATCH_REQUEST_CREATED(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, REQUEST_CREATED),
     DVLA_MATCH_REQUEST_SEND_OK(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, REQUEST_SEND_OK),

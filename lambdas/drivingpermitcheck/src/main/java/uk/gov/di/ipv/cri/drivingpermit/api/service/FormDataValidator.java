@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.JsonValidationUtility;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,14 @@ public class FormDataValidator {
                     POSTCODE_STRING_MAX_LEN,
                     "Postcode",
                     validationErrors);
+        }
+
+        try {
+            IssuingAuthority.valueOf(drivingPermitForm.getLicenceIssuer());
+        } catch (IllegalArgumentException e) {
+            validationErrors.add(
+                    String.format(
+                            "LicenceIssuer %s is Unknown", drivingPermitForm.getLicenceIssuer()));
         }
 
         // this implementation needs completing to validate all necessary fields

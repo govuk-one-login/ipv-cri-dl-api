@@ -6,15 +6,15 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.dynamo.TokenItem;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.request.TokenRequestPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.response.TokenResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.DVLATokenExpiryWindowException;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
@@ -28,10 +28,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.UUID;
 
-import static uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.request.RequestHeaderKeys.HEADER_AUTHORIZATION;
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.request.RequestHeaderKeys.HEADER_CONTENT_TYPE;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
@@ -47,12 +46,14 @@ public class TokenRequestService {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String ENDPOINT_NAME = "token endpoint";
+    private static final String REQUEST_NAME = "Token";
 
     private final String tokenTableName;
-    private final DynamoDbTable<TokenItem> tokenTable;
+    private DataStore<TokenItem> dataStore;
 
     private final URI requestURI;
-    private final String authValue;
+    private final String username;
+    private final String password;
 
     private final HttpRetryer httpRetryer;
     private final RequestConfig requestConfig;
@@ -62,7 +63,6 @@ public class TokenRequestService {
 
     // Token item shared between concurrent lambdas (if scaling)
     public static final String TOKEN_ITEM_ID = "TokenKey";
-    public static final Key TOKEN_ITEM_KEY = Key.builder().partitionValue(TOKEN_ITEM_ID).build();
 
     // DynamoDB auto ttl deletion is the best effort (upto 48hrs later...)
     // Token Item ttl expiration enforced CRI side (vs dynamo filter expression)
@@ -84,25 +84,18 @@ public class TokenRequestService {
             EventProbe eventProbe) {
 
         // Token Table
-        tokenTableName = dvlaConfiguration.getTokenTableName();
-        tokenTable =
-                dynamoDbEnhancedClient.table(tokenTableName, TableSchema.fromBean(TokenItem.class));
+        this.tokenTableName = dvlaConfiguration.getTokenTableName();
+        this.dataStore = new DataStore<>(tokenTableName, TokenItem.class, dynamoDbEnhancedClient);
 
         this.requestURI = URI.create(dvlaConfiguration.getTokenEndpoint());
+        this.username = dvlaConfiguration.getUsername();
+        this.password = dvlaConfiguration.getPassword();
 
         this.httpRetryer = httpRetryer;
         this.requestConfig = requestConfig;
 
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
-
-        // Basic Auth = "username:password" in base64
-        String usernameAndPassword =
-                String.format(
-                        "%s:%s", dvlaConfiguration.getUsername(), dvlaConfiguration.getPassword());
-        String usernameAndPasswordHash =
-                Base64.getEncoder().encodeToString(usernameAndPassword.getBytes());
-        authValue = String.format("Basic %s", usernameAndPasswordHash);
     }
 
     public String requestAccessToken(boolean alwaysRequestNewToken)
@@ -160,19 +153,39 @@ public class TokenRequestService {
         // Token Request is posted as if via a form
         final HttpPost request = new HttpPost();
         request.setURI(requestURI);
-        request.addHeader(
-                HEADER_CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
-        request.addHeader(HEADER_AUTHORIZATION, authValue);
+        request.addHeader(HEADER_CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 
         // Enforce connection timeout values
         request.setConfig(requestConfig);
+
+        String requestBody;
+        try {
+            TokenRequestPayload tokenRequestPayload =
+                    TokenRequestPayload.builder().userName(username).password(password).build();
+
+            requestBody = objectMapper.writeValueAsString(tokenRequestPayload);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("JsonProcessingException creating request body");
+            LOGGER.debug(e.getMessage());
+            throw new OAuthErrorResponseException(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    ErrorResponse.FAILED_TO_PREPARE_TOKEN_REQUEST_PAYLOAD);
+        }
+
+        LOGGER.debug(
+                "{} request headers : {}",
+                ENDPOINT_NAME,
+                LOGGER.isDebugEnabled() ? (Arrays.toString(request.getAllHeaders())) : "");
+        LOGGER.debug("{} request body : {}", ENDPOINT_NAME, requestBody);
+
+        request.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
 
         eventProbe.counterMetric(DVLA_TOKEN_REQUEST_CREATED.withEndpointPrefix());
 
         final HTTPReply httpReply;
         String requestURIString = requestURI.toString();
-        LOGGER.debug("Token request endpoint is {}", requestURIString);
-        LOGGER.info("Submitting token request to third party...");
+        LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
+        LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
         try (CloseableHttpResponse response = httpRetryer.sendHTTPRequestRetryIfAllowed(request)) {
 
             eventProbe.counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
@@ -182,7 +195,7 @@ public class TokenRequestService {
                     HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
 
-            LOGGER.error("IOException executing token request - {}", e.getMessage());
+            LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
 
             eventProbe.counterMetric(
                     DVLA_TOKEN_REQUEST_SEND_ERROR.withEndpointPrefixAndExceptionName(e));
@@ -234,7 +247,7 @@ public class TokenRequestService {
     }
 
     private TokenItem getTokenItemFromTable() {
-        return tokenTable.getItem(TOKEN_ITEM_KEY);
+        return dataStore.getItem(TOKEN_ITEM_ID);
     }
 
     private void saveTokenItem(TokenItem tokenItem) {
@@ -244,7 +257,8 @@ public class TokenRequestService {
         long ttlSeconds = Instant.now().plusSeconds(TOKEN_ITEM_TTL_SECS).getEpochSecond();
 
         tokenItem.setTtl(ttlSeconds);
-        tokenTable.putItem(tokenItem);
+        // Create calls put which overwrites any existing token
+        dataStore.create(tokenItem);
 
         LOGGER.info(
                 "Token cached - expires {} UTC",

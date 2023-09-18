@@ -19,6 +19,7 @@ public class ThirdPartyAddress {
 
     private String postalCode;
 
+    // Ignore sonar do not make this static
     private final String addressCountry = "GB";
 
     public String getId() {

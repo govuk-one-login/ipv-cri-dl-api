@@ -66,12 +66,6 @@ public class IdentityVerificationService {
             ValidationResult<List<String>> validationResult =
                     this.formDataValidator.validate(drivingPermitData);
 
-            IssuingAuthority issuingAuthority =
-                    IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
-            LOGGER.info("Document Issuer {}", issuingAuthority);
-            eventProbe.counterMetric(
-                    ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
-
             if (!validationResult.isValid()) {
                 String errorMessages = String.join(",", validationResult.getError());
                 LOGGER.error(
@@ -85,6 +79,12 @@ public class IdentityVerificationService {
             }
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
+
+            IssuingAuthority issuingAuthority =
+                    IssuingAuthority.valueOf(drivingPermitData.getLicenceIssuer());
+            LOGGER.info("Document Issuer {}", issuingAuthority);
+            eventProbe.counterMetric(
+                    ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
 
             DocumentCheckResult documentCheckResult =
                     thirdPartyAPIService.performDocumentCheck(drivingPermitData);
@@ -150,16 +150,12 @@ public class IdentityVerificationService {
             eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
             // Specific exception for all non-recoverable ThirdPartyAPI related errors
             throw e;
-        } catch (IllegalArgumentException e) {
-            throw new OAuthErrorResponseException(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
 
         return result;
     }
 
-    private static CheckDetails getCheckDetails(
+    private CheckDetails getCheckDetails(
             DrivingPermitForm drivingPermitData, DocumentCheckResult documentCheckResult) {
         CheckDetails checkDetails = new CheckDetails();
         checkDetails.setCheckMethod(OPENID_CHECK_METHOD_IDENTIFIER);

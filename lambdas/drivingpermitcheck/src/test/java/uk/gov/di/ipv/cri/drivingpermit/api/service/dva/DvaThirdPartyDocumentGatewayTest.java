@@ -28,6 +28,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -44,7 +45,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
 
 @ExtendWith(MockitoExtension.class)
 class DvaThirdPartyDocumentGatewayTest {
@@ -90,7 +90,8 @@ class DvaThirdPartyDocumentGatewayTest {
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -129,7 +130,8 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(300);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(300, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -170,7 +172,8 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(400);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(400, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -211,7 +214,8 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(500);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(500, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -251,7 +255,7 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(-1);
+        CloseableHttpResponse httpResponse = HttpResponseFixtures.createHttpResponse(-1, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -296,7 +300,8 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
                 .thenReturn(true);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);

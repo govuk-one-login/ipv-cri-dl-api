@@ -219,6 +219,7 @@ public class DrivingPermitHandler
             return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
         } catch (OAuthErrorResponseException e) {
             // Driving Permit Lambda Completed with an Error
+            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
             // Debug only as Oauth errors appear in the redirect url
             // This will output the specific error message

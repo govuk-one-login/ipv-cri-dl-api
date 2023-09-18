@@ -15,15 +15,15 @@ public enum ErrorResponse {
     /**************************************DCS Specific Errors************************************/
     FAILED_TO_PREPARE_DCS_PAYLOAD(1103, "Failed to prepare DCS payload"),
     ERROR_CONTACTING_DCS(1104, "Error when contacting DCS for document check"),
-    FAILED_TO_UNWRAP_DCS_RESPONSE(1105, "Failed to unwrap Dcs response"),
+    FAILED_TO_UNWRAP_DCS_RESPONSE(1105, "Failed to unwrap DCS response"),
     DCS_RETURNED_AN_ERROR_RESPONSE(1106, "DCS returned an error response"),
     ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
             1127, "DCS returned unexpected http status code"),
 
     /**************************************DVA Specific Errors************************************/
-    FAILED_TO_PREPARE_DVA_PAYLOAD(1227, "Failed to prepare DCS payload"),
-    ERROR_CONTACTING_DVA(1228, "Error when contacting DCS for document check"),
-    FAILED_TO_UNWRAP_DVA_RESPONSE(1229, "Failed to unwrap Dcs response"),
+    FAILED_TO_PREPARE_DVA_PAYLOAD(1227, "Failed to prepare DVA payload"),
+    ERROR_CONTACTING_DVA(1228, "Error when contacting DVA for document check"),
+    FAILED_TO_UNWRAP_DVA_RESPONSE(1229, "Failed to unwrap DVA response"),
     DVA_RETURNED_AN_ERROR(1230, "DVA returned an error response"),
     DVA_ERROR_HTTP_30X(1231, "DVA Responded with a HTTP Redirection status code"),
     DVA_ERROR_HTTP_40X(1232, "DVA Responded with a HTTP Client Error status code"),
@@ -41,7 +41,7 @@ public enum ErrorResponse {
 
     ERROR_INVOKING_THIRD_PARTY_API_TOKEN_ENDPOINT(
             1304, "Error occurred when attempting to invoke the third party api token endpoint"),
-    FAILED_TO_VERIFY_ACCESS_TOKEN(1305, "Failed to verify access token"),
+    FAILED_TO_PREPARE_TOKEN_REQUEST_PAYLOAD(1305, "failed to prepare token request payload"),
     FAILED_TO_MAP_TOKEN_ENDPOINT_RESPONSE_BODY(1306, "Failed to map token endpoint response body"),
     ERROR_TOKEN_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
             1307, "token endpoint returned unexpected http status code");

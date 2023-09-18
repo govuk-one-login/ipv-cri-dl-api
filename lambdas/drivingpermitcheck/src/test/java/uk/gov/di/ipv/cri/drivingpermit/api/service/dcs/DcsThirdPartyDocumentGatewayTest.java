@@ -27,6 +27,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -41,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
 
 @ExtendWith(MockitoExtension.class)
 class DcsThirdPartyDocumentGatewayTest {
@@ -89,7 +89,8 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.mockObjectMapper.convertValue(any(DrivingPermitForm.class), eq(DcsPayload.class)))
                 .thenReturn(new DcsPayload());
 
-        CloseableHttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -127,7 +128,8 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(300);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(300, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -170,7 +172,8 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(400);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(400, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -214,7 +217,8 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(500);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(500, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -256,7 +260,7 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(-1);
+        CloseableHttpResponse httpResponse = HttpResponseFixtures.createHttpResponse(-1, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -301,7 +305,8 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);

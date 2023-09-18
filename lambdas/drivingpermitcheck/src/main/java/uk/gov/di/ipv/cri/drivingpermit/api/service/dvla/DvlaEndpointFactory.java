@@ -2,7 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.config.RequestConfig;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
@@ -28,7 +28,7 @@ public class DvlaEndpointFactory {
         tokenRequestService =
                 new TokenRequestService(
                         dvlaConfiguration,
-                        DynamoDbEnhancedClient.create(),
+                        DataStore.getClient(),
                         httpRetryer,
                         defaultRequestConfig,
                         objectMapper,

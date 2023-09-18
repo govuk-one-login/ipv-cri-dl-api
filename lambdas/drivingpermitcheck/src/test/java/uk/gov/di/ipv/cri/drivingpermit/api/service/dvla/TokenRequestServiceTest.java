@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.dynamo.TokenItem;
@@ -30,7 +31,6 @@ import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.TokenRequestService.TOKEN_ITEM_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.TokenRequestService.TOKEN_ITEM_ID;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_SEND_ERROR;
@@ -65,12 +65,6 @@ class TokenRequestServiceTest {
 
     private static final String TEST_USER_NAME = "TEST";
     private static final String TEST_PASSWORD = "PASSWORD";
-    private static final String EXPECTED_AUTH_VALUE =
-            "Basic "
-                    + Base64.getEncoder()
-                            .encodeToString((TEST_USER_NAME + ":" + TEST_PASSWORD).getBytes());
-
-    private static final long TEST_TOKEN_EXPIRES_IN = 1800L;
 
     @Mock DvlaConfiguration mockDvlaConfiguration;
     @Mock DynamoDbEnhancedClient mockDynamoDbEnhancedClient;
@@ -81,7 +75,8 @@ class TokenRequestServiceTest {
 
     private TokenRequestService tokenRequestService;
 
-    @Mock DynamoDbTable<TokenItem> mockTokenTable;
+    @Mock DynamoDbTable<TokenItem> mockTokenTable; // To mock the internals of Datastore
+    private final Key TOKEN_ITEM_KEY = Key.builder().partitionValue(TOKEN_ITEM_ID).build();
 
     @BeforeEach
     void setUp() {
@@ -93,6 +88,7 @@ class TokenRequestServiceTest {
         when(mockDvlaConfiguration.getUsername()).thenReturn(TEST_USER_NAME);
         when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
+        // Datastore is wrapper around DynamoDbEnhancedClient
         when(mockDynamoDbEnhancedClient.table(eq(TEST_TOKEN_TABLE_NAME), any(TableSchema.class)))
                 .thenReturn(mockTokenTable);
 
@@ -438,9 +434,6 @@ class TokenRequestServiceTest {
                         .collect(Collectors.toMap(Header::getName, Header::getValue));
 
         assertNotNull(httpHeadersKV.get("Content-Type"));
-        assertEquals("application/x-www-form-urlencoded", httpHeadersKV.get("Content-Type"));
-
-        assertNotNull(httpHeadersKV.get("Authorization"));
-        assertEquals(EXPECTED_AUTH_VALUE, httpHeadersKV.get("Authorization"));
+        assertEquals("application/json", httpHeadersKV.get("Content-Type"));
     }
 }

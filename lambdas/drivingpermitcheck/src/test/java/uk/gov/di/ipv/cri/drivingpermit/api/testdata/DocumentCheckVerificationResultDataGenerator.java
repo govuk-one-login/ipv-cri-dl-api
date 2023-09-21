@@ -1,8 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.testdata;
 
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.util.List;
 
@@ -16,8 +16,13 @@ public class DocumentCheckVerificationResultDataGenerator {
         testDocumentVerificationResult.setStrengthScore(1);
         testDocumentVerificationResult.setValidityScore(1);
 
-        testDocumentVerificationResult.setCheckDetails(
-                DrivingPermitFormTestDataGenerator.deriveCheckDetails(data));
+        CheckDetails checkDetails = new CheckDetails();
+
+        checkDetails.setCheckMethod("data");
+        checkDetails.setActivityFrom(data.getExpiryDate().minusYears(10).toString());
+        checkDetails.setIdentityCheckPolicy("published");
+
+        testDocumentVerificationResult.setCheckDetails(checkDetails);
 
         return testDocumentVerificationResult;
     }

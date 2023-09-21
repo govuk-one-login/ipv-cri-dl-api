@@ -6,22 +6,26 @@ import org.apache.http.HttpEntity;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpParams;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class HttpResponseFixtures {
     private HttpResponseFixtures() {
         throw new IllegalStateException("Test Fixtures");
     }
 
-    // Used to create scenarios in unit tests
+    // Used to create response scenarios in unit tests
     public static CloseableHttpResponse createHttpResponse(
-            int statusCode, String responseBody, boolean ioException) {
+            int statusCode, Map<String, String> headers, String responseBody, boolean ioException) {
         return new CloseableHttpResponse() {
 
             @Override
@@ -51,7 +55,27 @@ public class HttpResponseFixtures {
 
             @Override
             public Header[] getAllHeaders() {
-                return new Header[0];
+                Header[] apacheHeaders;
+
+                if (headers != null) {
+                    int numHeaders = headers.size();
+
+                    apacheHeaders = new Header[numHeaders];
+
+                    List<String> keys = new ArrayList<>(headers.keySet());
+
+                    for (int h = 0; h < numHeaders; h++) {
+
+                        String key = keys.get(0);
+                        String value = headers.get(key);
+
+                        apacheHeaders[h] = new BasicHeader(key, value);
+                    }
+                } else {
+                    apacheHeaders = new Header[0];
+                }
+
+                return apacheHeaders;
             }
 
             @Override

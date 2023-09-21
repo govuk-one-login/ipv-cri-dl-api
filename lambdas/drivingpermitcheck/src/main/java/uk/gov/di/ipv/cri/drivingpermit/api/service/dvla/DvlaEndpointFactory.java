@@ -1,6 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import org.apache.http.client.config.RequestConfig;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -8,12 +9,15 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvlaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
 
+@Getter
 public class DvlaEndpointFactory {
 
     private final TokenRequestService tokenRequestService;
+    private final DriverMatchService driverMatchService;
 
     public DvlaEndpointFactory(ServiceFactory serviceFactory, HttpRetryer httpRetryer) {
 
@@ -33,9 +37,13 @@ public class DvlaEndpointFactory {
                         defaultRequestConfig,
                         objectMapper,
                         eventProbe);
-    }
 
-    public TokenRequestService getTokenRequestService() {
-        return tokenRequestService;
+        driverMatchService =
+                new DriverMatchService(
+                        dvlaConfiguration,
+                        httpRetryer,
+                        defaultRequestConfig,
+                        objectMapper,
+                        eventProbe);
     }
 }

@@ -1,12 +1,12 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JOSEException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
@@ -16,12 +16,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationSe
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.text.ParseException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,7 +33,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 @ExtendWith(MockitoExtension.class)
 class IdentityVerificationServiceTest {
     @Mock private FormDataValidator mockFormDataValidator;
-    @Mock private ContraindicationMapper mockContraindicationMapper;
     @Mock private AuditService mockAuditService;
     @Mock private ConfigurationService configurationService;
     @Mock private ObjectMapper objectMapper;
@@ -51,18 +45,15 @@ class IdentityVerificationServiceTest {
     @BeforeEach
     void setup() {
         this.identityVerificationService =
-                new IdentityVerificationService(
-                        mockFormDataValidator, mockContraindicationMapper, mockEventProbe);
+                new IdentityVerificationService(mockFormDataValidator, mockEventProbe);
     }
 
     @Test
     void verifyIdentityShouldReturnResultWhenValidInputProvided()
-            throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthErrorResponseException, NoSuchAlgorithmException {
+            throws OAuthErrorResponseException {
 
         this.identityVerificationService =
-                new IdentityVerificationService(
-                        mockFormDataValidator, mockContraindicationMapper, mockEventProbe);
+                new IdentityVerificationService(mockFormDataValidator, mockEventProbe);
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
@@ -87,8 +78,7 @@ class IdentityVerificationServiceTest {
     }
 
     @Test
-    void verifyIdentityShouldReturnValidationErrorWhenInvalidInputProvided()
-            throws OAuthErrorResponseException {
+    void verifyIdentityShouldReturnValidationErrorWhenInvalidInputProvided() {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         List<String> validationErrors = List.of("validation error");
         when(mockFormDataValidator.validate(drivingPermitForm))
@@ -111,8 +101,7 @@ class IdentityVerificationServiceTest {
 
     @Test
     void verifyIdentityShouldReturnErrorWhenThirdPartyCallFails()
-            throws IOException, InterruptedException, OAuthErrorResponseException,
-                    CertificateException, ParseException, JOSEException, NoSuchAlgorithmException {
+            throws OAuthErrorResponseException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         when(mockFormDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
@@ -131,47 +120,4 @@ class IdentityVerificationServiceTest {
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
         verify(mockEventProbe).counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
     }
-
-    //    @Test
-    //    void verifyDvaDirectEnabledParameterRoutesUsersToDvaWhenTrue()
-    //            throws IOException, InterruptedException, CertificateException, ParseException,
-    //                    JOSEException, OAuthErrorResponseException {
-    //        try (MockedStatic<LogManager> mockedLogManager = mockStatic(LogManager.class)) {
-    //            Logger mockedStaticLogger = mock(Logger.class);
-    //            mockedLogManager.when(LogManager::getLogger).thenReturn(mockedStaticLogger);
-    //
-    //            when(configurationService.getDvaDirectEnabled()).thenReturn(true);
-    //            this.identityVerificationService =
-    //                    new IdentityVerificationService(
-    //                            mockFormDataValidator, mockContraindicationMapper,
-    // mockEventProbe);
-    //            DrivingPermitForm drivingPermitForm =
-    // DrivingPermitFormTestDataGenerator.generate();
-    //            DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
-    //            testFraudCheckResult.setExecutedSuccessfully(true);
-    //            String[] thirdPartyFraudCodes = new String[] {"sample-code"};
-    //            String[] mappedFraudCodes = new String[] {"mapped-code"};
-    //            testFraudCheckResult.setValid(true);
-    //            when(mockFormDataValidator.validate(drivingPermitForm))
-    //                    .thenReturn(ValidationResult.createValidResult());
-    //            when(mockThirdPartyGateway.performDocumentCheck(drivingPermitForm))
-    //                    .thenReturn(testFraudCheckResult);
-    //
-    //            DocumentCheckVerificationResult result =
-    //                    this.identityVerificationService.verifyIdentity(
-    //                            drivingPermitForm, mockThirdPartyGateway);
-    //
-    //            assertNotNull(result);
-    //            verify(mockFormDataValidator).validate(drivingPermitForm);
-    //            verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
-    //            /*
-    //            TODO: This below line will need to be updated to new performDvaDocumentCheck
-    // method once
-    //            created, also remove the verify logline and make logger in class static again
-    //             */
-    //
-    //            verify(mockThirdPartyGateway).performDocumentCheck(drivingPermitForm);
-    //            verify(mockedStaticLogger).info("Performing document check (DVA direct)");
-    //        }
-    //    }
 }

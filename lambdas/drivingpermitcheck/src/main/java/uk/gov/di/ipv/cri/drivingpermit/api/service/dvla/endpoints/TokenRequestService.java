@@ -17,6 +17,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.dynamo.TokenItem;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.request.TokenRequestPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.response.TokenResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.DVLATokenExpiryWindowException;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.HTTPReply;
@@ -61,6 +62,8 @@ public class TokenRequestService {
     private final ObjectMapper objectMapper;
     private final EventProbe eventProbe;
 
+    private final HttpRetryStatusConfig httpRetryStatusConfig;
+
     // Token item shared between concurrent lambdas (if scaling)
     public static final String TOKEN_ITEM_ID = "TokenKey";
 
@@ -96,10 +99,11 @@ public class TokenRequestService {
 
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
+
+        this.httpRetryStatusConfig = new TokenHttpRetryStatusConfig();
     }
 
-    public String requestAccessToken(boolean alwaysRequestNewToken)
-            throws OAuthErrorResponseException {
+    public String requestToken(boolean alwaysRequestNewToken) throws OAuthErrorResponseException {
 
         LOGGER.info("Checking Table {} for existing cached token", tokenTableName);
 
@@ -148,7 +152,7 @@ public class TokenRequestService {
     private TokenResponse performNewTokenRequest() throws OAuthErrorResponseException {
 
         final String requestId = UUID.randomUUID().toString();
-        LOGGER.info("{} Request Id {}", ENDPOINT_NAME, requestId);
+        LOGGER.info("{} Request Id {}", REQUEST_NAME, requestId);
 
         // Token Request is posted as if via a form
         final HttpPost request = new HttpPost();
@@ -176,7 +180,7 @@ public class TokenRequestService {
                 "{} request headers : {}",
                 ENDPOINT_NAME,
                 LOGGER.isDebugEnabled() ? (Arrays.toString(request.getAllHeaders())) : "");
-        LOGGER.debug("{} request body : {}", ENDPOINT_NAME, requestBody);
+        LOGGER.debug("{} request body : {}", REQUEST_NAME, requestBody);
 
         request.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
 
@@ -186,13 +190,12 @@ public class TokenRequestService {
         String requestURIString = requestURI.toString();
         LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
         LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
-        try (CloseableHttpResponse response = httpRetryer.sendHTTPRequestRetryIfAllowed(request)) {
-
+        try (CloseableHttpResponse response =
+                httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
             eventProbe.counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
 
             // throws OAuthErrorResponseException on error
-            httpReply =
-                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
+            httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
 
             LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
@@ -206,13 +209,14 @@ public class TokenRequestService {
         }
 
         if (httpReply.statusCode == 200) {
-            LOGGER.info("Token status code {}", httpReply.statusCode);
+            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode);
 
             eventProbe.counterMetric(
                     DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
 
             try {
-                LOGGER.debug("Token ResponseBody - {}", httpReply.responseBody);
+                LOGGER.debug("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
+                LOGGER.debug("{} response {}", REQUEST_NAME, httpReply.responseBody);
 
                 TokenResponse response =
                         objectMapper.readValue(httpReply.responseBody, TokenResponse.class);
@@ -221,7 +225,7 @@ public class TokenRequestService {
 
                 return response;
             } catch (JsonProcessingException e) {
-                LOGGER.error("JsonProcessingException mapping Token response");
+                LOGGER.error("JsonProcessingException mapping {} response", REQUEST_NAME);
                 LOGGER.debug(e.getMessage());
 
                 eventProbe.counterMetric(DVLA_TOKEN_RESPONSE_TYPE_INVALID.withEndpointPrefix());
@@ -233,7 +237,8 @@ public class TokenRequestService {
         } else {
             // The token request responded but with an unexpected status code
             LOGGER.error(
-                    "Token response status code {} content - {}",
+                    "{} response status code {} content - {}",
+                    REQUEST_NAME,
                     httpReply.statusCode,
                     httpReply.responseBody);
 

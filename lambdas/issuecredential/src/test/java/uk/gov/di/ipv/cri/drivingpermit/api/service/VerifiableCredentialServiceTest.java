@@ -17,15 +17,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import testdata.DocumentCheckTestDataGenerator;
+import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -35,6 +36,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.time.Clock;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,12 +88,16 @@ class VerifiableCredentialServiceTest implements TestFixtures {
     @Test
     void testGenerateSignedVerifiableCredentialJWT()
             throws JOSEException, JsonProcessingException, ParseException {
+
+        DrivingPermitForm testDrivingPermitFormData = DrivingPermitFormTestDataGenerator.generate();
+
         DocumentCheckResultItem documentCheckResultItem =
-                DocumentCheckTestDataGenerator.generateValidResultItem();
+                DocumentCheckTestDataGenerator.generateValidResultItem(
+                        UUID.randomUUID(), testDrivingPermitFormData);
 
         PersonIdentityDetailed personIdentityDetailed =
                 PersonIdentityDetailedHelperMapper.drivingPermitFormDataToAuditRestrictedFormat(
-                        DrivingPermitFormTestDataGenerator.generate());
+                        testDrivingPermitFormData);
 
         when(mockConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);

@@ -168,7 +168,7 @@ Mappings:
   # Do not enable outside of Dev
   devEnvironmentOnlyEnhancedDebugMapping:
     Environment:
-      dev: "false"
+      dev: "true"
       build: "false"
       staging: "false"
       integration: "false"
@@ -184,8 +184,8 @@ Mappings:
 
   dvlaDirectEnabledMapping:
     Environment:
-      dev: "false"
-      build: "false"
+      dev: "true"
+      build: "true"
       staging: "false"
       integration: "false"
       production: "false"

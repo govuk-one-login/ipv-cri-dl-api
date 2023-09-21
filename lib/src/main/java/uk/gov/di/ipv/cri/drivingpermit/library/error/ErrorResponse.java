@@ -44,7 +44,13 @@ public enum ErrorResponse {
     FAILED_TO_PREPARE_TOKEN_REQUEST_PAYLOAD(1305, "failed to prepare token request payload"),
     FAILED_TO_MAP_TOKEN_ENDPOINT_RESPONSE_BODY(1306, "Failed to map token endpoint response body"),
     ERROR_TOKEN_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
-            1307, "token endpoint returned unexpected http status code");
+            1307, "token endpoint returned unexpected http status code"),
+    ERROR_INVOKING_THIRD_PARTY_API_MATCH_ENDPOINT(
+            1308, "error_invoking_third_party_api_match_endpoint"),
+    FAILED_TO_PREPARE_MATCH_REQUEST_PAYLOAD(1310, "failed to prepare match request payload"),
+    FAILED_TO_MAP_MATCH_ENDPOINT_RESPONSE_BODY(1311, "failed to map match endpoint response_body"),
+    ERROR_MATCH_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
+            1312, "error_match_endpoint_returned_unexpected_http_status_code");
 
     private final int code;
     private final String message;

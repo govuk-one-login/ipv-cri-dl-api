@@ -44,15 +44,10 @@ public class IdentityVerificationService {
             "DrivingPermitCheckResult had no error message.";
 
     private final FormDataValidator formDataValidator;
-    private final ContraindicationMapper contraindicationMapper;
     private final EventProbe eventProbe;
 
-    public IdentityVerificationService(
-            FormDataValidator formDataValidator,
-            ContraindicationMapper contraindicationMapper,
-            EventProbe eventProbe) {
+    public IdentityVerificationService(FormDataValidator formDataValidator, EventProbe eventProbe) {
         this.formDataValidator = formDataValidator;
-        this.contraindicationMapper = contraindicationMapper;
         this.eventProbe = eventProbe;
     }
 

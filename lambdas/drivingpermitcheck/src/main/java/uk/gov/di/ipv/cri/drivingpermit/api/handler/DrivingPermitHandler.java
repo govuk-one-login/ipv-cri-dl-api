@@ -349,7 +349,7 @@ public class DrivingPermitHandler
             ServiceFactory serviceFactory) {
 
         return new IdentityVerificationService(
-                new FormDataValidator(), null, serviceFactory.getEventProbe());
+                new FormDataValidator(), serviceFactory.getEventProbe());
     }
 
     private ThirdPartyAPIService selectThirdPartyAPIService(

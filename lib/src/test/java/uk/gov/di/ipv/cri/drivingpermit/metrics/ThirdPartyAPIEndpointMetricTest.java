@@ -109,6 +109,11 @@ class ThirdPartyAPIEndpointMetricTest {
 
             String valueFromEnum = enumGeneratedMetricsStrings.get(m);
 
+            // For any one debugging changes/updates
+            // System.out.println(m + " " + expected + " vs " + valueFromEnum);
+
+            // Both lists are sorted,
+            // If there are exact duplicates there is crossing wiring in ThirdPartyAPIEndpointMetric
             assertEquals(expected, valueFromEnum);
         }
     }

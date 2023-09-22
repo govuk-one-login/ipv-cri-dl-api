@@ -125,6 +125,18 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         String password = dvaConfiguration.getPassword();
         HttpPost request = requestBuilder(endpoint, username, password, requestBody);
 
+        if (configurationService.isDvaPerformanceStub()) {
+            try {
+                request.addHeader(
+                        "request-hash",
+                        new RequestHashValidator.HashFactory()
+                                .getHash(dvaPayload, configurationService.isDvaPerformanceStub()));
+            } catch (NoSuchAlgorithmException e) {
+                LOGGER.error("failed to hash payload successfully for testing");
+                throw new RuntimeException(e);
+            }
+        }
+
         eventProbe.counterMetric(THIRD_PARTY_REQUEST_CREATED);
 
         LOGGER.info("Submitting document check request to DVA...");
@@ -275,9 +287,13 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     }
 
     private HttpPost requestBuilder(
-            URI endpointUri, String userName, String password, String requestBody)
+            URI endpointUri,
+            String userName,
+            String password,
+            String requestBody)
             throws UnsupportedEncodingException {
         HttpPost request = new HttpPost(endpointUri);
+
         request.addHeader("Content-Type", "application/jose");
         // basic auth
         request.addHeader("Authorization", getBasicAuthenticationHeader(userName, password));

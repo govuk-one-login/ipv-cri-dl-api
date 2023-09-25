@@ -1,8 +1,11 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.domain;
 
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 
 public class DocumentCheckResult {
+    private APIResultSource apiResultSource;
+
     private boolean executedSuccessfully;
     private String result;
     private String errorMessage;
@@ -69,5 +72,13 @@ public class DocumentCheckResult {
 
     public void setAttemptCount(int attemptCount) {
         this.attemptCount = attemptCount;
+    }
+
+    public void setApiResultSource(APIResultSource apiResultSource) {
+        this.apiResultSource = apiResultSource;
+    }
+
+    public APIResultSource getApiResultSource() {
+        return apiResultSource;
     }
 }

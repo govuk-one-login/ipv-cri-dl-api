@@ -1,27 +1,20 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.AddressType;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.JsonValidationUtility;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class FormDataValidator {
-
-    private static final Logger LOGGER = LogManager.getLogger();
     public static final int MIN_SUPPORTED_ADDRESSES = 1;
-    public static final int MAX_SUPPORTED_ADDRESSES = 32;
+    public static final int MAX_SUPPORTED_ADDRESSES = 1; // One address with just postcode
+    private static final int POSTCODE_STRING_MAX_LEN = 8;
+
     private static final int NAME_STRING_MAX_LEN = 1024;
-    private static final String ADDRESSES_CHECK_ERROR =
-            "Address validation error - %d addresses found %d CURRENT, %d PREVIOUS and %d INVALID.";
-    private static final String ADDRESSES_INFO_MESSAGE =
-            "Address validation - %d addresses found %d CURRENT, %d PREVIOUS.";
 
     ValidationResult<List<String>> validate(DrivingPermitForm drivingPermitForm) {
         List<String> validationErrors = new ArrayList<>();
@@ -52,70 +45,22 @@ public class FormDataValidator {
                 "Addresses",
                 validationErrors)) {
 
-            // Ensure addresses can be evaluated correctly
-            validationErrors.addAll(checkAddresses(drivingPermitForm.getAddresses()));
+            JsonValidationUtility.validateStringDataEmptyIsFail(
+                    drivingPermitForm.getAddresses().get(0).getPostalCode(),
+                    POSTCODE_STRING_MAX_LEN,
+                    "Postcode",
+                    validationErrors);
+        }
+
+        try {
+            IssuingAuthority.valueOf(drivingPermitForm.getLicenceIssuer());
+        } catch (IllegalArgumentException e) {
+            validationErrors.add(
+                    String.format(
+                            "LicenceIssuer %s is Unknown", drivingPermitForm.getLicenceIssuer()));
         }
 
         // this implementation needs completing to validate all necessary fields
         return new ValidationResult<>(validationErrors.isEmpty(), validationErrors);
-    }
-
-    private List<String> checkAddresses(List<Address> addresses) {
-
-        List<String> validationErrors = new ArrayList<>();
-
-        int currentAddressCount = 0;
-        int previousAddressCount = 0;
-        int errorAddressCount = 0;
-
-        for (Address address : addresses) {
-
-            AddressType addressType = address.getAddressType();
-
-            if (addressType == AddressType.CURRENT) {
-                currentAddressCount++;
-            } else if (addressType == AddressType.PREVIOUS) {
-                previousAddressCount++;
-            } else {
-                errorAddressCount++;
-            }
-        }
-
-        if ((currentAddressCount == 0) || (errorAddressCount > 0)) {
-            validationErrors.add(
-                    createAddressCheckErrorMessage(
-                            addresses.size(),
-                            currentAddressCount,
-                            previousAddressCount,
-                            errorAddressCount));
-        } else {
-
-            String addressInfoMessage =
-                    createAddressInfoMessage(
-                            addresses.size(), currentAddressCount, previousAddressCount);
-
-            LOGGER.info(addressInfoMessage);
-        }
-
-        return validationErrors;
-    }
-
-    private String createAddressInfoMessage(
-            int addressCount, int currentAddressCount, int previousAddressCount) {
-        return String.format(
-                ADDRESSES_INFO_MESSAGE, addressCount, currentAddressCount, previousAddressCount);
-    }
-
-    public static String createAddressCheckErrorMessage(
-            int addressCount,
-            int currentAddressCount,
-            int previousAddressCount,
-            int errorAddressCount) {
-        return String.format(
-                ADDRESSES_CHECK_ERROR,
-                addressCount,
-                currentAddressCount,
-                previousAddressCount,
-                errorAddressCount);
     }
 }

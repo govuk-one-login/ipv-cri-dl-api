@@ -7,6 +7,7 @@ import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.CONTRAINDICATION_MAPPINGS;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TABLE_NAME;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_DIRECT_ENABLED;
@@ -23,6 +24,7 @@ public class ConfigurationService {
     private final Clock clock;
 
     // Feature toggles
+    private final boolean devEnvironmentOnlyEnhancedDebug;
     private final boolean dvaDirectEnabled;
     private final boolean dvlaDirectEnabled;
     private final boolean isDcsPerformanceStub;
@@ -40,6 +42,7 @@ public class ConfigurationService {
 
     private final DcsConfiguration dcsConfiguration;
     private final DvaConfiguration dvaConfiguration;
+    private final DvlaConfiguration dvlaConfiguration;
 
     public ConfigurationService(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -64,6 +67,11 @@ public class ConfigurationService {
                         parameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT));
 
         // *****************************Feature Toggles*******************************
+
+        this.devEnvironmentOnlyEnhancedDebug =
+                Boolean.parseBoolean(
+                        parameterStoreService.getStackParameterValue(
+                                DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG));
 
         this.dvaDirectEnabled =
                 Boolean.parseBoolean(
@@ -101,7 +109,7 @@ public class ConfigurationService {
 
         // **************************** DVLA ****************************
 
-        // TODO dvlaConfiguration = new DvlaConfiguration(parameterStoreService);
+        dvlaConfiguration = new DvlaConfiguration(parameterStoreService);
     }
 
     public String getDocumentCheckResultTableName() {
@@ -114,6 +122,10 @@ public class ConfigurationService {
 
     public int getMaxAttempts() {
         return maxAttempts;
+    }
+
+    public boolean isDevEnvironmentOnlyEnhancedDebugSet() {
+        return devEnvironmentOnlyEnhancedDebug;
     }
 
     public boolean isDcsPerformanceStub() {
@@ -150,6 +162,10 @@ public class ConfigurationService {
 
     public DvaConfiguration getDvaConfiguration() {
         return dvaConfiguration;
+    }
+
+    public DvlaConfiguration getDvlaConfiguration() {
+        return dvlaConfiguration;
     }
 
     public long getDocumentCheckItemExpirationEpoch() {

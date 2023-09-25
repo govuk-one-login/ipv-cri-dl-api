@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.oauth2.sdk.OAuth2Error;
 import org.apache.http.HttpException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +18,6 @@ import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.SharedClaims;
-import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
@@ -27,7 +27,6 @@ import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.FormDataValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
@@ -37,6 +36,8 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationSe
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
+import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.TOO_MANY_RETRY_ATTEMPTS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
@@ -149,9 +151,7 @@ public class DrivingPermitHandler
 
                 // TODO change this to a redirect onwards
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR,
-                        uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse
-                                .TOO_MANY_RETRY_ATTEMPTS);
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, TOO_MANY_RETRY_ATTEMPTS);
             }
 
             DrivingPermitForm drivingPermitFormData =
@@ -217,21 +217,45 @@ public class DrivingPermitHandler
             // Driving Permit Completed Normally
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
             return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
-        } catch (OAuthHttpResponseExceptionWithErrorBody e) {
+        } catch (OAuthErrorResponseException e) {
             // Driving Permit Lambda Completed with an Error
-            LOGGER.error("Encountered error in DCS request : {}", e.getErrorReason());
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+
+            // Debug in DEV only as Oauth errors appear in the redirect url
+            // This will output the specific error message
+            // Note Unit tests expect server error (correctly)
+            // and will fail if this is set (during unit tests)
+            if (configurationService.isDevEnvironmentOnlyEnhancedDebugSet()) {
+                String customOAuth2ErrorDescription = e.getErrorReason();
+                return ApiGatewayResponseGenerator.proxyJsonResponse(
+                        e.getStatusCode(), // Status Code determined by throw location
+                        new CommonExpressOAuthError(
+                                OAuth2Error.SERVER_ERROR, customOAuth2ErrorDescription));
+            }
+
+            // Non-debug route - standard OAuth2Error.SERVER_ERROR
             return ApiGatewayResponseGenerator.proxyJsonResponse(
-                    e.getStatusCode(), e.getErrorReason());
+                    e.getStatusCode(), // Status Code determined by throw location
+                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         } catch (Exception e) {
-            // Driving Permit Lambda Completed with an Error
-            LOGGER.error("Exception while handling lambda {}", context.getFunctionName());
+            // This is where unexpected exceptions will reach (null pointers etc)
+            // Expected exceptions should be caught and thrown as
+            // OAuthErrorResponseException
+            // We should not log unknown exceptions, due to possibility of PII
+            LOGGER.error(
+                    "Unhandled Exception while handling lambda {} exception {}",
+                    context.getFunctionName(),
+                    e.getClass());
+
+            if (LOGGER.isDebugEnabled()) {
+                e.printStackTrace();
+            }
+
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
-            LOGGER.debug(e.getMessage(), e);
-
             return ApiGatewayResponseGenerator.proxyJsonResponse(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.GENERIC_SERVER_ERROR);
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         }
     }
 
@@ -270,15 +294,15 @@ public class DrivingPermitHandler
     }
 
     private DrivingPermitForm parseDrivingPermitFormRequest(String input)
-            throws OAuthHttpResponseExceptionWithErrorBody {
-        LOGGER.info("Parsing passport form data into payload for DCS");
+            throws OAuthErrorResponseException {
+        LOGGER.info("Parsing driving permit form data into payload for third party document check");
         try {
             return objectMapper.readValue(input, DrivingPermitForm.class);
         } catch (JsonProcessingException e) {
             LOGGER.error(("Failed to parse payload from input: " + e.getMessage()));
-            throw new OAuthHttpResponseExceptionWithErrorBody(
+            throw new OAuthErrorResponseException(
                     HttpStatusCode.BAD_REQUEST,
-                    uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse
+                    uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse
                             .FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA);
         }
     }

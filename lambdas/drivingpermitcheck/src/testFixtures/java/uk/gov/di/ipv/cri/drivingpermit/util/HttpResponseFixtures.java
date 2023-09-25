@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.util;
+package uk.gov.di.ipv.cri.drivingpermit.util;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
@@ -6,7 +6,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpParams;
 
 import java.io.ByteArrayInputStream;
@@ -15,9 +14,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Locale;
 
-public class HttpResponseUtils {
-    public static CloseableHttpResponse createHttpResponse(int statusCode) {
+public class HttpResponseFixtures {
+    private HttpResponseFixtures() {
+        throw new IllegalStateException("Test Fixtures");
+    }
+
+    // Used to create scenarios in unit tests
+    public static CloseableHttpResponse createHttpResponse(
+            int statusCode, String responseBody, boolean ioException) {
         return new CloseableHttpResponse() {
+
             @Override
             public ProtocolVersion getProtocolVersion() {
                 return null;
@@ -35,11 +41,7 @@ public class HttpResponseUtils {
 
             @Override
             public Header getFirstHeader(String name) {
-                if ("Accept".equals(name)) {
-                    return new BasicHeader(name, "application/jose");
-                } else {
-                    return new BasicHeader(name, "application/jose");
-                }
+                return null;
             }
 
             @Override
@@ -53,25 +55,39 @@ public class HttpResponseUtils {
             }
 
             @Override
-            public void addHeader(Header header) {}
+            public void addHeader(Header header) {
+                // Test Fixture
+            }
 
             @Override
-            public void addHeader(String name, String value) {}
+            public void addHeader(String name, String value) {
+                // Test Fixture
+            }
 
             @Override
-            public void setHeader(Header header) {}
+            public void setHeader(Header header) {
+                // Test Fixture
+            }
 
             @Override
-            public void setHeader(String name, String value) {}
+            public void setHeader(String name, String value) {
+                // Test Fixture
+            }
 
             @Override
-            public void setHeaders(Header[] headers) {}
+            public void setHeaders(Header[] headers) {
+                // Test Fixture
+            }
 
             @Override
-            public void removeHeader(Header header) {}
+            public void removeHeader(Header header) {
+                // Test Fixture
+            }
 
             @Override
-            public void removeHeaders(String name) {}
+            public void removeHeaders(String name) {
+                // Test Fixture
+            }
 
             @Override
             public HeaderIterator headerIterator() {
@@ -89,7 +105,9 @@ public class HttpResponseUtils {
             }
 
             @Override
-            public void setParams(HttpParams params) {}
+            public void setParams(HttpParams params) {
+                // Test Fixture
+            }
 
             @Override
             public StatusLine getStatusLine() {
@@ -106,28 +124,49 @@ public class HttpResponseUtils {
 
                     @Override
                     public String getReasonPhrase() {
-                        return null;
+                        return "OK";
                     }
                 };
             }
 
             @Override
-            public void setStatusLine(StatusLine statusline) {}
+            public void setStatusLine(StatusLine statusline) {
+                // Test Fixture
+            }
 
             @Override
-            public void setStatusLine(ProtocolVersion ver, int code) {}
+            public void setStatusLine(ProtocolVersion ver, int code) {
+                // Test Fixture
+            }
 
             @Override
-            public void setStatusLine(ProtocolVersion ver, int code, String reason) {}
+            public void setStatusLine(ProtocolVersion ver, int code, String reason) {
+                // Test Fixture
+            }
 
             @Override
-            public void setStatusCode(int code) throws IllegalStateException {}
+            public void setStatusCode(int code) throws IllegalStateException {
+                // Test Fixture
+            }
 
             @Override
-            public void setReasonPhrase(String reason) throws IllegalStateException {}
+            public void setReasonPhrase(String reason) throws IllegalStateException {
+                // Test Fixture
+            }
 
             @Override
             public HttpEntity getEntity() {
+
+                ByteArrayInputStream bai = null;
+                long contentLength = 0;
+                if (responseBody != null) {
+                    contentLength = responseBody.getBytes().length;
+                    bai = new ByteArrayInputStream(responseBody.getBytes());
+                }
+
+                final long finalContentLength = contentLength;
+                final ByteArrayInputStream finalBai = bai;
+
                 return new HttpEntity() {
                     @Override
                     public boolean isRepeatable() {
@@ -141,7 +180,7 @@ public class HttpResponseUtils {
 
                     @Override
                     public long getContentLength() {
-                        return 0;
+                        return finalContentLength;
                     }
 
                     @Override
@@ -155,16 +194,19 @@ public class HttpResponseUtils {
                     }
 
                     @Override
-                    public InputStream getContent()
-                            throws IOException, UnsupportedOperationException {
-                        String initialString = "";
-                        InputStream targetStream =
-                                new ByteArrayInputStream(initialString.getBytes());
-                        return targetStream;
+                    public InputStream getContent() throws IOException {
+
+                        if (!ioException) {
+                            return finalBai;
+                        }
+
+                        throw new IOException("ERROR!");
                     }
 
                     @Override
-                    public void writeTo(OutputStream outStream) throws IOException {}
+                    public void writeTo(OutputStream outStream) throws IOException {
+                        // Test Fixture
+                    }
 
                     @Override
                     public boolean isStreaming() {
@@ -172,12 +214,16 @@ public class HttpResponseUtils {
                     }
 
                     @Override
-                    public void consumeContent() throws IOException {}
+                    public void consumeContent() throws IOException {
+                        // Test Fixture
+                    }
                 };
             }
 
             @Override
-            public void setEntity(HttpEntity entity) {}
+            public void setEntity(HttpEntity entity) {
+                // Test Fixture
+            }
 
             @Override
             public Locale getLocale() {
@@ -185,10 +231,14 @@ public class HttpResponseUtils {
             }
 
             @Override
-            public void setLocale(Locale loc) {}
+            public void setLocale(Locale loc) {
+                // Test Fixture
+            }
 
             @Override
-            public void close() throws IOException {}
+            public void close() throws IOException {
+                // Test Fixture
+            }
         };
     }
 }

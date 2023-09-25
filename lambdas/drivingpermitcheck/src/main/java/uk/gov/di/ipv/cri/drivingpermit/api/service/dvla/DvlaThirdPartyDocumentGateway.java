@@ -1,29 +1,25 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JOSEException;
-import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-
-import java.io.IOException;
-import java.security.cert.CertificateException;
-import java.text.ParseException;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
 public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final String SERVICE_NAME = DvlaThirdPartyDocumentGateway.class.getSimpleName();
 
-    public DvlaThirdPartyDocumentGateway(
-            ObjectMapper objectMapper,
-            DvlaEndpointFactory endpointFactory,
-            ConfigurationService configurationService,
-            HttpRetryer httpRetryer,
-            EventProbe eventProbe) {}
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    private final TokenRequestService tokenRequestService;
+
+    public DvlaThirdPartyDocumentGateway(DvlaEndpointFactory endpointFactory) {
+
+        tokenRequestService = endpointFactory.getTokenRequestService();
+    }
 
     @Override
     public String getServiceName() {
@@ -32,8 +28,22 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     @Override
     public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitForm)
-            throws InterruptedException, OAuthHttpResponseExceptionWithErrorBody,
-                    CertificateException, ParseException, JOSEException, IOException {
-        return null;
+            throws OAuthErrorResponseException {
+
+        String token = tokenRequestService.requestAccessToken(false);
+
+        LOGGER.info("Token value {}", token);
+
+        // TODO Perform Check
+        // Check Ack? -> Valid True
+        // Check Nack? -> Valid False
+        // Check Fail -> Exception
+
+        DocumentCheckResult documentCheckResult = new DocumentCheckResult();
+
+        documentCheckResult.setValid(true);
+        documentCheckResult.setExecutedSuccessfully(documentCheckResult.isValid());
+
+        return documentCheckResult;
     }
 }

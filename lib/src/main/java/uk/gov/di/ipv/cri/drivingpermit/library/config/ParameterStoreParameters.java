@@ -14,6 +14,9 @@ public class ParameterStoreParameters {
 
     public static final String MAXIMUM_ATTEMPT_COUNT = "maximumAttemptCount"; // Max Form Attempts
 
+    public static final String DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG =
+            "devEnvironmentOnlyEnhancedDebug";
+
     public static final String IS_DCS_PERFORMANCE_STUB =
             "isDcsPerformanceStub"; // Always false unless using stubs
 
@@ -99,6 +102,15 @@ public class ParameterStoreParameters {
             "DVA/JWE/encryptionKeyForDrivingPermitToDecrypt";
 
     // **************************** DVLA ****************************
+
+    public static final String DVLA_ENDPOINT_URL = "DVLA/endpointUrl";
+    public static final String DVLA_ENDPOINT_TOKEN = "DVLA/tokenPath";
+    public static final String DVLA_ENDPOINT_MATCH = "DVLA/matchPath";
+
+    public static final String DVLA_USERNAME = "DVLA/username";
+    public static final String DVLA_PASSWORD = "DVLA/password";
+
+    public static final String DVLA_TOKEN_TABLE_NAME = "DVLA/TokenTableName";
 
     @ExcludeFromGeneratedCoverageReport
     private ParameterStoreParameters() {

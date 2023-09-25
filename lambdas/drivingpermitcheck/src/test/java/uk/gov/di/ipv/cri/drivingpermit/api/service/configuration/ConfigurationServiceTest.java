@@ -52,6 +52,9 @@ class ConfigurationServiceTest {
     }
 
     private void mockFeatureToggles(String env) {
+        when(mockParameterStoreService.getStackParameterValue(DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG))
+                .thenReturn("false");
+
         when(mockParameterStoreService.getStackParameterValue(DVA_DIRECT_ENABLED))
                 .thenReturn("dvaDirectEnabled");
         when(mockParameterStoreService.getStackParameterValue(DVLA_DIRECT_ENABLED))

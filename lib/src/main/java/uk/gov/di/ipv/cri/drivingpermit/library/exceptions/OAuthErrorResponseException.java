@@ -1,12 +1,14 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.exception;
+package uk.gov.di.ipv.cri.drivingpermit.library.exceptions;
 
-import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 
-public class HttpResponseExceptionWithErrorBody extends Exception {
+@ExcludeFromGeneratedCoverageReport
+public class OAuthErrorResponseException extends Exception {
     private final int statusCode;
     private final ErrorResponse errorResponse;
 
-    public HttpResponseExceptionWithErrorBody(int statusCode, ErrorResponse errorResponse) {
+    public OAuthErrorResponseException(int statusCode, ErrorResponse errorResponse) {
         this.statusCode = statusCode;
         this.errorResponse = errorResponse;
     }

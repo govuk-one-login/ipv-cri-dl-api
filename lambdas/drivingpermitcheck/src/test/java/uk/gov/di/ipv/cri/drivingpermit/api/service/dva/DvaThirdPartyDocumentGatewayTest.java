@@ -20,14 +20,15 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.error.ErrorResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -44,7 +45,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.drivingpermit.api.util.HttpResponseUtils.createHttpResponse;
 
 @ExtendWith(MockitoExtension.class)
 class DvaThirdPartyDocumentGatewayTest {
@@ -82,8 +82,7 @@ class DvaThirdPartyDocumentGatewayTest {
     @Test
     void shouldInvokeThirdPartyAPI()
             throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException {
+                    JOSEException, OAuthErrorResponseException, NoSuchAlgorithmException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -91,7 +90,8 @@ class DvaThirdPartyDocumentGatewayTest {
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
@@ -119,7 +119,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP300Response()
-            throws IOException, InterruptedException, CertificateException, JOSEException {
+            throws IOException, CertificateException, JOSEException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
@@ -130,14 +130,15 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(300);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(300, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -171,14 +172,15 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(400);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(400, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -212,14 +214,15 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(500);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(500, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -252,14 +255,14 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(-1);
+        CloseableHttpResponse httpResponse = HttpResponseFixtures.createHttpResponse(-1, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody e =
+        OAuthErrorResponseException e =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
+                        OAuthErrorResponseException.class,
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
@@ -283,8 +286,7 @@ class DvaThirdPartyDocumentGatewayTest {
     @MethodSource("getRetryStatusCodes") // Retry status codes
     void retryThirdPartyApiHTTPResponseForStatusCode(int initialStatusCodeResponse)
             throws IOException, InterruptedException, CertificateException, ParseException,
-                    JOSEException, OAuthHttpResponseExceptionWithErrorBody,
-                    NoSuchAlgorithmException {
+                    JOSEException, OAuthErrorResponseException, NoSuchAlgorithmException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -298,7 +300,8 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
                 .thenReturn(true);
 
-        CloseableHttpResponse httpResponse = createHttpResponse(200);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
                 .thenReturn(httpResponse);

@@ -95,24 +95,15 @@ public class ThirdPartyAPIServiceFactory {
     }
 
     private ThirdPartyAPIService createDvlaThirdPartyDocumentGateway(
-            ServiceFactory serviceFactory, boolean tlsOn)
-            throws CertificateException, HttpException, NoSuchAlgorithmException, KeyStoreException,
-                    IOException {
+            ServiceFactory serviceFactory, boolean tlsOn) {
 
-        ObjectMapper objectMapper = serviceFactory.getObjectMapper();
         EventProbe eventProbe = serviceFactory.getEventProbe();
-        ConfigurationService configurationService = serviceFactory.getConfigurationService();
+        HttpRetryer httpRetryer =
+                new HttpRetryer(serviceFactory.generateDvlaHttpClient(), eventProbe);
+        DvlaEndpointFactory dvlaEndpointFactory =
+                new DvlaEndpointFactory(serviceFactory, httpRetryer);
 
-        // Todo endpoint factor if multiple endpoints
-        DvlaEndpointFactory dvlaEndpointFactory = new DvlaEndpointFactory(configurationService);
-
-        CloseableHttpClient httpClient =
-                serviceFactory.generateDvlaHttpClient(/*configurationService, tlsOn*/ );
-
-        HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe);
-
-        return new DvlaThirdPartyDocumentGateway(
-                objectMapper, dvlaEndpointFactory, configurationService, httpRetryer, eventProbe);
+        return new DvlaThirdPartyDocumentGateway(dvlaEndpointFactory);
     }
 
     public ThirdPartyAPIService getDcsThirdPartyAPIService() {

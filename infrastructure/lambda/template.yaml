@@ -164,6 +164,16 @@ Mappings:
       integration: MONTHS
       production: MONTHS
 
+  # devEnvironmentOnlyEnhancedDebug changes CRI behaviour
+  # Do not enable outside of Dev
+  devEnvironmentOnlyEnhancedDebugMapping:
+    Environment:
+      dev: "false"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
+
   dvaDirectEnabledMapping:
     Environment:
       dev: "false"
@@ -430,6 +440,7 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/TokenTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/maximumAttemptCount"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvaDirectEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvlaDirectEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
@@ -765,6 +776,14 @@ Resources:
       Type: String
       Value: "false"
       Description: Feature toggle to allow logging of DVA responses
+
+  devEnvironmentOnlyEnhancedDebugParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
+      Type: String
+      Value: !FindInMap [ devEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
+      Description: Enable enhanced debug - this is achieved via modifying CRI oauth behaviour to include debug messages
 
   dvaDirectEnabledParameter:
     Type: AWS::SSM::Parameter

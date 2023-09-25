@@ -221,11 +221,11 @@ public class DrivingPermitHandler
             // Driving Permit Lambda Completed with an Error
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
-            // Debug only as Oauth errors appear in the redirect url
+            // Debug in DEV only as Oauth errors appear in the redirect url
             // This will output the specific error message
             // Note Unit tests expect server error (correctly)
-            // and will fail if logging is at debug level (during tests)
-            if (LOGGER.isDebugEnabled()) {
+            // and will fail if this is set (during unit tests)
+            if (configurationService.isDevEnvironmentOnlyEnhancedDebugSet()) {
                 String customOAuth2ErrorDescription = e.getErrorReason();
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
                         e.getStatusCode(), // Status Code determined by throw location

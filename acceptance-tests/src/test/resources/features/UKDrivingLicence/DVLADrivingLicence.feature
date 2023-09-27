@@ -60,7 +60,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectDateOfBirth |
 
-  @DVLADrivingLicence_test @build @staging @integration @direct
+  @DVLADrivingLicence_test @build @staging @integration # not valid for @direct
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectFirstName
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -125,7 +125,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectIssueNumber|
 
-  @DVLADrivingLicence_test @build @staging @integration @direct
+  @DVLADrivingLicence_test @build @staging @integration # not valid for @direct
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectPostcode
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue

@@ -52,7 +52,7 @@ public class HashFactoryTest {
         dvaPayload.setDriverLicenceNumber("12345678");
         dvaPayload.setDateOfBirth(LocalDate.of(1965, 7, 8));
         dvaPayload.setPostcode("BA2 5AA");
-        dvaPayload.setIssueDate(LocalDate.of(2018, 4, 19));
+        dvaPayload.setDateOfIssue(LocalDate.of(2018, 4, 19));
         dvaPayload.setExpiryDate(LocalDate.of(2042, 10, 1));
         dvaPayload.setIssuerId("DVA");
         return dvaPayload;

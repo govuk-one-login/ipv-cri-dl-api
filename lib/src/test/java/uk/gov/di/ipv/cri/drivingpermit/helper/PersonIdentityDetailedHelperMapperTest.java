@@ -10,7 +10,6 @@ import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Name;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -21,6 +20,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY;
 
 @ExtendWith(MockitoExtension.class)
 class PersonIdentityDetailedHelperMapperTest {
@@ -58,7 +58,7 @@ class PersonIdentityDetailedHelperMapperTest {
         Address pidAddress = testPersonIdentityDetailedFromFormData.getAddresses().get(0);
 
         assertEquals(pidAddress.getPostalCode(), pidAddress.getPostalCode());
-        assertEquals("GB", pidAddress.getAddressCountry());
+        assertEquals(UK_DRIVING_PERMIT_ADDRESS_COUNTRY, pidAddress.getAddressCountry());
     }
 
     @Test
@@ -124,11 +124,8 @@ class PersonIdentityDetailedHelperMapperTest {
 
         // Both should be hardcoded
         assertEquals(
-                GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY,
-                addressPIDFormData.get(0).getAddressCountry());
-        assertEquals(
-                GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY,
-                addressPIDAudit.get(0).getAddressCountry());
+                UK_DRIVING_PERMIT_ADDRESS_COUNTRY, addressPIDFormData.get(0).getAddressCountry());
+        assertEquals(UK_DRIVING_PERMIT_ADDRESS_COUNTRY, addressPIDAudit.get(0).getAddressCountry());
     }
 
     @Test

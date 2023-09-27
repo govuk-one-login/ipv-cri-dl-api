@@ -7,6 +7,8 @@ import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import java.time.LocalDate;
 import java.util.List;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY;
+
 public class DrivingPermitFormTestDataGenerator {
 
     public static final String TEST_DRIVING_LICENCE_NUMBER = "A001";
@@ -41,7 +43,7 @@ public class DrivingPermitFormTestDataGenerator {
 
         Address address = new Address();
         address.setPostalCode("Postcode");
-        address.setAddressCountry("GB");
+        address.setAddressCountry(UK_DRIVING_PERMIT_ADDRESS_COUNTRY);
 
         drivingPermitForm.setAddresses(List.of(address));
 

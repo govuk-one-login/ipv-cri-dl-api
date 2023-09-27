@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.*;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
@@ -141,7 +142,9 @@ class VerifiableCredentialServiceTest implements TestFixtures {
         JsonNode claimSetJWTAddress =
                 claimsSet.get(VC_CLAIM).get(VC_CREDENTIAL_SUBJECT).get(VC_ADDRESS_KEY).get(0);
         assertEquals(address.getPostalCode(), claimSetJWTAddress.get("postalCode").asText());
-        assertEquals("GB", claimSetJWTAddress.get("addressCountry").asText());
+        assertEquals(
+                UK_DRIVING_PERMIT_ADDRESS_COUNTRY,
+                claimSetJWTAddress.get("addressCountry").asText());
 
         assertEquals(UNIT_TEST_VC_ISSUER, claimsSet.get("iss").textValue());
         assertEquals(UNIT_TEST_SUBJECT, claimsSet.get("sub").textValue());

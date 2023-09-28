@@ -185,7 +185,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private void validateDvaResponse(DvaPayload dvaPayload, DvaResponse dvaResponse)
             throws OAuthErrorResponseException, NoSuchAlgorithmException {
         if (Objects.nonNull(dvaResponse.getRequestHash())) {
-            LOGGER.error("Validating DVA Direct response hash");
+            LOGGER.info("Validating DVA Direct response hash");
             if (!requestHashValidator.valid(
                     dvaPayload,
                     dvaResponse.getRequestHash(),
@@ -193,7 +193,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.BAD_REQUEST, ErrorResponse.DVA_D_HASH_VALIDATION_ERROR);
             } else {
-                LOGGER.error("Successfully validated DVA Direct response hash");
+                LOGGER.info("Successfully validated DVA Direct response hash");
             }
         } else {
             LOGGER.error("DVA returned an incomplete response");

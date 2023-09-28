@@ -48,7 +48,7 @@ public class RequestHashValidator {
                                         .filter(Objects::nonNull)
                                         .reduce("", String::concat)
                                 + Objects.toString(request.getDateOfBirth(), "")
-                                + request.getIssueDate()
+                                + request.getDateOfIssue()
                                 + request.getExpiryDate()
                                 + request.getDriverLicenceNumber()
                                 + Objects.toString(request.getPostcode(), "");
@@ -61,7 +61,7 @@ public class RequestHashValidator {
                                         .filter(Objects::nonNull)
                                         .reduce("", String::concat)
                                 + Objects.toString(request.getDateOfBirth(), "")
-                                + request.getIssueDate()
+                                + request.getDateOfIssue()
                                 + request.getExpiryDate()
                                 + request.getDriverLicenceNumber()
                                 + Objects.toString(request.getPostcode(), "");

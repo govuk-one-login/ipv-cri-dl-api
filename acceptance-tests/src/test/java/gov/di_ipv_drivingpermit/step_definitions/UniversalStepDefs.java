@@ -6,6 +6,7 @@ import io.cucumber.java.en.And;
 import java.util.Objects;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.changeLanguageTo;
+import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.logFeatureSetTag;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.setFeatureSet;
 
 public class UniversalStepDefs extends UniversalSteps {
@@ -22,9 +23,19 @@ public class UniversalStepDefs extends UniversalSteps {
 
     @And("^I set the document checking route$")
     public void setDocumentCheckingRoute() {
-        if (getProperty("cucumber.tags").equals("@direct")) {
+
+        String tags = getProperty("cucumber.tags");
+
+        if (tags.equals("@direct")
+                // Temp dev tags will be ignored due to not matching @direct
+                // The follow added to enable manually debugging a single direct test as needed
+                // Do not merge tests with these tags
+                || tags.equals("@dva-direct-single-debug")
+                || tags.equals("@dvla-direct-single-debug")) {
             setFeatureSet("direct");
         }
+
+        logFeatureSetTag(tags);
     }
 
     private static String getProperty(String propertyName) {

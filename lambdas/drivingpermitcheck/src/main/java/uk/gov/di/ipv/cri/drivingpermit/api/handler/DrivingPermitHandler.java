@@ -247,9 +247,7 @@ public class DrivingPermitHandler
                     context.getFunctionName(),
                     e.getClass());
 
-            if (LOGGER.isDebugEnabled()) {
-                e.printStackTrace();
-            }
+            LOGGER.debug(e.getMessage(), e);
 
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 

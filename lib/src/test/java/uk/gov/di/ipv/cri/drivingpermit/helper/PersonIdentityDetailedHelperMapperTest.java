@@ -26,7 +26,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants.UK_
 class PersonIdentityDetailedHelperMapperTest {
 
     @Test
-    void ShouldReturnAuditRestrictedFormatFromPassportFormData() {
+    void ShouldReturnAuditRestrictedFormatFromDrivingPermitFormData() {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 

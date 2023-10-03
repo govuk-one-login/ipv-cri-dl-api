@@ -26,9 +26,10 @@ public class UniversalStepDefs extends UniversalSteps {
 
         String tags = getProperty("cucumber.tags");
 
-        if (tags.equals("@direct")
+        if (tags.equals("@dvaDirect")
+                || tags.equals("@dvlaDirect")
                 // Temp dev tags will be ignored due to not matching @direct
-                // The follow added to enable manually debugging a single direct test as needed
+                // The following added to enable manually debugging a single direct test as needed
                 // Do not merge tests with these tags
                 || tags.equals("@dva-direct-single-debug")
                 || tags.equals("@dvla-direct-single-debug")) {

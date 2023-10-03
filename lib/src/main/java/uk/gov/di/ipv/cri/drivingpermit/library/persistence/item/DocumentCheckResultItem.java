@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-@ExcludeFromGeneratedCoverageReport
 @DynamoDbBean
+@ExcludeFromGeneratedCoverageReport
 public class DocumentCheckResultItem {
     private UUID sessionId;
     private List<String> contraIndicators;

@@ -186,7 +186,7 @@ Mappings:
     Environment:
       dev: "true"
       build: "true"
-      staging: "false"
+      staging: "true"
       integration: "false"
       production: "false"
 

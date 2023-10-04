@@ -38,9 +38,6 @@ class ConfigurationServiceTest {
 
     private void mockPrivateParameters(String env) {
 
-        when(mockParameterStoreService.getParameterValue(CONTRAINDICATION_MAPPINGS))
-                .thenReturn("contraindicationMappings");
-
         when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn("2");
 

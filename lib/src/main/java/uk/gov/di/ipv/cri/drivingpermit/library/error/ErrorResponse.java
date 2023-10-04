@@ -49,8 +49,12 @@ public enum ErrorResponse {
             1308, "error_invoking_third_party_api_match_endpoint"),
     FAILED_TO_PREPARE_MATCH_REQUEST_PAYLOAD(1310, "failed to prepare match request payload"),
     FAILED_TO_MAP_MATCH_ENDPOINT_RESPONSE_BODY(1311, "failed to map match endpoint response_body"),
+    MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_SIZE_NOT_ONE(
+            1312, "match endpoint 404 response expected error size not one"),
+    MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_CODE_NOT_CORRECT(
+            1313, "match endpoint 404 response expected error code not correct"),
     ERROR_MATCH_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
-            1312, "error_match_endpoint_returned_unexpected_http_status_code");
+            1314, "error_match_endpoint_returned_unexpected_http_status_code");
 
     private final int code;
     private final String message;

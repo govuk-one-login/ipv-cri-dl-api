@@ -6,7 +6,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.CONTRAINDICATION_MAPPINGS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TABLE_NAME;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
@@ -38,8 +37,6 @@ public class ConfigurationService {
 
     private final int maxAttempts;
 
-    private final String contraindicationMappings;
-
     private final DcsConfiguration dcsConfiguration;
     private final DvaConfiguration dvaConfiguration;
     private final DvlaConfiguration dvlaConfiguration;
@@ -50,9 +47,6 @@ public class ConfigurationService {
         this.clock = Clock.systemUTC();
 
         // ****************************Private Parameters****************************
-
-        this.contraindicationMappings =
-                parameterStoreService.getParameterValue(CONTRAINDICATION_MAPPINGS);
 
         this.documentCheckResultTableName =
                 parameterStoreService.getStackParameterValue(DOCUMENT_CHECK_RESULT_TABLE_NAME);
@@ -114,10 +108,6 @@ public class ConfigurationService {
 
     public String getDocumentCheckResultTableName() {
         return documentCheckResultTableName;
-    }
-
-    public String getContraindicationMappings() {
-        return contraindicationMappings;
     }
 
     public int getMaxAttempts() {

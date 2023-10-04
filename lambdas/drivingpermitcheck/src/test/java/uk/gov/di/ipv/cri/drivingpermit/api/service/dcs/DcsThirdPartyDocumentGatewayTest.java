@@ -15,6 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
@@ -26,7 +27,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
 import java.io.IOException;
@@ -90,9 +90,10 @@ class DcsThirdPartyDocumentGatewayTest {
                 .thenReturn(new DcsPayload());
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(200, "", false);
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DcsHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
         when(this.dcsCryptographyService.unwrapDcsResponse(anyString()))
                 .thenReturn(createSuccessDcsResponse());
@@ -129,9 +130,10 @@ class DcsThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(300, "", false);
+                HttpResponseFixtures.createHttpResponse(300, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DcsHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -173,9 +175,10 @@ class DcsThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(400, "", false);
+                HttpResponseFixtures.createHttpResponse(400, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DcsHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -218,9 +221,10 @@ class DcsThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(500, "", false);
+                HttpResponseFixtures.createHttpResponse(500, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DcsHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -260,9 +264,11 @@ class DcsThirdPartyDocumentGatewayTest {
         when(this.dcsCryptographyService.preparePayload(any(DcsPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = HttpResponseFixtures.createHttpResponse(-1, "", false);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(-1, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DcsHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -306,9 +312,10 @@ class DcsThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(200, "", false);
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DcsHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
         when(this.dcsCryptographyService.unwrapDcsResponse(anyString()))
                 .thenReturn(createSuccessDcsResponse());

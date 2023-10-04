@@ -18,6 +18,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
@@ -60,6 +61,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private final EventProbe eventProbe;
 
     private final RequestConfig defaultRequestConfig;
+    private final HttpRetryStatusConfig httpRetryStatusConfig;
 
     public DcsThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
@@ -74,6 +76,7 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
         this.eventProbe = eventProbe;
 
         this.defaultRequestConfig = new HttpRequestConfig().getDefaultRequestConfig();
+        this.httpRetryStatusConfig = new DcsHttpRetryStatusConfig();
     }
 
     @Override
@@ -133,12 +136,11 @@ public class DcsThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
         final HTTPReply httpReply;
         LOGGER.info("Submitting document check request to third party...");
-        try (CloseableHttpResponse response = httpRetryer.sendHTTPRequestRetryIfAllowed(request)) {
+        try (CloseableHttpResponse response =
+                httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
             eventProbe.counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
             // throws OAuthErrorResponseException on error
-            httpReply =
-                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(
-                            response, API_RESULT_SOURCE.getName());
+            httpReply = HTTPReplyHelper.retrieveResponse(response, API_RESULT_SOURCE.getName());
 
             if (configurationService.isLogDcsResponse()) {
                 LOGGER.info("DCS response {}", httpReply.responseBody);

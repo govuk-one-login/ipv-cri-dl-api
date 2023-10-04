@@ -20,6 +20,8 @@ import java.security.cert.CertificateException;
 
 public class ThirdPartyAPIServiceFactory {
 
+    private static final int MAX_HTTP_RETRIES = 2;
+
     private static final int DCS = 0;
     private static final int DVA = 1;
     private static final int DVLA = 2;
@@ -56,7 +58,7 @@ public class ThirdPartyAPIServiceFactory {
         CloseableHttpClient httpClient =
                 serviceFactory.generateDcsHttpClient(configurationService, tlsOn);
 
-        HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe);
+        HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe, MAX_HTTP_RETRIES);
 
         return new DcsThirdPartyDocumentGateway(
                 objectMapper,
@@ -83,7 +85,7 @@ public class ThirdPartyAPIServiceFactory {
         CloseableHttpClient httpClient =
                 serviceFactory.generateDvaHttpClient(configurationService, tlsOn);
 
-        HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe);
+        HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe, MAX_HTTP_RETRIES);
 
         return new DvaThirdPartyDocumentGateway(
                 objectMapper,
@@ -99,7 +101,8 @@ public class ThirdPartyAPIServiceFactory {
 
         EventProbe eventProbe = serviceFactory.getEventProbe();
         HttpRetryer httpRetryer =
-                new HttpRetryer(serviceFactory.generateDvlaHttpClient(), eventProbe);
+                new HttpRetryer(
+                        serviceFactory.generateDvlaHttpClient(), eventProbe, MAX_HTTP_RETRIES);
         DvlaEndpointFactory dvlaEndpointFactory =
                 new DvlaEndpointFactory(serviceFactory, httpRetryer);
 

@@ -22,6 +22,8 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import testdata.DocumentCheckTestDataGenerator;
+import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
@@ -36,8 +38,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DocumentCheckTestDataGenerator;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -95,7 +95,8 @@ class IssueCredentialHandlerTest {
                         DrivingPermitFormTestDataGenerator.generate());
         SessionItem sessionItem = new SessionItem();
         DocumentCheckResultItem resultItem =
-                DocumentCheckTestDataGenerator.generateValidResultItem();
+                DocumentCheckTestDataGenerator.generateValidResultItem(
+                        UUID.randomUUID(), DrivingPermitFormTestDataGenerator.generate());
 
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
@@ -153,7 +154,8 @@ class IssueCredentialHandlerTest {
 
         SessionItem sessionItem = new SessionItem();
         DocumentCheckResultItem resultItem =
-                DocumentCheckTestDataGenerator.generateValidResultItem();
+                DocumentCheckTestDataGenerator.generateValidResultItem(
+                        UUID.randomUUID(), DrivingPermitFormTestDataGenerator.generate());
 
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))

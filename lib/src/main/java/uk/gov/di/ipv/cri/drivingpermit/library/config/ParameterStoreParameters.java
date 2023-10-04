@@ -107,6 +107,8 @@ public class ParameterStoreParameters {
     public static final String DVLA_ENDPOINT_TOKEN = "DVLA/tokenPath";
     public static final String DVLA_ENDPOINT_MATCH = "DVLA/matchPath";
 
+    public static final String DVLA_API_KEY = "DVLA/apiKey";
+
     public static final String DVLA_USERNAME = "DVLA/username";
     public static final String DVLA_PASSWORD = "DVLA/password";
 

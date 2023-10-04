@@ -3,11 +3,11 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
+import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.JsonValidationUtility;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -178,6 +178,27 @@ class FormDataValidatorTest {
         LOGGER.info(validationResult.getError().toString());
 
         assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
+        assertEquals(1, validationResult.getError().size());
+        assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
+        assertFalse(validationResult.isValid());
+    }
+
+    @Test
+    void testFormDataValidatorIssuerMustBeValid() {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        FormDataValidator formDataValidator = new FormDataValidator();
+
+        String invalidIssuer = "ABCD";
+
+        drivingPermitForm.setLicenceIssuer(invalidIssuer);
+
+        ValidationResult<List<String>> validationResult =
+                formDataValidator.validate(drivingPermitForm);
+
+        final String EXPECTED_ERROR = String.format("LicenceIssuer %s is Unknown", invalidIssuer);
+
+        LOGGER.info(validationResult.getError().toString());
+
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());

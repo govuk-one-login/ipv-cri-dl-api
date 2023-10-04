@@ -184,9 +184,9 @@ Mappings:
 
   dvlaDirectEnabledMapping:
     Environment:
-      dev: "false"
-      build: "false"
-      staging: "false"
+      dev: "true"
+      build: "true"
+      staging: "true"
       integration: "false"
       production: "false"
 
@@ -807,7 +807,7 @@ Resources:
       Name: !Sub "/${AWS::StackName}/maximumAttemptCount"
       Value: !FindInMap [MaximumAttemptCountMapping, Environment, !Ref 'Environment']
       Type: String
-      Description: maximum passport verification attempts
+      Description: maximum driving permit verification attempts
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

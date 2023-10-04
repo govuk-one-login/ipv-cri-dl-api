@@ -1,5 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.domain;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+
+@ExcludeFromGeneratedCoverageReport
 public enum IssuingAuthority {
     DVLA("DVLA"),
     DVA("DVA");

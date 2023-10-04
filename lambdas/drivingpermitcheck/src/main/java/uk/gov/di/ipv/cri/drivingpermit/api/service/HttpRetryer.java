@@ -11,31 +11,28 @@ import uk.gov.di.ipv.cri.drivingpermit.api.util.SleepHelper;
 import java.io.IOException;
 import java.net.http.HttpConnectTimeoutException;
 
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_ERROR;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_FAIL;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_MAX_RETRIES;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_OK;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_RETRY;
-
 public class HttpRetryer {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static final int MAX_HTTP_RETRIES = 7;
     public static final long HTTP_RETRY_WAIT_TIME_LIMIT_MS = 12800L;
 
     private final SleepHelper sleepHelper;
     private final CloseableHttpClient httpClient;
 
+    private final int maxRetries;
+
     private final EventProbe eventProbe;
 
-    public HttpRetryer(CloseableHttpClient httpClient, EventProbe eventProbe) {
+    public HttpRetryer(CloseableHttpClient httpClient, EventProbe eventProbe, int maxRetries) {
         this.sleepHelper = new SleepHelper(HTTP_RETRY_WAIT_TIME_LIMIT_MS);
         this.httpClient = httpClient;
         this.eventProbe = eventProbe;
+        this.maxRetries = maxRetries;
     }
 
-    public CloseableHttpResponse sendHTTPRequestRetryIfAllowed(HttpUriRequest request)
+    public CloseableHttpResponse sendHTTPRequestRetryIfAllowed(
+            HttpUriRequest request, HttpRetryStatusConfig httpRetryStatusConfig)
             throws IOException {
 
         CloseableHttpResponse httpResponse = null;
@@ -47,7 +44,7 @@ public class HttpRetryer {
         do {
             // "If" added for capturing retries
             if (retry) {
-                eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_RETRY);
+                eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendRetryMetric());
             }
 
             // Wait before sending request (0ms for first try)
@@ -56,24 +53,33 @@ public class HttpRetryer {
             try {
                 httpResponse = httpClient.execute(request);
 
-                retry = shouldHttpClientRetry(httpResponse.getStatusLine().getStatusCode());
+                int statusCode = httpResponse.getStatusLine().getStatusCode();
+
+                retry = httpRetryStatusConfig.shouldHttpClientRetry(statusCode);
+
+                if (retry) {
+                    LOGGER.warn("shouldHttpClientRetry statusCode - {}", statusCode);
+                }
 
                 LOGGER.info(
                         "HTTPRequestRetry - totalRequests {}, retries {}, retryNeeded {}, statusCode {}",
                         tryCount + 1,
                         tryCount,
                         retry,
-                        httpResponse.getStatusLine().getStatusCode());
+                        statusCode);
 
             } catch (IOException e) {
                 if (!(e instanceof HttpConnectTimeoutException)) {
-                    eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_FAIL);
+                    // Only HttpConnectTimeoutException can be retried, All other IOExceptions are
+                    // not
+                    LOGGER.warn("Failed to send request - reason {}", e.getMessage());
+                    eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendFailMetric(e));
                     throw e;
                 }
 
                 // For retries (tryCount>0) we want to rethrow only the last
                 // HttpConnectTimeoutException
-                if (tryCount < MAX_HTTP_RETRIES) {
+                if (tryCount < maxRetries) {
 
                     LOGGER.info(
                             "HTTPRequestRetry {} - totalRequests {}, retries {}, retrying {}",
@@ -92,36 +98,27 @@ public class HttpRetryer {
                             tryCount,
                             false);
 
+                    LOGGER.warn("Failed to send request - reason {}", e.getMessage());
+                    eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendFailMetric(e));
+
                     throw e;
                 }
             }
-        } while (retry && (tryCount++ < MAX_HTTP_RETRIES));
+        } while (retry && (tryCount++ < maxRetries));
 
         int lastStatusCode = httpResponse.getStatusLine().getStatusCode();
         LOGGER.info("HTTPRequestRetry Exited lastStatusCode {}", lastStatusCode);
 
-        if (lastStatusCode == 200) {
-            eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
-        } else if (tryCount < MAX_HTTP_RETRIES) {
-            eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_ERROR);
+        if (httpRetryStatusConfig.isSuccessStatusCode(lastStatusCode)) {
+            eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendOkMetric());
+        } else if (tryCount < maxRetries) {
+            // Reachable when the remote api responds initially with a retryable status code, then
+            // during a retry with a non-retryable status code.
+            eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendErrorMetric());
         } else {
-            eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_MAX_RETRIES);
+            eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerMaxRetriesMetric());
         }
 
         return httpResponse;
-    }
-
-    boolean shouldHttpClientRetry(int statusCode) {
-        if (statusCode == 200) {
-            // OK, Success
-            return false;
-        } else if (statusCode == 429) {
-            // Too many recent requests
-            LOGGER.warn("shouldHttpClientRetry statusCode - {}", statusCode);
-            return true;
-        } else {
-            // Retry all server errors, but not any other status codes
-            return ((statusCode >= 500) && (statusCode <= 599));
-        }
     }
 }

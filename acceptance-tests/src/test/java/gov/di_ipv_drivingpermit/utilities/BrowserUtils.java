@@ -450,6 +450,10 @@ public class BrowserUtils {
         Driver.get().get(newURL);
     }
 
+    public static void logFeatureSetTag(final String featureSet) {
+        LOGGER.info("Feature set tag was : {}", featureSet);
+    }
+
     public static HttpResponse<String> sendHttpRequest(HttpRequest request)
             throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder().build();

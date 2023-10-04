@@ -1,13 +1,13 @@
-package uk.gov.di.ipv.cri.drivingpermit.library.testdata;
+package testdata;
 
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.time.LocalDate;
 import java.util.List;
+
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY;
 
 public class DrivingPermitFormTestDataGenerator {
 
@@ -18,14 +18,10 @@ public class DrivingPermitFormTestDataGenerator {
     }
 
     public static DrivingPermitForm generate() {
-        DrivingPermitForm drivingPermitForm = new DrivingPermitForm();
-
         return generate(IssuingAuthority.DVLA);
     }
 
     public static DrivingPermitForm generateDva() {
-        DrivingPermitForm drivingPermitForm = new DrivingPermitForm();
-
         return generate(IssuingAuthority.DVA);
     }
 
@@ -47,29 +43,10 @@ public class DrivingPermitFormTestDataGenerator {
 
         Address address = new Address();
         address.setPostalCode("Postcode");
-        address.setAddressCountry("GB");
+        address.setAddressCountry(UK_DRIVING_PERMIT_ADDRESS_COUNTRY);
 
         drivingPermitForm.setAddresses(List.of(address));
 
         return drivingPermitForm;
-    }
-
-    public static DrivingPermit deriveDrivingPermit(DrivingPermitForm data) {
-        DrivingPermit drivingPermit = new DrivingPermit();
-        drivingPermit.setPersonalNumber(data.getDrivingLicenceNumber());
-        drivingPermit.setExpiryDate(data.getExpiryDate().toString());
-        drivingPermit.setIssuedBy(data.getLicenceIssuer());
-
-        return drivingPermit;
-    }
-
-    public static CheckDetails deriveCheckDetails(DrivingPermitForm data) {
-        CheckDetails checkDetails = new CheckDetails();
-
-        checkDetails.setCheckMethod("data");
-        checkDetails.setActivityFrom(data.getExpiryDate().minusYears(10).toString());
-        checkDetails.setIdentityCheckPolicy("published");
-
-        return checkDetails;
     }
 }

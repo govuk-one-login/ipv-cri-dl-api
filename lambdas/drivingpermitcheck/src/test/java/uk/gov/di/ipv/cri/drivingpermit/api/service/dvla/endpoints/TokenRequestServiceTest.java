@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla;
+package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
@@ -23,7 +23,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.dynamo.TokenItem;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.response.TokenResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvlaConfiguration;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
@@ -83,7 +82,6 @@ class TokenRequestServiceTest {
         realObjectMapper = new ObjectMapper();
 
         when(mockDvlaConfiguration.getTokenEndpoint()).thenReturn(TEST_END_POINT);
-        // when(mockDvlaConfiguration.getMatchEndpoint()).thenReturn("");
         when(mockDvlaConfiguration.getTokenTableName()).thenReturn(TEST_TOKEN_TABLE_NAME);
         when(mockDvlaConfiguration.getUsername()).thenReturn(TEST_USER_NAME);
         when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
@@ -114,19 +112,21 @@ class TokenRequestServiceTest {
 
         // Bearer access token
         CloseableHttpResponse tokenResponse =
-                HttpResponseFixtures.createHttpResponse(200, testTokenResponseString, false);
+                HttpResponseFixtures.createHttpResponse(200, null, testTokenResponseString, false);
 
         // HttpClient response
-        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
                 .thenReturn(tokenResponse);
 
-        String tokenValue = tokenRequestService.requestAccessToken(false);
+        String tokenValue = tokenRequestService.requestToken(false);
 
         // (POST) Token
         InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(1))
-                .sendHTTPRequestRetryIfAllowed(any(HttpPost.class));
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
@@ -158,7 +158,8 @@ class TokenRequestServiceTest {
 
         doThrow(exceptionCaught)
                 .when(mockHttpRetryer)
-                .sendHTTPRequestRetryIfAllowed(any(HttpPost.class));
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
 
         OAuthErrorResponseException expectedReturnedException =
                 new OAuthErrorResponseException(
@@ -168,14 +169,15 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestAccessToken(true),
+                        () -> tokenRequestService.requestToken(true),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
         InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(1))
-                .sendHTTPRequestRetryIfAllowed(any(HttpPost.class));
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
@@ -200,10 +202,11 @@ class TokenRequestServiceTest {
 
         // Bearer access token but status not 200
         CloseableHttpResponse tokenResponse =
-                HttpResponseFixtures.createHttpResponse(501, "Server Error", false);
+                HttpResponseFixtures.createHttpResponse(501, null, "Server Error", false);
 
         // HttpClient response
-        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
                 .thenReturn(tokenResponse);
 
         OAuthErrorResponseException expectedReturnedException =
@@ -214,14 +217,15 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestAccessToken(true),
+                        () -> tokenRequestService.requestToken(true),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
         InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(1))
-                .sendHTTPRequestRetryIfAllowed(any(HttpPost.class));
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
@@ -248,10 +252,11 @@ class TokenRequestServiceTest {
 
         // Invalid Response Body
         CloseableHttpResponse tokenResponse =
-                HttpResponseFixtures.createHttpResponse(200, "not-json", false);
+                HttpResponseFixtures.createHttpResponse(200, null, "not-json", false);
 
         // HttpClient response
-        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
                 .thenReturn(tokenResponse);
 
         OAuthErrorResponseException expectedReturnedException =
@@ -262,14 +267,15 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestAccessToken(true),
+                        () -> tokenRequestService.requestToken(true),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
         InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(1))
-                .sendHTTPRequestRetryIfAllowed(any(HttpPost.class));
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
@@ -305,22 +311,23 @@ class TokenRequestServiceTest {
         TokenResponse testTokenResponse = TokenResponse.builder().idToken(TEST_TOKEN_VALUE).build();
         String testTokenResponseString = realObjectMapper.writeValueAsString(testTokenResponse);
         CloseableHttpResponse tokenResponse =
-                HttpResponseFixtures.createHttpResponse(200, testTokenResponseString, false);
+                HttpResponseFixtures.createHttpResponse(200, null, testTokenResponseString, false);
 
         // Request one
         when(mockTokenTable.getItem(TOKEN_ITEM_KEY)).thenReturn(null);
-        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
                 .thenReturn(tokenResponse);
         // Token put capture
         doNothing().when(mockTokenTable).putItem(dynamoPutItemTokenItemCaptor.capture());
-        String tokenResponseOne = tokenRequestService.requestAccessToken(false);
+        String tokenResponseOne = tokenRequestService.requestToken(false);
         assertEquals(TEST_TOKEN_VALUE, tokenResponseOne);
 
         // Request two
         TokenItem testTokenFromDynamo = dynamoPutItemTokenItemCaptor.getValue();
         // Captured token get
         when(mockTokenTable.getItem(TOKEN_ITEM_KEY)).thenReturn(testTokenFromDynamo);
-        String tokenResponseTwo = tokenRequestService.requestAccessToken(false);
+        String tokenResponseTwo = tokenRequestService.requestToken(false);
 
         assertEquals(tokenResponseOne, tokenResponseTwo);
 
@@ -328,7 +335,8 @@ class TokenRequestServiceTest {
         InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(1))
-                .sendHTTPRequestRetryIfAllowed(any(HttpPost.class));
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         // Times 1 here is important - token is cached
@@ -365,15 +373,16 @@ class TokenRequestServiceTest {
         TokenResponse testTokenResponse = TokenResponse.builder().idToken(TEST_TOKEN_VALUE).build();
         String testTokenResponseString = realObjectMapper.writeValueAsString(testTokenResponse);
         CloseableHttpResponse tokenResponse =
-                HttpResponseFixtures.createHttpResponse(200, testTokenResponseString, false);
+                HttpResponseFixtures.createHttpResponse(200, null, testTokenResponseString, false);
 
         // Request one
         when(mockTokenTable.getItem(TOKEN_ITEM_KEY)).thenReturn(null);
-        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
                 .thenReturn(tokenResponse);
         // Token put capture
         doNothing().when(mockTokenTable).putItem(dynamoPutItemTokenItemCaptor.capture());
-        String tokenResponseOne = tokenRequestService.requestAccessToken(false);
+        String tokenResponseOne = tokenRequestService.requestToken(false);
         assertEquals(TEST_TOKEN_VALUE, tokenResponseOne);
 
         // Request two
@@ -384,7 +393,7 @@ class TokenRequestServiceTest {
 
         // Captured token get
         when(mockTokenTable.getItem(TOKEN_ITEM_KEY)).thenReturn(testTokenFromDynamo);
-        String tokenResponseTwo = tokenRequestService.requestAccessToken(false);
+        String tokenResponseTwo = tokenRequestService.requestToken(false);
 
         assertEquals(tokenResponseOne, tokenResponseTwo);
 
@@ -392,7 +401,8 @@ class TokenRequestServiceTest {
         InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(2))
-                .sendHTTPRequestRetryIfAllowed(any(HttpPost.class));
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         // Times 1 here is important - token is cached

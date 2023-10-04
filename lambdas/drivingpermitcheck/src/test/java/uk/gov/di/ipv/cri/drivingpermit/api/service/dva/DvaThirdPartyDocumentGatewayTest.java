@@ -16,6 +16,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
@@ -27,7 +28,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.drivingpermit.library.testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
 import java.io.IOException;
@@ -91,9 +91,10 @@ class DvaThirdPartyDocumentGatewayTest {
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(200, "", false);
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
         when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
                 .thenReturn(createSuccessDvaResponse());
@@ -131,9 +132,10 @@ class DvaThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(300, "", false);
+                HttpResponseFixtures.createHttpResponse(300, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -173,9 +175,10 @@ class DvaThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(400, "", false);
+                HttpResponseFixtures.createHttpResponse(400, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -215,9 +218,10 @@ class DvaThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(500, "", false);
+                HttpResponseFixtures.createHttpResponse(500, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -255,9 +259,11 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
                 .thenReturn(jwsObject);
 
-        CloseableHttpResponse httpResponse = HttpResponseFixtures.createHttpResponse(-1, "", false);
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(-1, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
 
         OAuthErrorResponseException e =
@@ -301,9 +307,10 @@ class DvaThirdPartyDocumentGatewayTest {
                 .thenReturn(true);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(200, "", false);
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
 
-        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(httpRequestCaptor.capture()))
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
                 .thenReturn(httpResponse);
         when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
                 .thenReturn(createSuccessDvaResponse());

@@ -17,7 +17,9 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
@@ -37,6 +39,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource.DVA;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_INVALID_REQUEST_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_ERROR;
@@ -52,12 +55,15 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final String SERVICE_NAME = DvaThirdPartyDocumentGateway.class.getSimpleName();
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final APIResultSource API_RESULT_SOURCE = DVA;
     private final DvaCryptographyService dvaCryptographyService;
     private final RequestHashValidator requestHashValidator;
     private final ObjectMapper objectMapper;
     private final ConfigurationService configurationService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
+
+    private final HttpRetryStatusConfig httpRetryStatusConfig;
 
     public DvaThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
@@ -72,6 +78,8 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         this.configurationService = configurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
+
+        this.httpRetryStatusConfig = new DvaHttpRetryStatusConfig();
     }
 
     @Override
@@ -146,7 +154,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
         DocumentCheckResult documentCheckResult;
         try (CloseableHttpResponse httpResponse =
-                httpRetryer.sendHTTPRequestRetryIfAllowed(request)) {
+                httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
             eventProbe.counterMetric(DVA_REQUEST_SEND_OK.withEndpointPrefix());
             documentCheckResult =
                     responseHandler(dvaPayload, httpResponse, dvaPayload.getRequestId().toString());
@@ -166,6 +174,8 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         }
 
         eventProbe.counterMetric(DVA_RESPONSE_TYPE_VALID.withEndpointPrefix());
+
+        documentCheckResult.setApiResultSource(API_RESULT_SOURCE);
 
         return documentCheckResult;
     }

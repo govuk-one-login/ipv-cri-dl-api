@@ -39,7 +39,8 @@ dependencies {
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
 			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 
-	testFixturesImplementation "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
+	testFixturesImplementation "uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
 
 	compileOnly "org.projectlombok:lombok:${dependencyVersions.lombok_version}"
 	annotationProcessor "org.projectlombok:lombok:${dependencyVersions.lombok_version}"

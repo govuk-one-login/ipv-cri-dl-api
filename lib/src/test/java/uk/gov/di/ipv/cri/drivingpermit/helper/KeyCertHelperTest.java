@@ -3,10 +3,12 @@ package uk.gov.di.ipv.cri.drivingpermit.helper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -34,6 +36,19 @@ class KeyCertHelperTest {
     void shouldReturnDecodedPrivateRSAKey() {
         AtomicReference<PrivateKey> key = new AtomicReference<>();
         assertDoesNotThrow(() -> key.set(KeyCertHelper.getDecodedPrivateRSAKey(TEST_TLS_KEY)));
+        assertNotNull(key.get());
+    }
+
+    @Test
+    void shouldCreateThumbprints() {
+        AtomicReference<Thumbprints> key = new AtomicReference<>();
+        assertDoesNotThrow(
+                () ->
+                        key.set(
+                                KeyCertHelper.makeThumbprint(
+                                        (X509Certificate)
+                                                KeyCertHelper.getDecodedX509Certificate(
+                                                        TEST_ROOT_CRT))));
         assertNotNull(key.get());
     }
 }

@@ -8,6 +8,11 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_VALID;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.HTTP_RETRYER_REQUEST_SEND_FAIL;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.HTTP_RETRYER_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.HTTP_RETRYER_REQUEST_SEND_RETRY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.HTTP_RETRYER_SEND_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.HTTP_RETRYER_SEND_MAX_RETRIES;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_OK;
@@ -35,6 +40,16 @@ public enum ThirdPartyAPIEndpointMetric {
     DCS_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
+    DCS_HTTP_RETRYER_REQUEST_SEND_OK(
+            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
+    DCS_HTTP_RETRYER_REQUEST_SEND_FAIL(
+            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_FAIL),
+    DCS_HTTP_RETRYER_REQUEST_SEND_RETRY(
+            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_RETRY),
+    DCS_HTTP_RETRYER_SEND_MAX_RETRIES(
+            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_SEND_MAX_RETRIES),
+    DCS_HTTP_RETRYER_SEND_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVA End Point Metrics                                                                     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,6 +66,16 @@ public enum ThirdPartyAPIEndpointMetric {
             DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
     DVA_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    DVA_HTTP_RETRYER_REQUEST_SEND_OK(
+            DVA_THIRD_PARTY_API_DVA_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
+    DVA_HTTP_RETRYER_REQUEST_SEND_FAIL(
+            DVA_THIRD_PARTY_API_DVA_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_FAIL),
+    DVA_HTTP_RETRYER_REQUEST_SEND_RETRY(
+            DVA_THIRD_PARTY_API_DVA_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_RETRY),
+    DVA_HTTP_RETRYER_SEND_MAX_RETRIES(
+            DVA_THIRD_PARTY_API_DVA_ENDPOINT, HTTP_RETRYER_SEND_MAX_RETRIES),
+    DVA_HTTP_RETRYER_SEND_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
 
     DVA_INVALID_REQUEST_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, "invalid_request_error"),
     DVA_REQUEST_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, "request_error"),
@@ -75,6 +100,17 @@ public enum ThirdPartyAPIEndpointMetric {
     DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
+    DVLA_TOKEN_HTTP_RETRYER_REQUEST_SEND_OK(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
+    DVLA_TOKEN_HTTP_RETRYER_REQUEST_SEND_FAIL(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_FAIL),
+    DVLA_TOKEN_HTTP_RETRYER_REQUEST_SEND_RETRY(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_RETRY),
+    DVLA_TOKEN_HTTP_RETRYER_SEND_MAX_RETRIES(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, HTTP_RETRYER_SEND_MAX_RETRIES),
+    DVLA_TOKEN_HTTP_RETRYER_SEND_ERROR(
+            DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVLA Match End Point Metrics                                                              //
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +128,22 @@ public enum ThirdPartyAPIEndpointMetric {
     DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
             DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
     DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
-            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS);
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    DVLA_MATCH_HTTP_RETRYER_REQUEST_SEND_OK(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
+    DVLA_MATCH_HTTP_RETRYER_REQUEST_SEND_FAIL(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_FAIL),
+    DVLA_MATCH_HTTP_RETRYER_REQUEST_SEND_RETRY(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_RETRY),
+    DVLA_MATCH_HTTP_RETRYER_SEND_MAX_RETRIES(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, HTTP_RETRYER_SEND_MAX_RETRIES),
+    DVLA_MATCH_HTTP_RETRYER_SEND_ERROR(
+            DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, HTTP_RETRYER_SEND_ERROR);
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // End Of Metric Descriptions                                                                //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     private static final String METRIC_FORMAT = "%s_%s";
     private static final String METRIC_CAUSE_FORMAT = METRIC_FORMAT;

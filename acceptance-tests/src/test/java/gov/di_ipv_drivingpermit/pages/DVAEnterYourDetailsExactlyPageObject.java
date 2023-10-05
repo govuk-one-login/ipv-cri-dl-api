@@ -142,7 +142,7 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
     public void userEntersData(String issuer, String drivingLicenceSubjectScenario) {
         super.userEntersData(issuer, drivingLicenceSubjectScenario);
         TestInput drivingLicenceSubject =
-                TestDataCreator.getDVATestUserFromMap(issuer, drivingLicenceSubjectScenario);
+                TestDataCreator.getTestUserFromMap(issuer, drivingLicenceSubjectScenario);
         DVAEnterYourDetailsExactlyPageObject dvaEnterYourDetailsExactlyPage =
                 new DVAEnterYourDetailsExactlyPageObject();
         dvaEnterYourDetailsExactlyPage.dvaLicenceNumber.sendKeys(
@@ -180,7 +180,7 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
     public void userReEntersDataAsDVADrivingLicenceSubject(String drivingLicenceSubjectScenario) {
         TestInput dvaDrivingLicenceSubject =
-                TestDataCreator.getDVATestUserFromMap("DVA", drivingLicenceSubjectScenario);
+                TestDataCreator.getTestUserFromMap("DVA", drivingLicenceSubjectScenario);
 
         dvaLicenceNumber.clear();
         LastName.clear();

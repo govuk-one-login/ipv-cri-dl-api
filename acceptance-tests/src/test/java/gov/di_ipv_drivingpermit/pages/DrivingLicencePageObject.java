@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
+import static java.lang.System.getenv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -360,7 +361,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public WebElement postcodeLabel;
 
     public DrivingLicencePageObject() {
-        this.configurationService = new ConfigurationService(System.getenv("ENVIRONMENT"));
+        this.configurationService = new ConfigurationService(getenv("ENVIRONMENT"));
         PageFactory.initElements(Driver.get(), this);
         TestDataCreator.createDefaultResponses();
     }
@@ -596,7 +597,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void userEntersData(String issuer, String drivingLicenceSubjectScenario) {
         TestInput drivingLicenceSubject =
-                TestDataCreator.getDVATestUserFromMap(issuer, drivingLicenceSubjectScenario);
+                TestDataCreator.getTestUserFromMap(issuer, drivingLicenceSubjectScenario);
         if (issuer.equals("DVLA")) {
             LicenceNumber.sendKeys(drivingLicenceSubject.getLicenceNumber());
             birthDay.sendKeys(drivingLicenceSubject.getBirthDay());
@@ -717,7 +718,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void userReEntersDataAsADrivingLicenceSubject(String drivingLicenceSubjectScenario) {
         TestInput drivingLicenceSubject =
-                TestDataCreator.getDVATestUserFromMap("DVLA", drivingLicenceSubjectScenario);
+                TestDataCreator.getTestUserFromMap("DVLA", drivingLicenceSubjectScenario);
 
         LicenceNumber.clear();
         LastName.clear();

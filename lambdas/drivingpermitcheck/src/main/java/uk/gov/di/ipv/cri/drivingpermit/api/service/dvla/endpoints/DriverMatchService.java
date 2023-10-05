@@ -185,12 +185,15 @@ public class DriverMatchService {
                             objectMapper.readValue(
                                     httpReply.responseBody, DriverMatchErrorResponse.class);
 
-                    // 404 is an expected error response when the licence number is not found
-                    // Check the errors array is only of size 1
-                    // and that the single error is the correct code
-                    // Throws OAuthErrorResponseException if any issues
-                    Errors errors = verifyAndRetrieve404Error(driverMatchErrorResponse, httpReply);
+                    // For monitoring
+                    int numberOfErrors = driverMatchErrorResponse.getErrors().size();
+                    if (numberOfErrors > 1) {
+                        LOGGER.warn(
+                                "404 response contains {} errors in errors array, only expected 1",
+                                numberOfErrors);
+                    }
 
+                    Errors errors = driverMatchErrorResponse.getErrors().get(0);
                     LOGGER.info(
                             "{} got valid 404 response, Code {}, Detail {}",
                             REQUEST_NAME,
@@ -243,52 +246,54 @@ public class DriverMatchService {
         }
     }
 
-    private Errors verifyAndRetrieve404Error(
-            DriverMatchErrorResponse driverMatchErrorResponse, HTTPReply httpReply)
-            throws OAuthErrorResponseException {
-
-        if (driverMatchErrorResponse.getErrors() == null
-                || driverMatchErrorResponse.getErrors().size() != 1) {
-
-            String errorsListSize =
-                    (driverMatchErrorResponse.getErrors() == null)
-                            ? null
-                            : String.valueOf(driverMatchErrorResponse.getErrors().size());
-
-            LOGGER.error(
-                    "One error expected in {} 404 response, errors list size was {}",
-                    REQUEST_NAME,
-                    errorsListSize);
-            LOGGER.debug(httpReply.responseBody);
-
-            // Invalid due to mismatch in the number of errors
-            eventProbe.counterMetric(DVLA_MATCH_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-
-            throw new OAuthErrorResponseException(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_SIZE_NOT_ONE);
-        }
-
-        // There is one error but is it the expected error code
-        Errors errors = driverMatchErrorResponse.getErrors().get(0);
-
-        // Check the 404 error is a licence number not found
-        // error code, and not a different code
-        if (!errors.getCode().equals(HTTP_404_EXPECTED_ERROR_CODE)) {
-            LOGGER.error(
-                    "404 Status, error code mismatch expected code {} but found code {}",
-                    HTTP_404_EXPECTED_ERROR_CODE,
-                    errors.getCode());
-            LOGGER.debug(httpReply.responseBody);
-
-            // Invalid due to a code mismatch
-            eventProbe.counterMetric(DVLA_MATCH_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-
-            throw new OAuthErrorResponseException(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_CODE_NOT_CORRECT);
-        }
-
-        return errors;
-    }
+    // 404 response validation is disabled - reply is being trusted to be correct
+    //    private Errors verifyAndRetrieve404Error(
+    //            DriverMatchErrorResponse driverMatchErrorResponse, HTTPReply httpReply)
+    //            throws OAuthErrorResponseException {
+    //
+    //        if (driverMatchErrorResponse.getErrors() == null
+    //                || driverMatchErrorResponse.getErrors().size() != 1) {
+    //
+    //            String errorsListSize =
+    //                    (driverMatchErrorResponse.getErrors() == null)
+    //                            ? null
+    //                            : String.valueOf(driverMatchErrorResponse.getErrors().size());
+    //
+    //            LOGGER.error(
+    //                    "One error expected in {} 404 response, errors list size was {}",
+    //                    REQUEST_NAME,
+    //                    errorsListSize);
+    //            LOGGER.debug(httpReply.responseBody);
+    //
+    //            // Invalid due to mismatch in the number of errors
+    //            eventProbe.counterMetric(DVLA_MATCH_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+    //
+    //            throw new OAuthErrorResponseException(
+    //                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+    //                    ErrorResponse.MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_SIZE_NOT_ONE);
+    //        }
+    //
+    //        // There is one error but is it the expected error code
+    //        Errors errors = driverMatchErrorResponse.getErrors().get(0);
+    //
+    //        // Check the 404 error is a licence number not found
+    //        // error code, and not a different code
+    //        if (!errors.getCode().equals(HTTP_404_EXPECTED_ERROR_CODE)) {
+    //            LOGGER.error(
+    //                    "404 Status, error code mismatch expected code {} but found code {}",
+    //                    HTTP_404_EXPECTED_ERROR_CODE,
+    //                    errors.getCode());
+    //            LOGGER.debug(httpReply.responseBody);
+    //
+    //            // Invalid due to a code mismatch
+    //            eventProbe.counterMetric(DVLA_MATCH_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+    //
+    //            throw new OAuthErrorResponseException(
+    //                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+    //
+    // ErrorResponse.MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_CODE_NOT_CORRECT);
+    //        }
+    //
+    //        return errors;
+    //    }
 }

@@ -34,7 +34,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseExce
 import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -381,103 +380,111 @@ class DriverMatchServiceTest {
         assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "null_errors_list",
-        "multiple_errors",
-        "no_errors_in_list",
-        "wrong_error_code",
-    })
-    void shouldReturnOAuthErrorResponseExceptionWhenDriverMatch404ResponseErrorsIsInvalid(
-            String scenario) throws IOException {
-        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
-                ArgumentCaptor.forClass(HttpPost.class);
-
-        // Values for the test 404 error response
-        String code = scenario.equals("wrong_error_code") ? "wrong_error_code" : "ENQ018";
-        String status = "404";
-        String detail = "Driver number not found";
-
-        Errors errors = Errors.builder().code(code).status(status).detail(detail).build();
-
-        List<Errors> errorsList;
-
-        switch (scenario) {
-            case "null_errors_list":
-                errorsList = null;
-                break;
-            case "no_errors_in_list":
-                errorsList = new ArrayList<>();
-                break;
-            case "multiple_errors":
-                errorsList = List.of(errors, errors); // two errors
-                break;
-            default:
-                errorsList = List.of(errors);
-        }
-
-        String testResponseBody =
-                realObjectMapper.writeValueAsString(
-                        DriverMatchErrorResponse.builder().errors(errorsList).build());
-
-        CloseableHttpResponse driverMatchResponse =
-                HttpResponseFixtures.createHttpResponse(404, null, testResponseBody, false);
-
-        // HttpClient response
-        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
-                        httpRequestCaptor.capture(), any(DriverMatchHttpRetryStatusConfig.class)))
-                .thenReturn(driverMatchResponse);
-
-        OAuthErrorResponseException expectedReturnedException;
-
-        if (scenario.equals("wrong_error_code")) {
-            expectedReturnedException =
-                    new OAuthErrorResponseException(
-                            HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                            ErrorResponse
-                                    .MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_CODE_NOT_CORRECT);
-        } else {
-            expectedReturnedException =
-                    new OAuthErrorResponseException(
-                            HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                            ErrorResponse.MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_SIZE_NOT_ONE);
-        }
-
-        // Method arg
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
-
-        OAuthErrorResponseException thrownException =
-                assertThrows(
-                        OAuthErrorResponseException.class,
-                        () -> driverMatchService.performMatch(drivingPermitForm, TEST_TOKEN_VALUE),
-                        "Expected OAuthErrorResponseException");
-
-        // (Post) DriverMatch
-        InOrder inOrderMockHttpClientSequence = inOrder(mockHttpRetryer);
-        inOrderMockHttpClientSequence
-                .verify(mockHttpRetryer, times(1))
-                .sendHTTPRequestRetryIfAllowed(
-                        any(HttpPost.class), any(DriverMatchHttpRetryStatusConfig.class));
-        verifyNoMoreInteractions(mockHttpRetryer);
-
-        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
-        inOrderMockEventProbeSequence
-                .verify(mockEventProbe)
-                .counterMetric(DVLA_MATCH_REQUEST_CREATED.withEndpointPrefix());
-        inOrderMockEventProbeSequence
-                .verify(mockEventProbe)
-                .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
-        inOrderMockEventProbeSequence
-                .verify(mockEventProbe)
-                .counterMetric(DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
-        inOrderMockEventProbeSequence
-                .verify(mockEventProbe)
-                .counterMetric(DVLA_MATCH_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-        verifyNoMoreInteractions(mockEventProbe);
-
-        assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
-        assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
-    }
+    // Test disabled as 404 response validation is disabled
+    //    @ParameterizedTest
+    //    @CsvSource({
+    //        "null_errors_list",
+    //        "multiple_errors",
+    //        "no_errors_in_list",
+    //        "wrong_error_code",
+    //    })
+    //    void shouldReturnOAuthErrorResponseExceptionWhenDriverMatch404ResponseErrorsIsInvalid(
+    //            String scenario) throws IOException {
+    //        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
+    //                ArgumentCaptor.forClass(HttpPost.class);
+    //
+    //        // Values for the test 404 error response
+    //        String code = scenario.equals("wrong_error_code") ? "wrong_error_code" : "ENQ018";
+    //        String status = "404";
+    //        String detail = "Driver number not found";
+    //
+    //        Errors errors = Errors.builder().code(code).status(status).detail(detail).build();
+    //
+    //        List<Errors> errorsList;
+    //
+    //        switch (scenario) {
+    //            case "null_errors_list":
+    //                errorsList = null;
+    //                break;
+    //            case "no_errors_in_list":
+    //                errorsList = new ArrayList<>();
+    //                break;
+    //            case "multiple_errors":
+    //                errorsList = List.of(errors, errors); // two errors
+    //                break;
+    //            default:
+    //                errorsList = List.of(errors);
+    //        }
+    //
+    //        String testResponseBody =
+    //                realObjectMapper.writeValueAsString(
+    //                        DriverMatchErrorResponse.builder().errors(errorsList).build());
+    //
+    //        CloseableHttpResponse driverMatchResponse =
+    //                HttpResponseFixtures.createHttpResponse(404, null, testResponseBody, false);
+    //
+    //        // HttpClient response
+    //        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+    //                        httpRequestCaptor.capture(),
+    // any(DriverMatchHttpRetryStatusConfig.class)))
+    //                .thenReturn(driverMatchResponse);
+    //
+    //        OAuthErrorResponseException expectedReturnedException;
+    //
+    //        if (scenario.equals("wrong_error_code")) {
+    //            expectedReturnedException =
+    //                    new OAuthErrorResponseException(
+    //                            HttpStatus.SC_INTERNAL_SERVER_ERROR,
+    //                            ErrorResponse
+    //
+    // .MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_CODE_NOT_CORRECT);
+    //        } else {
+    //            expectedReturnedException =
+    //                    new OAuthErrorResponseException(
+    //                            HttpStatus.SC_INTERNAL_SERVER_ERROR,
+    //
+    // ErrorResponse.MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_SIZE_NOT_ONE);
+    //        }
+    //
+    //        // Method arg
+    //        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+    //
+    //        OAuthErrorResponseException thrownException =
+    //                assertThrows(
+    //                        OAuthErrorResponseException.class,
+    //                        () -> driverMatchService.performMatch(drivingPermitForm,
+    // TEST_TOKEN_VALUE),
+    //                        "Expected OAuthErrorResponseException");
+    //
+    //        // (Post) DriverMatch
+    //        InOrder inOrderMockHttpClientSequence = inOrder(mockHttpRetryer);
+    //        inOrderMockHttpClientSequence
+    //                .verify(mockHttpRetryer, times(1))
+    //                .sendHTTPRequestRetryIfAllowed(
+    //                        any(HttpPost.class), any(DriverMatchHttpRetryStatusConfig.class));
+    //        verifyNoMoreInteractions(mockHttpRetryer);
+    //
+    //        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
+    //        inOrderMockEventProbeSequence
+    //                .verify(mockEventProbe)
+    //                .counterMetric(DVLA_MATCH_REQUEST_CREATED.withEndpointPrefix());
+    //        inOrderMockEventProbeSequence
+    //                .verify(mockEventProbe)
+    //                .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
+    //        inOrderMockEventProbeSequence
+    //                .verify(mockEventProbe)
+    //
+    // .counterMetric(DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+    //        inOrderMockEventProbeSequence
+    //                .verify(mockEventProbe)
+    //                .counterMetric(DVLA_MATCH_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+    //        verifyNoMoreInteractions(mockEventProbe);
+    //
+    //        assertEquals(expectedReturnedException.getStatusCode(),
+    // thrownException.getStatusCode());
+    //        assertEquals(expectedReturnedException.getErrorReason(),
+    // thrownException.getErrorReason());
+    //    }
 
     private void assertDriverMatchHeaders(
             ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor) {

@@ -19,7 +19,7 @@ import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ProtectedHeader;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.request.DvaPayload;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.DvaInterface;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response.DvaSignedEncryptedResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
@@ -42,7 +42,7 @@ public class DvaCryptographyService {
         this.dvaConfiguration = configurationService.getDvaConfiguration();
     }
 
-    public JWSObject preparePayload(DvaPayload documentDetails)
+    public JWSObject preparePayload(DvaInterface documentDetails)
             throws CertificateException, JOSEException, JsonProcessingException {
         JWSObject signedDocumentDetails =
                 createJWS(objectMapper.writeValueAsString(documentDetails));
@@ -101,10 +101,21 @@ public class DvaCryptographyService {
         return jwsObject;
     }
 
-    private JWEObject createJWE(String data) throws JOSEException, CertificateException {
+    private JWEObject createJWE(String data) throws JOSEException, JsonProcessingException {
+
+        ProtectedHeader protectedHeader =
+                new ProtectedHeader(
+                        JWSAlgorithm.RS256.toString(),
+                        dvaConfiguration.getEncryptionCertThumbprints().getSha1Thumbprint(),
+                        dvaConfiguration.getEncryptionCertThumbprints().getSha256Thumbprint());
+
+        String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
 
         var header =
-                new JWEHeader.Builder(JWEAlgorithm.RSA_OAEP_256, EncryptionMethod.A128CBC_HS256)
+                new JWEHeader.Builder(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A128CBC_HS256)
+                        .customParams(
+                                objectMapper.readValue(
+                                        jsonHeaders, new TypeReference<Map<String, Object>>() {}))
                         .type(new JOSEObjectType("JWE"))
                         .build();
         var jwe = new JWEObject(header, new Payload(data));

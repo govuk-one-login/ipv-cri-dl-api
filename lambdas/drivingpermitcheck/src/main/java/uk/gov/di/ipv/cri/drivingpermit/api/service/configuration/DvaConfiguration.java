@@ -38,6 +38,8 @@ public class DvaConfiguration {
     // JWS SHA-1 Certificate Thumbprint (Header)
     private final Thumbprints signingCertThumbprints;
 
+    private final Thumbprints encryptionCertThumbprints;
+
     // DVA JWE (Private Key Reply Decrypt)
     private final PrivateKey encryptionKey;
 
@@ -72,10 +74,17 @@ public class DvaConfiguration {
                         parameterStoreService.getParameterValue(DVA_HTTPCLIENT_TLS_INTER_CERT));
 
         // JWS SHA-1 Certificate Thumbprint (Header)
-        Certificate cert =
+        Certificate signingX509Cert =
                 KeyCertHelper.getDecodedX509Certificate(
                         parameterStoreService.getParameterValue(DVA_SIGNING_CERT_THUMB));
-        this.signingCertThumbprints = KeyCertHelper.makeThumbprint((X509Certificate) cert);
+        this.signingCertThumbprints =
+                KeyCertHelper.makeThumbprint((X509Certificate) signingX509Cert);
+
+        Certificate encryptionX509Cert =
+                KeyCertHelper.getDecodedX509Certificate(
+                        parameterStoreService.getParameterValue(DVA_ENCRYPTION_CERT));
+        this.encryptionCertThumbprints =
+                KeyCertHelper.makeThumbprint((X509Certificate) encryptionX509Cert);
 
         // JWS RSA Signing Key
         this.signingKey =
@@ -147,5 +156,9 @@ public class DvaConfiguration {
 
     public PrivateKey getEncryptionKey() {
         return encryptionKey;
+    }
+
+    public Thumbprints getEncryptionCertThumbprints() {
+        return encryptionCertThumbprints;
     }
 }

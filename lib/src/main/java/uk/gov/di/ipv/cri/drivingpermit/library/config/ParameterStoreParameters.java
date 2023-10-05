@@ -6,8 +6,6 @@ public class ParameterStoreParameters {
 
     // **************************** CRI ****************************
 
-    public static final String CONTRAINDICATION_MAPPINGS = "contraindicationMappings";
-
     public static final String DOCUMENT_CHECK_RESULT_TABLE_NAME = "DocumentCheckResultTableName";
     public static final String DOCUMENT_CHECK_RESULT_TTL_PARAMETER =
             "SessionTtl"; // Linked to Common SessionTTL

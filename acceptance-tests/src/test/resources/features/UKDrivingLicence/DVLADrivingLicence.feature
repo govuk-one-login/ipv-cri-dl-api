@@ -17,12 +17,12 @@ Feature: Driving Licence Test
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 3
-    And JSON response should contain personal number PARKE610112PBFGH same as given Driving Licence
+    And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
     And exp should not be present in the JSON payload
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |
-      |DrivingLicenceSubjectHappyPeter   |
+      |DrivingLicenceSubjectHappyKenneth   |
 
   @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectDrivingLicenceNumber
@@ -150,7 +150,7 @@ Feature: Driving Licence Test
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |
-      |DrivingLicenceSubjectHappyPeter |
+      |DrivingLicenceSubjectHappyKenneth |
 
   @DVLADrivingLicence_test @build @staging @integration @smoke @dvlaDirect
   Scenario Outline: DVLA Driving Licence User failed second attempt
@@ -610,7 +610,7 @@ Feature: Driving Licence Test
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |
-      |DrivingLicenceSubjectHappyPeter   |
+      |DrivingLicenceSubjectHappyKenneth   |
 
   @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
   Scenario Outline:  DVLA Driving Licence number validation test - Correct licence number structure

@@ -131,20 +131,20 @@ public class TestDataCreator {
 
         kennethDecerqueiraDvlaHappyPath =
                 new DrivingLicenceSubject(
-                        "DECER607085KE9LN",
+                        "DECER607085K99AE",
                         "DECERQUEIRA",
                         "KENNETH",
                         "",
                         "08",
                         "07",
                         "1965",
-                        "01",
-                        "10",
-                        "2042",
-                        "19",
+                        "27",
                         "04",
-                        "2018",
-                        "23",
+                        "2025",
+                        "22",
+                        "08",
+                        "2023",
+                        "16",
                         "BA2 5AA");
 
         peterHappyPath =
@@ -452,7 +452,6 @@ public class TestDataCreator {
         dvaTestUsers.put("IncorrectFirstName", billyBatsonIncorrectFirstName);
         dvaTestUsers.put("InvalidIssueDate", billyBatsonIncorrectInvalidIssueDate);
         dvaTestUsers.put("IncorrectIssueDate", billyBatsonIncorrectIssueDate);
-
         dvlaTestUsers.put("DrivingLicenceSubjectHappyPeter", peterHappyPath);
         dvlaTestUsers.put("DrivingLicenceSubjectHappyKenneth", kennethDecerqueiraDvlaHappyPath);
         dvlaTestUsers.put("KennethDOBJan", kennethDobJan);
@@ -520,7 +519,7 @@ public class TestDataCreator {
         dvlaTestUsers.put("IncorrectIssueDate", peterIncorrectIssueDate);
     }
 
-    public static TestInput getDVATestUserFromMap(String issuer, String scenario) {
+    public static TestInput getTestUserFromMap(String issuer, String scenario) {
         if (issuer.equals("DVLA")) {
             return dvlaTestUsers.get(scenario);
         } else {

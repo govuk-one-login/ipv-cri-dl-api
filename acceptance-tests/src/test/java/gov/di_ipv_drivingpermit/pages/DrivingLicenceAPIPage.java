@@ -135,7 +135,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         RETRY = documentCheckResponse.getRetry();
         LOGGER.info("RETRY = " + RETRY);
     }
-
     public void postRequestToDrivingLicenceEndpoint(
             String drivingPermitJsonRequestBody, String documentCheckingRoute)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {

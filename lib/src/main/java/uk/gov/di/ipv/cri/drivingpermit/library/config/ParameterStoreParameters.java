@@ -53,11 +53,11 @@ public class ParameterStoreParameters {
 
     // JWE (Public Key) - not a typo
     public static final String DCS_ENCRYPTION_CERT =
-            "DCS/JWE/encryptionCertForDrivingPermitToEncrypt-2023-10-11";
+            "DCS/JWE/encryptionCertForDrivingPermitToEncrypt-2023-10-12";
 
     // JWE (Reply Signature)
     public static final String DCS_DRIVING_PERMIT_CRI_SIGNING_CERT =
-            "DCS/JWE/signingCertForDrivingPermitToVerify-2023-10-11";
+            "DCS/JWE/signingCertForDrivingPermitToVerify-2023-10-12";
 
     // JWE (Private Key Reply Decrypt)
     public static final String DCS_DRIVING_PERMIT_ENCRYPTION_KEY =

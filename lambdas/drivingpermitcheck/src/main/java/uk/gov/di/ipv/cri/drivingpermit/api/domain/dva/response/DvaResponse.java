@@ -3,11 +3,12 @@ package uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.response;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.DvaInterface;
 
 import java.util.List;
 
 @ExcludeFromGeneratedCoverageReport
-public class DvaResponse {
+public class DvaResponse implements DvaInterface {
     private List<String> errorMessage;
     private String requestHash;
     private boolean validDocument;

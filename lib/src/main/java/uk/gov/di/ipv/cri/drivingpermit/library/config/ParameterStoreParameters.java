@@ -93,7 +93,7 @@ public class ParameterStoreParameters {
 
     // JWE (Reply Signature)
     public static final String DVA_DRIVING_PERMIT_CRI_SIGNING_CERT =
-            "DVA/JWE/signingCertForDrivingPermitToVerify";
+            "DVA/JWE/signingCertForDrivingPermitToVerify"; // should be JWS
 
     // JWE (Private Key Reply Decrypt)
     public static final String DVA_DRIVING_PERMIT_ENCRYPTION_KEY =

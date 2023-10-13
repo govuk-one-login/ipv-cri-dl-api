@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.dva.DvaInterface;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -18,31 +19,42 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 @ExcludeFromGeneratedCoverageReport
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-public class DvaPayload {
+public class DvaPayload implements DvaInterface {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String TIMESTAMP_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
     private static final String TIME_ZONE = "UTC";
-    @JsonProperty private UUID requestId;
+
+    @JsonProperty(value = "requestId", required = true)
+    private UUID requestId;
+
     @JsonProperty private String issuerId;
     @JsonProperty private String timestamp;
-    @JsonProperty private String driverLicenceNumber;
-    @JsonProperty private String postcode;
-    @JsonProperty private String surname;
+
+    @JsonProperty(value = "driverLicenceNumber", required = true)
+    private String driverLicenceNumber;
+
+    @JsonProperty(value = "address", required = true)
+    private String postcode;
+
+    @JsonProperty(value = "familyName", required = true)
+    private String surname;
+
     @JsonProperty private String issueNumber;
 
+    @JsonProperty(value = "givenNames", required = true)
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public List<String> forenames;
 
+    @JsonProperty(value = "dateOfBirth", required = true)
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
     public LocalDate dateOfBirth;
 
-    @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
-    public LocalDate issueDate;
-
+    @JsonProperty(value = "validFrom", required = true)
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
     public LocalDate dateOfIssue;
 
+    @JsonProperty(value = "validTo", required = true)
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
     public LocalDate expiryDate;
 
@@ -132,14 +144,6 @@ public class DvaPayload {
 
     public void setPostcode(String postcode) {
         this.postcode = postcode;
-    }
-
-    public LocalDate getIssueDate() {
-        return issueDate;
-    }
-
-    public void setIssueDate(LocalDate issueDate) {
-        this.issueDate = issueDate;
     }
 
     public LocalDate getDateOfIssue() {

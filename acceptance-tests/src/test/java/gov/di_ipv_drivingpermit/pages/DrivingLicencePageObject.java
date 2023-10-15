@@ -1015,7 +1015,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         return cis;
     }
 
-    private JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
+    public JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(result);
         return jsonNode.get(vc);
@@ -1029,7 +1029,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         return licenceNumber;
     }
 
-    private List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {
+    public List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {
         JsonNode evidenceNode = vcNode.get(evidence);
 
         ObjectReader objectReader =

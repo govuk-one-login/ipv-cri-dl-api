@@ -92,6 +92,13 @@ class ThirdPartyAPIEndpointMetricTest {
                                 "reusing_cached_token")
                         .toLowerCase());
 
+        expectedMetricsCaptureList.add(
+                String.format(
+                                expectedFormat,
+                                DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT,
+                                "status_code_alert_metric")
+                        .toLowerCase());
+
         // Sort the two lists so the orders are the same
         Collections.sort(expectedMetricsCaptureList);
         Collections.sort(enumGeneratedMetricsStrings);

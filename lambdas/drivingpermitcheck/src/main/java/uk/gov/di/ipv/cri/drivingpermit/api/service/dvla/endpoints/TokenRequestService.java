@@ -30,13 +30,17 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.dvla.request.RequestHeaderKeys.HEADER_CONTENT_TYPE;
+import static uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.ResponseStatusCodes.BAD_REQUEST;
+import static uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.endpoints.ResponseStatusCodes.UNAUTHORISED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_STATUS_CODE_ALERT_METRIC;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -63,6 +67,10 @@ public class TokenRequestService {
     private final EventProbe eventProbe;
 
     private final HttpRetryStatusConfig httpRetryStatusConfig;
+
+    // Alerts will be fired for these status code responses
+    // The CRI must also never retry request with these codes
+    private final List<Integer> alertStatusCodes = List.of(BAD_REQUEST, UNAUTHORISED);
 
     // Token item shared between concurrent lambdas (if scaling)
     public static final String TOKEN_ITEM_ID = "TokenKey";
@@ -244,6 +252,14 @@ public class TokenRequestService {
 
             eventProbe.counterMetric(
                     DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
+
+            if (alertStatusCodes.contains(httpReply.statusCode)) {
+                LOGGER.warn("Status code {}, triggered alert metric", httpReply.statusCode);
+
+                // Alarm Firing
+                eventProbe.counterMetric(
+                        DVLA_TOKEN_RESPONSE_STATUS_CODE_ALERT_METRIC.withEndpointPrefix());
+            }
 
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,

@@ -176,6 +176,8 @@ public class IdentityVerificationService {
                 : MIN_DRIVING_ACTIVITY_HISTORY_SCORE;
     }
 
+    // Todo change this to return an empty list, to avoid needing/forgetting null checks later
+    // Later code behaviour is based on this being null - change also to empty checks
     private List<String> calculateContraIndicators(DocumentCheckResult documentCheckResult) {
         return documentCheckResult.isValid() ? null : List.of(DOCUMENT_VALIDITY_CI);
     }

@@ -3,9 +3,11 @@ package gov.di_ipv_drivingpermit.pages;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import gov.di_ipv_drivingpermit.model.AuthorisationResponse;
 import gov.di_ipv_drivingpermit.model.DocumentCheckResponse;
+import gov.di_ipv_drivingpermit.model.DrivingPermitForm;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -13,11 +15,14 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.text.ParseException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
@@ -31,8 +36,12 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static String STATE;
     private static String AUTHCODE;
     private static String ACCESS_TOKEN;
+
+    private static String VC;
+
     private static Boolean RETRY;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().registerModules(new JavaTimeModule());
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
@@ -80,28 +89,58 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
-    public void postRequestToDrivingLicenceEndpoint(String dlJsonRequestBody)
-            throws IOException, InterruptedException {
+    public void postRequestToDrivingLicenceEndpoint(
+            String dlJsonRequestBody, String jsonEditsString, String documentCheckingRoute)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         JsonNode dlJsonNode =
                 objectMapper.readTree(
                         new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"));
         String dlInputJsonString = dlJsonNode.toString();
-        HttpRequest request =
+
+        Map<String, String> jsonEdits = new HashMap<>();
+        if (!StringUtils.isEmpty(jsonEditsString)) {
+            jsonEdits = objectMapper.readValue(jsonEditsString, Map.class);
+        }
+
+        DrivingPermitForm drivingPermitFormJson =
+                objectMapper.readValue(
+                        new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"),
+                        DrivingPermitForm.class);
+
+        for (Map.Entry<String, String> entry : jsonEdits.entrySet()) {
+            Field field = drivingPermitFormJson.getClass().getDeclaredField(entry.getKey());
+            field.setAccessible(true);
+
+            field.set(drivingPermitFormJson, entry.getValue());
+        }
+        String drivingPermitInputJsonString =
+                objectMapper.writeValueAsString(drivingPermitFormJson);
+
+        HttpRequest.Builder request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session_id", SESSION_ID)
-                        .POST(HttpRequest.BodyPublishers.ofString(dlInputJsonString))
-                        .build();
+                        .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
+        if (documentCheckingRoute != null && !"not-provided".equals(documentCheckingRoute)) {
+            request.setHeader("document-checking-route", documentCheckingRoute);
+        }
         LOGGER.info("drivingLicenceRequestBody = " + dlInputJsonString);
-        String drivingLicenceCheckResponse = sendHttpRequest(request).body();
+        String drivingLicenceCheckResponse = sendHttpRequest(request.build()).body();
         LOGGER.info("drivingLicenceCheckResponse = " + drivingLicenceCheckResponse);
         DocumentCheckResponse documentCheckResponse =
                 objectMapper.readValue(drivingLicenceCheckResponse, DocumentCheckResponse.class);
         RETRY = documentCheckResponse.getRetry();
         LOGGER.info("RETRY = " + RETRY);
+    }
+
+    public void postRequestToDrivingLicenceEndpoint(
+            String drivingPermitJsonRequestBody, String documentCheckingRoute)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToDrivingLicenceEndpoint(
+                drivingPermitJsonRequestBody, "", documentCheckingRoute);
     }
 
     public void retryValueInDLCheckResponse(Boolean retry) {
@@ -137,8 +176,10 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         LOGGER.info("authCallResponse = " + authCallResponse);
         AuthorisationResponse deserialisedResponse =
                 objectMapper.readValue(authCallResponse, AuthorisationResponse.class);
-        AUTHCODE = deserialisedResponse.getAuthorizationCode().getValue();
-        LOGGER.info("authorizationCode = " + AUTHCODE);
+        if (null != deserialisedResponse.getAuthorizationCode()) {
+            AUTHCODE = deserialisedResponse.getAuthorizationCode().getValue();
+            LOGGER.info("authorizationCode = " + AUTHCODE);
+        }
     }
 
     public void postRequestToAccessTokenEndpointForDL(String criId)
@@ -180,8 +221,33 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
             throws IOException, InterruptedException, ParseException {
-        String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
-        scoreIs(validityScore, strengthScore, drivingLicenceCRIVC);
+        VC = postRequestToDrivingLicenceVCEndpoint();
+        scoreIs(validityScore, strengthScore, VC);
+    }
+
+    public void assertCheckDetailsWithinVc(String checkDetailsType) throws IOException {
+
+        JsonNode vcNode = getJsonNode(VC, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+
+        JsonNode checkDetails = null;
+        if (checkDetailsType.equals("success")) {
+            checkDetails = evidence.get(0).get("checkDetails");
+        } else {
+            checkDetails = evidence.get(0).get("failedCheckDetails");
+        }
+        JsonNode activityFromNode = evidence.get(0).findPath("activityFrom");
+        if (!StringUtils.isEmpty(activityFromNode.toString())) {
+            assertEquals(
+                    "[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\",\"activityFrom\":"
+                            + activityFromNode.toString()
+                            + "}]",
+                    checkDetails.toString());
+        } else {
+            assertEquals(
+                    "[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\"}]",
+                    checkDetails.toString());
+        }
     }
 
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)
@@ -208,6 +274,11 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                                         configurationService.getCoreStubPassword()))
                         .build();
         return sendHttpRequest(request).body();
+    }
+
+    public void checkDrivingPermitResponseContainsException() {
+        RETRY.equals(
+                "{\"oauth_error\":{\"error_description\":\"Unexpected server error\",\"error\":\"server_error\"}}");
     }
 
     private String createRequest(String baseUrl, String criId, String jsonString)

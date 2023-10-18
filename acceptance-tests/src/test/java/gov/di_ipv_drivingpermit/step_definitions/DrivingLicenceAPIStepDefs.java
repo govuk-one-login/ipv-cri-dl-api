@@ -95,9 +95,11 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
 
-    @And("Driving Licence VC should contain (.*) checkDetails$")
-    public void dl_vc_should_contain_check_details(String checkDetailsType)
+    @And(
+            "Driving Licence VC should contain checkMethod (.*) and identityCheckPolicy (.*) in (.*) checkDetails$")
+    public void dl_vc_should_contain_check_details(
+            String checkMethod, String identityCheckPolicy, String checkDetailsType)
             throws IOException, InterruptedException, ParseException, URISyntaxException {
-        assertCheckDetails(checkDetailsType);
+        assertCheckDetails(checkMethod, identityCheckPolicy, checkDetailsType);
     }
 }

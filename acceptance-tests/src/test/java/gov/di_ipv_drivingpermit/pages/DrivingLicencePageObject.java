@@ -13,6 +13,7 @@ import gov.di_ipv_drivingpermit.utilities.TestInput;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -590,20 +591,38 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertEquals(expectedStrengthScore, strengthScore);
     }
 
-    public void assertCheckDetailsWithinVc(String checkDetailsType, String drivingLicenceCRIVC)
+    public void assertCheckDetailsWithinVc(
+            String checkMethod,
+            String identityCheckPolicy,
+            String checkDetailsType,
+            String drivingLicenceCRIVC)
             throws IOException {
-
         JsonNode vcNode = getJsonNode(drivingLicenceCRIVC, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
-
-        String checkDetails = null;
+        JsonNode firstItemInEvidenceArray = evidence.get(0);
+        LOGGER.info("firstItemInEvidenceArray = " + firstItemInEvidenceArray);
         if (checkDetailsType.equals("success")) {
-            checkDetails = evidence.get(0).get("checkDetails").toString();
+            JsonNode checkDetailsNode = firstItemInEvidenceArray.get("checkDetails");
+            JsonNode checkMethodNode = checkDetailsNode.get(0).get("checkMethod");
+            String actualCheckMethod = checkMethodNode.asText();
+            LOGGER.info("actualCheckMethod = " + actualCheckMethod);
+            JsonNode identityCheckPolicyNode = checkDetailsNode.get(0).get("identityCheckPolicy");
+            String actualidentityCheckPolicy = identityCheckPolicyNode.asText();
+            LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
+            Assert.assertEquals(checkMethod, actualCheckMethod);
+            Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
         } else {
-            checkDetails = evidence.get(0).get("failedCheckDetails").toString();
+            JsonNode failedCheckDetailsNode = firstItemInEvidenceArray.get("failedCheckDetails");
+            JsonNode checkMethodNode = failedCheckDetailsNode.get(0).get("checkMethod");
+            String actualCheckMethod = checkMethodNode.asText();
+            LOGGER.info("actualCheckMethod = " + actualCheckMethod);
+            JsonNode identityCheckPolicyNode =
+                    failedCheckDetailsNode.get(0).get("identityCheckPolicy");
+            String actualidentityCheckPolicy = identityCheckPolicyNode.asText();
+            LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
+            Assert.assertEquals(checkMethod, actualCheckMethod);
+            Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
         }
-//        assertEquals("[{\"checkMethod\":\"data\"}]", checkDetails);
-        assertEquals("[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\"}]", checkDetails);
     }
 
     public void userNotFoundInThirdPartyErrorIsDisplayed() {

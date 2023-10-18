@@ -9,7 +9,6 @@ import gov.di_ipv_drivingpermit.model.AuthorisationResponse;
 import gov.di_ipv_drivingpermit.model.DocumentCheckResponse;
 import gov.di_ipv_drivingpermit.model.DrivingPermitForm;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
-import io.cucumber.java.en.And;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -91,7 +90,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
-
     public void postRequestToDrivingLicenceEndpoint(
             String dlJsonRequestBody, String jsonEditsString, String documentCheckingRoute)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
@@ -138,6 +136,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         RETRY = documentCheckResponse.getRetry();
         LOGGER.info("RETRY = " + RETRY);
     }
+
     public void postRequestToDrivingLicenceEndpoint(
             String drivingPermitJsonRequestBody, String documentCheckingRoute)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
@@ -264,10 +263,12 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         Assert.assertEquals(ci, actualCI);
     }
 
-    public void assertCheckDetails(String checkDetailsType)
+    public void assertCheckDetails(
+            String checkMethod, String identityCheckPolicy, String checkDetailsType)
             throws URISyntaxException, IOException, InterruptedException, ParseException {
         String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
-        assertCheckDetailsWithinVc(checkDetailsType, drivingLicenceCRIVC);
+        assertCheckDetailsWithinVc(
+                checkMethod, identityCheckPolicy, checkDetailsType, drivingLicenceCRIVC);
     }
 
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)

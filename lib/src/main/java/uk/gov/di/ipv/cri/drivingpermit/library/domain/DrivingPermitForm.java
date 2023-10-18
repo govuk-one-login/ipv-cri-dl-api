@@ -8,7 +8,6 @@ import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 @ExcludeFromGeneratedCoverageReport
 public class DrivingPermitForm {
@@ -141,38 +140,6 @@ public class DrivingPermitForm {
 
     public void setLicenceIssuer(String licenceIssuer) {
         this.licenceIssuer = licenceIssuer;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DrivingPermitForm that = (DrivingPermitForm) o;
-        return Objects.equals(drivingLicenceNumber, that.drivingLicenceNumber)
-                && Objects.equals(postcode, that.postcode)
-                && Objects.equals(issueNumber, that.issueNumber)
-                && Objects.equals(licenceIssuer, that.licenceIssuer)
-                && Objects.equals(surname, that.surname)
-                && Objects.equals(forenames, that.forenames)
-                && Objects.equals(addresses, that.addresses)
-                && Objects.equals(dateOfBirth, that.dateOfBirth)
-                && Objects.equals(issueDate, that.issueDate)
-                && Objects.equals(expiryDate, that.expiryDate);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                drivingLicenceNumber,
-                postcode,
-                issueNumber,
-                licenceIssuer,
-                surname,
-                forenames,
-                addresses,
-                dateOfBirth,
-                issueDate,
-                expiryDate);
     }
 
     @Override

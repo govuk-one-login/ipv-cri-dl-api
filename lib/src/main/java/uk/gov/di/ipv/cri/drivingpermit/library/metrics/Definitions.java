@@ -22,11 +22,6 @@ public class Definitions {
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED =
             "lambda_driving_permit_check_attempt_status_unverified";
 
-    public static final String DL_FALL_BACK_EXECUTING = "driving_permit_fallback_executing";
-
-    public static final String DL_VERIFICATION_FALLBACK_DEVIATION =
-            "driving_permit_verification_fallback_deviation";
-
     // FormDataValidator
     public static final String FORM_DATA_VALIDATION_PASS = "form_data_validation_pass";
     public static final String FORM_DATA_VALIDATION_FAIL = "form_data_validation_fail";

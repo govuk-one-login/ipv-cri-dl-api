@@ -18,6 +18,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 3
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
+    And exp should not be present in the JSON payload
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |

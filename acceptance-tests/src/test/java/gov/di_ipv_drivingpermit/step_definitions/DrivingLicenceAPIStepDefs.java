@@ -77,8 +77,7 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     }
 
     @And("Check response contains unexpected server error exception")
-    public void passport_check_fails_and_returns_unexpected_exception()
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
+    public void passport_check_fails_and_returns_unexpected_exception() {
         checkDrivingPermitResponseContainsException();
     }
 
@@ -86,5 +85,19 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     public void passport_vc_should_contain_check_details(String checkDetailsType)
             throws IOException, InterruptedException, ParseException, URISyntaxException {
         assertCheckDetailsWithinVc(checkDetailsType);
+    }
+
+    @And("Driving Licence VC should contain ci (.*), validityScore (.*) and strengthScore (.*)$")
+    public void DL_vc_should_contain_ci_validity_score_and_strength_score(
+            String ci, String validityScore, String strengthScore)
+            throws IOException, InterruptedException, ParseException, URISyntaxException {
+        ciInDrivingLicenceCriVc(ci);
+        validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
+    }
+
+    @And("Driving Licence VC should contain (.*) checkDetails$")
+    public void dl_vc_should_contain_check_details(String checkDetailsType)
+            throws IOException, InterruptedException, ParseException, URISyntaxException {
+        assertCheckDetails(checkDetailsType);
     }
 }

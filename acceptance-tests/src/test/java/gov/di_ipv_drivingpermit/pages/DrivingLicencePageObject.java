@@ -590,6 +590,22 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertEquals(expectedStrengthScore, strengthScore);
     }
 
+    public void assertCheckDetailsWithinVc(String checkDetailsType, String drivingLicenceCRIVC)
+            throws IOException {
+
+        JsonNode vcNode = getJsonNode(drivingLicenceCRIVC, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+
+        String checkDetails = null;
+        if (checkDetailsType.equals("success")) {
+            checkDetails = evidence.get(0).get("checkDetails").toString();
+        } else {
+            checkDetails = evidence.get(0).get("failedCheckDetails").toString();
+        }
+//        assertEquals("[{\"checkMethod\":\"data\"}]", checkDetails);
+        assertEquals("[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\"}]", checkDetails);
+    }
+
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
         assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());

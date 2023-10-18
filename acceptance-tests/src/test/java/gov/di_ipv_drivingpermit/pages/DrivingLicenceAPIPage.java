@@ -9,9 +9,11 @@ import gov.di_ipv_drivingpermit.model.AuthorisationResponse;
 import gov.di_ipv_drivingpermit.model.DocumentCheckResponse;
 import gov.di_ipv_drivingpermit.model.DrivingPermitForm;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
+import io.cucumber.java.en.And;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,6 +90,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         LOGGER.info("SESSION_ID = " + SESSION_ID);
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
+
 
     public void postRequestToDrivingLicenceEndpoint(
             String dlJsonRequestBody, String jsonEditsString, String documentCheckingRoute)
@@ -247,6 +250,24 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                     "[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\"}]",
                     checkDetails.toString());
         }
+    }
+
+    public void ciInDrivingLicenceCriVc(String ci)
+            throws IOException, InterruptedException, ParseException {
+        String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
+        JsonNode jsonNode = objectMapper.readTree((drivingLicenceCRIVC));
+        JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
+        JsonNode ciInEvidenceArray = evidenceArray.get(0);
+        LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);
+        JsonNode ciNode = ciInEvidenceArray.get("ci").get(0);
+        String actualCI = ciNode.asText();
+        Assert.assertEquals(ci, actualCI);
+    }
+
+    public void assertCheckDetails(String checkDetailsType)
+            throws URISyntaxException, IOException, InterruptedException, ParseException {
+        String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
+        assertCheckDetailsWithinVc(checkDetailsType, drivingLicenceCRIVC);
     }
 
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)

@@ -912,15 +912,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertEquals(personalNumber, licenceNumber);
     }
 
-    public void validateErrorPageHeading() {
-        String expectedHeading = "Sorry, there is a problem";
-        String actualHeading = pageHeader.getText();
-        if (expectedHeading.equals(actualHeading)) {
-            LOGGER.info("Pass : Sorry, there is a problem page is displayed");
-        } else {
-            LOGGER.info("Fail : Who was your UK driving licence issued by? is displayed");
-            fail("Fail : Who was your UK driving licence issued by? is displayed");
-        }
+    public void validateErrorPageHeading(String errorHeading) {
+            assertEquals(errorHeading, pageHeader.getText());
     }
 
     public void assertPageHeading(String expectedText) {

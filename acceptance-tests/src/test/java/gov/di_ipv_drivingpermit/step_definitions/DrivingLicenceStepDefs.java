@@ -129,9 +129,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         navigateToDrivingLicenceCRI();
     }
 
-    @Then("^I can see the heading  Sorry, there is a error$")
-    public void i_can_see_the_heading_page() {
-        validateErrorPageHeading();
+    @Then("^I can see the error heading (.*)$")
+    public void i_can_see_the_error_heading_page(String errorHeading) {
+        validateErrorPageHeading(errorHeading);
     }
 
     @Given("^I delete the (.*) cookie to get the unexpected error$")

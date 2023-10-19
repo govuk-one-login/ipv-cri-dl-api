@@ -140,7 +140,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@class='govuk-heading-m']")
     public WebElement govukHeading;
 
-    @FindBy(id = "journey-2")
+    @FindBy(id = "journey")
     public WebElement ukDrivingLicenceRadioBtn;
 
     @FindBy(id = "journey-4")

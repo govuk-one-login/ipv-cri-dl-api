@@ -1,8 +1,8 @@
 package gov.di_ipv_drivingpermit.step_definitions;
 
-import io.cucumber.java.en.And;
 import gov.di_ipv_drivingpermit.pages.DeviceSelectionPage;
 import gov.di_ipv_drivingpermit.pages.ProveYourIdentityGovUkPage;
+import io.cucumber.java.en.And;
 
 import java.util.logging.Logger;
 

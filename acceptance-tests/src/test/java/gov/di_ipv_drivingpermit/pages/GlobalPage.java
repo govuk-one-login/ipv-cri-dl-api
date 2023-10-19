@@ -1,15 +1,10 @@
 package gov.di_ipv_drivingpermit.pages;
 
+import gov.di_ipv_drivingpermit.utilities.PageObjectSupport;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import gov.di_ipv_drivingpermit.utilities.PageObjectSupport;
-import gov.di_ipv_drivingpermit.pages.DeviceSelectionPage;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 

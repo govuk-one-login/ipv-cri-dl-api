@@ -913,7 +913,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void validateErrorPageHeading(String errorHeading) {
-            assertEquals(errorHeading, pageHeader.getText());
+        assertEquals(errorHeading, pageHeader.getText());
     }
 
     public void assertPageHeading(String expectedText) {

@@ -1,16 +1,13 @@
-package uk.gov.di.ipv.cri.drivingpermit.library.domain;
+package gov.di_ipv_drivingpermit.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
-@ExcludeFromGeneratedCoverageReport
 public class DrivingPermitForm {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 

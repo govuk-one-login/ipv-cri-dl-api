@@ -90,7 +90,7 @@ Feature: DrivingLicence CRI API
     And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
-    And Driving Licence VC should contain <checkDetails> checkDetails
+    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in <checkDetails> checkDetails
     Examples:
       |PassportJsonPayload                         | checkDetails |
       |DVLA-DCS-InvalidJsonPayload                 | success      |
@@ -105,7 +105,7 @@ Feature: DrivingLicence CRI API
     And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
-    And Driving Licence VC should contain <checkDetails> checkDetails
+    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in <checkDetails> checkDetails
     Examples:
       |PassportJsonPayload                             | checkDetails |
       |DVLAServerErrorInvalidJsonPayload               | success      |

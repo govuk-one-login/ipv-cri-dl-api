@@ -609,8 +609,17 @@ public class DrivingLicencePageObject extends UniversalSteps {
             JsonNode identityCheckPolicyNode = checkDetailsNode.get(0).get("identityCheckPolicy");
             String actualidentityCheckPolicy = identityCheckPolicyNode.asText();
             LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
+            JsonNode activityFromNode = checkDetailsNode.get(0).get("activityFrom");
+            String actualactivityFrom = activityFromNode.asText();
+            LOGGER.info("actualactivityFrom = " + actualactivityFrom);
             Assert.assertEquals(checkMethod, actualCheckMethod);
             Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
+            if (!StringUtils.isEmpty(activityFromNode.toString())) {
+                assertEquals(
+                        "[{\"checkMethod\":"+ checkMethodNode.toString()  + "," + "\"identityCheckPolicy\":" + identityCheckPolicyNode.toString() + "," + "\"activityFrom\":"
+                                + activityFromNode.toString()
+                                + "}]",
+                        checkDetailsNode.toString());}
         } else {
             JsonNode failedCheckDetailsNode = firstItemInEvidenceArray.get("failedCheckDetails");
             JsonNode checkMethodNode = failedCheckDetailsNode.get(0).get("checkMethod");
@@ -622,6 +631,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
             LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
             Assert.assertEquals(checkMethod, actualCheckMethod);
             Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
+            assertEquals(
+                    "[{\"checkMethod\":"+ checkMethodNode.toString()  + "," + "\"identityCheckPolicy\":"
+                            + identityCheckPolicyNode.toString()
+                            + "}]",
+                    failedCheckDetailsNode.toString());
         }
     }
 

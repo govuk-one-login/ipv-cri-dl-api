@@ -226,31 +226,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         scoreIs(validityScore, strengthScore, VC);
     }
 
-    public void assertCheckDetailsWithinVc(String checkDetailsType) throws IOException {
-
-        JsonNode vcNode = getJsonNode(VC, "vc");
-        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
-
-        JsonNode checkDetails = null;
-        if (checkDetailsType.equals("success")) {
-            checkDetails = evidence.get(0).get("checkDetails");
-        } else {
-            checkDetails = evidence.get(0).get("failedCheckDetails");
-        }
-        JsonNode activityFromNode = evidence.get(0).findPath("activityFrom");
-        if (!StringUtils.isEmpty(activityFromNode.toString())) {
-            assertEquals(
-                    "[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\",\"activityFrom\":"
-                            + activityFromNode.toString()
-                            + "}]",
-                    checkDetails.toString());
-        } else {
-            assertEquals(
-                    "[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\"}]",
-                    checkDetails.toString());
-        }
-    }
-
     public void ciInDrivingLicenceCriVc(String ci)
             throws IOException, InterruptedException, ParseException {
         String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();

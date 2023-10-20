@@ -12,6 +12,7 @@ import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +23,6 @@ import java.net.http.HttpRequest;
 import java.text.ParseException;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
@@ -225,29 +225,24 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         scoreIs(validityScore, strengthScore, VC);
     }
 
-    public void assertCheckDetailsWithinVc(String checkDetailsType) throws IOException {
+    public void ciInDrivingLicenceCriVc(String ci)
+            throws IOException, InterruptedException, ParseException {
+        String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
+        JsonNode jsonNode = objectMapper.readTree((drivingLicenceCRIVC));
+        JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
+        JsonNode ciInEvidenceArray = evidenceArray.get(0);
+        LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);
+        JsonNode ciNode = ciInEvidenceArray.get("ci").get(0);
+        String actualCI = ciNode.asText();
+        Assert.assertEquals(ci, actualCI);
+    }
 
-        JsonNode vcNode = getJsonNode(VC, "vc");
-        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
-
-        JsonNode checkDetails = null;
-        if (checkDetailsType.equals("success")) {
-            checkDetails = evidence.get(0).get("checkDetails");
-        } else {
-            checkDetails = evidence.get(0).get("failedCheckDetails");
-        }
-        JsonNode activityFromNode = evidence.get(0).findPath("activityFrom");
-        if (!StringUtils.isEmpty(activityFromNode.toString())) {
-            assertEquals(
-                    "[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\",\"activityFrom\":"
-                            + activityFromNode.toString()
-                            + "}]",
-                    checkDetails.toString());
-        } else {
-            assertEquals(
-                    "[{\"checkMethod\":\"data\",\"identityCheckPolicy\":\"published\"}]",
-                    checkDetails.toString());
-        }
+    public void assertCheckDetails(
+            String checkMethod, String identityCheckPolicy, String checkDetailsType)
+            throws URISyntaxException, IOException, InterruptedException, ParseException {
+        String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
+        assertCheckDetailsWithinVc(
+                checkMethod, identityCheckPolicy, checkDetailsType, drivingLicenceCRIVC);
     }
 
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)

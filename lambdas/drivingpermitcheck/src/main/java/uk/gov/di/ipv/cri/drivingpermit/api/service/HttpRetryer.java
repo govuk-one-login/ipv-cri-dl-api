@@ -42,9 +42,10 @@ public class HttpRetryer {
         boolean retry = false;
 
         do {
-            // "If" added for capturing retries
             if (retry) {
                 eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendRetryMetric());
+
+                freeHttpConnectionBackToPool(httpResponse);
             }
 
             // Wait before sending request (0ms for first try)
@@ -74,6 +75,9 @@ public class HttpRetryer {
                     // not
                     LOGGER.warn("Failed to send request - reason {}", e.getMessage());
                     eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendFailMetric(e));
+
+                    freeHttpConnectionBackToPool(httpResponse);
+
                     throw e;
                 }
 
@@ -101,6 +105,8 @@ public class HttpRetryer {
                     LOGGER.warn("Failed to send request - reason {}", e.getMessage());
                     eventProbe.counterMetric(httpRetryStatusConfig.httpRetryerSendFailMetric(e));
 
+                    freeHttpConnectionBackToPool(httpResponse);
+
                     throw e;
                 }
             }
@@ -120,5 +126,19 @@ public class HttpRetryer {
         }
 
         return httpResponse;
+    }
+
+    /***
+     * This avoids using all the limited number of http connection pool
+     * resources, by closing previous responses when errors occur.
+     * @param httpResponse
+     * @throws IOException
+     */
+    private void freeHttpConnectionBackToPool(CloseableHttpResponse httpResponse)
+            throws IOException {
+        if (httpResponse != null) {
+            // Prevent the resource leak
+            httpResponse.close();
+        }
     }
 }

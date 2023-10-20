@@ -192,7 +192,8 @@ public class DrivingPermitHandler
                     result = executeFallbackIfDocumentFailedToVerify(result, drivingPermitFormData);
                 }
             } catch (Exception e) {
-                LOGGER.info("Exception {}, checking if fallback is required", e.getMessage());
+                LOGGER.info("Exception {}, checking if fallback is required", e.getClass());
+
                 if (!thirdPartyIsDcs && !thirdPartyIsDva) {
                     LOGGER.info(
                             "Exception has occurred during fallback window. Executing request with DVAD");
@@ -397,7 +398,8 @@ public class DrivingPermitHandler
             DrivingPermitForm drivingPermitFormData)
             throws Exception {
         if (!documentDataVerificationResult.isVerified()
-                || !documentDataVerificationResult.getContraIndicators().isEmpty()) {
+                || (documentDataVerificationResult.getContraIndicators() != null
+                        && !documentDataVerificationResult.getContraIndicators().isEmpty())) {
             LOGGER.info(
                     "Document has been marked unverified during fallback window. Executing request with Direct connection");
             documentDataVerificationResult = executeFallbackRequest(drivingPermitFormData);

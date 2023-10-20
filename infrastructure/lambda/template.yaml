@@ -1109,6 +1109,30 @@ Resources:
             Period: 300
             Stat: Sum
 
+  DVLAAuthenticateTokenRequestDeniedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Authenticate Token Request Denied Alarm"
+      AlarmDescription: !Sub Driving Licence ${Environment} DVLA Token endpoint returned a 400/401 response to a token request (failure to authenticate)
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: []
+      MetricName: dvla_third_party_api_token_endpoint_status_code_alert_metric
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-drivingpermitcheck"
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 ####################################################################
 #                                                                  #
 # Alarm setup                                                      #

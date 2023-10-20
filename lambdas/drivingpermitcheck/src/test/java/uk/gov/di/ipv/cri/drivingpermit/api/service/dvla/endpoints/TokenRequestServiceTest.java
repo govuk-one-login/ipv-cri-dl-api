@@ -10,6 +10,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -49,6 +51,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_STATUS_CODE_ALERT_METRIC;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -239,6 +242,63 @@ class TokenRequestServiceTest {
                 .verify(mockEventProbe)
                 .counterMetric(
                         DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
+        assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "400", "401", // Status Codes where the alert metric is expected to be captured
+    })
+    void shouldCaptureTokenResponseStatusCodeAlertMetricWhenStatusCodeIs(
+            int tokenResponseStatusCode) throws IOException {
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
+
+        CloseableHttpResponse tokenResponse =
+                HttpResponseFixtures.createHttpResponse(
+                        tokenResponseStatusCode, null, "Server Error", false);
+
+        // HttpClient response
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
+                .thenReturn(tokenResponse);
+
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
+                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        ErrorResponse.ERROR_TOKEN_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE);
+
+        OAuthErrorResponseException thrownException =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> tokenRequestService.requestToken(true),
+                        "Expected OAuthErrorResponseException");
+
+        // (Post) Token
+        InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
+        inOrderMockHttpRetryerSequence
+                .verify(mockHttpRetryer, times(1))
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
+        verifyNoMoreInteractions(mockHttpRetryer);
+
+        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_TOKEN_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
+        // Token Status Code Alert
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_TOKEN_RESPONSE_STATUS_CODE_ALERT_METRIC.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());

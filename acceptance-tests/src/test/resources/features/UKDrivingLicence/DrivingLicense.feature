@@ -64,7 +64,7 @@ Feature: Driving License Test
   Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
-    Then I can see the heading  Sorry, there is a error
+    Then I can see the error heading Sorry, there is a problem
     And The test is complete and I close the driver
 
   @DVLADrivingLicence_test @build

@@ -161,11 +161,13 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         // Choose API
-        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
-        when(mockThirdPartyAPIService.getServiceName())
-                .thenReturn(DcsThirdPartyDocumentGateway.class.getSimpleName());
+        when(mockConfigurationService.getDvlaDirectEnabled()).thenReturn(true);
+        when(mockDvlaThirdPartyDocumentGateway.getServiceName())
+                .thenReturn(DvlaThirdPartyDocumentGateway.class.getSimpleName());
         when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
-                .thenReturn(mockThirdPartyAPIService);
+                .thenReturn(mockDcsThirdPartyDocumentGateway);
+        when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
+                .thenReturn(mockDvlaThirdPartyDocumentGateway);
 
         when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
 
@@ -186,7 +188,9 @@ class DrivingPermitHandlerTest {
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
 
         verify(mockIdentityVerificationService)
-                .verifyIdentity(drivingPermitForm, mockThirdPartyAPIService);
+                .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
+        verify(mockIdentityVerificationService)
+                .verifyIdentity(drivingPermitForm, mockDcsThirdPartyDocumentGateway);
         verify(mockDataStore).create(documentCheckResultItem);
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
@@ -483,7 +487,7 @@ class DrivingPermitHandlerTest {
         "false, false, dcs, DVA, DcsThirdPartyDocumentGateway",
         "false, false, dcs, DVLA, DcsThirdPartyDocumentGateway",
         "true, true, dcs, DVA, DcsThirdPartyDocumentGateway",
-        "true, true, dcs, DVLA, DcsThirdPartyDocumentGateway",
+        "true, true, dcs, DVLA, DvlaThirdPartyDocumentGateway",
 
         // API's enabled/ disabled, header has direct
         "false, false, direct, DVA, DcsThirdPartyDocumentGateway",
@@ -502,7 +506,7 @@ class DrivingPermitHandlerTest {
         "false, false, not-present, DVA, DcsThirdPartyDocumentGateway",
         "false, false, not-present, DVLA, DcsThirdPartyDocumentGateway",
         "true, true, not-present, DVA, DcsThirdPartyDocumentGateway",
-        "true, true, not-present, DVLA, DcsThirdPartyDocumentGateway",
+        "true, true, not-present, DVLA, DvlaThirdPartyDocumentGateway",
     })
     void shouldSelectCorrectThirdPartyAPIServiceForEachIssuerAndFeatureToggle(
             boolean dvaEnabled,
@@ -518,9 +522,7 @@ class DrivingPermitHandlerTest {
         if (dvaEnabled && "direct".equals(documentCheckingRoute) && (DVA == issuingAuthority)) {
             when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
                     .thenReturn(mockDvaThirdPartyDocumentGateway);
-        } else if (dvlaEnabled
-                && "direct".equals(documentCheckingRoute)
-                && (DVLA == issuingAuthority)) {
+        } else if (dvlaEnabled && (DVLA == issuingAuthority)) {
             when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
                     .thenReturn(mockDvlaThirdPartyDocumentGateway);
         } else {

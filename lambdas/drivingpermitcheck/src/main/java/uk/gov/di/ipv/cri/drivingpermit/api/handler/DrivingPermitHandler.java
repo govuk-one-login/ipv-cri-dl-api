@@ -161,11 +161,12 @@ public class DrivingPermitHandler
             DrivingPermitForm drivingPermitFormData =
                     parseDrivingPermitFormRequest(input.getBody());
 
+            String documentCheckingRoute = headers.get(HEADER_DOCUMENT_CHECKING_ROUTE);
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(
                             configurationService.getDvaDirectEnabled(),
                             configurationService.getDvlaDirectEnabled(),
-                            headers.get(HEADER_DOCUMENT_CHECKING_ROUTE),
+                            documentCheckingRoute,
                             drivingPermitFormData.getLicenceIssuer());
 
             LOGGER.info(
@@ -424,7 +425,7 @@ public class DrivingPermitHandler
 
         if (direct && (issuingAuthority == IssuingAuthority.DVA) && dvaDirectEnabled) {
             return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
-        } else if (direct && (issuingAuthority == IssuingAuthority.DVLA) && dvlaDirectEnabled) {
+        } else if ((issuingAuthority == IssuingAuthority.DVLA) && dvlaDirectEnabled) {
             return thirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService();
         } else {
             return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();

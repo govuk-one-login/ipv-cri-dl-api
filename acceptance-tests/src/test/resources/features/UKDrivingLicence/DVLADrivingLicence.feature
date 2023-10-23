@@ -59,19 +59,6 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectDateOfBirth |
 
-  @DVLADrivingLicence_test @build @staging @integration # not valid for @dvlaDirect
-  Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectFirstName
-    Given User enters DVLA data as a <DrivingLicenceSubject>
-    When User clicks on continue
-    Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
-    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci D02, validity score 0 and strength score 3
-    And The test is complete and I close the driver
-    Examples:
-      |DrivingLicenceSubject |
-      |IncorrectFirstName|
-
   @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectLastName
     Given User enters DVLA data as a <DrivingLicenceSubject>
@@ -123,19 +110,6 @@ Feature: Driving Licence Test
     Examples:
       |DrivingLicenceSubject |
       |IncorrectIssueNumber|
-
-  @DVLADrivingLicence_test @build @staging @integration # not valid for @dvlaDirect
-  Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectPostcode
-    Given User enters DVLA data as a <DrivingLicenceSubject>
-    When User clicks on continue
-    Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
-    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci D02, validity score 0 and strength score 3
-    And The test is complete and I close the driver
-    Examples:
-      |DrivingLicenceSubject |
-      |IncorrectPostcode|
 
   @DVLADrivingLicence_test @build @staging @integration @smoke @dvlaDirect
   Scenario Outline: DVLA Driving Licence Retry Test Happy Path

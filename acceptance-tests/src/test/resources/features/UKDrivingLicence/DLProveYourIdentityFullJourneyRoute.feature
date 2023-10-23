@@ -45,7 +45,7 @@ Feature: Prove Your Identity Full Journey
     And the user chooses their address 8 HADLEY ROAD, BATH, BA2 5AA from dropdown and click `Choose address`
     And the user enters the date 2014 they moved into their current address
     And the user clicks `I confirm my details are correct`
-    Then I navigate to the page We need to check your details
+    Then I navigate to the page We need to check your details – Prove your identity – GOV.UK
     And User clicks on continue
     And the user clicks `Answer security questions`
     And kenneth answers the first question correctly
@@ -73,7 +73,7 @@ Feature: Prove Your Identity Full Journey
     And the user chooses their address 8 HADLEY ROAD, BATH, BA2 5AA from dropdown and click `Choose address`
     And the user enters the date 2014 they moved into their current address
     And the user clicks `I confirm my details are correct`
-    Then I navigate to the page We need to check your details
+    Then I navigate to the page We need to check your details – Prove your identity – GOV.UK
     And User clicks on continue
     And the user clicks `Answer security questions`
     And kenneth answers the first question correctly

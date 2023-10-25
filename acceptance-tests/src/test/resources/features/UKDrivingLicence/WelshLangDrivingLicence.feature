@@ -7,13 +7,13 @@ Feature: Driving License Language Test
     And I add a cookie to change the language to Welsh
     And I assert the URL is valid in Welsh
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: Beta Banner
     Given I view the Beta banner
     When the beta banner reads Mae hwn yn wasanaeth newydd – bydd eich adborth (agor mewn tab newydd) yn ein helpu i'w wella.
     Then The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: Beta Banner Reject Analysis button
     Given I view the Beta banner
     When I select Gwrthod cwcis dadansoddi cookie
@@ -22,7 +22,7 @@ Feature: Driving License Language Test
     Then I check the page to change cookie preferences opens
     Then The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario:3 options and Radio button available in Driving Licence page
      Given I check the page title is Pwy wnaeth gyhoeddi eich trwydded yrru y DU? – Profi pwy ydych chi – GOV.UK
      When I assert the URL is valid in Welsh
@@ -133,7 +133,7 @@ Feature: Driving License Language Test
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyPeter   |
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario:User selects I do not have a UK driving licence - Nid oes gennyf drwydded yrru y DU and landed in IPV Core
     Given I click Nid oes gennyf drwydded yrru y DU and Parhau
     When I am directed to the IPV Core routing page
@@ -239,7 +239,7 @@ Feature: Driving License Language Test
     And I see the postcode error in the field as Gwall:Dylai eich rhowch eich cod post fod rhwng 5 a 7 nod
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario:User Selects DVA and landed in DVA page and Page title and sub-text
     Given I click on DVA radio button and Parhau
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
@@ -247,7 +247,7 @@ Feature: Driving License Language Test
     And I see sentence Os nad oes gennych drwydded yrru y DU neu os na allwch gofio'ch manylion, gallwch brofi pwy ydych chi mewn ffordd arall yn lle.
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario Outline:Retry message DVA
     Given I click on DVA radio button and Parhau
     When User enters DVA data as a <DVADrivingLicenceSubject>
@@ -263,7 +263,7 @@ Feature: Driving License Language Test
       |DVADrivingLicenceSubject |
       |IncorrectDrivingLicenceNumber |
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Name fields
     Given I click on DVA radio button and Parhau
     When I can see the lastname as Enw olaf
@@ -274,7 +274,7 @@ Feature: Driving License Language Test
     And I can see the sentence Gadewch hyn yn wag os nad oes gennych unrhyw enwau canol
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA DoB Field
     Given I click on DVA radio button and Parhau
     When I can see the DoB fields for DVA titled Dyddiad geni
@@ -284,7 +284,7 @@ Feature: Driving License Language Test
     And I can see year for DVA as Blwyddyn
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Issue date field
     Given I click on DVA radio button and Parhau
     When I see the Issue date field titled Dyddiad cyhoeddi for DVA
@@ -294,7 +294,7 @@ Feature: Driving License Language Test
     And I can see year for DVA as Blwyddyn
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Valid until field
     Given I click on DVA radio button and Parhau
     When I can see the Valid to date field titled Yn ddilys tan
@@ -304,20 +304,20 @@ Feature: Driving License Language Test
     And I can see year for DVA as Blwyddyn
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Licence number
     Given I click on DVA radio button and Parhau
     When I can see the licence number field for DVA titled Rhif trwydded
     And I see the DVA licence sentence Dyma'r rhif hir yn adran 5 ar eich trwydded
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Postcode
     Given I click on DVA radio button and Parhau
     Then I can see the postcode field titled Cod post
     Then I can see postcode sentence as Rhowch y cod post yn y cyfeiriad yn adran 8 o'ch trwydded
 
-  @DVADrivingLicence_test @build
+  @DVADrivingLicence_test @build @DVADrivingLicence_test
   Scenario Outline:  DVA Driving Licence details page happy path
     Given I click on DVA radio button and Parhau
     When User enters DVA data as a <DVADrivingLicenceSubject>
@@ -329,7 +329,7 @@ Feature: Driving License Language Test
       |DVADrivingLicenceSubject             |
       |DVADrivingLicenceSubjectHappyBilly   |
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA licence number field error message in Welsh
     Given I click on DVA radio button and Parhau
     When I enter invalid driving licence less than 8 char for DVA
@@ -343,7 +343,7 @@ Feature: Driving License Language Test
     And I see the licence number error in the summary as Ni ddylai rhif eich trwydded gynnwys unrhyw symbolau neu ofodau
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Driving Licence details Name field error message in Welsh
     Given I click on DVA radio button and Parhau
     When I enter the invalid last name and first name
@@ -354,7 +354,7 @@ Feature: Driving License Language Test
     And I see the middlenames error summary as Rhowch unrhyw enwau canol fel y maent yn ymddangos ar eich trwydded yrru
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Driving Licence details IncorrectDateOfBirth error message in Welsh
     Given I click on DVA radio button and Parhau
     When User clicks on continue
@@ -365,7 +365,7 @@ Feature: Driving License Language Test
     Then I see check date of birth sentence as Rhaid i'ch dyddiad geni fod yn y gorffennol
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Driving Licence Valid to date field error message in Welsh
     Given I click on DVA radio button and Parhau
     When I enter the invalid Valid to date field for DVA
@@ -376,7 +376,7 @@ Feature: Driving License Language Test
     And I can see the valid to date error in the error summary as Ni allwch ddefnyddio trwydded yrru sydd wedi dod i ben
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Postcode field error message in Welsh
     Given I click on DVA radio button and Parhau
     And I clear the postcode to see the Enter your postcode error
@@ -390,7 +390,7 @@ Feature: Driving License Language Test
     And I see the postcode error in the field as Gwall:Dylai eich rhowch eich cod post fod rhwng 5 a 7 nod
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Driving Licence Issue date field error message in Welsh
     Given I click on DVA radio button and Parhau
     When I enter the invalid issue date for DVA
@@ -417,7 +417,7 @@ Feature: Driving License Language Test
       |DrivingLicenceSubject |
       |InvalidDateOfBirth |
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVAError tab title validation
     Given I click on DVA radio button and Parhau
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
@@ -439,7 +439,7 @@ Feature: Driving License Language Test
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyPeter   |
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario Outline:  DVA Driving Licence error validation when DVA consent checkbox is unselected
     Given I click on DVA radio button and Parhau
     Then User enters DVA data as a <DrivingLicenceSubject>
@@ -462,7 +462,7 @@ Feature: Driving License Language Test
     Then I see the DVLA privacy notice link hysbysiad preifatrwydd DVLA (agor mewn tab newydd)
     And The test is complete and I close the driver
 
-  @Language-regression
+  @Language-regression @DVADrivingLicence_test
   Scenario: DVA Driving Licence privacy notice link to consent
     Given I click on DVA radio button and Parhau
     Then I see the DVA consent section Caniatau DVA i wirio eich manylion trwydded yrru

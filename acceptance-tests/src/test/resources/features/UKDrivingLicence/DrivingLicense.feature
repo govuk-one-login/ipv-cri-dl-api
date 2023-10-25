@@ -10,7 +10,7 @@ Feature: Driving License Test
     Then I see the message begins with We need to make sure is shown
     And I assert the url path contains licence-issuer
 
- @DrivingLicenceTest @build @staging @integration @smoke
+ @DrivingLicenceTest @build @staging @integration @smoke @DVADrivingLicence_test
   Scenario:3 options and Radio button available in Driving Licence page
     Given I can see a radio button titled “DVLA”
     Then I can see a radio button titled “DVA”
@@ -18,7 +18,7 @@ Feature: Driving License Test
     Then I can see CTA "continue"
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration @smoke
+  @DrivingLicenceTest @build @staging @integration @smoke @DVADrivingLicence_test
   Scenario: Beta Banner Reject Analysis
     When I view the Beta banner
     When the beta banner reads This is a new service – your feedback (opens in new tab) will help us to improve it.
@@ -35,7 +35,7 @@ Feature: Driving License Test
     And I set the document checking route
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration
+  @DrivingLicenceTest @build @staging @integration @DVADrivingLicence_test
   Scenario:User Selects DVA and landed in DVA page
     Given I click on DVA radio button and Continue
     Then I should be on the page DVA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
@@ -51,7 +51,7 @@ Feature: Driving License Test
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration
+  @DrivingLicenceTest @build @staging @integration @DVADrivingLicence_test
   Scenario: User continue with no selection and see the error displayed
     Given I have not selected anything and Continue
     When I can see an error box highlighted red
@@ -60,7 +60,7 @@ Feature: Driving License Test
     And The field error copy “You must choose an option to continue”
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @DVLADrivingLicence_test @build @staging @integration @DVADrivingLicence_test
   Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK

@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
-import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.TOO_MANY_RETRY_ATTEMPTS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DL_FALL_BACK_EXECUTING;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DL_VERIFICATION_FALLBACK_DEVIATION;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
@@ -60,6 +59,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
 
 public class DrivingPermitHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -136,26 +136,27 @@ public class DrivingPermitHandler
 
             // Attempt Start
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
-
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
 
-            // Attempt Start
             final int MAX_ATTEMPTS = configurationService.getMaxAttempts();
 
-            // Stop being called more than MAX_ATTEMPTS
+            // Check we are not "now" above max_attempts to prevent doing another remote API call
             if (sessionItem.getAttemptCount() > MAX_ATTEMPTS) {
 
-                LOGGER.error(
+                // We do not treat this as a journey fail condition
+                // The user has had multiple attempts recorded, we attempt to redirect them on
+                LOGGER.warn(
                         "Attempt count {} is over the max of {}",
                         sessionItem.getAttemptCount(),
                         MAX_ATTEMPTS);
 
-                // Driving Permit Lambda Completed with an Error
-                eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+                eventProbe.counterMetric(
+                        LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX);
 
-                // TODO change this to a redirect onwards
-                return ApiGatewayResponseGenerator.proxyJsonResponse(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, TOO_MANY_RETRY_ATTEMPTS);
+                APIGatewayProxyResponseEvent responseEvent = generateExitResponseEvent(false);
+
+                // Use the completed OK exit sequence
+                return lambdaCompletedOK(responseEvent);
             }
 
             DrivingPermitForm drivingPermitFormData =
@@ -172,7 +173,7 @@ public class DrivingPermitHandler
             LOGGER.info(
                     "Verifying document details using {}", thirdPartyAPIService.getServiceName());
 
-            DocumentCheckVerificationResult result = null;
+            DocumentCheckVerificationResult documentCheckVerificationResult = null;
 
             boolean thirdPartyIsDcs =
                     thirdPartyAPIService
@@ -185,12 +186,14 @@ public class DrivingPermitHandler
                             .equals(DvaThirdPartyDocumentGateway.class.getSimpleName());
 
             try {
-                result =
+                documentCheckVerificationResult =
                         identityVerificationService.verifyIdentity(
                                 drivingPermitFormData, thirdPartyAPIService);
                 if (!thirdPartyIsDcs && !thirdPartyIsDva) {
                     LOGGER.info("Checking if verification fallback is required");
-                    result = executeFallbackIfDocumentFailedToVerify(result, drivingPermitFormData);
+                    documentCheckVerificationResult =
+                            executeFallbackIfDocumentFailedToVerify(
+                                    documentCheckVerificationResult, drivingPermitFormData);
                 }
             } catch (Exception e) {
                 LOGGER.info("Exception {}, checking if fallback is required", e.getClass());
@@ -198,13 +201,13 @@ public class DrivingPermitHandler
                 if (!thirdPartyIsDcs && !thirdPartyIsDva) {
                     LOGGER.info(
                             "Exception has occurred during fallback window. Executing request with DVAD");
-                    result = executeFallbackRequest(drivingPermitFormData);
+                    documentCheckVerificationResult = executeFallbackRequest(drivingPermitFormData);
                 } else {
                     throw e;
                 }
             }
 
-            result.setAttemptCount(sessionItem.getAttemptCount());
+            documentCheckVerificationResult.setAttemptCount(sessionItem.getAttemptCount());
 
             auditService.sendAuditEvent(
                     AuditEventType.RESPONSE_RECEIVED, new AuditEventContext(headers, sessionItem));
@@ -219,38 +222,17 @@ public class DrivingPermitHandler
                             input.getHeaders(),
                             sessionItem));
 
-            saveAttempt(sessionItem, drivingPermitFormData, result);
+            saveAttempt(sessionItem, drivingPermitFormData, documentCheckVerificationResult);
 
-            boolean canRetry = true;
-
-            if (result.isExecutedSuccessfully() && result.isVerified()) {
-                LOGGER.info("Document verified");
-                eventProbe.counterMetric(
-                        LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX
-                                + sessionItem.getAttemptCount());
-
-                canRetry = false;
-            } else if (result.getAttemptCount() >= MAX_ATTEMPTS) {
-                LOGGER.info(
-                        "Ending document verification after {} attempts", result.getAttemptCount());
-                eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED);
-
-                canRetry = false;
-            } else {
-                LOGGER.info("Document not verified at attempt {}", result.getAttemptCount());
-                eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY);
-
-                canRetry = true;
-            }
-
+            boolean canRetry =
+                    determineVerificationRetryStatus(
+                            sessionItem, documentCheckVerificationResult, MAX_ATTEMPTS);
             LOGGER.info("CanRetry {}", canRetry);
 
-            DocumentVerificationResponse response = new DocumentVerificationResponse();
-            response.setRetry(canRetry);
+            APIGatewayProxyResponseEvent responseEvent = generateExitResponseEvent(canRetry);
 
-            // Driving Permit Completed Normally
-            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
-            return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
+            // Use the completed OK exit sequence
+            return lambdaCompletedOK(responseEvent);
         } catch (OAuthErrorResponseException e) {
             // Driving Permit Lambda Completed with an Error
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
@@ -430,5 +412,52 @@ public class DrivingPermitHandler
         } else {
             return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
         }
+    }
+
+    // Method used to prevent completed ok paths diverging
+    private APIGatewayProxyResponseEvent lambdaCompletedOK(
+            APIGatewayProxyResponseEvent responseEvent) {
+
+        // Lambda Complete No Error
+        eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+
+        return responseEvent;
+    }
+
+    private boolean determineVerificationRetryStatus(
+            SessionItem sessionItem,
+            DocumentCheckVerificationResult documentCheckVerificationResult,
+            final int MAX_ATTEMPTS) {
+
+        if (documentCheckVerificationResult.isExecutedSuccessfully()
+                && documentCheckVerificationResult.isVerified()) {
+            LOGGER.info("Document verified");
+            eventProbe.counterMetric(
+                    LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX
+                            + sessionItem.getAttemptCount());
+
+            return false;
+        } else if (documentCheckVerificationResult.getAttemptCount() >= MAX_ATTEMPTS) {
+            LOGGER.info(
+                    "Ending document verification after {} attempts",
+                    documentCheckVerificationResult.getAttemptCount());
+            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED);
+
+            return false;
+        } else {
+            LOGGER.info(
+                    "Document not verified at attempt {}",
+                    documentCheckVerificationResult.getAttemptCount());
+            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY);
+
+            return true;
+        }
+    }
+
+    APIGatewayProxyResponseEvent generateExitResponseEvent(boolean canRetry) {
+        DocumentVerificationResponse response = new DocumentVerificationResponse();
+        response.setRetry(canRetry);
+
+        return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
     }
 }

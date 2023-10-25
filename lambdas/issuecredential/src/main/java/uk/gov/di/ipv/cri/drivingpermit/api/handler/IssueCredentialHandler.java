@@ -190,7 +190,7 @@ public class IssueCredentialHandler
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, sqsException.getMessage());
         } catch (Exception e) {
-            LOGGER.error("Exception while handling lambda {}", context.getFunctionName());
+            LOGGER.error("Exception while handling lambda {}", e.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
 
             LOGGER.debug(e.getMessage(), e);

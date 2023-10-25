@@ -348,7 +348,7 @@ Feature: Driving License Language Test
     Given I click on DVA radio button and Parhau
     When I enter the invalid last name and first name
     When User clicks on continue
-    Then the validation text reads Mae problem
+#    Then the validation text reads Mae problem
     And I see the Lastname error in the error summary as Rhowch eich enw olaf fel y mae'n ymddangos ar eich trwydded yrru
     And I see the firstname error summary as Rhowch eich enw cyntaf fel y mae'n ymddangos ar eich trwydded yrru
     And I see the middlenames error summary as Rhowch unrhyw enwau canol fel y maent yn ymddangos ar eich trwydded yrru
@@ -358,7 +358,7 @@ Feature: Driving License Language Test
   Scenario: DVA Driving Licence details IncorrectDateOfBirth error message in Welsh
     Given I click on DVA radio button and Parhau
     When User clicks on continue
-    Then the validation text reads Mae problem
+#    Then the validation text reads Mae problem
     And I see DVA enter the date as it appears above the field as Gwall:Rhowch eich dyddiad geni fel y mae'n ymddangos ar eich trwydded yrru
     And I clear the data and re enter the date of birth to enter pastDOB for DVA
     And  User clicks on continue

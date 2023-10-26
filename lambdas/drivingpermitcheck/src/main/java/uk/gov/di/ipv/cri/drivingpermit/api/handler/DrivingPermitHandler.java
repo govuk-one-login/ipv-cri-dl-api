@@ -74,6 +74,8 @@ public class DrivingPermitHandler
     private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
     private IdentityVerificationService identityVerificationService;
 
+    private String environment;
+
     public DrivingPermitHandler()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
                     HttpException, KeyStoreException, IOException {
@@ -112,6 +114,11 @@ public class DrivingPermitHandler
         this.dataStore = serviceFactory.getDataStore();
         this.thirdPartyAPIServiceFactory = thirdPartyAPIServiceFactory;
         this.identityVerificationService = identityVerificationService;
+
+        // Get environment to decide if to output internal state
+        // for api test asserts (dev only)
+        String tEnvironment = System.getenv("ENVIRONMENT");
+        this.environment = tEnvironment == null ? "Not-Set" : tEnvironment;
     }
 
     @Override
@@ -201,22 +208,31 @@ public class DrivingPermitHandler
             // Driving Permit Lambda Completed with an Error
             eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
-            // Debug in DEV only as Oauth errors appear in the redirect url
-            // This will output the specific error message
-            // Note Unit tests expect server error (correctly)
-            // and will fail if this is set (during unit tests)
-            if (configurationService.isDevEnvironmentOnlyEnhancedDebugSet()) {
+            CommonExpressOAuthError commonExpressOAuthError;
+
+            if (!configurationService.isDevEnvironmentOnlyEnhancedDebugSet()) {
+                // Standard oauth compliant route
+                commonExpressOAuthError = new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR);
+            } else {
+                // Debug in DEV only as Oauth errors appear in the redirect url
+                // This will output the specific error message
+                // Note Unit tests expect server error (correctly)
+                // and will fail if this is set (during unit tests)
                 String customOAuth2ErrorDescription = e.getErrorReason();
-                return ApiGatewayResponseGenerator.proxyJsonResponse(
-                        e.getStatusCode(), // Status Code determined by throw location
+
+                commonExpressOAuthError =
                         new CommonExpressOAuthError(
-                                OAuth2Error.SERVER_ERROR, customOAuth2ErrorDescription));
+                                OAuth2Error.SERVER_ERROR, customOAuth2ErrorDescription);
             }
 
-            // Non-debug route - standard OAuth2Error.SERVER_ERROR
+            // Internal error state only sent in dev
+            if ("dev".equals(environment)) {
+                commonExpressOAuthError.setCriInternalErrorState(e.getErrorResponse());
+            }
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     e.getStatusCode(), // Status Code determined by throw location
-                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
+                    commonExpressOAuthError);
         } catch (Exception e) {
             // This is where unexpected exceptions will reach (null pointers etc)
             // Expected exceptions should be caught and thrown as

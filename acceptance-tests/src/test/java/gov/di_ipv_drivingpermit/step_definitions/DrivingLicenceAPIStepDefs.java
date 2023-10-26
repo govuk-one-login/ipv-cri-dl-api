@@ -74,15 +74,18 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         postRequestToDrivingLicenceEndpoint(passportJsonRequestBody, jsonEdits);
     }
 
-    @And("Check response contains unexpected server error exception")
-    public void dl_check_fails_and_returns_unexpected_exception() {
-        checkDrivingPermitResponseContainsException();
+    @Then(
+            "Check response contains unexpected server error exception containing debug error code (.*) and debug error message (.*)$")
+    public void dl_debug_check_fails_and_returns_unexpected_exception(
+            String cri_internal_error_code, String cri_internal_error_message) {
+        checkDebugDrivingPermitResponseContainsException(
+                cri_internal_error_code, cri_internal_error_message);
     }
 
     @And("Driving Licence VC should contain ci (.*), validityScore (.*) and strengthScore (.*)$")
     public void DL_vc_should_contain_ci_validity_score_and_strength_score(
             String ci, String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
+            throws IOException, InterruptedException, ParseException {
         ciInDrivingLicenceCriVc(ci);
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }

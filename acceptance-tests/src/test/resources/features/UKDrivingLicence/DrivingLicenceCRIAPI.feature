@@ -70,8 +70,78 @@ Feature: DrivingLicence CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
 
+#########  DVLA direct connection tests ##########
   @drivingLicenceCRI_API @pre-merge @dev
-  Scenario: DVA Driving Licence user fails first attempt but VC is still created
+  Scenario: DVLA Driving Licence Happy path with dvla direct connection as document checking route
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAValidKennethJsonPayload
+    And Driving Licence user gets authorisation code
+    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
+    Then User requests Driving Licence CRI VC
+    And Driving Licence VC should contain validityScore 2 and strengthScore 3
+    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario: DVLA Driving Licence user fails first attempt with dvla direct as document checking route but VC is still created
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAInvalidJsonPayload
+    Then Driving Licence check response should contain Retry value as true
+    And Driving Licence user gets authorisation code
+    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
+    Then User requests Driving Licence CRI VC
+    And Driving Licence VC should contain ci D02, validityScore 0 and strengthScore 3
+    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in failed checkDetails
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario Outline: Test Driving Licence API handles errors on the match endpoint with an OAuth Server Error
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a editable POST request to Driving Licence endpoint using jsonRequest <PassportJsonPayload> with edited fields <jsonEdits>
+    Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+    Examples:
+      |PassportJsonPayload         | jsonEdits                                                                  | cri_internal_error_code | cri_internal_error_message                                  |
+      |DVLAValidKennethJsonPayload | {"surname": "Unauthorized", "drivingLicenceNumber" : "UNAUT123456AB1AB"}   | 1314                    | error match endpoint returned unexpected http status code   |
+      |DVLAValidKennethJsonPayload | {"surname": "Forbidden", "drivingLicenceNumber" : "FORBI123456AB1AB"}      | 1314                    | error match endpoint returned unexpected http status code   |
+      |DVLAValidKennethJsonPayload | {"surname": "CannotBeFound", "drivingLicenceNumber" : "CANNO123456AB1AB"}  | 1314                    | error match endpoint returned unexpected http status code   |
+      |DVLAValidKennethJsonPayload | {"surname": "TooManyRequest", "drivingLicenceNumber" : "TOOMA123456AB1AB"} | 1314                    | error match endpoint returned unexpected http status code   |
+      |DVLAValidKennethJsonPayload | {"surname": "ServerError", "drivingLicenceNumber" : "SERVE500456AB1AB"}    | 1314                    | error match endpoint returned unexpected http status code   |
+      |DVLAValidKennethJsonPayload | {"surname": "ServerError", "drivingLicenceNumber" : "SERVE502456AB1AB"}    | 1314                    | error match endpoint returned unexpected http status code   |
+      |DVLAValidKennethJsonPayload | {"surname": "ServerError", "drivingLicenceNumber" : "SERVE504456AB1AB"}    | 1314                    | error match endpoint returned unexpected http status code   |
+
+#########  DVA direct connection tests ##########
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario: DVA Driving Licence Happy path with dva direct connection as document checking route
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVAValidKennethJsonPayload
+    And Driving Licence user gets authorisation code
+    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
+    Then User requests Driving Licence CRI VC
+    And Driving Licence VC should contain validityScore 2 and strengthScore 3
+    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario: DVA Driving Licence Retry Journey Happy Path with dva direct connection as document checking route
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVAInvalidJsonPayload
+    Then Driving Licence check response should contain Retry value as true
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVAValidKennethJsonPayload
+    And Driving Licence user gets authorisation code
+    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
+    Then User requests Driving Licence CRI VC
+    And Driving Licence VC should contain validityScore 2 and strengthScore 3
+    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario: DVA Driving Licence user fails first attempt with dva direct as document checking route but VC is still created
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
     And Driving Licence user gets a session-id

@@ -40,6 +40,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static String VC;
 
     private static Boolean RETRY;
+    private static String DRIVING_LICENCE_CHECK_RESPONSE;
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModules(new JavaTimeModule());
 
@@ -125,10 +126,10 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .setHeader("session_id", SESSION_ID)
                         .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
         LOGGER.info("drivingLicenceRequestBody = " + dlInputJsonString);
-        String drivingLicenceCheckResponse = sendHttpRequest(request.build()).body();
-        LOGGER.info("drivingLicenceCheckResponse = " + drivingLicenceCheckResponse);
+        DRIVING_LICENCE_CHECK_RESPONSE = sendHttpRequest(request.build()).body();
+        LOGGER.info("drivingLicenceCheckResponse = " + DRIVING_LICENCE_CHECK_RESPONSE);
         DocumentCheckResponse documentCheckResponse =
-                objectMapper.readValue(drivingLicenceCheckResponse, DocumentCheckResponse.class);
+                objectMapper.readValue(DRIVING_LICENCE_CHECK_RESPONSE, DocumentCheckResponse.class);
         RETRY = documentCheckResponse.getRetry();
         LOGGER.info("RETRY = " + RETRY);
     }
@@ -267,8 +268,33 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void checkDrivingPermitResponseContainsException() {
-        RETRY.equals(
-                "{\"oauth_error\":{\"error_description\":\"Unexpected server error\",\"error\":\"server_error\"}}");
+        checkDebugDrivingPermitResponseContainsException(null, null);
+    }
+
+    public void checkDebugDrivingPermitResponseContainsException(
+            String cri_internal_error_code, String cri_internal_error_message) {
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{");
+
+        sb.append(
+                "\"oauth_error\":{"
+                        + "\"error_description\":\"Unexpected server error\","
+                        + "\"error\":\"server_error\""
+                        + "}");
+
+        if (cri_internal_error_code != null && cri_internal_error_message != null) {
+            // Asserting debug reply
+            sb.append(",");
+            sb.append("\"cri_internal_error_code\":" + "\"" + cri_internal_error_code + "\"");
+            sb.append(",");
+            sb.append("\"cri_internal_error_message\":" + "\"" + cri_internal_error_message + "\"");
+        }
+
+        sb.append("}");
+
+        assertEquals(sb.toString(), DRIVING_LICENCE_CHECK_RESPONSE);
     }
 
     private String createRequest(String baseUrl, String criId, String jsonString)

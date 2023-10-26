@@ -54,7 +54,7 @@ public enum ErrorResponse {
     MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_CODE_NOT_CORRECT(
             1313, "match endpoint 404 response expected error code not correct"),
     ERROR_MATCH_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
-            1314, "error_match_endpoint_returned_unexpected_http_status_code");
+            1314, "error match endpoint returned unexpected http status code");
 
     private final int code;
     private final String message;

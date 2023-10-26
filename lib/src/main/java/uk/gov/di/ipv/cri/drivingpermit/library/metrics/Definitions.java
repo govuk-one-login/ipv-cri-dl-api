@@ -9,6 +9,10 @@ public class Definitions {
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR =
             "lambda_driving_permit_check_completed_error";
 
+    // Users who have reached max attempts and have gone back to the form, but will be redirected
+    public static final String LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX =
+            "lambda_driving_permit_check_user_redirected_attempts_over_max";
+
     public static final String LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK =
             "lambda_issue_credential_completed_ok";
     public static final String LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR =

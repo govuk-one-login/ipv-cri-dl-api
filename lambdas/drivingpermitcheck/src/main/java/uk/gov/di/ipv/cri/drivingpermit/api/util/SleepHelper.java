@@ -39,29 +39,6 @@ public class SleepHelper {
         return timeWaited;
     }
 
-    /**
-     * Calculates a wait time based on number of calls - starting from zero for the first call.
-     * Using Thread.sleep()
-     *
-     * @param callNumber
-     * @return
-     */
-    public long sleepWithExponentialBackOff(int callNumber) throws InterruptedException {
-
-        long startTime = System.currentTimeMillis();
-
-        LOGGER.info("sleepWithExponentialBackOff start time : {}", startTime);
-
-        Thread.sleep(Math.min(calculateExponentialBackOffTimeMS(callNumber), maxSleepTimeMs));
-
-        long endTime = System.currentTimeMillis();
-        long timeWaited = (endTime - startTime);
-
-        LOGGER.info("sleepWithExponentialBackOff end time : {}", endTime);
-
-        return timeWaited;
-    }
-
     private long calculateExponentialBackOffTimeMS(int callNumber) {
 
         if (callNumber == 0) {

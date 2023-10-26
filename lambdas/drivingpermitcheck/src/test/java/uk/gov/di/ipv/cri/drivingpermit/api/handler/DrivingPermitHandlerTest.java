@@ -74,6 +74,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
 
 @ExtendWith(MockitoExtension.class)
 class DrivingPermitHandlerTest {
@@ -346,7 +347,7 @@ class DrivingPermitHandlerTest {
     }
 
     @Test
-    void handleResponseShouldReturnServerErrorResponseWhenAttemptsIsOverAttemptMax() {
+    void handleResponseShouldRedirectUserWhenAttemptsIsOverAttemptMax() {
         String testRequestBody = "request body";
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
 
@@ -369,20 +370,19 @@ class DrivingPermitHandlerTest {
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
         when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
 
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
-
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
-        verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+        verify(mockEventProbe)
+                .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX);
+        verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+        verifyNoMoreInteractions(mockEventProbe);
 
         assertNotNull(responseEvent);
-        assertEquals(500, responseEvent.getStatusCode());
-        assertEquals(
-                "{\"code\":1002,\"message\":\"Too many retry attempts made\"}",
-                responseEvent.getBody());
+        assertEquals(200, responseEvent.getStatusCode());
+        assertEquals("{\"redirectUrl\":null,\"retry\":false}", responseEvent.getBody());
     }
 
     @Test

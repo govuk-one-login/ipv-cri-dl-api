@@ -16,7 +16,7 @@ public class EvidenceHelper {
     public static Evidence documentCheckResultItemToEvidence(
             DocumentCheckResultItem documentCheckResultItem) {
         Evidence evidence = new Evidence();
-        evidence.setType(EvidenceType.IDENTITY_CHECK);
+        evidence.setType(EvidenceType.IDENTITY_CHECK.toString());
         evidence.setTxn(documentCheckResultItem.getTransactionId());
 
         evidence.setActivityHistoryScore(documentCheckResultItem.getActivityHistoryScore());

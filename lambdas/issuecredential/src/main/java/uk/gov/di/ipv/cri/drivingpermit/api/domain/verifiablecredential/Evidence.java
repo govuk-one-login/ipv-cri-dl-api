@@ -22,7 +22,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Evidence {
     @JsonProperty("type")
-    private EvidenceType type;
+    private String type;
 
     @JsonProperty("txn")
     private String txn;
@@ -45,11 +45,11 @@ public class Evidence {
     @JsonProperty("ci")
     private List<String> ci;
 
-    public EvidenceType getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(EvidenceType type) {
+    public void setType(String type) {
         this.type = type;
     }
 

@@ -21,5 +21,7 @@ public class VerifiableCredentialConstants {
 
     public static final String VC_EVIDENCE_KEY = "evidence";
 
+    public static final String VC_EVIDENCE_TYPE_KEY = "type";
+
     private VerifiableCredentialConstants() {}
 }

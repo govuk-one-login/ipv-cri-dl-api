@@ -23,6 +23,7 @@ import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential.EvidenceType;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
@@ -123,6 +124,15 @@ class VerifiableCredentialServiceTest implements TestFixtures {
 
         JsonNode claimsSet = objectMapper.readTree(generatedClaims.toString());
         assertEquals(5, claimsSet.size());
+
+        assertEquals(
+                EvidenceType.IDENTITY_CHECK.toString(),
+                claimsSet
+                        .get(VC_CLAIM)
+                        .get(VC_EVIDENCE_KEY)
+                        .get(0)
+                        .get(VC_EVIDENCE_TYPE_KEY)
+                        .asText());
 
         assertEquals(
                 documentCheckResultItem.getContraIndicators().get(0),

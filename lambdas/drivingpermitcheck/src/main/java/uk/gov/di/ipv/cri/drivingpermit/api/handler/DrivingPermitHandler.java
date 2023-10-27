@@ -167,7 +167,6 @@ public class DrivingPermitHandler
                     selectThirdPartyAPIService(
                             configurationService.getDvaDirectEnabled(),
                             configurationService.getDvlaDirectEnabled(),
-                            documentCheckingRoute,
                             drivingPermitFormData.getLicenceIssuer());
 
             LOGGER.info(
@@ -369,8 +368,7 @@ public class DrivingPermitHandler
     private DocumentCheckVerificationResult executeFallbackRequest(
             DrivingPermitForm drivingPermitFormData) throws Exception {
         ThirdPartyAPIService fallbackThirdPartyService =
-                selectThirdPartyAPIService(
-                        false, false, "DCS", drivingPermitFormData.getLicenceIssuer());
+                selectThirdPartyAPIService(false, false, drivingPermitFormData.getLicenceIssuer());
         eventProbe.counterMetric(DL_FALL_BACK_EXECUTING);
         return identityVerificationService.verifyIdentity(
                 drivingPermitFormData, fallbackThirdPartyService);
@@ -396,16 +394,11 @@ public class DrivingPermitHandler
     }
 
     private ThirdPartyAPIService selectThirdPartyAPIService(
-            boolean dvaDirectEnabled,
-            boolean dvlaDirectEnabled,
-            String documentCheckingRoute,
-            String licenseIssuer) {
+            boolean dvaDirectEnabled, boolean dvlaDirectEnabled, String licenseIssuer) {
 
         IssuingAuthority issuingAuthority = IssuingAuthority.valueOf(licenseIssuer);
 
-        boolean direct = "direct".equals(documentCheckingRoute);
-
-        if (direct && (issuingAuthority == IssuingAuthority.DVA) && dvaDirectEnabled) {
+        if ((issuingAuthority == IssuingAuthority.DVA) && dvaDirectEnabled) {
             return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
         } else if ((issuingAuthority == IssuingAuthority.DVLA) && dvlaDirectEnabled) {
             return thirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService();

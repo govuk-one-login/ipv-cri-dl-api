@@ -176,11 +176,11 @@ Mappings:
 
   dvaDirectEnabledMapping:
     Environment:
-      dev: "false"
-      build: "false"
-      staging: "false"
-      integration: "false"
-      production: "false"
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "true"
 
   dvlaDirectEnabledMapping:
     Environment:

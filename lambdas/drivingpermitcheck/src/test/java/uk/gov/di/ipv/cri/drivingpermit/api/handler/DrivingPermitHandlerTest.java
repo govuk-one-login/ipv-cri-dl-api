@@ -481,37 +481,24 @@ class DrivingPermitHandlerTest {
 
     @ParameterizedTest
     @CsvSource({
-        // dvaEnabled, dvlaEnabled, documentCheckingRoute, licenseIssuer, expected api
+        // dvaEnabled, dvlaEnabled, licenseIssuer, expected api
 
-        // API's enabled/ disabled, header has DCS
-        "false, false, dcs, DVA, DcsThirdPartyDocumentGateway",
-        "false, false, dcs, DVLA, DcsThirdPartyDocumentGateway",
-        "true, true, dcs, DVA, DcsThirdPartyDocumentGateway",
-        "true, true, dcs, DVLA, DvlaThirdPartyDocumentGateway",
-
-        // API's enabled/ disabled, header has direct
-        "false, false, direct, DVA, DcsThirdPartyDocumentGateway",
-        "false, false, direct, DVLA, DcsThirdPartyDocumentGateway",
-        "true, true, direct, DVA, DvaThirdPartyDocumentGateway",
-        "true, true, direct, DVLA, DvlaThirdPartyDocumentGateway",
-
-        // Only one direct api is enabled, header has direct (ensure api feature flags are
+        // Only one direct api is enabled (ensure api feature flags are
         // independent)
-        "false, true, direct, DVA, DcsThirdPartyDocumentGateway",
-        "true, false, direct, DVLA, DcsThirdPartyDocumentGateway",
-        "true, false, direct, DVA, DvaThirdPartyDocumentGateway",
-        "false, true, direct, DVLA, DvlaThirdPartyDocumentGateway",
+        "false, true, DVA, DcsThirdPartyDocumentGateway",
+        "true, false, DVLA, DcsThirdPartyDocumentGateway",
+        "true, false, DVA, DvaThirdPartyDocumentGateway",
+        "false, true, DVLA, DvlaThirdPartyDocumentGateway",
 
         // Failsafe for no header present
-        "false, false, not-present, DVA, DcsThirdPartyDocumentGateway",
-        "false, false, not-present, DVLA, DcsThirdPartyDocumentGateway",
-        "true, true, not-present, DVA, DcsThirdPartyDocumentGateway",
-        "true, true, not-present, DVLA, DvlaThirdPartyDocumentGateway",
+        "false, false, DVA, DcsThirdPartyDocumentGateway",
+        "false, false, DVLA, DcsThirdPartyDocumentGateway",
+        "true, true, DVA, DvaThirdPartyDocumentGateway",
+        "true, true, DVLA, DvlaThirdPartyDocumentGateway",
     })
     void shouldSelectCorrectThirdPartyAPIServiceForEachIssuerAndFeatureToggle(
             boolean dvaEnabled,
             boolean dvlaEnabled,
-            String documentCheckingRoute,
             String licenseIssuer,
             String expectedServiceName)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -519,7 +506,7 @@ class DrivingPermitHandlerTest {
         IssuingAuthority issuingAuthority = IssuingAuthority.valueOf(licenseIssuer);
 
         // This section mocks the gets (if called) from the ThirdPartyAPIServiceFactory
-        if (dvaEnabled && "direct".equals(documentCheckingRoute) && (DVA == issuingAuthority)) {
+        if (dvaEnabled && (DVA == issuingAuthority)) {
             when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
                     .thenReturn(mockDvaThirdPartyDocumentGateway);
         } else if (dvlaEnabled && (DVLA == issuingAuthority)) {
@@ -545,22 +532,14 @@ class DrivingPermitHandlerTest {
 
         Method privateDetermineThirdPartyAPIServiceMethod =
                 DrivingPermitHandler.class.getDeclaredMethod(
-                        "selectThirdPartyAPIService",
-                        boolean.class,
-                        boolean.class,
-                        String.class,
-                        String.class);
+                        "selectThirdPartyAPIService", boolean.class, boolean.class, String.class);
         privateDetermineThirdPartyAPIServiceMethod.setAccessible(true);
 
         // Call the private method and capture result
         ThirdPartyAPIService thirdPartyAPIService =
                 (ThirdPartyAPIService)
                         privateDetermineThirdPartyAPIServiceMethod.invoke(
-                                spyHandler,
-                                dvaEnabled,
-                                dvlaEnabled,
-                                documentCheckingRoute,
-                                licenseIssuer);
+                                spyHandler, dvaEnabled, dvlaEnabled, licenseIssuer);
 
         assertEquals(expectedServiceName, thirdPartyAPIService.getClass().getSimpleName());
     }

@@ -33,8 +33,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGateway;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
@@ -52,8 +50,6 @@ import java.util.List;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DL_FALL_BACK_EXECUTING;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DL_VERIFICATION_FALLBACK_DEVIATION;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
@@ -162,7 +158,6 @@ public class DrivingPermitHandler
             DrivingPermitForm drivingPermitFormData =
                     parseDrivingPermitFormRequest(input.getBody());
 
-            String documentCheckingRoute = headers.get(HEADER_DOCUMENT_CHECKING_ROUTE);
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(
                             configurationService.getDvaDirectEnabled(),
@@ -172,39 +167,9 @@ public class DrivingPermitHandler
             LOGGER.info(
                     "Verifying document details using {}", thirdPartyAPIService.getServiceName());
 
-            DocumentCheckVerificationResult documentCheckVerificationResult = null;
-
-            boolean thirdPartyIsDcs =
-                    thirdPartyAPIService
-                            .getServiceName()
-                            .equals(DcsThirdPartyDocumentGateway.class.getSimpleName());
-
-            boolean thirdPartyIsDva =
-                    thirdPartyAPIService
-                            .getServiceName()
-                            .equals(DvaThirdPartyDocumentGateway.class.getSimpleName());
-
-            try {
-                documentCheckVerificationResult =
-                        identityVerificationService.verifyIdentity(
-                                drivingPermitFormData, thirdPartyAPIService);
-                if (!thirdPartyIsDcs && !thirdPartyIsDva) {
-                    LOGGER.info("Checking if verification fallback is required");
-                    documentCheckVerificationResult =
-                            executeFallbackIfDocumentFailedToVerify(
-                                    documentCheckVerificationResult, drivingPermitFormData);
-                }
-            } catch (Exception e) {
-                LOGGER.info("Exception {}, checking if fallback is required", e.getClass());
-
-                if (!thirdPartyIsDcs && !thirdPartyIsDva) {
-                    LOGGER.info(
-                            "Exception has occurred during fallback window. Executing request with DVAD");
-                    documentCheckVerificationResult = executeFallbackRequest(drivingPermitFormData);
-                } else {
-                    throw e;
-                }
-            }
+            DocumentCheckVerificationResult documentCheckVerificationResult =
+                    identityVerificationService.verifyIdentity(
+                            drivingPermitFormData, thirdPartyAPIService);
 
             documentCheckVerificationResult.setAttemptCount(sessionItem.getAttemptCount());
 
@@ -363,34 +328,6 @@ public class DrivingPermitHandler
 
         return new IdentityVerificationService(
                 new FormDataValidator(), serviceFactory.getEventProbe());
-    }
-
-    private DocumentCheckVerificationResult executeFallbackRequest(
-            DrivingPermitForm drivingPermitFormData) throws Exception {
-        ThirdPartyAPIService fallbackThirdPartyService =
-                selectThirdPartyAPIService(false, false, drivingPermitFormData.getLicenceIssuer());
-        eventProbe.counterMetric(DL_FALL_BACK_EXECUTING);
-        return identityVerificationService.verifyIdentity(
-                drivingPermitFormData, fallbackThirdPartyService);
-    }
-
-    private DocumentCheckVerificationResult executeFallbackIfDocumentFailedToVerify(
-            DocumentCheckVerificationResult documentDataVerificationResult,
-            DrivingPermitForm drivingPermitFormData)
-            throws Exception {
-        if (!documentDataVerificationResult.isVerified()
-                || (documentDataVerificationResult.getContraIndicators() != null
-                        && !documentDataVerificationResult.getContraIndicators().isEmpty())) {
-            LOGGER.info(
-                    "Document has been marked unverified during fallback window. Executing request with Direct connection");
-            documentDataVerificationResult = executeFallbackRequest(drivingPermitFormData);
-            if (documentDataVerificationResult.isVerified()) {
-                eventProbe.counterMetric(DL_VERIFICATION_FALLBACK_DEVIATION);
-                LOGGER.warn(
-                        "Document has been verified using DCS that failed verification using Direct connection");
-            }
-        }
-        return documentDataVerificationResult;
     }
 
     private ThirdPartyAPIService selectThirdPartyAPIService(

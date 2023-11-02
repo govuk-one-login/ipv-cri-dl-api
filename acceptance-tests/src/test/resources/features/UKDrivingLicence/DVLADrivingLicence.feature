@@ -8,10 +8,9 @@ Feature: Driving Licence Test
     And I should see DVLA as an option
     And I click on DVLA radio button and Continue
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
-    And I set the document checking route
     And I see a form requesting DVLA LicenceNumber
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline:  DVLA Driving Licence details page happy path
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -23,7 +22,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyKenneth   |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectDrivingLicenceNumber
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -37,7 +36,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject      |
       |IncorrectDrivingLicenceNumber |
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline: DVLA Driving Licence details page unhappy path when licence number date format does not match with User's Date Of Birth
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -48,7 +47,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject      |
       |DrivingLicenceNumberWithNumericChar |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectDateOfBirth
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -59,7 +58,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectDateOfBirth |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectLastName
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -72,7 +71,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject      |
       |IncorrectLastName|
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectIssueDate
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -85,7 +84,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectIssueDate|
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectValidToDate
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -98,7 +97,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectValidToDate|
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectIssueNumber
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -111,7 +110,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectIssueNumber|
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline: DVLA Driving Licence Retry Test Happy Path
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -125,7 +124,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyKenneth |
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario Outline: DVLA Driving Licence User failed second attempt
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -139,7 +138,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectDrivingLicenceNumber |
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration @smoke
   Scenario: DVLA Driving Licence User cancels after failed first attempt
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -149,14 +148,14 @@ Feature: Driving Licence Test
     And JSON payload should contain ci D02, validity score 0 and strength score 3
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @smoke @dvlaDirect
+  @DVLADrivingLicence_test @smoke
   Scenario: DVLA Driving Licence User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @smoke @dvlaDirect
+  @DVLADrivingLicence_test @smoke
   Scenario: DVLA Driving Licence User cancels before first attempt via I do not have a UK driving licence route
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button
@@ -264,7 +263,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject |
       |IncorrectDateOfBirth |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline: DVLA Driving Licence Date of birth with special characters error validation
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -585,7 +584,7 @@ Feature: Driving Licence Test
       |DrivingLicenceSubject             |
       |DrivingLicenceSubjectHappyKenneth   |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - Correct licence number structure
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as DECER657085K99LN
@@ -596,7 +595,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | DrivingLicenceSubjectHappyKenneth         |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, surname > 5)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -606,7 +605,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, female licenceNumber DOB Jan)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as DECER651085K99LN
@@ -617,7 +616,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | KennethDOBJan         |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, female licenceNumber DOB Dec)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as DECER662085K99LN
@@ -628,7 +627,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | KennethDOBDec         |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, licenceNumber DOB Dec)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as DECER612085KE9LN
@@ -639,7 +638,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | KennethDOBDec         |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, licenceNumber DOB Jan)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as DECER601085KE9LN
@@ -650,7 +649,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | KennethDOBJan         |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, 1 forename)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as AB999607085J9AAA
@@ -661,7 +660,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | JohnSmithHappy        |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, surname < 5)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as AB999607085J9AAA
@@ -672,7 +671,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | JohnShortSurname      |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario Outline:  DVLA Driving Licence number validation test - (VALID, 2 forenames)
     Given User enters DVLA data as a <DrivingLicenceSubject>
     Then User clears the driving licence number and enters the new value as AB999607085JAAAA
@@ -683,7 +682,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | JohnTwoForename       |
 
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect
+  @DVLADrivingLicence_test @build @staging @integration
   Scenario: DVLA Driving Licence privacy notice link to consent
     Then I see the consent section Allow DVLA to check your driving licence details
     And I see the sentence DVLA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.

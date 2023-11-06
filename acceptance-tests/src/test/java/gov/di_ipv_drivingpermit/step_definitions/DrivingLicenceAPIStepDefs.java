@@ -33,8 +33,7 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
 
     @When(
             "Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest (.*)$")
-    public void DL_user_sends_a_post_request_to_driving_licence_end_point(
-            String dlJsonRequestBody)
+    public void DL_user_sends_a_post_request_to_driving_licence_end_point(String dlJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         postRequestToDrivingLicenceEndpoint(dlJsonRequestBody);
     }
@@ -72,8 +71,7 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     public void passport_user_sends_a_post_request_to_passport_end_point(
             String passportJsonRequestBody, String jsonEdits)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToDrivingLicenceEndpoint(
-                passportJsonRequestBody, jsonEdits);
+        postRequestToDrivingLicenceEndpoint(passportJsonRequestBody, jsonEdits);
     }
 
     @And("Check response contains unexpected server error exception")

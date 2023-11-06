@@ -317,7 +317,7 @@ Feature: Driving License Language Test
     Then I can see the postcode field titled Cod post
     Then I can see postcode sentence as Rhowch y cod post yn y cyfeiriad yn adran 8 o'ch trwydded
 
-  @DVADrivingLicence_test @build
+  @DVADrivingLicence_test
   Scenario Outline:  DVA Driving Licence details page happy path
     Given I click on DVA radio button and Parhau
     When User enters DVA data as a <DVADrivingLicenceSubject>

@@ -572,7 +572,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertEquals(expectedErrorStatusCode, ActualStatusCode);
     }
 
-    public void checkScoresAndTypeInStubIs(String validityScore, String strengthScore, String type) throws IOException {
+    public void checkScoresAndTypeInStubIs(String validityScore, String strengthScore, String type)
+            throws IOException {
         scoreAndTypeIs(validityScore, strengthScore, type, JSONPayload.getText());
     }
 
@@ -592,7 +593,10 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void scoreAndTypeIs(
-            String expectedValidityScore, String expectedStrengthScore, String expectedType, String jsonPayloadText)
+            String expectedValidityScore,
+            String expectedStrengthScore,
+            String expectedType,
+            String jsonPayloadText)
             throws IOException {
         String result = jsonPayloadText;
         LOGGER.info("result = " + result);

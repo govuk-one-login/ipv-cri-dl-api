@@ -146,7 +146,8 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         Assert.assertTrue(new DrivingLicencePageObject().optionDVA.isDisplayed());
     }
 
-    @And("^JSON payload should contain ci (.*), validity score (.*), strength score (.*) and type (.*)$")
+    @And(
+            "^JSON payload should contain ci (.*), validity score (.*), strength score (.*) and type (.*)$")
     public void scoreAndCiAndTypeInVc(
             String ci, String validityScore, String strengthScore, String type) throws IOException {
         new DrivingLicencePageObject().ciInVC(ci);

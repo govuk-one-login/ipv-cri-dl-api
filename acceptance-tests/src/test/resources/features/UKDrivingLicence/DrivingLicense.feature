@@ -39,7 +39,6 @@ Feature: Driving License Test
   Scenario:User Selects DVA and landed in DVA page
     Given I click on DVA radio button and Continue
     Then I should be on the page DVA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
-    And I set the document checking route
     And The test is complete and I close the driver
 
   @DrivingLicenceTest

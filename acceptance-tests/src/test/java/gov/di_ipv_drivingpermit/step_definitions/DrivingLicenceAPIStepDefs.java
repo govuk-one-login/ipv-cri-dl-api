@@ -32,11 +32,10 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     }
 
     @When(
-            "Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest (.*) and document checking route is (.*)$")
-    public void DL_user_sends_a_post_request_to_driving_licence_end_point(
-            String dlJsonRequestBody, String documentCheckingRoute)
+            "Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest (.*)$")
+    public void DL_user_sends_a_post_request_to_driving_licence_end_point(String dlJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToDrivingLicenceEndpoint(dlJsonRequestBody, documentCheckingRoute);
+        postRequestToDrivingLicenceEndpoint(dlJsonRequestBody);
     }
 
     @And("Driving Licence check response should contain Retry value as (.*)$")
@@ -68,12 +67,11 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     }
 
     @When(
-            "Driving Licence user sends a editable POST request to Driving Licence endpoint using jsonRequest (.*) with edited fields (.*) and document checking route is (.*)$")
+            "Driving Licence user sends a editable POST request to Driving Licence endpoint using jsonRequest (.*) with edited fields (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(
-            String passportJsonRequestBody, String jsonEdits, String documentCheckingRoute)
+            String passportJsonRequestBody, String jsonEdits)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToDrivingLicenceEndpoint(
-                passportJsonRequestBody, jsonEdits, documentCheckingRoute);
+        postRequestToDrivingLicenceEndpoint(passportJsonRequestBody, jsonEdits);
     }
 
     @And("Check response contains unexpected server error exception")

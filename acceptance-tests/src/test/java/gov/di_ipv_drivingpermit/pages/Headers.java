@@ -3,7 +3,7 @@ package gov.di_ipv_drivingpermit.pages;
 public class Headers {
 
     public static final String CHECKING_YOUR_DETAILS = "We need to check your details";
-    public static final String IPV_CORE_STUB = "IPV Core Stub";
+    public static final String IPV_CORE_STUB = "IPV Core Stub - GOV.UK";
     public static final String CREDENTIAL_ISSUERS = "Visit Credential Issuers";
     public static final String PROBLEM_WITH_THE_SERVICE =
             "Sorry, there is a problem with the service";

@@ -142,7 +142,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "/html/head/link[1]")
     public WebElement cookiePreference;
 
-    @FindBy(id = "error-summary-title")
+    @FindBy(className = "govuk-error-summary__title")
     public WebElement errorSummaryTitle;
 
     @FindBy(id = "drivingLicenceNumber")
@@ -543,7 +543,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         String coreStubUrl = configurationService.getCoreStubUrl(false);
         String expUrl =
                 coreStubUrl
-                        + "/callback?error=access_denied&error_description=Authorization+permission+denied";
+                        + "callback?error=access_denied&error_description=Authorization+permission+denied";
         String actUrl = Driver.get().getCurrentUrl();
         LOGGER.info("expectedUrl = " + expUrl);
         LOGGER.info("actualUrl = " + actUrl);

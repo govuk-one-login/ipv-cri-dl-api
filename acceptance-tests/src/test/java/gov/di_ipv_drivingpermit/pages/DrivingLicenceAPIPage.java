@@ -90,7 +90,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void postRequestToDrivingLicenceEndpoint(
-            String dlJsonRequestBody, String jsonEditsString, String documentCheckingRoute)
+            String dlJsonRequestBody, String jsonEditsString)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         JsonNode dlJsonNode =
@@ -124,9 +124,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session_id", SESSION_ID)
                         .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
-        if (documentCheckingRoute != null && !"not-provided".equals(documentCheckingRoute)) {
-            request.setHeader("document-checking-route", documentCheckingRoute);
-        }
         LOGGER.info("drivingLicenceRequestBody = " + dlInputJsonString);
         String drivingLicenceCheckResponse = sendHttpRequest(request.build()).body();
         LOGGER.info("drivingLicenceCheckResponse = " + drivingLicenceCheckResponse);
@@ -136,11 +133,9 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         LOGGER.info("RETRY = " + RETRY);
     }
 
-    public void postRequestToDrivingLicenceEndpoint(
-            String drivingPermitJsonRequestBody, String documentCheckingRoute)
+    public void postRequestToDrivingLicenceEndpoint(String drivingPermitJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToDrivingLicenceEndpoint(
-                drivingPermitJsonRequestBody, "", documentCheckingRoute);
+        postRequestToDrivingLicenceEndpoint(drivingPermitJsonRequestBody, "");
     }
 
     public void retryValueInDLCheckResponse(Boolean retry) {

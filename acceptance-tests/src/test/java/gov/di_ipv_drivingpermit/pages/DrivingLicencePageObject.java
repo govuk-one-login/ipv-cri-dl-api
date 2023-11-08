@@ -572,8 +572,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertEquals(expectedErrorStatusCode, ActualStatusCode);
     }
 
-    public void checkScoreInStubIs(String validityScore, String strengthScore) throws IOException {
-        scoreIs(validityScore, strengthScore, JSONPayload.getText());
+    public void checkScoresAndTypeInStubIs(String validityScore, String strengthScore, String type)
+            throws IOException {
+        scoreAndTypeIs(validityScore, strengthScore, type, JSONPayload.getText());
     }
 
     public void scoreIs(
@@ -589,6 +590,27 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
         String strengthScore = evidence.get(0).get("strengthScore").asText();
         assertEquals(expectedStrengthScore, strengthScore);
+    }
+
+    public void scoreAndTypeIs(
+            String expectedValidityScore,
+            String expectedStrengthScore,
+            String expectedType,
+            String jsonPayloadText)
+            throws IOException {
+        String result = jsonPayloadText;
+        LOGGER.info("result = " + result);
+        JsonNode vcNode = getJsonNode(result, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+
+        String validityScore = evidence.get(0).get("validityScore").asText();
+        assertEquals(expectedValidityScore, validityScore);
+
+        String strengthScore = evidence.get(0).get("strengthScore").asText();
+        assertEquals(expectedStrengthScore, strengthScore);
+
+        String type = evidence.get(0).get("type").asText();
+        assertEquals(expectedType, type);
     }
 
     public void assertCheckDetailsWithinVc(

@@ -127,7 +127,7 @@ Feature: Driving License Language Test
     Then User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain validity score 2 and strength score 3
+    And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |
@@ -323,7 +323,7 @@ Feature: Driving License Language Test
     When User enters DVA data as a <DVADrivingLicenceSubject>
     Then User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain validity score 2 and strength score 3
+    And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
       |DVADrivingLicenceSubject             |

@@ -32,7 +32,6 @@ Feature: Driving License Test
   Scenario:User Selects DVLA and landed in DVLA page
     Given I click on DVLA radio button and Continue
     Then I should on the page DVLA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
-    And I set the document checking route
     And The test is complete and I close the driver
 
   @DrivingLicenceTest @build @staging @integration

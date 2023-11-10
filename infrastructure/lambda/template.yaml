@@ -1053,50 +1053,6 @@ Resources:
             Period: 300
             Stat: Sum
 
-  DLAPIGW4XXErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} API Gateway 4XX errors
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicDL
-      OKActions:
-        - !Ref AlarmTopicDL
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      DatapointsToAlarm: 3
-      EvaluationPeriods: 3
-      Threshold: 2
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: e1
-          Label: Expression1
-          ReturnData: true
-          Expression: SUM(METRICS())
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-            Period: 300
-            Stat: Sum
-        - Id: m2
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-            Period: 300
-            Stat: Sum
-
   DrivingLicenceLambdaInvocationDeviation:
     Type: AWS::CloudWatch::Alarm
     Properties:

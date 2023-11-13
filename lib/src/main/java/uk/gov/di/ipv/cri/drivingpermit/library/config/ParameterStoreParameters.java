@@ -76,9 +76,10 @@ public class ParameterStoreParameters {
     public static final String DVA_HTTPCLIENT_TLS_KEY = "DVA/HttpClient/tlsKey";
 
     public static final String DVA_HTTPCLIENT_TLS_INTER_CERT =
-            "DVA/HttpClient/tlsIntermediateCertificate";
+            "DVA/HttpClient/tlsIntermediateCertificate-2023-11-13";
 
-    public static final String DVA_HTTPCLIENT_TLS_ROOT_CERT = "DVA/HttpClient/tlsRootCertificate";
+    public static final String DVA_HTTPCLIENT_TLS_ROOT_CERT =
+            "DVA/HttpClient/tlsRootCertificate-2023-11-13";
 
     // JWS SHA-1 Certificate - Thumbprint (Header)
     public static final String DVA_SIGNING_CERT_THUMB = "DVA/JWS/signingCertForDvaToVerify";

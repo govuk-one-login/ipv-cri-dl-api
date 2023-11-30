@@ -3,11 +3,11 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
-import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.JsonValidationUtility;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

@@ -12,10 +12,10 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 
 import java.io.IOException;
 import java.security.KeyStoreException;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ThirdPartyAPIServiceFactoryTest {
 
-    @Mock ServiceFactory mockServiceFactory;
+    @Mock DrivingPermitServiceFactory mockDrivingPermitServiceFactory;
     @Mock ConfigurationService mockConfigurationService;
 
     @Mock DcsConfiguration mockDcsConfiguration;
@@ -47,33 +47,36 @@ class ThirdPartyAPIServiceFactoryTest {
             throws CertificateException, HttpException, NoSuchAlgorithmException, KeyStoreException,
                     IOException {
 
-        when(mockServiceFactory.getConfigurationService()).thenReturn(mockConfigurationService);
+        when(mockDrivingPermitServiceFactory.getConfigurationService())
+                .thenReturn(mockConfigurationService);
         when(mockConfigurationService.isDcsPerformanceStub()).thenReturn(false);
         when(mockConfigurationService.isDvaPerformanceStub()).thenReturn(false);
         when(mockConfigurationService.isDvlaPerformanceStub()).thenReturn(false);
 
         // DCS
-        when(mockServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
-        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
-        when(mockServiceFactory.generateDcsHttpClient(mockConfigurationService, true))
+        when(mockDrivingPermitServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
+        when(mockDrivingPermitServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockDrivingPermitServiceFactory.generateDcsHttpClient(mockConfigurationService, true))
                 .thenReturn(mockCloseableHttpClient);
 
         // DVA
-        when(mockServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
-        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
-        when(mockServiceFactory.generateDvaHttpClient(mockConfigurationService, true))
+        when(mockDrivingPermitServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
+        when(mockDrivingPermitServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockDrivingPermitServiceFactory.generateDvaHttpClient(mockConfigurationService, true))
                 .thenReturn(mockCloseableHttpClient);
 
         // DVLA
-        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
-        when(mockServiceFactory.generateDvlaHttpClient()).thenReturn(mockCloseableHttpClient);
+        when(mockDrivingPermitServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockDrivingPermitServiceFactory.generateDvlaHttpClient())
+                .thenReturn(mockCloseableHttpClient);
 
         when(mockConfigurationService.getDvlaConfiguration()).thenReturn(mockDvlaConfiguration);
         when(mockDvlaConfiguration.getTokenEndpoint()).thenReturn("TOKEN_END_POINT");
         when(mockDvlaConfiguration.getTokenTableName()).thenReturn("TOKEN_TABLE");
         when(mockDvlaConfiguration.getMatchEndpoint()).thenReturn("DRIVER_MATCH_ENDPOINT");
 
-        thirdPartyAPIServiceFactory = new ThirdPartyAPIServiceFactory(mockServiceFactory);
+        thirdPartyAPIServiceFactory =
+                new ThirdPartyAPIServiceFactory(mockDrivingPermitServiceFactory);
     }
 
     @Test

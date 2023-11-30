@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.configuration;
 
+import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 

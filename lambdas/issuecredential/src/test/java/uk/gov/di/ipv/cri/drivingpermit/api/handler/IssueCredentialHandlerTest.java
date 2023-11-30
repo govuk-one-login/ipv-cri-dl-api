@@ -22,10 +22,9 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import testdata.DocumentCheckTestDataGenerator;
-import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
 import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
@@ -36,8 +35,10 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
-import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.PersonIdentityDetailedTestDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.VcIssuedAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.testdata.DocumentCheckTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -90,21 +91,28 @@ class IssueCredentialHandlerTest {
                         accessToken.toAuthorizationHeader()));
         setRequestBodyAsPlainJWT(event);
 
-        var personIdentityDetailed =
-                PersonIdentityDetailedHelperMapper.drivingPermitFormDataToAuditRestrictedFormat(
-                        DrivingPermitFormTestDataGenerator.generate());
-        SessionItem sessionItem = new SessionItem();
-        DocumentCheckResultItem resultItem =
+        PersonIdentityDetailed savedPersonIdentityDetailed =
+                PersonIdentityDetailedTestDataGenerator.generate("DVLA");
+
+        DocumentCheckResultItem savedDocumentCheckResultItem =
                 DocumentCheckTestDataGenerator.generateValidResultItem(
-                        UUID.randomUUID(), DrivingPermitFormTestDataGenerator.generate());
+                        UUID.randomUUID(), savedPersonIdentityDetailed);
+
+        var auditEventPersonIdentityDetailed =
+                VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                        savedPersonIdentityDetailed, savedDocumentCheckResultItem);
+
+        SessionItem sessionItem = new SessionItem();
 
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
-                .thenReturn(personIdentityDetailed);
+                .thenReturn(savedPersonIdentityDetailed);
         when(mockDocumentCheckRetrievalService.getDocumentCheckResult(sessionItem.getSessionId()))
-                .thenReturn(resultItem);
+                .thenReturn(savedDocumentCheckResultItem);
         when(mockVerifiableCredentialService.generateSignedVerifiableCredentialJwt(
-                        sessionItem.getSubject(), resultItem, personIdentityDetailed))
+                        sessionItem.getSubject(),
+                        savedDocumentCheckResultItem,
+                        savedPersonIdentityDetailed))
                 .thenReturn(mock(SignedJWT.class));
         doNothing()
                 .when(mockAuditService)
@@ -121,7 +129,9 @@ class IssueCredentialHandlerTest {
         verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
         verify(mockVerifiableCredentialService)
                 .generateSignedVerifiableCredentialJwt(
-                        sessionItem.getSubject(), resultItem, personIdentityDetailed);
+                        sessionItem.getSubject(),
+                        savedDocumentCheckResultItem,
+                        savedPersonIdentityDetailed);
         verify(mockAuditService)
                 .sendAuditEvent(
                         eq(AuditEventType.VC_ISSUED),
@@ -129,7 +139,9 @@ class IssueCredentialHandlerTest {
                         any(VCISSDocumentCheckAuditExtension.class));
         verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
         verify(mockEventProbe)
-                .counterMetric(DRIVING_PERMIT_CI_PREFIX + resultItem.getContraIndicators().get(0));
+                .counterMetric(
+                        DRIVING_PERMIT_CI_PREFIX
+                                + savedDocumentCheckResultItem.getContraIndicators().get(0));
         assertEquals(
                 ContentType.APPLICATION_JWT.getType(), response.getHeaders().get("Content-Type"));
         assertEquals(HttpStatusCode.OK, response.getStatusCode());
@@ -148,22 +160,28 @@ class IssueCredentialHandlerTest {
 
         var unExpectedJOSEException = new JOSEException("Unexpected JOSE object type: JWSObject");
 
-        var personIdentityDetailed =
-                PersonIdentityDetailedHelperMapper.drivingPermitFormDataToAuditRestrictedFormat(
-                        DrivingPermitFormTestDataGenerator.generate());
+        PersonIdentityDetailed savedPersonIdentityDetailed =
+                PersonIdentityDetailedTestDataGenerator.generate("DVLA");
+
+        DocumentCheckResultItem savedDocumentCheckResultItem =
+                DocumentCheckTestDataGenerator.generateValidResultItem(
+                        UUID.randomUUID(), savedPersonIdentityDetailed);
+
+        var auditEventPersonIdentityDetailed =
+                VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                        savedPersonIdentityDetailed, savedDocumentCheckResultItem);
 
         SessionItem sessionItem = new SessionItem();
-        DocumentCheckResultItem resultItem =
-                DocumentCheckTestDataGenerator.generateValidResultItem(
-                        UUID.randomUUID(), DrivingPermitFormTestDataGenerator.generate());
 
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
-                .thenReturn(personIdentityDetailed);
+                .thenReturn(savedPersonIdentityDetailed);
         when(mockDocumentCheckRetrievalService.getDocumentCheckResult(sessionItem.getSessionId()))
-                .thenReturn(resultItem);
+                .thenReturn(savedDocumentCheckResultItem);
         when(mockVerifiableCredentialService.generateSignedVerifiableCredentialJwt(
-                        sessionItem.getSubject(), resultItem, personIdentityDetailed))
+                        sessionItem.getSubject(),
+                        savedDocumentCheckResultItem,
+                        savedPersonIdentityDetailed))
                 .thenThrow(unExpectedJOSEException);
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
@@ -174,12 +192,16 @@ class IssueCredentialHandlerTest {
         verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
         verify(mockVerifiableCredentialService)
                 .generateSignedVerifiableCredentialJwt(
-                        sessionItem.getSubject(), resultItem, personIdentityDetailed);
+                        sessionItem.getSubject(),
+                        savedDocumentCheckResultItem,
+                        savedPersonIdentityDetailed);
         verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
         // There is a CI in the test result, we check we do not record CI metrics for a VC
         // generation Error
         verify(mockEventProbe, never())
-                .counterMetric(DRIVING_PERMIT_CI_PREFIX + resultItem.getContraIndicators().get(0));
+                .counterMetric(
+                        DRIVING_PERMIT_CI_PREFIX
+                                + savedDocumentCheckResultItem.getContraIndicators().get(0));
         verifyNoMoreInteractions(mockVerifiableCredentialService);
         verify(mockAuditService, never())
                 .sendAuditEvent(

@@ -10,8 +10,10 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGate
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.RequestHashValidator;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaEndpointFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DvlaEndpointFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 
 import java.io.IOException;
 import java.security.KeyStoreException;
@@ -28,35 +30,39 @@ public class ThirdPartyAPIServiceFactory {
 
     private final ThirdPartyAPIService[] thirdPartyAPIServices = new ThirdPartyAPIService[3];
 
-    public ThirdPartyAPIServiceFactory(ServiceFactory serviceFactory)
+    public ThirdPartyAPIServiceFactory(DrivingPermitServiceFactory drivingPermitServiceFactory)
             throws CertificateException, HttpException, NoSuchAlgorithmException, KeyStoreException,
                     IOException {
-        ConfigurationService configurationService = serviceFactory.getConfigurationService();
+        ConfigurationService configurationService =
+                drivingPermitServiceFactory.getConfigurationService();
 
         boolean tlsOnDCS = !configurationService.isDcsPerformanceStub();
         boolean tlsOnDva = !configurationService.isDvaPerformanceStub();
         boolean tlsOnDvla = !configurationService.isDvlaPerformanceStub();
 
-        thirdPartyAPIServices[DCS] = createDcsThirdPartyDocumentGateway(serviceFactory, tlsOnDCS);
-        thirdPartyAPIServices[DVA] = createDvaThirdPartyDocumentGateway(serviceFactory, tlsOnDva);
+        thirdPartyAPIServices[DCS] =
+                createDcsThirdPartyDocumentGateway(drivingPermitServiceFactory, tlsOnDCS);
+        thirdPartyAPIServices[DVA] =
+                createDvaThirdPartyDocumentGateway(drivingPermitServiceFactory, tlsOnDva);
         thirdPartyAPIServices[DVLA] =
-                createDvlaThirdPartyDocumentGateway(serviceFactory, tlsOnDvla);
+                createDvlaThirdPartyDocumentGateway(drivingPermitServiceFactory, tlsOnDvla);
     }
 
     private ThirdPartyAPIService createDcsThirdPartyDocumentGateway(
-            ServiceFactory serviceFactory, boolean tlsOn)
+            DrivingPermitServiceFactory drivingPermitServiceFactory, boolean tlsOn)
             throws CertificateException, HttpException, NoSuchAlgorithmException, KeyStoreException,
                     IOException {
 
-        ObjectMapper objectMapper = serviceFactory.getObjectMapper();
-        EventProbe eventProbe = serviceFactory.getEventProbe();
-        ConfigurationService configurationService = serviceFactory.getConfigurationService();
+        ObjectMapper objectMapper = drivingPermitServiceFactory.getObjectMapper();
+        EventProbe eventProbe = drivingPermitServiceFactory.getEventProbe();
+        ConfigurationService configurationService =
+                drivingPermitServiceFactory.getConfigurationService();
 
         DcsCryptographyService dcsCryptographyService =
                 new DcsCryptographyService(configurationService);
 
         CloseableHttpClient httpClient =
-                serviceFactory.generateDcsHttpClient(configurationService, tlsOn);
+                drivingPermitServiceFactory.generateDcsHttpClient(configurationService, tlsOn);
 
         HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe, MAX_HTTP_RETRIES);
 
@@ -69,13 +75,14 @@ public class ThirdPartyAPIServiceFactory {
     }
 
     private ThirdPartyAPIService createDvaThirdPartyDocumentGateway(
-            ServiceFactory serviceFactory, boolean tlsOn)
+            DrivingPermitServiceFactory drivingPermitServiceFactory, boolean tlsOn)
             throws CertificateException, HttpException, NoSuchAlgorithmException, KeyStoreException,
                     IOException {
 
-        ObjectMapper objectMapper = serviceFactory.getObjectMapper();
-        EventProbe eventProbe = serviceFactory.getEventProbe();
-        ConfigurationService configurationService = serviceFactory.getConfigurationService();
+        ObjectMapper objectMapper = drivingPermitServiceFactory.getObjectMapper();
+        EventProbe eventProbe = drivingPermitServiceFactory.getEventProbe();
+        ConfigurationService configurationService =
+                drivingPermitServiceFactory.getConfigurationService();
 
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(configurationService);
@@ -83,7 +90,7 @@ public class ThirdPartyAPIServiceFactory {
         RequestHashValidator requestHashValidator = new RequestHashValidator();
 
         CloseableHttpClient httpClient =
-                serviceFactory.generateDvaHttpClient(configurationService, tlsOn);
+                drivingPermitServiceFactory.generateDvaHttpClient(configurationService, tlsOn);
 
         HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe, MAX_HTTP_RETRIES);
 
@@ -97,14 +104,22 @@ public class ThirdPartyAPIServiceFactory {
     }
 
     private ThirdPartyAPIService createDvlaThirdPartyDocumentGateway(
-            ServiceFactory serviceFactory, boolean tlsOn) {
+            DrivingPermitServiceFactory drivingPermitServiceFactory, boolean tlsOn) {
 
-        EventProbe eventProbe = serviceFactory.getEventProbe();
+        ConfigurationService configurationService =
+                drivingPermitServiceFactory.getConfigurationService();
+        DvlaConfiguration dvlaConfiguration = configurationService.getDvlaConfiguration();
+        ObjectMapper objectMapper = drivingPermitServiceFactory.getObjectMapper();
+        EventProbe eventProbe = drivingPermitServiceFactory.getEventProbe();
+
         HttpRetryer httpRetryer =
                 new HttpRetryer(
-                        serviceFactory.generateDvlaHttpClient(), eventProbe, MAX_HTTP_RETRIES);
+                        drivingPermitServiceFactory.generateDvlaHttpClient(),
+                        eventProbe,
+                        MAX_HTTP_RETRIES);
+
         DvlaEndpointFactory dvlaEndpointFactory =
-                new DvlaEndpointFactory(serviceFactory, httpRetryer);
+                new DvlaEndpointFactory(dvlaConfiguration, objectMapper, eventProbe, httpRetryer);
 
         return new DvlaThirdPartyDocumentGateway(dvlaEndpointFactory);
     }

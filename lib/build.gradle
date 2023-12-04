@@ -40,7 +40,8 @@ dependencies {
 			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 
 	testFixturesImplementation "uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
-			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+			"software.amazon.awssdk:apache-client:${dependencyVersions.aws_sdk_version}"
 
 	compileOnly "org.projectlombok:lombok:${dependencyVersions.lombok_version}"
 	annotationProcessor "org.projectlombok:lombok:${dependencyVersions.lombok_version}"

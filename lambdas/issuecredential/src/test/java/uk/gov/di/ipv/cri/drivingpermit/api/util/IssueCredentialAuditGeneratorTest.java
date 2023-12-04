@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Test;
-import testdata.DocumentCheckTestDataGenerator;
-import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEvent;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.testdata.DocumentCheckTestDataGenerator;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,9 +21,12 @@ class IssueCredentialAuditGeneratorTest {
     @Test
     void auditTest1() throws JsonProcessingException {
 
+        PersonIdentityDetailed personIdentityDetailed =
+                PersonIdentityDetailedTestDataGenerator.generate("DVLA");
+
         DocumentCheckResultItem documentCheckResultItem =
                 DocumentCheckTestDataGenerator.generateValidResultItem(
-                        UUID.randomUUID(), DrivingPermitFormTestDataGenerator.generate());
+                        UUID.randomUUID(), personIdentityDetailed);
 
         documentCheckResultItem.setStrengthScore(1);
         documentCheckResultItem.setValidityScore(1);

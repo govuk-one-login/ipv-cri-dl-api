@@ -1,6 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dcs;
 
-import uk.gov.di.ipv.cri.drivingpermit.api.service.HttpRetryStatusConfig;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_HTTP_RETRYER_REQUEST_SEND_FAIL;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DCS_HTTP_RETRYER_REQUEST_SEND_OK;

@@ -36,7 +36,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.CredentialRequestException;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.IssueCredentialDrivingPermitAuditExtensionUtil;
-import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.VcIssuedAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.time.Clock;
@@ -141,7 +141,7 @@ public class IssueCredentialHandler
             // Needed as personIdentityService.savePersonIdentity creates personIdentityDetailed via
             // shared claims
             var auditRestricted =
-                    PersonIdentityDetailedHelperMapper
+                    VcIssuedAuditHelper
                             .mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
                                     personIdentityDetailed, documentCheckResult);
 

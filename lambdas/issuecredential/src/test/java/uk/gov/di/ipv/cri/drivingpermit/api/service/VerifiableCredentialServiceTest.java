@@ -13,21 +13,21 @@ import com.nimbusds.jwt.SignedJWT;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import testdata.DocumentCheckTestDataGenerator;
-import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential.EvidenceType;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.PersonIdentityDetailedTestDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.VcIssuedAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.testdata.DocumentCheckTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -87,19 +87,21 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                         verifiableCredentialClaimsSetBuilder);
     }
 
-    @Test
-    void testGenerateSignedVerifiableCredentialJWT()
+    @ParameterizedTest
+    @CsvSource({"DVA", "DVLA"})
+    void testGenerateSignedVerifiableCredentialJWT(String issuer)
             throws JOSEException, JsonProcessingException, ParseException {
 
-        DrivingPermitForm testDrivingPermitFormData = DrivingPermitFormTestDataGenerator.generate();
+        PersonIdentityDetailed savedPersonIdentityDetailed =
+                PersonIdentityDetailedTestDataGenerator.generate(issuer);
 
-        DocumentCheckResultItem documentCheckResultItem =
+        DocumentCheckResultItem savedDocumentCheckResultItem =
                 DocumentCheckTestDataGenerator.generateValidResultItem(
-                        UUID.randomUUID(), testDrivingPermitFormData);
+                        UUID.randomUUID(), savedPersonIdentityDetailed);
 
-        PersonIdentityDetailed personIdentityDetailed =
-                PersonIdentityDetailedHelperMapper.drivingPermitFormDataToAuditRestrictedFormat(
-                        testDrivingPermitFormData);
+        var auditEventPersonIdentityDetailed =
+                VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                        savedPersonIdentityDetailed, savedDocumentCheckResultItem);
 
         when(mockConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);
@@ -107,7 +109,9 @@ class VerifiableCredentialServiceTest implements TestFixtures {
 
         SignedJWT signedJWT =
                 verifiableCredentialService.generateSignedVerifiableCredentialJwt(
-                        UNIT_TEST_SUBJECT, documentCheckResultItem, personIdentityDetailed);
+                        UNIT_TEST_SUBJECT,
+                        savedDocumentCheckResultItem,
+                        savedPersonIdentityDetailed);
 
         JWTClaimsSet generatedClaims = signedJWT.getJWTClaimsSet();
         assertTrue(signedJWT.verify(new ECDSAVerifier(ECKey.parse(TestFixtures.EC_PUBLIC_JWK_1))));
@@ -119,8 +123,8 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                         .writeValueAsString(generatedClaims);
         LOGGER.info(jsonGeneratedClaims);
 
-        String issuer = verifiableCredentialService.getVerifiableCredentialIssuer();
-        assertEquals(UNIT_TEST_VC_ISSUER, issuer);
+        String vcIssuer = verifiableCredentialService.getVerifiableCredentialIssuer();
+        assertEquals(UNIT_TEST_VC_ISSUER, vcIssuer);
 
         JsonNode claimsSet = objectMapper.readTree(generatedClaims.toString());
         assertEquals(5, claimsSet.size());
@@ -135,20 +139,20 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                         .asText());
 
         assertEquals(
-                documentCheckResultItem.getContraIndicators().get(0),
+                savedDocumentCheckResultItem.getContraIndicators().get(0),
                 claimsSet.get(VC_CLAIM).get(VC_EVIDENCE_KEY).get(0).get("ci").get(0).asText());
         assertEquals(
-                documentCheckResultItem.getStrengthScore(),
+                savedDocumentCheckResultItem.getStrengthScore(),
                 claimsSet.get(VC_CLAIM).get(VC_EVIDENCE_KEY).get(0).get("strengthScore").asInt());
 
         assertEquals(
-                documentCheckResultItem.getValidityScore(),
+                savedDocumentCheckResultItem.getValidityScore(),
                 claimsSet.get(VC_CLAIM).get(VC_EVIDENCE_KEY).get(0).get("validityScore").asInt());
 
-        List<Address> addresses = personIdentityDetailed.getAddresses();
+        List<Address> addresses = savedPersonIdentityDetailed.getAddresses();
         assertEquals(1, addresses.size());
 
-        Address address = personIdentityDetailed.getAddresses().get(0);
+        Address address = savedPersonIdentityDetailed.getAddresses().get(0);
         JsonNode claimSetJWTAddress =
                 claimsSet.get(VC_CLAIM).get(VC_CREDENTIAL_SUBJECT).get(VC_ADDRESS_KEY).get(0);
         assertEquals(address.getPostalCode(), claimSetJWTAddress.get("postalCode").asText());

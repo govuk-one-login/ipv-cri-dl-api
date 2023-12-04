@@ -18,7 +18,6 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import testdata.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
@@ -29,8 +28,9 @@ import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DrivingPermitServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
@@ -38,11 +38,11 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGate
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -81,7 +81,7 @@ class DrivingPermitHandlerTest {
     @Mock private DataStore<DocumentCheckResultItem> mockDataStore;
     @Mock private ConfigurationService mockConfigurationService;
 
-    @Mock private ServiceFactory mockServiceFactory;
+    @Mock private DrivingPermitServiceFactory mockDrivingPermitServiceFactory;
     @Mock private ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
     @Mock private ThirdPartyAPIService mockThirdPartyAPIService;
 
@@ -101,19 +101,21 @@ class DrivingPermitHandlerTest {
     @BeforeEach
     void setup() {
 
-        when(mockServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
-        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
-        when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
-        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+        when(mockDrivingPermitServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
+        when(mockDrivingPermitServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockDrivingPermitServiceFactory.getSessionService()).thenReturn(mockSessionService);
+        when(mockDrivingPermitServiceFactory.getAuditService()).thenReturn(mockAuditService);
 
-        when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
+        when(mockDrivingPermitServiceFactory.getPersonIdentityService())
+                .thenReturn(mockPersonIdentityService);
 
-        when(mockServiceFactory.getConfigurationService()).thenReturn(mockConfigurationService);
-        when(mockServiceFactory.getDataStore()).thenReturn(mockDataStore);
+        when(mockDrivingPermitServiceFactory.getConfigurationService())
+                .thenReturn(mockConfigurationService);
+        when(mockDrivingPermitServiceFactory.getDataStore()).thenReturn(mockDataStore);
 
         this.drivingPermitHandler =
                 new DrivingPermitHandler(
-                        mockServiceFactory,
+                        mockDrivingPermitServiceFactory,
                         mockThirdPartyAPIServiceFactory,
                         mockIdentityVerificationService);
     }
@@ -514,7 +516,7 @@ class DrivingPermitHandlerTest {
         // The following uses reflection to unlock the method and confirm its behaviour
         DrivingPermitHandler spyTarget =
                 new DrivingPermitHandler(
-                        mockServiceFactory,
+                        mockDrivingPermitServiceFactory,
                         mockThirdPartyAPIServiceFactory,
                         mockIdentityVerificationService);
 

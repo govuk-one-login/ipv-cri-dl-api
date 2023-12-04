@@ -27,18 +27,18 @@ import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.DrivingPermitServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.FormDataValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.util.RequestSentAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.drivingpermit.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import java.io.IOException;
@@ -79,39 +79,41 @@ public class DrivingPermitHandler
     public DrivingPermitHandler()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
                     HttpException, KeyStoreException, IOException {
-        ServiceFactory serviceFactory = new ServiceFactory();
+        DrivingPermitServiceFactory drivingPermitServiceFactory = new DrivingPermitServiceFactory();
         ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactoryNotAssignedYet =
-                new ThirdPartyAPIServiceFactory(serviceFactory);
+                new ThirdPartyAPIServiceFactory(drivingPermitServiceFactory);
 
         IdentityVerificationService identityVerificationServiceNotAssignedYet =
-                createIdentityVerificationService(serviceFactory);
+                createIdentityVerificationService(drivingPermitServiceFactory);
 
         initializeLambdaServices(
-                serviceFactory,
+                drivingPermitServiceFactory,
                 thirdPartyAPIServiceFactoryNotAssignedYet,
                 identityVerificationServiceNotAssignedYet);
     }
 
     public DrivingPermitHandler(
-            ServiceFactory serviceFactory,
+            DrivingPermitServiceFactory drivingPermitServiceFactory,
             ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
             IdentityVerificationService identityVerificationService) {
         initializeLambdaServices(
-                serviceFactory, thirdPartyAPIServiceFactory, identityVerificationService);
+                drivingPermitServiceFactory,
+                thirdPartyAPIServiceFactory,
+                identityVerificationService);
     }
 
     public void initializeLambdaServices(
-            ServiceFactory serviceFactory,
+            DrivingPermitServiceFactory drivingPermitServiceFactory,
             ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
             IdentityVerificationService identityVerificationService) {
-        this.objectMapper = serviceFactory.getObjectMapper();
-        this.eventProbe = serviceFactory.getEventProbe();
-        this.sessionService = serviceFactory.getSessionService();
-        this.auditService = serviceFactory.getAuditService();
-        this.personIdentityService = serviceFactory.getPersonIdentityService();
+        this.objectMapper = drivingPermitServiceFactory.getObjectMapper();
+        this.eventProbe = drivingPermitServiceFactory.getEventProbe();
+        this.sessionService = drivingPermitServiceFactory.getSessionService();
+        this.auditService = drivingPermitServiceFactory.getAuditService();
+        this.personIdentityService = drivingPermitServiceFactory.getPersonIdentityService();
 
-        this.configurationService = serviceFactory.getConfigurationService();
-        this.dataStore = serviceFactory.getDataStore();
+        this.configurationService = drivingPermitServiceFactory.getConfigurationService();
+        this.dataStore = drivingPermitServiceFactory.getDataStore();
         this.thirdPartyAPIServiceFactory = thirdPartyAPIServiceFactory;
         this.identityVerificationService = identityVerificationService;
 
@@ -187,9 +189,8 @@ public class DrivingPermitHandler
             auditService.sendAuditEvent(
                     AuditEventType.REQUEST_SENT,
                     new AuditEventContext(
-                            PersonIdentityDetailedHelperMapper
-                                    .drivingPermitFormDataToAuditRestrictedFormat(
-                                            drivingPermitFormData),
+                            RequestSentAuditHelper.drivingPermitFormDataToAuditRestrictedFormat(
+                                    drivingPermitFormData),
                             input.getHeaders(),
                             sessionItem));
 
@@ -270,7 +271,7 @@ public class DrivingPermitHandler
         sharedClaims.setBirthDates(List.of(birthDate));
         sharedClaims.setNames(
                 List.of(
-                        PersonIdentityDetailedHelperMapper.mapNamesToCanonicalName(
+                        RequestSentAuditHelper.mapNamesToCanonicalName(
                                 drivingPermitFormData.getForenames(),
                                 drivingPermitFormData.getSurname())));
 
@@ -340,10 +341,10 @@ public class DrivingPermitHandler
     }
 
     private IdentityVerificationService createIdentityVerificationService(
-            ServiceFactory serviceFactory) {
+            DrivingPermitServiceFactory drivingPermitServiceFactory) {
 
         return new IdentityVerificationService(
-                new FormDataValidator(), serviceFactory.getEventProbe());
+                new FormDataValidator(), drivingPermitServiceFactory.getEventProbe());
     }
 
     private ThirdPartyAPIService selectThirdPartyAPIService(

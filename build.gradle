@@ -53,8 +53,8 @@ ext {
 		cucumber_junit_version             : "7.11.2"
 	]
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
-	minUnitTestLineCoverage = 0.61
-	minUnitTestBranchCoverage = 0.64
+	minUnitTestLineCoverage = 0.64
+	minUnitTestBranchCoverage = 0.65
 }
 
 sonar {

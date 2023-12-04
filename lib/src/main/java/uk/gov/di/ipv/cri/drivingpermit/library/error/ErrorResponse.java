@@ -57,7 +57,15 @@ public enum ErrorResponse {
             1314, "error match endpoint returned unexpected http status code"),
     ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY(
             1315, "error match endpoint rejected token or api key"),
-    ERROR_DVLA_EXPIRED_TOKEN_RECOVERY_FAILED(1316, "error dvla expired token recovery failed");
+    ERROR_DVLA_EXPIRED_TOKEN_RECOVERY_FAILED(1316, "error dvla expired token recovery failed"),
+    INVALID_STEP_IN_PASSWORD_RENEWAL_HANDLER(1320, "invalid step in password renewal handler"),
+    FAILED_TO_PREPARE_CHANGE_PASSWORD_REQUEST_PAYLOAD(
+            1321, "failed to prepare change password request payload"),
+    ERROR_INVOKING_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT(
+            1322,
+            "Error occurred when attempting to invoke the third party api change password endpoint"),
+    ERROR_CHANGE_PASSWORD_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
+            1323, "change password endpoint returned unexpected http status code");
 
     private final int code;
     private final String message;

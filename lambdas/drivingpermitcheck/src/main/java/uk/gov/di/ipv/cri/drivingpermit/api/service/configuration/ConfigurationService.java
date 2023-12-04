@@ -1,6 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.configuration;
 
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 
@@ -45,7 +46,9 @@ public class ConfigurationService {
     private final DvaConfiguration dvaConfiguration;
     private final DvlaConfiguration dvlaConfiguration;
 
-    public ConfigurationService(ParameterStoreService parameterStoreService)
+    public ConfigurationService(
+            ParameterStoreService parameterStoreService,
+            SecretsManagerService secretsManagerService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         this.clock = Clock.systemUTC();
@@ -107,7 +110,7 @@ public class ConfigurationService {
 
         // **************************** DVLA ****************************
 
-        dvlaConfiguration = new DvlaConfiguration(parameterStoreService);
+        dvlaConfiguration = new DvlaConfiguration(parameterStoreService, secretsManagerService);
     }
 
     public String getDocumentCheckResultTableName() {

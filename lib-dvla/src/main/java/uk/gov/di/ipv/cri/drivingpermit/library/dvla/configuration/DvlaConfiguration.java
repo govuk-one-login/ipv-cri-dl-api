@@ -1,13 +1,17 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration;
 
+import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_API_KEY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_MATCH;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_PASSWORD_PATH;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_TOKEN;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_URL;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_PASSWORD;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_PASSWORD_ROTATION_ENABLED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_TOKEN_TABLE_NAME;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_USERNAME;
 
@@ -16,6 +20,7 @@ public class DvlaConfiguration {
 
     private final String tokenEndpoint;
     private final String matchEndpoint;
+    private final String changePasswordEndpoint;
 
     private final String apiKey;
     private final String username;
@@ -23,7 +28,14 @@ public class DvlaConfiguration {
 
     private final String tokenTableName;
 
-    public DvlaConfiguration(ParameterStoreService parameterStoreService) {
+    private final boolean passwordRotationEnabled;
+
+    private final SecretsManagerService secretsManagerService;
+
+    public DvlaConfiguration(
+            ParameterStoreService parameterStoreService,
+            SecretsManagerService secretsManagerService) {
+        this.secretsManagerService = secretsManagerService;
 
         final String endpointUri = parameterStoreService.getParameterValue(DVLA_ENDPOINT_URL);
         this.tokenEndpoint =
@@ -34,11 +46,21 @@ public class DvlaConfiguration {
                 String.format(
                         "%s%s",
                         endpointUri, parameterStoreService.getParameterValue(DVLA_ENDPOINT_MATCH));
-
+        this.changePasswordEndpoint =
+                String.format(
+                        "%s%s",
+                        endpointUri,
+                        parameterStoreService.getParameterValue(DVLA_ENDPOINT_PASSWORD_PATH));
         this.tokenTableName = parameterStoreService.getStackParameterValue(DVLA_TOKEN_TABLE_NAME);
 
         this.apiKey = parameterStoreService.getParameterValue(DVLA_API_KEY);
         this.username = parameterStoreService.getParameterValue(DVLA_USERNAME);
+
+        this.passwordRotationEnabled =
+                Boolean.parseBoolean(
+                        parameterStoreService.getStackParameterValue(
+                                DVLA_PASSWORD_ROTATION_ENABLED));
+
         this.password = parameterStoreService.getParameterValue(DVLA_PASSWORD);
     }
 
@@ -50,6 +72,10 @@ public class DvlaConfiguration {
         return matchEndpoint;
     }
 
+    public String getChangePasswordEndpoint() {
+        return changePasswordEndpoint;
+    }
+
     public String getTokenTableName() {
         return tokenTableName;
     }
@@ -59,10 +85,23 @@ public class DvlaConfiguration {
     }
 
     public String getPassword() {
-        return password;
+        if (isPasswordRotationEnabled()) {
+            try {
+                String stackSecretValue = secretsManagerService.getStackSecretValue(DVLA_PASSWORD);
+                return stackSecretValue;
+            } catch (ResourceNotFoundException e) {
+                return password;
+            }
+        } else {
+            return password;
+        }
     }
 
     public String getApiKey() {
         return apiKey;
+    }
+
+    public boolean isPasswordRotationEnabled() {
+        return passwordRotationEnabled;
     }
 }

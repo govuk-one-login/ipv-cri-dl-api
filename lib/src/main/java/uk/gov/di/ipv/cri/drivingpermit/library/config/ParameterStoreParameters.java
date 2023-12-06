@@ -100,6 +100,18 @@ public class ParameterStoreParameters {
     public static final String DVA_DRIVING_PERMIT_ENCRYPTION_KEY =
             "DVA/JWE/encryptionKeyForDrivingPermitToDecrypt";
 
+    // ***************************DVA HELD***************************
+
+    public static final String DRIVING_PERMIT_DVA_ROOT_CERT = "DVA/heldByDVA/tlsRootCert";
+
+    public static final String DRIVING_PERMIT_DVA_INTERMEDIATE_CERT =
+            "DVA/heldByDVA/tlsIntermediateCert";
+
+    public static final String DRIVING_PERMIT_DVA_SIGNING_CERT = "DVA/heldByDVA/dvaSigningCert";
+
+    public static final String DRIVING_PERMIT_DVA_ENCRYPTION_CERT =
+            "DVA/heldByDVA/dvaEncryptionCert";
+
     // **************************** DVLA ****************************
 
     public static final String DVLA_ENDPOINT_URL = "DVLA/endpointUrl";

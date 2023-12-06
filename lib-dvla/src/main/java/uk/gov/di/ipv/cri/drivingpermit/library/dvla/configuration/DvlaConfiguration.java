@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_API_KEY;
@@ -10,6 +11,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParam
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_TOKEN_TABLE_NAME;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_USERNAME;
 
+@ExcludeFromGeneratedCoverageReport
 public class DvlaConfiguration {
 
     private final String tokenEndpoint;

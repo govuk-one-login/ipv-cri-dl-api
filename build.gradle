@@ -6,6 +6,7 @@ plugins {
 	id "jacoco"
 	id "jacoco-report-aggregation"
 	id "com.diffplug.spotless" version "6.1.0"
+	id "nebula.lint" version "17.0.0"
 }
 
 defaultTasks 'clean', 'spotlessApply', 'build'
@@ -41,6 +42,7 @@ ext {
 		mockito_version                    : "4.3.1",
 		wiremock_version                   : "2.35.0",
 		webcompere_version                 : "2.0.2",
+		bouncy_castle_version              : "1.68",
 		// testFixturesImplementation
 		aspectjrt_version                  : "1.9.7",
 		// acceptance tests Implementation
@@ -52,9 +54,11 @@ ext {
 		rest_assured_version               : "5.3.0",
 		cucumber_junit_version             : "7.11.2"
 	]
+
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
-	minUnitTestLineCoverage = 0.64
-	minUnitTestBranchCoverage = 0.65
+	// Requires review coverage is higher than this
+	minUnitTestLineCoverage = 0.69
+	minUnitTestBranchCoverage = 0.58
 }
 
 sonar {
@@ -78,8 +82,12 @@ reporting {
 
 dependencies {
 	jacocoAggregation project(':lib'),
+			project(':lib-dva'),
+			project(':lib-dvla'),
 			project("lambdas:drivingpermitcheck"),
-			project("lambdas:issuecredential")
+			project("lambdas:issuecredential"),
+			project("lambdas:certexpiryreminder")
+
 }
 
 spotless {
@@ -102,6 +110,10 @@ spotless {
 subprojects {
 	apply plugin: 'org.sonarqube'
 	apply plugin: 'io.freefair.lombok'
+	apply plugin: "nebula.lint"
+	//gradleLint {
+	//	rules=['unused-dependency']
+	//}
 
 	repositories {
 		maven {

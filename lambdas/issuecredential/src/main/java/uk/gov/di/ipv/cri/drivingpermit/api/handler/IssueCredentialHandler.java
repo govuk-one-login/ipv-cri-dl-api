@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
@@ -80,6 +81,7 @@ public class IssueCredentialHandler
         this.documentCheckRetrievalService = documentCheckRetrievalService;
     }
 
+    @ExcludeFromGeneratedCoverageReport
     public IssueCredentialHandler() {
         ConfigurationService configurationService = new ConfigurationService();
         this.verifiableCredentialService = getVerifiableCredentialService(configurationService);

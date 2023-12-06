@@ -27,10 +27,10 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.request.DcsPayload;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.dcs.response.DcsSignedEncryptedResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.exception.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
 

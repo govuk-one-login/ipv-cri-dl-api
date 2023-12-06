@@ -7,10 +7,11 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGateway;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DvaCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DvlaEndpointFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
@@ -84,8 +85,10 @@ public class ThirdPartyAPIServiceFactory {
         ConfigurationService configurationService =
                 drivingPermitServiceFactory.getConfigurationService();
 
+        DvaConfiguration dvaConfiguration = configurationService.getDvaConfiguration();
+
         DvaCryptographyService dvaCryptographyService =
-                new DvaCryptographyService(configurationService);
+                new DvaCryptographyService(dvaConfiguration);
 
         RequestHashValidator requestHashValidator = new RequestHashValidator();
 

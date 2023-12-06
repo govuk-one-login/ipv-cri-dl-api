@@ -44,6 +44,7 @@ dependencies {
 			"software.amazon.awssdk:apache-client:${dependencyVersions.aws_sdk_version}"
 
 	compileOnly "org.projectlombok:lombok:${dependencyVersions.lombok_version}"
+
 	annotationProcessor "org.projectlombok:lombok:${dependencyVersions.lombok_version}"
 }
 

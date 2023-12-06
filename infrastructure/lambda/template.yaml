@@ -616,6 +616,110 @@ Resources:
 
 ####################################################################
 #                                                                  #
+# Cert expiry reminder function                                    #
+#                                                                  #
+####################################################################
+
+  CertExpiryReminderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: uk.gov.di.ipv.cri.drivingpermit.certreminder.handler.CertExpiryReminderHandler::handleRequest
+      CodeUri: ../../lambdas/certexpiryreminder
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-CertExpiryReminder"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - Statement:
+            Effect: Allow
+            Action:
+              - "kms:Sign"
+            Resource: !ImportValue core-infrastructure-CriVcSigningKey1Arn
+        - SQSSendMessagePolicy:
+            QueueName: !ImportValue AuditEventQueueName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA*"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA*"
+                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/*"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}*"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/dl-cri-api-v1/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource:
+              - !ImportValue AuditEventQueueEncryptionKeyArn
+
+  CertExpiryReminderFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${CertExpiryReminderFunction}"
+      RetentionInDays: 30
+
+  CertExpiryReminderFunctionLogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: LogSendingEnabled
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref CertExpiryReminderFunctionLogGroup
+
+  CertExpiryReminderFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CertExpiryReminderFunction.Arn
+      Principal: scheduler.amazonaws.com
+
+  ExpirySchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      #Name: 'ExpirySchedule'
+      ScheduleExpression: cron(0 12 ? * MON-FRI *)
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn: !GetAtt CertExpiryReminderFunction.Arn
+        RoleArn: !GetAtt CertExpiryReminderRole.Arn
+
+  CertExpiryReminderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - scheduler.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: CertExpiryReminderRolePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource:
+                  - !GetAtt CertExpiryReminderFunction.Arn
+
+####################################################################
+#                                                                  #
 # Database Tables                                                  #
 #                                                                  #
 ####################################################################
@@ -1113,6 +1217,30 @@ Resources:
       Dimensions:
         - Name: Service
           Value: !Sub "${CriIdentifier}-drivingpermitcheck"
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CertificateExpiryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - Certificate expiry Alarm"
+      AlarmDescription: !Sub Driving Licence ${Environment} DVA certificate is close to expiry (expires within 28 days) see grafana for expiries and certificate names
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: [ ]
+      MetricName: dva_cert_expiry_metric
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-CertExpiryReminder"
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1

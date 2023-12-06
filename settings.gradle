@@ -1,7 +1,9 @@
 rootProject.name = "di-ipv-cri-driving-permit-api"
 
 include "lib",
+		"lib-dva",
 		"lib-dvla",
 		"lambdas:drivingpermitcheck",
 		"lambdas:issuecredential",
+		"lambdas:certexpiryreminder",
 		"acceptance-tests"

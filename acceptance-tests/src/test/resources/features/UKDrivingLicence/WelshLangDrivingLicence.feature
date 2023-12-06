@@ -7,7 +7,12 @@ Feature: Driving License Language Test
     And I add a cookie to change the language to Welsh
     And I assert the URL is valid in Welsh
 
-#To be added to front end repo
+  @Language-regression
+  Scenario: Beta Banner
+    Given I view the Beta banner
+    When the beta banner reads Mae hwn yn wasanaeth newydd – bydd eich adborth (agor mewn tab newydd) yn ein helpu i'w wella.
+    Then The test is complete and I close the driver
+
   @Language-regression
   Scenario Outline: DVLA Error tab title validation
     Given I click on DVLA radio button and Parhau

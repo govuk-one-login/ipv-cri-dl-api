@@ -18,8 +18,8 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
 import javax.net.ssl.SSLContext;

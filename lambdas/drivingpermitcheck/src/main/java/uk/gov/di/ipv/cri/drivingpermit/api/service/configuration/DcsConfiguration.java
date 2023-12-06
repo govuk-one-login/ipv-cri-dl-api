@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.configuration;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
@@ -22,6 +23,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParam
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DCS_HTTPCLIENT_TLS_ROOT_CERT;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DCS_SIGNING_CERT_THUMB;
 
+@ExcludeFromGeneratedCoverageReport
 public class DcsConfiguration {
 
     private final String endpointUri;

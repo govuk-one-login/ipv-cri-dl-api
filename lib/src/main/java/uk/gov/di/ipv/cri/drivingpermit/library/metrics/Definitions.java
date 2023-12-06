@@ -47,6 +47,13 @@ public class Definitions {
     // VC Contra Indicators (CI is Appended)
     public static final String DRIVING_PERMIT_CI_PREFIX = "driving_permit_ci_";
 
+    // Cert Expiry Reminder
+    public static final String CERTIFICATE_EXPIRY_REMINDER =
+            "dva_cert_expiry_reminder_alert_metric";
+
+    // Cert Expiry metric
+    public static final String CERTIFICATE_EXPIRYS = "dva_cert_expiry_metric";
+
     private Definitions() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

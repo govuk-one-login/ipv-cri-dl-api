@@ -684,41 +684,19 @@ Resources:
       FunctionName: !GetAtt CertExpiryReminderFunction.Arn
       Principal: scheduler.amazonaws.com
 
-  ExpirySchedule:
-    Type: AWS::Scheduler::Schedule
+  CertExpiryReminderEventRule:
+    Type: AWS::Events::Rule
     Properties:
-      #Name: 'ExpirySchedule'
-      ScheduleExpression: cron(0 12 ? * MON-FRI *)
-      FlexibleTimeWindow:
-        Mode: 'OFF'
-      Target:
-        Arn: !GetAtt CertExpiryReminderFunction.Arn
-        RoleArn: !GetAtt CertExpiryReminderRole.Arn
+      Description: "Daily Lambda trigger"
+      ScheduleExpression: "cron(0 12 ? * MON-FRI *)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt CertExpiryReminderFunction.Arn
+          Id: scheduled-Cert-Expiry-event
+          RetryPolicy:
+            MaximumRetryAttempts: 0
 
-  CertExpiryReminderRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - scheduler.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Policies:
-        - PolicyName: CertExpiryReminderRolePolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 'lambda:InvokeFunction'
-                Resource:
-                  - !GetAtt CertExpiryReminderFunction.Arn
-
-####################################################################
+  ####################################################################
 #                                                                  #
 # Database Tables                                                  #
 #                                                                  #

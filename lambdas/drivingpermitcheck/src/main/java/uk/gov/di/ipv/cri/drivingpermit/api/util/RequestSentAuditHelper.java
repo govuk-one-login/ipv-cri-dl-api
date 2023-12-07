@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.util;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
@@ -17,6 +18,11 @@ import java.util.Objects;
 import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
 
 public class RequestSentAuditHelper {
+
+    @ExcludeFromGeneratedCoverageReport
+    private RequestSentAuditHelper() {
+        throw new IllegalStateException("Instantiation is not valid for this class.");
+    }
 
     public static PersonIdentityDetailed drivingPermitFormDataToAuditRestrictedFormat(
             DrivingPermitForm drivingPermitData) {

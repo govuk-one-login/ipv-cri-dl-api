@@ -20,6 +20,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.DriverMatchE
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.errorresponse.fields.Errors;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric;
@@ -34,6 +35,8 @@ import java.util.Arrays;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.NOT_FOUND;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.SUCCESS;
+import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.UNAUTHORISED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY;
 
 public class DriverMatchService {
 
@@ -230,6 +233,7 @@ public class DriverMatchService {
                         ErrorResponse.FAILED_TO_MAP_MATCH_ENDPOINT_RESPONSE_BODY);
             }
         } else {
+
             // Endpoint responded but with an unexpected status code
             LOGGER.error(
                     "{} response status code {} content - {}",
@@ -240,6 +244,16 @@ public class DriverMatchService {
             eventProbe.counterMetric(
                     ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS
                             .withEndpointPrefix());
+
+            // Note 401 is for Token or API Key
+            // Throw exception to allow recovering cases of token expiry
+            if (httpReply.statusCode == UNAUTHORISED) {
+
+                LOGGER.warn(ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY);
+
+                throw new DVLAMatchUnauthorizedException(
+                        ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY.getMessage());
+            }
 
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,

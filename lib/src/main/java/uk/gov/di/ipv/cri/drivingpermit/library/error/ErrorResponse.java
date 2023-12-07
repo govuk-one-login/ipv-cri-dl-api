@@ -46,7 +46,7 @@ public enum ErrorResponse {
     ERROR_TOKEN_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
             1307, "token endpoint returned unexpected http status code"),
     ERROR_INVOKING_THIRD_PARTY_API_MATCH_ENDPOINT(
-            1308, "error_invoking_third_party_api_match_endpoint"),
+            1308, "error invoking third party api match endpoint"),
     FAILED_TO_PREPARE_MATCH_REQUEST_PAYLOAD(1310, "failed to prepare match request payload"),
     FAILED_TO_MAP_MATCH_ENDPOINT_RESPONSE_BODY(1311, "failed to map match endpoint response_body"),
     MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_SIZE_NOT_ONE(
@@ -54,7 +54,10 @@ public enum ErrorResponse {
     MATCH_ENDPOINT_404_RESPONSE_EXPECTED_ERROR_CODE_NOT_CORRECT(
             1313, "match endpoint 404 response expected error code not correct"),
     ERROR_MATCH_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
-            1314, "error match endpoint returned unexpected http status code");
+            1314, "error match endpoint returned unexpected http status code"),
+    ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY(
+            1315, "error match endpoint rejected token or api key"),
+    ERROR_DVLA_EXPIRED_TOKEN_RECOVERY_FAILED(1316, "error dvla expired token recovery failed");
 
     private final int code;
     private final String message;

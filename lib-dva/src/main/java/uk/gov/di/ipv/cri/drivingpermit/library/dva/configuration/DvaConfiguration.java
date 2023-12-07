@@ -23,6 +23,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParam
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_CERT;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_INTER_CERT;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_HTTPCLIENT_TLS_ROOT_CERT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVA_SIGNING_CERT_THUMB;
 
 @ExcludeFromGeneratedCoverageReport
 public class DvaConfiguration {
@@ -52,6 +53,9 @@ public class DvaConfiguration {
 
     // JWS (Reply Signature)
     private final Certificate signingCert;
+
+    // cert used in thumbprint generation
+    private final Certificate signingThumbprintCert;
 
     // DVA HELD
     // Used by DVA to sign responses
@@ -95,12 +99,12 @@ public class DvaConfiguration {
                                 ParameterStoreParameters.DVA_HTTPCLIENT_TLS_INTER_CERT));
 
         // JWS SHA-1 Certificate Thumbprint (Header)
-        Certificate signingX509Cert =
+        this.signingThumbprintCert =
                 KeyCertHelper.getDecodedX509Certificate(
                         parameterStoreService.getParameterValue(
                                 ParameterStoreParameters.DVA_SIGNING_CERT_THUMB));
         this.signingCertThumbprints =
-                KeyCertHelper.makeThumbprint((X509Certificate) signingX509Cert);
+                KeyCertHelper.makeThumbprint((X509Certificate) signingThumbprintCert);
 
         Certificate encryptionX509Cert =
                 KeyCertHelper.getDecodedX509Certificate(
@@ -200,6 +204,10 @@ public class DvaConfiguration {
         return signingCert;
     }
 
+    public Certificate getSigningThumbprintCert() {
+        return signingThumbprintCert;
+    }
+
     public PrivateKey getEncryptionKey() {
         return encryptionKey;
     }
@@ -230,6 +238,7 @@ public class DvaConfiguration {
         X509Certificate tlsRootCertExpiry = (X509Certificate) getTlsRootCert();
         X509Certificate tlsIntermediateCertExpiry = (X509Certificate) getTlsIntermediateCert();
         X509Certificate tlsCertExpiry = (X509Certificate) getTlsSelfCert();
+        X509Certificate signingThumbprintCertExpiry = (X509Certificate) getSigningThumbprintCert();
 
         // DVA Held
         X509Certificate dvaHeldTlsRootCertExpiry = (X509Certificate) getDvaHeldTlsRootCert();
@@ -241,6 +250,8 @@ public class DvaConfiguration {
         return Map.of(
                 DVA_DRIVING_PERMIT_CRI_SIGNING_CERT,
                 signingCertExpiry,
+                DVA_SIGNING_CERT_THUMB,
+                signingThumbprintCertExpiry,
                 DVA_ENCRYPTION_CERT,
                 encryptionCertExpiry,
                 DVA_HTTPCLIENT_TLS_ROOT_CERT,

@@ -19,10 +19,8 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.CERTIFICATE_EXPIRYS;
@@ -60,9 +58,9 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
 
         Map<String, LocalDate> certificates = new HashMap<String, LocalDate>();
 
+        LOGGER.info("Loading Certificates...");
         for (Map.Entry<String, X509Certificate> certificate :
                 dvaConfiguration.getDVACertificates().entrySet()) {
-            LOGGER.info("Loading Certificates...");
             Date date = certificate.getValue().getNotAfter();
             certificates.put(certificate.getKey(), convertToLocalDate(date));
         }
@@ -70,12 +68,9 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
         LOGGER.info("Setting expiry window");
         LocalDate expiryWindow = LocalDate.now().plusWeeks(4);
         Map<String, String> certExpiryMap = new HashMap<String, String>();
-        List<String> expiredCertsList = new ArrayList<String>();
 
         for (Map.Entry<String, LocalDate> certificate : certificates.entrySet()) {
             LOGGER.info("Checking Certificates...");
-            LOGGER.info(
-                    "cert path - {}, expires - {}", certificate.getKey(), certificate.getValue());
 
             if (certificate.getValue().isAfter(LocalDate.now())
                     && certificate.getValue().isBefore(expiryWindow)) {
@@ -88,11 +83,11 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
                 eventProbe.counterMetric(CERTIFICATE_EXPIRY_REMINDER);
                 eventProbe.counterMetric(CERTIFICATE_EXPIRYS).addDimensions(certExpiryMap);
 
-                expiredCertsList.add(
-                        "Cert path - "
-                                + certificate.getKey()
-                                + " Expires - "
-                                + certificate.getValue());
+            } else {
+                LOGGER.info(
+                        "cert path - {}, expires - {}",
+                        certificate.getKey(),
+                        certificate.getValue());
             }
         }
         LOGGER.info("Returning expired Certificates...");

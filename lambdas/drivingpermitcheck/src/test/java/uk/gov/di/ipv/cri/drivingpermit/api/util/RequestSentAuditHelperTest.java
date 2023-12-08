@@ -2,12 +2,15 @@ package uk.gov.di.ipv.cri.drivingpermit.api.util;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Name;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
 
 import java.util.ArrayList;
@@ -19,10 +22,16 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants.UK_
 @ExtendWith(MockitoExtension.class)
 class RequestSentAuditHelperTest {
 
-    @Test
-    void ShouldReturnAuditRestrictedFormatFromDrivingPermitFormData() {
+    @ParameterizedTest
+    @CsvSource({
+        "DVA", // IssuingAuthority
+        "DVLA",
+    })
+    void ShouldReturnAuditRestrictedFormatFromDrivingPermitFormData(
+            IssuingAuthority issuingAuthority) {
 
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm =
+                DrivingPermitFormTestDataGenerator.generate(issuingAuthority);
 
         PersonIdentityDetailed testPersonIdentityDetailedFromFormData =
                 RequestSentAuditHelper.drivingPermitFormDataToAuditRestrictedFormat(

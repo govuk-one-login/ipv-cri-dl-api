@@ -105,7 +105,7 @@ Feature: DrivingLicence CRI API
     Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
     Examples:
       |PassportJsonPayload         | jsonEdits                                                                  | cri_internal_error_code | cri_internal_error_message                                  |
-      |DVLAValidKennethJsonPayload | {"surname": "Unauthorized", "drivingLicenceNumber" : "UNAUT123456AB1AB"}   | 1314                    | error match endpoint returned unexpected http status code   |
+      |DVLAValidKennethJsonPayload | {"surname": "Unauthorized", "drivingLicenceNumber" : "UNAUT123456AB1AB"}   | 1316                    | error dvla expired token recovery failed                    |
       |DVLAValidKennethJsonPayload | {"surname": "Forbidden", "drivingLicenceNumber" : "FORBI123456AB1AB"}      | 1314                    | error match endpoint returned unexpected http status code   |
       |DVLAValidKennethJsonPayload | {"surname": "CannotBeFound", "drivingLicenceNumber" : "CANNO123456AB1AB"}  | 1314                    | error match endpoint returned unexpected http status code   |
       |DVLAValidKennethJsonPayload | {"surname": "TooManyRequest", "drivingLicenceNumber" : "TOOMA123456AB1AB"} | 1314                    | error match endpoint returned unexpected http status code   |

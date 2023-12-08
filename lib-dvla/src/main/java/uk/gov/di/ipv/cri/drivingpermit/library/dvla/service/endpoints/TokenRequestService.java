@@ -120,7 +120,7 @@ public class TokenRequestService {
                 tokenTtlHasExpired);
 
         if (alwaysRequestNewToken) {
-            LOGGER.info("Override enabled - always requesting a new token");
+            LOGGER.info("Override enabled - requesting a new token");
         }
 
         boolean newTokenRequest =

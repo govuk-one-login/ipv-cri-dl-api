@@ -27,6 +27,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.DriverMatchE
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.errorresponse.fields.Errors;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
@@ -50,6 +51,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_REQUEST_SEND_OK;
@@ -262,16 +264,90 @@ class DriverMatchServiceTest {
     }
 
     @Test
+    void
+            shouldThrowDVLAMatchUnauthorizedExceptionWhenDriverMatchEndpointResponseStatusCodeIs401Unauthorised()
+                    throws IOException {
+        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
+                ArgumentCaptor.forClass(HttpPost.class);
+
+        Errors errors =
+                Errors.builder()
+                        .code("Unauthorized")
+                        .status("401")
+                        .detail("API Key or JWT is either not provided, expired or invalid")
+                        .build();
+
+        DriverMatchErrorResponse driverMatchErrorResponse =
+                DriverMatchErrorResponse.builder().errors(List.of(errors)).build();
+
+        String testDriverMatchAPIResponse =
+                realObjectMapper.writeValueAsString(driverMatchErrorResponse);
+
+        CloseableHttpResponse driverMatchResponse =
+                HttpResponseFixtures.createHttpResponse(
+                        401, null, testDriverMatchAPIResponse, false);
+
+        // HttpClient response
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DriverMatchHttpRetryStatusConfig.class)))
+                .thenReturn(driverMatchResponse);
+
+        DVLAMatchUnauthorizedException expectedReturnedException =
+                new DVLAMatchUnauthorizedException(
+                        ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY.getMessage());
+
+        // Method arg
+        DvlaFormFields dvlaFormFields = getTestData();
+
+        DVLAMatchUnauthorizedException thrownException =
+                assertThrows(
+                        DVLAMatchUnauthorizedException.class,
+                        () -> driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE),
+                        "Expected DVLAMatchUnauthorizedException");
+
+        // (Post) DriverMatch
+        InOrder inOrderMockHttpClientSequence = inOrder(mockHttpRetryer);
+        inOrderMockHttpClientSequence
+                .verify(mockHttpRetryer, times(1))
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(DriverMatchHttpRetryStatusConfig.class));
+        verifyNoMoreInteractions(mockHttpRetryer);
+
+        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_MATCH_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertEquals(expectedReturnedException.getMessage(), thrownException.getMessage());
+    }
+
+    @Test
     void shouldReturnOAuthErrorResponseExceptionWhenDriverMatchEndpointResponseStatusCodeNotValid()
             throws IOException {
         ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
                 ArgumentCaptor.forClass(HttpPost.class);
 
         // Status not Valid
-        DriverMatchAPIResponse driverMatchAPIResponse =
-                DriverMatchAPIResponse.builder().validDocument(true).build();
+        Errors errors =
+                Errors.builder()
+                        .code("ENQ000")
+                        .status("500")
+                        .detail("System error occurred.")
+                        .build();
+
+        DriverMatchErrorResponse driverMatchErrorResponse =
+                DriverMatchErrorResponse.builder().errors(List.of(errors)).build();
+
         String testDriverMatchAPIResponse =
-                realObjectMapper.writeValueAsString(driverMatchAPIResponse);
+                realObjectMapper.writeValueAsString(driverMatchErrorResponse);
 
         CloseableHttpResponse driverMatchResponse =
                 HttpResponseFixtures.createHttpResponse(

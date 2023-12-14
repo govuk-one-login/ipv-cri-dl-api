@@ -1,22 +1,21 @@
 # Digital Identity Driving Permit Credential Issuer
 Driving Permit Check Credential Issuer
 
-## Checkout submodules
-> The first time you check out or clone the repository, you will need to run the following commands:
- 
-`git submodule update --init --recursive`
+## SDKMan
+This project has an `.sdkmanrc` file
 
-> Subsequent times you will need to run the following commands:
+Install SDKMan via the instructions on `https://sdkman.io/install`
 
-`git submodule update --recursive`
+For auto-switching between JDK versions, edit your `~/.sdkman/etc/config` and set `sdkman_auto_env=true`
 
-### Updating submodules to the latest "main" branch
-> You can also update the submodules to the latest "main" branch, but this is not done automatically 
-> in case there have been changes made to the shared libraries you do not yet want to track
+Then use sdkman to install Java JDK listed in this projects `.sdkmanrc`
+e.g `sdk install java x.y.z-amzn`
 
-cd into each submodule (folders are `/common-lib` and `/common-lambdas`) and run the following commands:
+Restart your terminal
 
-`git checkout main && git pull`
+## Gradle
+
+Gradle 8 is used on this project
 
 ## Build
 

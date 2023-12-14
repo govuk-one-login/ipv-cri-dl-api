@@ -33,6 +33,7 @@ public class HTTPReplyHelper {
                             ? String.format("No %s response body text found", endpointName)
                             : mappedBody;
             int httpStatusCode = response.getStatusLine().getStatusCode();
+            LOGGER.info("response body {}", responseBody);
 
             return new HTTPReply(httpStatusCode, responseHeaders, responseBody);
         } catch (IOException e) {

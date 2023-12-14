@@ -7,4 +7,6 @@ include "lib",
 		"lambdas:issuecredential",
 		"lambdas:certexpiryreminder",
 		"acceptance-tests",
-		"lambdas:passwordRenewal"
+		"lambdas:passwordRenewal",
+		"lambdas:apiKeyRenewal",
+		"acceptance-tests"

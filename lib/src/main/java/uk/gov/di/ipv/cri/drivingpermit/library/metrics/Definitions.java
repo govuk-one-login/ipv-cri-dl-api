@@ -58,6 +58,10 @@ public class Definitions {
     public static final String LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_ERROR =
             "lambda_password_renewal_check_completed_error";
 
+    // New Api Key Metric
+    public static final String LAMBDA_API_KEY_CHECK_COMPLETED_ERROR =
+            "lambda_api_key_check_completed_error";
+
     private Definitions() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

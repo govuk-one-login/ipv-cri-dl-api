@@ -11,8 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
-import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.RequestHeaderKeys;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.DriverMatchAPIResponse;
@@ -81,7 +81,8 @@ public class DriverMatchService {
         this.httpRetryStatusConfig = new DriverMatchHttpRetryStatusConfig();
     }
 
-    public DriverMatchServiceResult performMatch(DvlaFormFields dvlaFormFields, String tokenValue)
+    public DriverMatchServiceResult performMatch(
+            DvlaFormFields dvlaFormFields, String tokenValue, String apiKey)
             throws OAuthErrorResponseException {
 
         // Request is posted as if JSON

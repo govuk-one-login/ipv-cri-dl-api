@@ -5,7 +5,7 @@ plugins {
 	id "java"
 	id "idea"
 	id "jacoco"
-	id 'io.freefair.aspectj.post-compile-weaving' version '6.3.0'
+	id 'io.freefair.aspectj.post-compile-weaving' version '8.4'
 }
 
 // Exclusion needed as http clients are picked from the classpath rather than from client builders.
@@ -32,7 +32,8 @@ dependencies {
 			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
-			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"
+			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}",
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
@@ -43,11 +44,6 @@ dependencies {
 			"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit_version}",
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}";
-}
-
-java {
-	sourceCompatibility = JavaVersion.VERSION_11
-	targetCompatibility = JavaVersion.VERSION_11
 }
 
 tasks.register('buildZip', Zip) {

@@ -83,7 +83,6 @@ class DriverMatchServiceTest {
         realObjectMapper = new ObjectMapper();
 
         when(mockDvlaConfiguration.getMatchEndpoint()).thenReturn(TEST_END_POINT);
-        when(mockDvlaConfiguration.getApiKey()).thenReturn(TEST_API_KEY);
 
         driverMatchService =
                 new DriverMatchService(

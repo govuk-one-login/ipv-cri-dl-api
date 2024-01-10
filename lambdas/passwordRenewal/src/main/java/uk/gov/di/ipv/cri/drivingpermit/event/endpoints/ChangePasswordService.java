@@ -79,7 +79,7 @@ public class ChangePasswordService {
         sendPasswordChangeRequest(newPassword, dvlaConfiguration.getPassword());
     }
 
-    public void sendPasswordChangeRequest(String newPassword, String exisitingPassword)
+    public void sendPasswordChangeRequest(String newPassword, String existingPassword)
             throws OAuthErrorResponseException, UnauthorisedException {
 
         final String requestId = UUID.randomUUID().toString();
@@ -93,7 +93,7 @@ public class ChangePasswordService {
         // Enforce connection timeout values
         request.setConfig(requestConfig);
 
-        String requestBody = createRequestBody(newPassword, exisitingPassword);
+        String requestBody = createRequestBody(newPassword, existingPassword);
 
         LOGGER.debug("{} request body : {}", REQUEST_NAME, requestBody);
 

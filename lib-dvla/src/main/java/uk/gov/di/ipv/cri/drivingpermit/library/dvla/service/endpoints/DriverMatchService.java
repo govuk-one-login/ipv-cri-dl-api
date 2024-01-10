@@ -51,7 +51,6 @@ public class DriverMatchService {
     private static final String HTTP_404_EXPECTED_ERROR_CODE = "ENQ018";
 
     private final URI requestURI;
-    private final String apiKey;
 
     private final HttpRetryer httpRetryer;
     private final RequestConfig requestConfig;
@@ -62,6 +61,8 @@ public class DriverMatchService {
 
     private final HttpRetryStatusConfig httpRetryStatusConfig;
 
+    private final DvlaConfiguration dvlaConfiguration;
+
     public DriverMatchService(
             DvlaConfiguration dvlaConfiguration,
             HttpRetryer httpRetryer,
@@ -70,13 +71,13 @@ public class DriverMatchService {
             EventProbe eventProbe) {
 
         this.requestURI = URI.create(dvlaConfiguration.getMatchEndpoint());
-        this.apiKey = dvlaConfiguration.getApiKey();
 
         this.httpRetryer = httpRetryer;
         this.requestConfig = requestConfig;
 
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
+        this.dvlaConfiguration = dvlaConfiguration;
 
         this.httpRetryStatusConfig = new DriverMatchHttpRetryStatusConfig();
     }

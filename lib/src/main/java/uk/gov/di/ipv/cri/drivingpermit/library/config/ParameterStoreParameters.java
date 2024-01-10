@@ -119,13 +119,15 @@ public class ParameterStoreParameters {
     public static final String DVLA_ENDPOINT_MATCH = "DVLA/matchPath";
     public static final String DVLA_ENDPOINT_PASSWORD_PATH = "DVLA/passwordPath";
     public static final String DVLA_API_KEY = "DVLA/apiKey";
-
+    public static final String DVLA_ENDPOINT_API_KEY_PATH = "DVLA/apiKeyPath";
     public static final String DVLA_USERNAME = "DVLA/username";
     public static final String DVLA_PASSWORD = "DVLA/password";
 
     public static final String DVLA_TOKEN_TABLE_NAME = "DVLA/TokenTableName";
 
     public static final String DVLA_PASSWORD_ROTATION_ENABLED = "DVLA/passwordRotationEnabled";
+
+    public static final String DVLA_API_KEY_ROTATION_ENABLED = "DVLA/apiKeyRotationEnabled";
 
     @ExcludeFromGeneratedCoverageReport
     private ParameterStoreParameters() {

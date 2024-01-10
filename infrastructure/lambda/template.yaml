@@ -233,6 +233,22 @@ Mappings:
       integration: "cron(0 10 ? * TUE#1 *)"
       production: "cron(0 10 ? * TUE#1 *)"
 
+  dvlaApiKeyRotationEnabledMapping:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "false"
+      production: "false"
+
+  dvlaApiKeyRotationWindow:
+    Environment:
+      dev: "rate(4 hours)"
+      build: "rate(4 hours)"
+      staging: "cron(0 10 ? * TUE#1 *)"
+      integration: "cron(0 10 ? * TUE#1 *)"
+      production: "cron(0 10 ? * TUE#1 *)"
+
   ProvisionedConcurrency:
     Environment:
       dev: 0
@@ -489,6 +505,7 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDvaResponse"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordRotationEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/apiKeyRotationEnabled"
 
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDcsPerformanceStub"
@@ -527,6 +544,7 @@ Resources:
                 - 'secretsmanager:GetSecretValue'
               Resource:
                 - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/apiKey*"
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
       ProvisionedConcurrencyConfig:
@@ -607,6 +625,7 @@ Resources:
                 - 'secretsmanager:GetSecretValue'
               Resource:
                 - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/apiKey*"
 
         - Statement:
             Effect: Allow
@@ -691,7 +710,9 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/TokenTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordRotationEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/apiKeyRotationEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordPath"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/apiKeyPath"
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
@@ -836,33 +857,31 @@ Resources:
               Action:
                 - 'secretsmanager:GetSecretValue'
               Resource:
-                - !Sub
-                  - 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${PREFIX}/DVLA/apikey*'
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/apiKey*"
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
         - Statement:
             - Sid: UpdateSecretsPolicy
               Effect: Allow
               Action:
                 - 'secretsmanager:UpdateSecret'
               Resource:
-                - !Sub
-                  - 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${PREFIX}/DVLA/apikey*'
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/apiKey*"
         - Statement:
             - Sid: PutSecretValuePolicy
               Effect: Allow
               Action:
                 - 'secretsmanager:PutSecretValue'
               Resource:
-                - !Sub
-                  - 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${PREFIX}/DVLA/apikey*'
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/apiKey*"
         - Statement:
             - Effect: Allow
               Action:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/TokenTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/apiKeyRotationEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordRotationEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/password"
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
@@ -877,6 +896,16 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${ApiKeyRenewalFunction}"
       RetentionInDays: 30
 
+  ApiKeyRenewalRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn:
+      - ApiKeyRenewalFunctionPermission
+    Properties:
+      SecretId: !Ref DVLAApiKeySecret
+      RotationLambdaARN: !GetAtt ApiKeyRenewalFunction.Arn
+      RotationRules:
+        Duration: 1h
+        ScheduleExpression: !FindInMap [ dvlaApiKeyRotationWindow, Environment, !Ref Environment ]
 
   ApiKeyRenewalFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -1115,6 +1144,14 @@ Resources:
       Value: !FindInMap [ dvlaPasswordRotationEnabledMapping, Environment, !Ref Environment ]
       Description: Feature toggle to enable password rotation
 
+  dvlaApiKeyRotationEnabledParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DVLA/apiKeyRotationEnabled"
+      Type: String
+      Value: !FindInMap [ dvlaApiKeyRotationEnabledMapping, Environment, !Ref Environment ]
+      Description: Feature toggle to enable api key rotation
+
   MaximumAttemptCountParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -1133,6 +1170,16 @@ Resources:
           - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
 
       Description: This is a temp password used before the rotation function is applied. Checking if update triggers rotation
+
+  DVLAApiKeySecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DVLA/apiKey"
+      SecretString:
+        !Sub
+        - '{{resolve:ssm:/${PREFIX}/DVLA/apiKey}}'
+        - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+      Description: This is a temp api key used before the rotation function is applied. Checking if update triggers rotation
 
   LoggingKmsKey:
     Type: AWS::KMS::Key
@@ -1415,6 +1462,54 @@ Resources:
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
       Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DVLAApiKeyRotationFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Api Key Rotation Failure Alarm"
+      AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the API Key used to perform document matches.
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: [ ]
+      MetricName: lambda_api_key_check_completed_error
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-apiKeyRenewal"
+      Period: 60
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: 2
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DVLAPasswordRotationFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Password Rotation Failure Alarm"
+      AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the Password used to perform document matches.
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicDL
+      OKActions:
+        - !Ref AlarmTopicDL
+      InsufficientDataActions: [ ]
+      MetricName: lambda_password_renewal_check_completed_error
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-passwordRenewal"
+      Period: 60
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 

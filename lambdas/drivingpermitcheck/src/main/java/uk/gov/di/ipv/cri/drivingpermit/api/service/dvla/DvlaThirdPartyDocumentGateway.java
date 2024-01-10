@@ -7,6 +7,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
@@ -27,12 +28,14 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private final TokenRequestService tokenRequestService;
     private final DriverMatchService driverMatchService;
+    private final DvlaConfiguration dvlaConfiguration;
 
     private static final int MAX_UNAUTHORIZED_RECOVERY_ATTEMPTS = 1;
 
     public DvlaThirdPartyDocumentGateway(DvlaEndpointFactory endpointFactory) {
         tokenRequestService = endpointFactory.getTokenRequestService();
         driverMatchService = endpointFactory.getDriverMatchService();
+        dvlaConfiguration = endpointFactory.getDvlaConfiguration();
     }
 
     @Override
@@ -64,7 +67,8 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
             try {
                 driverMatchServiceResult =
-                        driverMatchService.performMatch(drivingPermitForm, tokenValue, null);
+                        driverMatchService.performMatch(
+                                drivingPermitForm, tokenValue, dvlaConfiguration.getApiKey());
 
                 finished = true;
 

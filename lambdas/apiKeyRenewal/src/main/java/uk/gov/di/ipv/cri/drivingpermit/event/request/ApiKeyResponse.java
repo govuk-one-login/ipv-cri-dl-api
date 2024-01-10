@@ -1,10 +1,10 @@
 package uk.gov.di.ipv.cri.drivingpermit.event.request;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@NoArgsConstructor
 public class ApiKeyResponse {
     private String newApiKey;
 }

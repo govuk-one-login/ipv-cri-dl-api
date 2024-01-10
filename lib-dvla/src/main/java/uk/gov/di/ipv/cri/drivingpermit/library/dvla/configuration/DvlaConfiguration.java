@@ -6,6 +6,8 @@ import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_API_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_API_KEY_ROTATION_ENABLED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_API_KEY_PATH;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_MATCH;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_PASSWORD_PATH;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_TOKEN;
@@ -21,6 +23,7 @@ public class DvlaConfiguration {
     private final String tokenEndpoint;
     private final String matchEndpoint;
     private final String changePasswordEndpoint;
+    private final String changeApiKeyEndpoint;
 
     private final String apiKey;
     private final String username;
@@ -29,6 +32,7 @@ public class DvlaConfiguration {
     private final String tokenTableName;
 
     private final boolean passwordRotationEnabled;
+    private final boolean apiKeyRotationEnabled;
 
     private final SecretsManagerService secretsManagerService;
 
@@ -51,6 +55,11 @@ public class DvlaConfiguration {
                         "%s%s",
                         endpointUri,
                         parameterStoreService.getParameterValue(DVLA_ENDPOINT_PASSWORD_PATH));
+        this.changeApiKeyEndpoint =
+                String.format(
+                        "%s%s",
+                        endpointUri,
+                        parameterStoreService.getParameterValue(DVLA_ENDPOINT_API_KEY_PATH));
         this.tokenTableName = parameterStoreService.getStackParameterValue(DVLA_TOKEN_TABLE_NAME);
 
         this.apiKey = parameterStoreService.getParameterValue(DVLA_API_KEY);
@@ -60,6 +69,10 @@ public class DvlaConfiguration {
                 Boolean.parseBoolean(
                         parameterStoreService.getStackParameterValue(
                                 DVLA_PASSWORD_ROTATION_ENABLED));
+        this.apiKeyRotationEnabled =
+                Boolean.parseBoolean(
+                        parameterStoreService.getStackParameterValue(
+                                DVLA_API_KEY_ROTATION_ENABLED));
 
         this.password = parameterStoreService.getParameterValue(DVLA_PASSWORD);
     }
@@ -76,6 +89,10 @@ public class DvlaConfiguration {
         return changePasswordEndpoint;
     }
 
+    public String getChangeApiKeyEndpoint() {
+        return changeApiKeyEndpoint;
+    }
+
     public String getTokenTableName() {
         return tokenTableName;
     }
@@ -87,8 +104,7 @@ public class DvlaConfiguration {
     public String getPassword() {
         if (isPasswordRotationEnabled()) {
             try {
-                String stackSecretValue = secretsManagerService.getStackSecretValue(DVLA_PASSWORD);
-                return stackSecretValue;
+                return secretsManagerService.getStackSecretValue(DVLA_PASSWORD);
             } catch (ResourceNotFoundException e) {
                 return password;
             }
@@ -98,10 +114,22 @@ public class DvlaConfiguration {
     }
 
     public String getApiKey() {
-        return apiKey;
+        if (isApiKeyRotationEnabled()) {
+            try {
+                return secretsManagerService.getStackSecretValue(DVLA_API_KEY);
+            } catch (ResourceNotFoundException e) {
+                return apiKey;
+            }
+        } else {
+            return apiKey;
+        }
     }
 
     public boolean isPasswordRotationEnabled() {
         return passwordRotationEnabled;
+    }
+
+    public boolean isApiKeyRotationEnabled() {
+        return apiKeyRotationEnabled;
     }
 }

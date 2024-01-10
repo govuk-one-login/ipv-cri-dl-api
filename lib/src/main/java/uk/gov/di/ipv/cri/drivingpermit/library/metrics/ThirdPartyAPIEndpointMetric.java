@@ -209,7 +209,7 @@ public enum ThirdPartyAPIEndpointMetric {
             DVLA_THIRD_PARTY_API_KEY_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
 
     DVLA_API_KEY_RESPONSE_STATUS_CODE_ALERT_METRIC(
-            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, "Another metric");
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, "api_key_fail_alert_metric");
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // End Of Metric Descriptions                                                                //

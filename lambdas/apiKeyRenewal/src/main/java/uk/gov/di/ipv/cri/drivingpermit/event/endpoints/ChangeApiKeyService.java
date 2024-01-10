@@ -51,7 +51,7 @@ public class ChangeApiKeyService {
             ObjectMapper objectMapper,
             EventProbe eventProbe) {
 
-        this.requestURI = URI.create(dvlaConfiguration.getTokenEndpoint());
+        this.requestURI = URI.create(dvlaConfiguration.getChangeApiKeyEndpoint());
 
         this.httpRetryer = httpRetryer;
         this.requestConfig = requestConfig;
@@ -112,7 +112,6 @@ public class ChangeApiKeyService {
 
             eventProbe.counterMetric(
                     DVLA_API_KEY_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
-            LOGGER.info("http response body: {} and apiKeyResponse: {}", httpReply.responseBody, ApiKeyResponse.class);
             ApiKeyResponse apiKeyResponse =
                     objectMapper.readValue(httpReply.responseBody, ApiKeyResponse.class);
 

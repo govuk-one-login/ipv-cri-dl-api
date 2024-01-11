@@ -16,6 +16,9 @@ configurations {
 		extendsFrom testImplementation
 	}
 }
+configurations.configureEach {
+	exclude group:"software.amazon.awssdk", module: "apache-client"
+}
 
 dependencies {
 	var dependencyVersions = [

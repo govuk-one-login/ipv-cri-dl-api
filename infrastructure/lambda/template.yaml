@@ -225,6 +225,14 @@ Mappings:
       integration: "true"
       production: "true"
 
+  dvlaPasswordRotationWindow:
+    Environment:
+      dev: "rate(4 hours)"
+      build: "rate(4 hours)"
+      staging: "cron(0 10 ? * TUE#1 *)"
+      integration: "cron(0 10 ? * TUE#1 *)"
+      production: "cron(0 10 ? * TUE#1 *)"
+
   ProvisionedConcurrency:
     Environment:
       dev: 0
@@ -711,7 +719,7 @@ Resources:
       RotationLambdaARN: !GetAtt PasswordRenewalFunction.Arn
       RotationRules:
         Duration: 1h
-        ScheduleExpression: 'cron(0 10 ? * TUE#1 *)'
+        ScheduleExpression: !FindInMap [ dvlaPasswordRotationWindow, Environment, !Ref Environment ]
 
   PasswordRenewalFunctionPermission:
     Type: AWS::Lambda::Permission

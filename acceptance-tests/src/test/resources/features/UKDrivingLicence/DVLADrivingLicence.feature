@@ -163,7 +163,7 @@ Feature: Driving Licence Test
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @drivingLicenceCRI_API @build
+  @DVLADrivingLicence_test @build
   Scenario: DVLA Password rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
     When User clicks on continue

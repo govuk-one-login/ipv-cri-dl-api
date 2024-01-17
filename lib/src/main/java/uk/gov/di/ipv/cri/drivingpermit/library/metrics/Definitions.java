@@ -54,6 +54,10 @@ public class Definitions {
     // Cert Expiry metric
     public static final String CERTIFICATE_EXPIRYS = "dva_cert_expiry_metric";
 
+    // Password renewal
+    public static final String LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_ERROR =
+            "lambda_password_renewal_check_completed_error";
+
     private Definitions() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

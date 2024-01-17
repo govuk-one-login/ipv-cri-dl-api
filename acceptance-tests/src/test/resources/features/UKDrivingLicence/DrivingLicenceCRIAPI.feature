@@ -15,6 +15,12 @@ Feature: DrivingLicence CRI API
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
 
   @drivingLicenceCRI_API @pre-merge @dev
+  Scenario: DVLA Password rotation check
+    Given Driving Licence CRI is functioning as expected for CRI Id driving-licence-cri-dev
+    And The secret has been created
+    Then The DVLA password should be valid and rotated within the specified window
+
+  @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVLA Driving Licence Retry Journey Happy Path
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint

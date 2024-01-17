@@ -13,6 +13,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +26,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +43,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static String STATE;
     private static String AUTHCODE;
     private static String ACCESS_TOKEN;
+    private static String DATE_TIME_OF_ROTATION;
 
     private static String VC;
 
@@ -46,6 +54,12 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
+
+    private final SecretsManagerClient secretsManagerClient =
+            SecretsManagerClient.builder()
+                    .region(Region.EU_WEST_2)
+                    .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                    .build();
     private static final Logger LOGGER = LogManager.getLogger();
 
     public String getAuthorisationJwtFromStub(String criId, Integer rowNumber)
@@ -295,6 +309,90 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         sb.append("}");
 
         assertEquals(sb.toString(), DRIVING_LICENCE_CHECK_RESPONSE);
+    }
+
+    public void getLastTestedTime() {
+        String PARAMETER_NAME_FORMAT = "/%s/%s";
+
+        String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
+        if (stackParameterPrefix != null) {
+
+            String secretId =
+                    String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, "DVLA/password");
+            LOGGER.info("{} {}", "getStackSecretValue", secretId);
+
+            GetSecretValueRequest valueRequest =
+                    GetSecretValueRequest.builder()
+                            .secretId(secretId)
+                            .versionStage("AWSCURRENT")
+                            .build();
+
+            GetSecretValueResponse valueResponse =
+                    secretsManagerClient.getSecretValue(valueRequest);
+
+            DATE_TIME_OF_ROTATION = valueResponse.createdDate().toString();
+            LOGGER.info("Date time of rotation {}", DATE_TIME_OF_ROTATION);
+        } else {
+            LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
+        }
+    }
+
+    public void passwordHasRotatedSuccessfully() {
+        String PARAMETER_NAME_FORMAT = "/%s/%s";
+
+        String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
+
+        if (stackParameterPrefix != null) {
+            String secretId =
+                    String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, "DVLA/password");
+            LOGGER.info("{} {}", "getStackSecretValue", secretId);
+
+            GetSecretValueRequest valueRequest =
+                    GetSecretValueRequest.builder()
+                            .secretId(secretId)
+                            .versionStage("AWSCURRENT")
+                            .build();
+
+            GetSecretValueResponse valueResponse =
+                    secretsManagerClient.getSecretValue(valueRequest);
+
+            assertTrue(
+                    LocalDateTime.parse(DATE_TIME_OF_ROTATION, DateTimeFormatter.ISO_DATE_TIME)
+                            .isAfter(LocalDateTime.now().minusHours(4)));
+            String password = valueResponse.secretString();
+            int specialCharCount = 0;
+            int digitalCharCount = 0;
+            int upperCaseCharCount = 0;
+            int lowerCaseCharCount = 0;
+            for (char c : password.toCharArray()) {
+                if (c >= 33 && c <= 47) {
+                    specialCharCount++;
+                }
+            }
+            assertTrue(specialCharCount >= 2, "Password validation failed in Passay");
+            for (char c : password.toCharArray()) {
+                if (c >= 48 && c <= 57) {
+                    digitalCharCount++;
+                }
+            }
+            assertTrue(digitalCharCount >= 2, "Password Validation failed in Passay");
+
+            for (char c : password.toCharArray()) {
+                if (c >= 65 && c <= 90) {
+                    upperCaseCharCount++;
+                }
+            }
+            assertTrue(upperCaseCharCount >= 4, "Password Validation failed in Passay");
+
+            for (char c : password.toCharArray()) {
+                if (c >= 97 && c <= 122) {
+                    lowerCaseCharCount++;
+                }
+            }
+            assertTrue(lowerCaseCharCount >= 6, "Password Validation failed in Passay");
+        } else {
+            LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
+        }
     }
 
     private String createRequest(String baseUrl, String criId, String jsonString)

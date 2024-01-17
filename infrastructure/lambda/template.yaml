@@ -58,11 +58,7 @@ Conditions:
   OverrideSettingOfEnvironmentWideFeatureFlag: !Equals
     - !Ref Environment
     - dev
-#  IsNotCRIDevEnv:
-#    Fn::Not:
-#      - Fn::Equals:
-#          - !Ref DevEnvironment
-#          - "cri-dev"
+
   UsingCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -220,6 +216,22 @@ Mappings:
       staging: "true"
       integration: "true"
       production: "true"
+
+  dvlaPasswordRotationEnabledMapping:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "true"
+
+  dvlaPasswordRotationWindow:
+    Environment:
+      dev: "rate(4 hours)"
+      build: "rate(4 hours)"
+      staging: "cron(0 10 ? * TUE#1 *)"
+      integration: "cron(0 10 ? * TUE#1 *)"
+      production: "cron(0 10 ? * TUE#1 *)"
 
   ProvisionedConcurrency:
     Environment:
@@ -476,6 +488,7 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvlaDirectEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDvaResponse"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordRotationEnabled"
 
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDcsPerformanceStub"
@@ -507,6 +520,13 @@ Resources:
                 - ssm:GetParametersByPath
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/clients/*"
+        - Statement:
+            - Sid: ReadSecretsPolicy
+              Effect: Allow
+              Action:
+                - 'secretsmanager:GetSecretValue'
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
       ProvisionedConcurrencyConfig:
@@ -581,6 +601,14 @@ Resources:
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiableCredentialKmsSigningKeyId"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
         - Statement:
+            - Sid: ReadSecretsPolicy
+              Effect: Allow
+              Action:
+                - 'secretsmanager:GetSecretValue'
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
+
+        - Statement:
             Effect: Allow
             Action:
               - kms:Decrypt
@@ -613,6 +641,92 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt IssueCredentialFunction.Arn
       Principal: apigateway.amazonaws.com
+
+  ####################################################################
+  #                                                                  #
+  # Password Renewal Function                                        #
+  #                                                                  #
+  ####################################################################
+
+  PasswordRenewalFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../lambdas/passwordRenewal
+      Handler: uk.gov.di.ipv.cri.drivingpermit.event.handler.PasswordRenewalHandler::handleRequest
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-passwordRenewal"
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSXrayWriteOnlyAccess
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub "${AWS::StackName}/verifiable-credential/issuer"
+        - Statement:
+            - Sid: ReadSecretsPolicy
+              Effect: Allow
+              Action:
+                - 'secretsmanager:GetSecretValue'
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
+
+        - Statement:
+            - Sid: UpdateSecretsPolicy
+              Effect: Allow
+              Action:
+                - 'secretsmanager:UpdateSecret'
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
+        - Statement:
+            - Sid: PutSecretValuePolicy
+              Effect: Allow
+              Action:
+                - 'secretsmanager:PutSecretValue'
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
+
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/TokenTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordRotationEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordPath"
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA*"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+
+  PasswordRenewalFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${PasswordRenewalFunction}"
+      RetentionInDays: 30
+
+  PasswordRenewalFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: LogSendingEnabled
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref PasswordRenewalFunctionLogGroup
+
+  PasswordRenewalRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn:
+      - PasswordRenewalFunctionPermission
+    Properties:
+      SecretId: !Ref DVLAPasswordSecret
+      RotationLambdaARN: !GetAtt PasswordRenewalFunction.Arn
+      RotationRules:
+        Duration: 1h
+        ScheduleExpression: !FindInMap [ dvlaPasswordRotationWindow, Environment, !Ref Environment ]
+
+  PasswordRenewalFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt PasswordRenewalFunction.Arn
+      Principal: secretsmanager.amazonaws.com
 
 ####################################################################
 #                                                                  #
@@ -910,6 +1024,14 @@ Resources:
       Value: !FindInMap [ dvlaDirectEnabledMapping, Environment, !Ref Environment ]
       Description: Feature toggle to switch between dcs/dvla direct
 
+  dvlaPasswordRotationEnabledParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DVLA/passwordRotationEnabled"
+      Type: String
+      Value: !FindInMap [ dvlaPasswordRotationEnabledMapping, Environment, !Ref Environment ]
+      Description: Feature toggle to enable password rotation
+
   MaximumAttemptCountParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -917,6 +1039,12 @@ Resources:
       Value: !FindInMap [MaximumAttemptCountMapping, Environment, !Ref 'Environment']
       Type: String
       Description: maximum driving permit verification attempts
+
+  DVLAPasswordSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DVLA/password"
+      Description: This is a temp password used before the roation function is applied. Checking if update triggers rotation
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

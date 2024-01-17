@@ -30,6 +30,7 @@ ext {
 		gson_version                       : "2.8.9",
 		httpcomponents_core_version        : "4.4.16",
 		httpcomponents_client_version      : "4.5.14",
+		passay_version                     : "1.6.4",
 		// Aspect
 		aws_powertools_logging_version     : "1.12.2",
 		aws_powertools_metrics_version     : "1.12.2",
@@ -83,7 +84,8 @@ dependencies {
 			project(':lib-dvla'),
 			project("lambdas:drivingpermitcheck"),
 			project("lambdas:issuecredential"),
-			project("lambdas:certexpiryreminder")
+			project("lambdas:certexpiryreminder"),
+			project("lambdas:passwordRenewal")
 }
 
 spotless {

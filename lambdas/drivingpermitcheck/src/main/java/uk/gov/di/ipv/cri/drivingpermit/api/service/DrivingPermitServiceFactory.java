@@ -6,7 +6,9 @@ import org.apache.http.HttpException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
@@ -19,6 +21,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DcsConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
@@ -95,7 +98,15 @@ public class DrivingPermitServiceFactory {
         ParameterStoreService parameterStoreService =
                 new ParameterStoreService((ParamManager.getSsmProvider()));
 
-        return new ConfigurationService(parameterStoreService);
+        SecretsManagerClient secretsManagerClient =
+                SecretsManagerClient.builder()
+                        .region(Region.EU_WEST_2)
+                        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                        .build();
+
+        SecretsManagerService secretsManagerService =
+                new SecretsManagerService(secretsManagerClient);
+        return new ConfigurationService(parameterStoreService, secretsManagerService);
     }
 
     public ConfigurationService getConfigurationService() {

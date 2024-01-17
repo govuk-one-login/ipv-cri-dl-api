@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -20,6 +21,8 @@ class ConfigurationServiceTest {
 
     @Mock private ParameterStoreService mockParameterStoreService;
 
+    @Mock private SecretsManagerService secretsManagerService;
+
     @Test
     void shouldInitialiseConfigFieldsWhenValidInputProvided()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -32,7 +35,7 @@ class ConfigurationServiceTest {
         mockDvaConfig(paramPath);
 
         ConfigurationService configurationService =
-                new ConfigurationService(mockParameterStoreService);
+                new ConfigurationService(mockParameterStoreService, secretsManagerService);
 
         assertNotNull(configurationService);
     }

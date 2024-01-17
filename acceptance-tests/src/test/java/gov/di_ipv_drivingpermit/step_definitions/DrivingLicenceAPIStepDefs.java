@@ -97,4 +97,24 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
             throws IOException, InterruptedException, ParseException, URISyntaxException {
         assertCheckDetails(checkMethod, identityCheckPolicy, checkDetailsType);
     }
+
+    @Given("Driving Licence CRI is functioning as expected for CRI Id (.*)$")
+    public void dl_is_functioning_as_expected(String criId)
+            throws IOException, InterruptedException, URISyntaxException, NoSuchFieldException,
+                    IllegalAccessException {
+        dlUserIdentityAsJwtString(criId, 6);
+        dlPostRequestToSessionEndpoint();
+        getSessionIdForDL();
+        postRequestToDrivingLicenceEndpoint("DVLAValidKennethJsonPayload");
+    }
+
+    @And("The secret has been created")
+    public void dl_time_is_past_rotation_window() {
+        getLastTestedTime();
+    }
+
+    @Then("The DVLA password should be valid and rotated within the specified window")
+    public void dl_password_has_rotated() {
+        passwordHasRotatedSuccessfully();
+    }
 }

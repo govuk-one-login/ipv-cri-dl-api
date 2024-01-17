@@ -50,13 +50,13 @@ public class TokenRequestService {
 
     private final URI requestURI;
     private final String username;
-    private final String password;
-
     private final HttpRetryer httpRetryer;
     private final RequestConfig requestConfig;
 
     private final ObjectMapper objectMapper;
     private final EventProbe eventProbe;
+
+    private final DvlaConfiguration dvlaConfiguration;
 
     private final HttpRetryStatusConfig httpRetryStatusConfig;
 
@@ -92,7 +92,6 @@ public class TokenRequestService {
 
         this.requestURI = URI.create(dvlaConfiguration.getTokenEndpoint());
         this.username = dvlaConfiguration.getUsername();
-        this.password = dvlaConfiguration.getPassword();
 
         this.httpRetryer = httpRetryer;
         this.requestConfig = requestConfig;
@@ -101,6 +100,7 @@ public class TokenRequestService {
         this.eventProbe = eventProbe;
 
         this.httpRetryStatusConfig = new TokenHttpRetryStatusConfig();
+        this.dvlaConfiguration = dvlaConfiguration;
     }
 
     public String requestToken(boolean alwaysRequestNewToken) throws OAuthErrorResponseException {
@@ -129,7 +129,8 @@ public class TokenRequestService {
         // Request an Access Token
         if (newTokenRequest) {
 
-            TokenResponse newTokenResponse = performNewTokenRequest();
+            TokenResponse newTokenResponse =
+                    performNewTokenRequest(dvlaConfiguration.getPassword());
 
             LOGGER.info("Saving Token {}", newTokenResponse.getIdToken());
 
@@ -151,7 +152,8 @@ public class TokenRequestService {
         return tokenItem.getTokenValue();
     }
 
-    private TokenResponse performNewTokenRequest() throws OAuthErrorResponseException {
+    public TokenResponse performNewTokenRequest(String passwordParam)
+            throws OAuthErrorResponseException {
 
         final String requestId = UUID.randomUUID().toString();
         LOGGER.info("{} Request Id {}", REQUEST_NAME, requestId);
@@ -168,7 +170,10 @@ public class TokenRequestService {
         String requestBody;
         try {
             TokenRequestPayload tokenRequestPayload =
-                    TokenRequestPayload.builder().userName(username).password(password).build();
+                    TokenRequestPayload.builder()
+                            .userName(username)
+                            .password(passwordParam)
+                            .build();
 
             requestBody = objectMapper.writeValueAsString(tokenRequestPayload);
         } catch (JsonProcessingException e) {

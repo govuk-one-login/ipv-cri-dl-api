@@ -222,8 +222,8 @@ Mappings:
       dev: "true"
       build: "true"
       staging: "true"
-      integration: "true"
-      production: "true"
+      integration: "false"
+      production: "false"
 
   dvlaPasswordRotationWindow:
     Environment:
@@ -715,6 +715,7 @@ Resources:
     DependsOn:
       - PasswordRenewalFunctionPermission
     Properties:
+      RotateImmediatelyOnUpdate: false
       SecretId: !Ref DVLAPasswordSecret
       RotationLambdaARN: !GetAtt PasswordRenewalFunction.Arn
       RotationRules:
@@ -1044,7 +1045,12 @@ Resources:
     Type: 'AWS::SecretsManager::Secret'
     Properties:
       Name: !Sub "/${AWS::StackName}/DVLA/password"
-      Description: This is a temp password used before the roation function is applied. Checking if update triggers rotation
+      SecretString:
+        !Sub
+          - '{{resolve:ssm:/${PREFIX}/DVLA/password}}'
+          - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+
+      Description: This is a temp password used before the rotation function is applied. Checking if update triggers rotation
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

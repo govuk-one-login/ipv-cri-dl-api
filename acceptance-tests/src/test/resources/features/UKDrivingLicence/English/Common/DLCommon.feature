@@ -46,7 +46,7 @@ Feature: Driving License Test Common
     And The field error copy “You must choose an option to continue”
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @DrivingLicenceTest @build @staging @integration
   Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK

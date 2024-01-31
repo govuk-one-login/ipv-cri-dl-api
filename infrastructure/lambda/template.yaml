@@ -229,9 +229,9 @@ Mappings:
     Environment:
       dev: "rate(4 hours)"
       build: "rate(4 hours)"
-      staging: "cron(0 10 ? * TUE#1 *)"
-      integration: "cron(0 10 ? * TUE#1 *)"
-      production: "cron(0 10 ? * TUE#1 *)"
+      staging: "cron(0 10 ? 1/2 TUE#1 *)"
+      integration: "cron(0 10 ? 1/2 TUE#1 *)"
+      production: "cron(0 10 ? 1/2 TUE#1 *)"
 
   ProvisionedConcurrency:
     Environment:

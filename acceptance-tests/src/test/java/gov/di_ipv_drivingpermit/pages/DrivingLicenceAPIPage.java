@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -253,6 +254,18 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
         assertCheckDetailsWithinVc(
                 checkMethod, identityCheckPolicy, checkDetailsType, drivingLicenceCRIVC);
+    }
+
+    public void assertJtiIsPresentAndNotNull()
+            throws IOException, ParseException, InterruptedException {
+        String result = postRequestToDrivingLicenceVCEndpoint();
+        LOGGER.info("result = " + result);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode jtiNode = jsonNode.get("jti");
+        LOGGER.info("jti = " + jtiNode.asText());
+
+        assertNotNull(jtiNode.asText());
     }
 
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)

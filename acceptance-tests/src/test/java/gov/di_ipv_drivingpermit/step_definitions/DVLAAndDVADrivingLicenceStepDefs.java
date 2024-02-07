@@ -198,6 +198,11 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         new DrivingLicencePageObject().assertPersonalNumberInVc(personalNumber);
     }
 
+    @And("JSON response should contain JTI field")
+    public void JtiFieldInResponse() throws IOException {
+        assertJtiPresent();
+    }
+
     @When("^DVLA consent checkbox is unselected$")
     public void dvla_consent_checkbox_click() {
         consentDVLACheckbox.click();

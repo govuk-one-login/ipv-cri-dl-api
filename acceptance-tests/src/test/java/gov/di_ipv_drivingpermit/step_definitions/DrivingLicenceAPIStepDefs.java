@@ -66,6 +66,12 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
 
+    @And("^Driving Licence VC should contain JTI field$")
+    public void jsonPayloadShouldContainJtiField()
+            throws IOException, ParseException, InterruptedException {
+        assertJtiIsPresentAndNotNull();
+    }
+
     @When(
             "Driving Licence user sends a editable POST request to Driving Licence endpoint using jsonRequest (.*) with edited fields (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(

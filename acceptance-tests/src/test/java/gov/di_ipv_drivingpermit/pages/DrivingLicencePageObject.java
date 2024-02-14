@@ -29,6 +29,7 @@ import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
 import static java.lang.System.getenv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -932,6 +933,14 @@ public class DrivingLicencePageObject extends UniversalSteps {
         JsonNode vcNode = getJsonNode(result, "vc");
         String licenceNumber = getPersonalNumberFromVc(vcNode);
         assertEquals(personalNumber, licenceNumber);
+    }
+
+    public void assertJtiPresent() throws IOException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        JsonNode jtiNode = getJsonNode(result, "jti");
+        String jti = jtiNode.asText();
+        assertNotNull(jti);
     }
 
     public void validateErrorPageHeading(String errorHeading) {

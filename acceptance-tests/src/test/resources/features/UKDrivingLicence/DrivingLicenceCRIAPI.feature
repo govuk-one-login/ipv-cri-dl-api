@@ -13,6 +13,7 @@ Feature: DrivingLicence CRI API
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
+    And Driving Licence VC should contain JTI field
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVLA Password rotation check

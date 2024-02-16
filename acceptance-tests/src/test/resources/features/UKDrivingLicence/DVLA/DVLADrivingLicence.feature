@@ -171,20 +171,11 @@ Feature: Driving Licence Test
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
 
-  @DrivingLicenceTest @build @staging @integration
-  Scenario:User Selects DVLA and landed in DVLA page
-    Given I click on DVLA radio button and Continue
-    Then I should on the page DVLA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
-    And The test is complete and I close the driver
-
   @DVLADrivingLicence_test @build
   Scenario Outline: DVLA Error tab title validation
-    Given I click on DVLA radio button and Continue
-    When I should on the page DVLA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
-    Then User enters DVLA data as a <DrivingLicenceSubject>
-    And User clicks on continue
-    And I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    When User clicks on continue
+    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject             |

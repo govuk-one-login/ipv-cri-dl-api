@@ -42,9 +42,7 @@ dependencies {
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}",
-			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
-
+			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
 
 	testImplementation testFixtures(project(":lib")),
 			testFixtures(this.project),

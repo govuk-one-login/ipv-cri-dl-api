@@ -33,7 +33,8 @@ dependencies {
 			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
 			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}",
-			"org.passay:passay:${dependencyVersions.passay_version}"
+			"org.passay:passay:${dependencyVersions.passay_version}",
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",

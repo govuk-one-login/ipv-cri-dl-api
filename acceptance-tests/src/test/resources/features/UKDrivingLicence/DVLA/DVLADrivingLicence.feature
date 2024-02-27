@@ -171,6 +171,35 @@ Feature: Driving Licence Test
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
 
+  @DVLADrivingLicence_test @build
+  Scenario Outline: DVLA Error tab title validation
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    When User clicks on continue
+    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And The test is complete and I close the driver
+    Examples:
+      |DrivingLicenceSubject             |
+      |NoLastName   |
+      |NoFirstName |
+      |NoDateOfBirth   |
+      |NoIssueDate   |
+      |NoValidToDate  |
+      |NoDrivingLicenceNumber |
+      |NoIssueNumber  |
+      |NoPostcode|
+      |InvalidFirstNameWithNumbers|
+      |InvalidFirstNameWithSpecialCharacters|
+      |DateOfBirthWithSpecialCharacters     |
+      |InvalidDateOfBirth|
+      |IssueDateWithSpecialCharacters|
+      |ValidToDateWithSpecialCharacters|
+      |ValidToDateInPast |
+      |DrivingLicenceNumberWithSpecialChar|
+      |IssueNumberWithSpecialChar         |
+      |PostcodeWithSpecialChar            |
+      |InternationalPostcode              |
+
+
     ###########  DVLA Field Validations ##########
   #not existing in front end repo
   @DVLADrivingLicence_test @build @staging @integration @dvlaDirect

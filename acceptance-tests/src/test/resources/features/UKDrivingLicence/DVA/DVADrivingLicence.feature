@@ -180,6 +180,33 @@ Feature: DVA Driving Licence Test
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
+  @DVADrivingLicence_test @build
+  Scenario Outline: DVAError tab title validation
+    Given User enters DVA data as a <DVADrivingLicenceSubject>
+    When User clicks on continue
+    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And The test is complete and I close the driver
+    Examples:
+      |DVADrivingLicenceSubject             |
+      |NoLastName   |
+      |NoFirstName |
+      |NoDateOfBirth   |
+      |NoIssueDate   |
+      |NoValidToDate  |
+      |NoDrivingLicenceNumber |
+      |NoPostcode|
+      |InvalidFirstNameWithNumbers|
+      |InvalidFirstNameWithSpecialCharacters|
+      |DateOfBirthWithSpecialCharacters     |
+      |InvalidDateOfBirth|
+      |DateOfBirthInFuture            |
+      |IssueDateWithSpecialCharacters|
+      |ValidToDateWithSpecialCharacters|
+      |ValidToDateInPast |
+      |DrivingLicenceNumberWithSpecialChar|
+      |PostcodeWithSpecialChar            |
+      |InternationalPostcode              |
+
 ###########  DVA Field Validations ##########
     #not existing in front end repo
   @DVADrivingLicence_test @build @staging @integration @smoke

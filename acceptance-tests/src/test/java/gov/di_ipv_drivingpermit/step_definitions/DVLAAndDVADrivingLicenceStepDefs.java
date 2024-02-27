@@ -15,7 +15,6 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @When("User clicks on continue")
     public void user_clicks_on_continue() {
         Continue.click();
-        ImplicitlyWait();
     }
 
     @Then("Proper error message for Could not find your details is displayed")

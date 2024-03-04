@@ -11,7 +11,7 @@ public class DocumentCheckRetrievalService {
     private final DataStore<DocumentCheckResultItem> dataStore;
     private final ConfigurationService configurationService;
 
-    DocumentCheckRetrievalService(
+    public DocumentCheckRetrievalService(
             DataStore<DocumentCheckResultItem> dataStore,
             ConfigurationService configurationService) {
         this.configurationService = configurationService;

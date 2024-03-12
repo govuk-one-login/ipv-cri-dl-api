@@ -23,8 +23,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubjectHappyKenneth |
 
   @DVLADrivingLicence_test @build @staging @integration
-  #Scenario Outline: DVLA - Details page unhappy path with IncorrectDrivingLicenceNumber
-  Scenario Outline: DVLA - Unhappy Path - User enters invalid driving licence number
+  Scenario Outline: DVLA - User enters invalid driving licence number
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -38,8 +37,7 @@ Feature: Driving Licence Test
       | IncorrectDrivingLicenceNumber |
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
-  #Scenario Outline: DVLA Driving Licence details page unhappy path when licence number date format does not match with User's Date Of Birth
-  Scenario Outline: DVLA - Unhappy Path - User enters driving licence number and date of birth in incorrect format which returns validation error
+  Scenario Outline: DVLA - User enters driving licence number and date of birth in incorrect format which returns validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
@@ -50,8 +48,7 @@ Feature: Driving Licence Test
       | DrivingLicenceNumberWithNumericChar |
 
   @DVLADrivingLicence_test @build @staging @integration
-  #Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectDateOfBirth
-  Scenario Outline: DVLA - Unhappy Path - User enters invalid date of birth and returns field validation error
+  Scenario Outline: DVLA - User enters invalid date of birth and returns field validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then I see check date of birth sentence as Check you have entered your date of birth correctly
@@ -62,8 +59,7 @@ Feature: Driving Licence Test
       | IncorrectDateOfBirth  |
 
   @DVLADrivingLicence_test @build @staging @integration
-  #Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectLastName
-  Scenario Outline: DVLA - Unhappy Path - User enters invalid last name and returns could not find your details error message
+  Scenario Outline: DVLA - User enters invalid last name and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -76,8 +72,7 @@ Feature: Driving Licence Test
       | IncorrectLastName     |
 
   @DVLADrivingLicence_test @build @staging @integration
-  #Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectIssueDate
-  Scenario Outline: DVLA - Unhappy Path - User enters invalid issue date and returns could not find your details error message
+  Scenario Outline: DVLA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -90,8 +85,7 @@ Feature: Driving Licence Test
       | IncorrectIssueDate    |
 
   @DVLADrivingLicence_test @build @staging @integration
-  #Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectValidToDate
-  Scenario Outline: DVLA - Unhappy Path - User enters invalid valid-to date and returns could not find your details error message
+  Scenario Outline: DVLA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -104,8 +98,7 @@ Feature: Driving Licence Test
       | IncorrectValidToDate  |
 
   @DVLADrivingLicence_test @build @staging @integration
-  #Scenario Outline: DVLA Driving Licence details page unhappy path with IncorrectIssueNumber
-  Scenario Outline: DVLA - Unhappy Path - User enters invalid issue number and returns could not find your details error message
+  Scenario Outline: DVLA - User enters invalid issue number and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -118,8 +111,7 @@ Feature: Driving Licence Test
       | IncorrectIssueNumber  |
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
-  #Scenario Outline: DVLA Driving Licence Retry Test Happy Path
-  Scenario Outline: DVLA - Unhappy Path - User attempts invalid journey and retries with valid details
+  Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -133,8 +125,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubjectHappyKenneth |
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
-  #Scenario Outline: DVLA Driving Licence User failed second attempt
-  Scenario Outline: DVLA - Unhappy Path - User attempts invalid journey and retries with valid details
+  Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -148,8 +139,7 @@ Feature: Driving Licence Test
       | IncorrectDrivingLicenceNumber |
 
   @DVLADrivingLicence_test @build @staging @integration @smoke
-  #Scenario: DVLA Driving Licence User cancels after failed first attempt
-  Scenario: DVLA - Unhappy Path - User attempts invalid journey and cancels after first attempt
+  Scenario: DVLA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -159,16 +149,14 @@ Feature: Driving Licence Test
     And The test is complete and I close the driver
 
   @DVLADrivingLicence_test @smoke
-  #cenario: DVLA Driving Licence User cancels before first attempt via prove your identity another way route
-  Scenario: DVLA - Unhappy Path - User cancels before first attempt by clicking prove another way and returns an authorisation error
+  Scenario: DVLA - User cancels before first attempt by clicking prove another way and returns an authorisation error
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
   @DVLADrivingLicence_test @smoke
-  #Scenario: DVLA Driving Licence User cancels before first attempt via I do not have a UK driving licence route
-  Scenario: DVLA - Unhappy Path - User cancels before first attempt by clicking no driving licence and returns an authorisation error
+  Scenario: DVLA - User cancels before first attempt by clicking no driving licence and returns an authorisation error
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
@@ -176,8 +164,7 @@ Feature: Driving Licence Test
     And The test is complete and I close the driver
 
   @DVLADrivingLicence_test @build
-  #Scenario: DVLA Password rotation check
-  Scenario: DVLA - Unhappy Path - Password rotation check
+  Scenario: DVLA - Password rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
     When User clicks on continue
     And I navigate to the Driving Licence verifiable issuer to check for a Valid response
@@ -185,8 +172,7 @@ Feature: Driving Licence Test
     Then The DVLA password should be valid and rotated within the specified window
 
   @DVLADrivingLicence_test @build
-  #Scenario Outline: DVLA Error tab title validation
-  Scenario Outline: DVLA - Unhappy Path - User enters invalid details and returns enter your details as it appears error message
+  Scenario Outline: DVLA - User enters invalid details and returns enter your details as it appears error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
@@ -217,8 +203,7 @@ Feature: Driving Licence Test
     ###########  DVLA Field Validations ##########
   #not existing in front end repo
   @DVLADrivingLicence_test @build @staging @integration @dvlaDirect @cat
-  #Scenario: DVLA Driving Licence privacy notice link to consent
-  Scenario: DVLA - Unhappy Path - User consents to have DL checked and navigates to DVLA privacy notice
+  Scenario: DVLA - User consents to have DL checked and navigates to DVLA privacy notice
     Then I see the consent section Allow DVLA to check your driving licence details
     And I see the sentence DVLA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.
     And I see the second line To find out more about how your driving licence details will be used, you can read:

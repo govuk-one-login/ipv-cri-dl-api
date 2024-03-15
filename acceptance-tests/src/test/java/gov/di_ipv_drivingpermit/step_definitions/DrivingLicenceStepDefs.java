@@ -35,25 +35,24 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         assertPageTitle(pageTitle, false);
     }
 
-    @Given("I can see a radio button titled “DVLA”")
-    public void i_can_see_a_radio_button_titled_dvla() {
-        titleDVLAWithRadioBtn();
+    @Given("I can see a DVLA radio button titled (.*)$")
+    public void i_can_see_a_radio_button_titled_dvla(String expectedText) {
+        titleDVLAWithRadioBtn(expectedText);
     }
 
-    @Then("I can see a radio button titled “DVA”")
-    public void i_can_see_a_radio_button_titled_dva() {
-        titleDVAWithRadioBtn();
+    @Then("I can see a DVA radio button titled (.*)$")
+    public void i_can_see_a_radio_button_titled_dva(String expectedText) {
+        titleDVAWithRadioBtn(expectedText);
     }
-
     @And("^I can see a I do not have a UK driving licence radio button titled (.*)$")
     public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButtonTitledNidOesGennyfDrwyddedYrruYDU(
             String expectedText) {
         noDrivingLicenceBtn(expectedText);
     }
 
-    @Then("I can see CTA {string}")
-    public void i_can_see_cta(String string) {
-        ContinueButton();
+    @Then("I can see CTA (.*)$")
+    public void i_can_see_cta(String expectedText) {
+        ContinueButton(expectedText);
     }
 
     @Given("I click on DVLA radio button and Continue")
@@ -102,9 +101,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         errorLink();
     }
 
-    @And("The field error copy “You must choose an option to continue”")
-    public void the_field_error_copy_you_must_choose_an_option_to_continue() {
-        validateErrorText();
+    @And("The field error copy (.*)$")
+    public void the_field_error_copy_you_must_choose_an_option_to_continue(String expectedText) {
+        validateErrorText(expectedText);
     }
 
     @And("I validate the URL having access denied")
@@ -355,11 +354,6 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     @And("^I see error word as (.*)$")
     public void iSeeErrorWordAsGwall(String expectedText) {
         assertErrorPrefix(expectedText);
-    }
-
-    @And("^I can see CTA as (.*)$")
-    public void iCanSeeCTAAs(String expectedText) {
-        assertCTATextAs(expectedText);
     }
 
     @When("^User Re-enters DVLA data as a (.*)$")

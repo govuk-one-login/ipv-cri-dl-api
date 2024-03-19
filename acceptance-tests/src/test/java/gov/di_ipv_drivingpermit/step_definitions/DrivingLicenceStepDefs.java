@@ -44,6 +44,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void i_can_see_a_radio_button_titled_dva(String expectedText) {
         titleDVAWithRadioBtn(expectedText);
     }
+
     @And("^I can see a I do not have a UK driving licence radio button titled (.*)$")
     public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButtonTitledNidOesGennyfDrwyddedYrruYDU(
             String expectedText) {

@@ -16,12 +16,15 @@ public class DvlaEndpointFactory {
 
     private final TokenRequestService tokenRequestService;
     private final DriverMatchService driverMatchService;
+    private final DvlaConfiguration dvlaConfiguration;
 
     public DvlaEndpointFactory(
             DvlaConfiguration dvlaConfiguration,
             ObjectMapper objectMapper,
             EventProbe eventProbe,
             HttpRetryer httpRetryer) {
+
+        this.dvlaConfiguration = dvlaConfiguration;
 
         // Same on all endpoints
         RequestConfig defaultRequestConfig = new HttpRequestConfig().getDefaultRequestConfig();

@@ -17,6 +17,11 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_OK;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.*;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DCS_THIRD_PARTY_API_DCS_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVA_THIRD_PARTY_API_DVA_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_KEY_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_MATCH_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 public enum ThirdPartyAPIEndpointMetric {
 
@@ -175,7 +180,36 @@ public enum ThirdPartyAPIEndpointMetric {
 
     DVLA_CHANGE_PASSWORD_RESPONSE_STATUS_CODE_ALERT_METRIC(
             DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT,
-            "password_fail_alert_metric"); // Unique to DVLA Password
+            "password_fail_alert_metric"), // Unique to DVLA Password
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // DVLA change API Key Metrics                                                               //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    DVLA_API_KEY_REQUEST_CREATED(DVLA_THIRD_PARTY_API_KEY_ENDPOINT, REQUEST_CREATED),
+    DVLA_API_KEY_REQUEST_SEND_OK(DVLA_THIRD_PARTY_API_KEY_ENDPOINT, REQUEST_SEND_OK),
+
+    DVLA_API_KEY_REQUEST_SEND_ERROR(DVLA_THIRD_PARTY_API_KEY_ENDPOINT, REQUEST_SEND_ERROR),
+
+    DVLA_API_KEY_RESPONSE_TYPE_VALID(DVLA_THIRD_PARTY_API_KEY_ENDPOINT, API_RESPONSE_TYPE_VALID),
+    DVLA_API_KEY_RESPONSE_TYPE_INVALID(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, API_RESPONSE_TYPE_INVALID),
+    DVLA_API_KEY_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
+    DVLA_API_KEY_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+    DVLA_API_KEY_HTTP_RETRYER_REQUEST_SEND_OK(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
+    DVLA_API_KEY_HTTP_RETRYER_REQUEST_SEND_FAIL(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_FAIL),
+    DVLA_API_KEY_HTTP_RETRYER_REQUEST_SEND_RETRY(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_RETRY),
+    DVLA_API_KEY_HTTP_RETRYER_SEND_MAX_RETRIES(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, HTTP_RETRYER_SEND_MAX_RETRIES),
+    DVLA_API_KEY_HTTP_RETRYER_SEND_ERROR(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
+
+    DVLA_API_KEY_RESPONSE_STATUS_CODE_ALERT_METRIC(
+            DVLA_THIRD_PARTY_API_KEY_ENDPOINT, "api_key_fail_alert_metric");
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // End Of Metric Descriptions                                                                //

@@ -65,7 +65,15 @@ public enum ErrorResponse {
             1322,
             "Error occurred when attempting to invoke the third party api change password endpoint"),
     ERROR_CHANGE_PASSWORD_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
-            1323, "change password endpoint returned unexpected http status code");
+            1323, "change password endpoint returned unexpected http status code"),
+    INVALID_STEP_IN_API_KEY_RENEWAL_HANDLER(1330, "invalid step in password renewal handler"),
+    FAILED_TO_PREPARE_API_KEY_REQUEST_PAYLOAD(
+            1331, "failed to prepare change password request payload"),
+    ERROR_INVOKING_THIRD_PARTY_API_KEY_ENDPOINT(
+            1332,
+            "Error occurred when attempting to invoke the third party api change password endpoint"),
+    ERROR_API_KEY_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
+            1333, "change api key endpoint returned unexpected http status code");
 
     private final int code;
     private final String message;

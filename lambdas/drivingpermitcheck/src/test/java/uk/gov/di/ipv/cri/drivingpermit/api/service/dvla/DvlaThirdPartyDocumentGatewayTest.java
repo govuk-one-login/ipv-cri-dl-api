@@ -8,8 +8,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
@@ -35,6 +36,7 @@ class DvlaThirdPartyDocumentGatewayTest {
     @Mock private DvlaEndpointFactory mockDvlaEndpointFactory;
     @Mock private TokenRequestService mockTokenRequestService;
     @Mock private DriverMatchService mockDriverMatchService;
+    @Mock private DvlaConfiguration mockDvlaConfiguration;
 
     private ThirdPartyAPIService dvlaThirdPartyAPIService;
 
@@ -42,9 +44,13 @@ class DvlaThirdPartyDocumentGatewayTest {
     void setUp() {
         // Mocks out the creation of all endpoints to allow mocking the endpoint responses without
         // calling them for real
+
         when(mockDvlaEndpointFactory.getTokenRequestService()).thenReturn(mockTokenRequestService);
 
         when(mockDvlaEndpointFactory.getDriverMatchService()).thenReturn(mockDriverMatchService);
+
+        when(mockDvlaEndpointFactory.getDvlaConfiguration()).thenReturn(mockDvlaConfiguration);
+        when(mockDvlaConfiguration.getApiKey()).thenReturn("TEST_API_KEY");
 
         dvlaThirdPartyAPIService = new DvlaThirdPartyDocumentGateway(mockDvlaEndpointFactory);
     }
@@ -62,6 +68,7 @@ class DvlaThirdPartyDocumentGatewayTest {
 
         // Token Value
         String testTokenValue = "TEST_TOKEN_VALUE";
+        String testApiKey = "TEST_API_KEY";
 
         // Generated a valid api response object to create the api response for this test
         DriverMatchServiceResult testDriverMatchServiceResult =
@@ -69,7 +76,7 @@ class DvlaThirdPartyDocumentGatewayTest {
 
         when(mockTokenRequestService.requestToken(any(Boolean.class))).thenReturn(testTokenValue);
 
-        when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue))
+        when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue, testApiKey))
                 .thenReturn(testDriverMatchServiceResult);
 
         DocumentCheckResult result =
@@ -98,6 +105,8 @@ class DvlaThirdPartyDocumentGatewayTest {
         // Token Value
         String testTokenValue = "TEST_TOKEN_VALUE";
 
+        String testApiKey = "TEST_API_KEY";
+
         // Generated a valid api response object to create the api response for this test
         DriverMatchServiceResult testDriverMatchServiceResult =
                 DriverMatchServiceResult.builder()
@@ -120,7 +129,7 @@ class DvlaThirdPartyDocumentGatewayTest {
 
         if (recoverySucessful) {
             // Match issue resolved via new token
-            when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue))
+            when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue, testApiKey))
                     .thenThrow(exceptionCaught)
                     .thenReturn(testDriverMatchServiceResult);
 
@@ -133,7 +142,7 @@ class DvlaThirdPartyDocumentGatewayTest {
             assertEquals(DVLA, result.getApiResultSource());
         } else {
             // Match issue remains
-            when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue))
+            when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue, testApiKey))
                     .thenThrow(exceptionCaught)
                     .thenThrow(exceptionCaught);
 

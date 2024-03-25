@@ -111,7 +111,8 @@ dependencies {
 			project("lambdas:drivingpermitcheck"),
 			project("lambdas:issuecredential"),
 			project("lambdas:certexpiryreminder"),
-			project("lambdas:passwordRenewal")
+			project("lambdas:passwordRenewal"),
+			project("lambdas:apiKeyRenewal")
 }
 
 spotless {

@@ -66,6 +66,10 @@ public class IssueCredentialHandler
     private DocumentCheckResultStorageService documentCheckResultStorageService;
     private VerifiableCredentialService verifiableCredentialService;
 
+    // For capturing run-time function init metric
+    private long functionInitMetricLatchedValue = 0;
+    private boolean functionInitMetricCaptured = false;
+
     @ExcludeFromGeneratedCoverageReport
     public IssueCredentialHandler() {
         ServiceFactory serviceFactory = new ServiceFactory();
@@ -108,14 +112,8 @@ public class IssueCredentialHandler
         this.verifiableCredentialService = verifiableCredentialService;
 
         // Runtime/SnapStart function init duration
-        long runTimeFunctionInitDuration =
+        functionInitMetricLatchedValue =
                 System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
-
-        eventProbe.counterMetric(
-                Definitions.LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION,
-                runTimeFunctionInitDuration);
-
-        LOGGER.info("Lambda function init duration {}ms", runTimeFunctionInitDuration);
     }
 
     @Override
@@ -130,16 +128,24 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     context.getFunctionVersion());
 
+            // Recorded here as sending metrics during function init may fail depending on lambda
+            // config
+            if (!functionInitMetricCaptured) {
+                eventProbe.counterMetric(
+                        Definitions.LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION,
+                        functionInitMetricLatchedValue);
+                LOGGER.info("Lambda function init duration {}ms", functionInitMetricLatchedValue);
+                functionInitMetricCaptured = true;
+            }
+
+            // Lambda Lifetime
             long runTimeDuration =
                     System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
-
             Duration duration = Duration.of(runTimeDuration, ChronoUnit.MILLIS);
-
             String formattedDuration =
                     String.format(
                             "%d:%02d:%02d",
                             duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
-
             LOGGER.info(
                     "Lambda {}, Lifetime duration {}, {}ms",
                     context.getFunctionName(),

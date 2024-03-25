@@ -11,12 +11,13 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -122,9 +123,11 @@ class ThirdPartyAPIServiceFactoryTest {
                         CertAndKeyTestFixtures.TEST_TLS_KEY);
 
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWS_PARAMETER_PATH))
                 .thenReturn(testJWSParamMap);
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWE_PARAMETER_PATH))
                 .thenReturn(testJWEParamMap);
     }

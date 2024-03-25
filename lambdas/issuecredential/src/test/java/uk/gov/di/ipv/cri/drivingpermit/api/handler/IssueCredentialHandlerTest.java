@@ -16,6 +16,7 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -53,6 +54,7 @@ import static org.mockito.Mockito.*;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DRIVING_PERMIT_CI_PREFIX;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
@@ -146,11 +148,17 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
-        verify(mockEventProbe)
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe)
                 .counterMetric(
                         DRIVING_PERMIT_CI_PREFIX
                                 + savedDocumentCheckResultItem.getContraIndicators().get(0));
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
+        verifyNoMoreInteractions(mockEventProbe);
+
         assertEquals(
                 ContentType.APPLICATION_JWT.getType(), response.getHeaders().get("Content-Type"));
         assertEquals(HttpStatusCode.OK, response.getStatusCode());
@@ -205,13 +213,19 @@ class IssueCredentialHandlerTest {
                         sessionItem.getSubject(),
                         savedDocumentCheckResultItem,
                         savedPersonIdentityDetailed);
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
         // There is a CI in the test result, we check we do not record CI metrics for a VC
         // generation Error
-        verify(mockEventProbe, never())
+        inOrder.verify(mockEventProbe, never())
                 .counterMetric(
                         DRIVING_PERMIT_CI_PREFIX
                                 + savedDocumentCheckResultItem.getContraIndicators().get(0));
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+
         verifyNoMoreInteractions(mockVerifiableCredentialService);
         verify(mockAuditService, never())
                 .sendAuditEvent(
@@ -232,7 +246,13 @@ class IssueCredentialHandlerTest {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+
         verify(mockAuditService, never())
                 .sendAuditEvent(
                         eq(AuditEventType.VC_ISSUED),
@@ -281,7 +301,13 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+
         verify(mockAuditService, never()).sendAuditEvent((AuditEventType) any());
         String responseBody = new ObjectMapper().readValue(response.getBody(), String.class);
         assertEquals(awsErrorDetails.sdkHttpResponse().statusCode(), response.getStatusCode());

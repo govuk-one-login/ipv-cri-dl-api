@@ -1,9 +1,9 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.configuration;
 
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
 public class DrivingPermitConfigurationService {
 

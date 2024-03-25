@@ -32,13 +32,14 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -114,7 +115,8 @@ class DrivingPermitHandlerTest {
         when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
         when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
 
-        when(mockParameterStoreService.getCommonParameterValue(DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
+        when(mockParameterStoreService.getParameterValue(
+                        ParameterPrefix.COMMON_API, DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
                 .thenReturn(String.valueOf(1000L));
 
         when(mockServiceFactory.getDocumentCheckResultStorageService())

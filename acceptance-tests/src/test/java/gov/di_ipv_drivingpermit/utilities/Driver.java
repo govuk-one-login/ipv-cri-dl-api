@@ -29,6 +29,7 @@ public class Driver {
             String browser = ConfigurationReader.getBrowser();
             System.setProperty("webdriver.chrome.logfile", "chromedriver.log");
             System.setProperty("webdriver.chrome.verboseLogging", "true");
+
             switch (browser) {
                 case "chrome":
                     WebDriverManager.chromedriver().setup();
@@ -64,7 +65,7 @@ public class Driver {
                     WebDriverManager.firefoxdriver().setup();
 
                     FirefoxOptions firefoxOptions = new FirefoxOptions();
-                    firefoxOptions.addArguments("--headless");
+                    firefoxOptions.addArguments("-headless");
 
                     driverPool.set(new FirefoxDriver(firefoxOptions));
                     break;
@@ -103,7 +104,6 @@ public class Driver {
     }
 
     public static void closeDriver() {
-        driverPool.get().close();
         driverPool.get().quit();
         driverPool.remove();
     }

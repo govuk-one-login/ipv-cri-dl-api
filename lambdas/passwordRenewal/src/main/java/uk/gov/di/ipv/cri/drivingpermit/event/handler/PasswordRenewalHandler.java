@@ -29,7 +29,6 @@ import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangePasswordService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
@@ -37,6 +36,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseExce
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
 import java.util.Optional;
 

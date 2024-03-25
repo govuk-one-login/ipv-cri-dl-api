@@ -3,10 +3,11 @@ package uk.gov.di.ipv.cri.drivingpermit.certreminder.config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DVACloseableHttpClientFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -43,6 +44,7 @@ public class CertExpiryReminderConfig {
 
         Map<String, String> dvaHtpClientCertsKeysMap =
                 parameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DVACloseableHttpClientFactory.HTTP_CLIENT_PARAMETER_PATH);
 
         // TLS CERT
@@ -97,7 +99,8 @@ public class CertExpiryReminderConfig {
 
         LOGGER.info("Reading DVA Held Certs");
         Map<String, String> dvaHeldCertMap =
-                parameterStoreService.getAllParametersFromPathWithDecryption("DVA/heldByDVA");
+                parameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE, "DVA/heldByDVA");
 
         X509Certificate dvaHeldTlsRootCertExpiry =
                 KeyCertHelper.getDecodedX509Certificate(dvaHeldCertMap.get("tlsRootCert"));

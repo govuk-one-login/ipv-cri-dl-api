@@ -33,7 +33,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.RequestSentAuditHelper;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
@@ -44,7 +43,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -86,6 +87,10 @@ public class DrivingPermitHandler
     private long documentCheckResultItemTtl;
 
     private String environment;
+
+    // For capturing run-time function init metric
+    private long functionInitMetricLatchedValue = 0;
+    private boolean functionInitMetricCaptured = false;
 
     @ExcludeFromGeneratedCoverageReport
     public DrivingPermitHandler()
@@ -135,8 +140,8 @@ public class DrivingPermitHandler
 
         documentCheckResultItemTtl =
                 Long.parseLong(
-                        parameterStoreService.getCommonParameterValue(
-                                DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
+                        parameterStoreService.getParameterValue(
+                                ParameterPrefix.COMMON_API, DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
 
         // Get environment to decide if to output internal state
         // for api test asserts (dev only)
@@ -144,14 +149,8 @@ public class DrivingPermitHandler
         this.environment = tEnvironment == null ? "Not-Set" : tEnvironment;
 
         // Runtime/SnapStart function init duration
-        long runTimeFunctionInitDuration =
+        functionInitMetricLatchedValue =
                 System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
-
-        eventProbe.counterMetric(
-                Definitions.LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION,
-                runTimeFunctionInitDuration);
-
-        LOGGER.info("Lambda function init duration {}ms", runTimeFunctionInitDuration);
     }
 
     private DrivingPermitConfigurationService createDrivingPermitConfigurationService(
@@ -179,16 +178,24 @@ public class DrivingPermitHandler
                     context.getFunctionName(),
                     context.getFunctionVersion());
 
+            // Recorded here as sending metrics during function init may fail depending on lambda
+            // config
+            if (!functionInitMetricCaptured) {
+                eventProbe.counterMetric(
+                        Definitions.LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION,
+                        functionInitMetricLatchedValue);
+                LOGGER.info("Lambda function init duration {}ms", functionInitMetricLatchedValue);
+                functionInitMetricCaptured = true;
+            }
+
+            // Lambda Lifetime
             long runTimeDuration =
                     System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
-
             Duration duration = Duration.of(runTimeDuration, ChronoUnit.MILLIS);
-
             String formattedDuration =
                     String.format(
                             "%d:%02d:%02d",
                             duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
-
             LOGGER.info(
                     "Lambda {}, Lifetime duration {}, {}ms",
                     context.getFunctionName(),

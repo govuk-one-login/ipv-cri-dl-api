@@ -6,7 +6,6 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DVACloseableHttpClientFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DvaCryptographyService;
@@ -16,6 +15,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DVLACloseableHttpCli
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DvlaEndpointFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 
 import java.security.NoSuchAlgorithmException;

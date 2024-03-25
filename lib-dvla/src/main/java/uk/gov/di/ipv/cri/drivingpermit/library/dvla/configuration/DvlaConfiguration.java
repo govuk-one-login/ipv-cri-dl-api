@@ -2,8 +2,9 @@ package uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration;
 
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.util.Map;
 
@@ -35,7 +36,8 @@ public class DvlaConfiguration {
         this.secretsManagerService = secretsManagerService;
 
         Map<String, String> dvlaParameterMap =
-                parameterStoreService.getAllParametersFromPath(DVLA_PARAMETER_PATH);
+                parameterStoreService.getAllParametersFromPath(
+                        ParameterPrefix.OVERRIDE, DVLA_PARAMETER_PATH);
 
         final String endpointUri = dvlaParameterMap.get("endpointUrl");
 
@@ -49,7 +51,9 @@ public class DvlaConfiguration {
         this.password = dvlaParameterMap.get("password");
 
         // Must be a stack param
-        this.tokenTableName = parameterStoreService.getStackParameterValue(DVLA_TOKEN_TABLE_NAME);
+        this.tokenTableName =
+                parameterStoreService.getParameterValue(
+                        ParameterPrefix.STACK, DVLA_TOKEN_TABLE_NAME);
 
         this.passwordRotationEnabled =
                 Boolean.parseBoolean(System.getenv("DVLA_PASSWORD_ROTATION_ENABLED"));

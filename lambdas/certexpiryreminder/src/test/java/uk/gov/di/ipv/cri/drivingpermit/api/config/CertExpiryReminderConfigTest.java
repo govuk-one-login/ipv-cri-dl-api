@@ -5,9 +5,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.certreminder.config.CertExpiryReminderConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DVACloseableHttpClientFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
 
 import java.util.Map;
@@ -43,6 +44,7 @@ class CertExpiryReminderConfigTest {
                         CertAndKeyTestFixtures.TEST_TLS_CRT);
 
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DVACloseableHttpClientFactory.HTTP_CLIENT_PARAMETER_PATH))
                 .thenReturn(testDvaHtpClientCertsKeysMap);
     }
@@ -69,9 +71,11 @@ class CertExpiryReminderConfigTest {
                         CertAndKeyTestFixtures.TEST_TLS_KEY);
 
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWS_PARAMETER_PATH))
                 .thenReturn(testJWSParamMap);
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWE_PARAMETER_PATH))
                 .thenReturn(testJWEParamMap);
     }
@@ -88,7 +92,8 @@ class CertExpiryReminderConfigTest {
                         "dvaEncryptionCert",
                         CertAndKeyTestFixtures.TEST_TLS_CRT);
 
-        when(mockParameterStoreService.getAllParametersFromPathWithDecryption("DVA/heldByDVA"))
+        when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE, "DVA/heldByDVA"))
                 .thenReturn(testDvaHeldCertMap);
     }
 }

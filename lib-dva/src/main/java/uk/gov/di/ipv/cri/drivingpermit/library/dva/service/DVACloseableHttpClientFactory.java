@@ -1,9 +1,10 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dva.service;
 
 import org.apache.http.impl.client.CloseableHttpClient;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.HttpClientException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -35,7 +36,7 @@ public class DVACloseableHttpClientFactory {
             if (tlsOn) {
                 Map<String, String> dvaHtpClientCertsKeysMap =
                         parameterStoreService.getAllParametersFromPathWithDecryption(
-                                HTTP_CLIENT_PARAMETER_PATH);
+                                ParameterPrefix.OVERRIDE, HTTP_CLIENT_PARAMETER_PATH);
 
                 final String base64TLSCertString = dvaHtpClientCertsKeysMap.get(MAP_KEY_TLS_CERT);
 

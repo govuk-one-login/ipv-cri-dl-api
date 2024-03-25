@@ -11,7 +11,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 public class DvaHttpRetryStatusConfig implements HttpRetryStatusConfig {
     @Override
     public boolean shouldHttpClientRetry(int statusCode) {
-        // TODO values are from Fraud CRI align this with the DVA api
         if (statusCode == 200) {
             // OK, Success
             return false;

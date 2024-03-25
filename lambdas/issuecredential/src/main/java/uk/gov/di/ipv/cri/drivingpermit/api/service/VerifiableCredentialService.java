@@ -14,10 +14,11 @@ import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilde
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ThirdPartyAddress;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.EvidenceHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.time.Clock;
 import java.time.format.DateTimeFormatter;
@@ -57,8 +58,8 @@ public class VerifiableCredentialService {
 
         ChronoUnit jwtTtlUnit =
                 ChronoUnit.valueOf(
-                        parameterStoreService.getStackParameterValue(
-                                ParameterStoreParameters.MAX_JWT_TTL_UNIT));
+                        parameterStoreService.getParameterValue(
+                                ParameterPrefix.STACK, ParameterStoreParameters.MAX_JWT_TTL_UNIT));
 
         var claimsSet =
                 this.vcClaimsSetBuilder

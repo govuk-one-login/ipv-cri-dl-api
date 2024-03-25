@@ -1,19 +1,21 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.service;
 
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import software.amazon.lambda.powertools.parameters.SecretsProvider;
 import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
+import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -21,6 +23,8 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(SystemStubsExtension.class)
 class ClientFactoryServiceTest {
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-    @Mock private ParameterStoreService mockParameterStoreService;
 
     private ClientFactoryService clientFactoryService;
 
@@ -53,6 +55,23 @@ class ClientFactoryServiceTest {
     }
 
     @Test
+    void shouldReturnSqsClient() {
+
+        SqsClient sqsClient = clientFactoryService.getSqsClient();
+
+        assertNotNull(sqsClient);
+    }
+
+    @Test
+    void shouldReturnDynamoDbEnhancedClient() {
+
+        DynamoDbEnhancedClient dynamoDbEnhancedClient =
+                clientFactoryService.getDynamoDbEnhancedClient();
+
+        assertNotNull(dynamoDbEnhancedClient);
+    }
+
+    @Test
     void shouldReturnSSMProvider() {
 
         SSMProvider ssmProvider = clientFactoryService.getSSMProvider();
@@ -61,11 +80,11 @@ class ClientFactoryServiceTest {
     }
 
     @Test
-    void shouldReturnSqsClient() {
+    void shouldReturnSecretsProvider() {
 
-        SqsClient sqsClient = clientFactoryService.getSqsClient();
+        SecretsProvider secretsProvider = clientFactoryService.getSecretsProvider();
 
-        assertNotNull(sqsClient);
+        assertNotNull(secretsProvider);
     }
 
     @Test
@@ -150,5 +169,30 @@ class ClientFactoryServiceTest {
                                         CertAndKeyTestFixtures.TEST_TLS_CRT));
 
         assertNotNull(closeableHttpClient);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"30, false", "1000, true"})
+    void shouldCreateHTTPConnectionKeepAliveStrategy(
+            long keepAliveSeconds, boolean useRemoteHeader) {
+        Map<String, String> testHeaders = new HashMap<>();
+
+        ConnectionKeepAliveStrategy connectionKeepAliveStrategy =
+                clientFactoryService.createHTTPConnectionKeepAliveStrategy(
+                        keepAliveSeconds, useRemoteHeader);
+
+        long expectedkeepAliveSeconds = keepAliveSeconds;
+
+        if (useRemoteHeader) {
+            expectedkeepAliveSeconds = 50;
+            testHeaders.put("Keep-Alive", "timeout=" + String.valueOf(expectedkeepAliveSeconds));
+        }
+
+        long actualKeepAliveMs =
+                connectionKeepAliveStrategy.getKeepAliveDuration(
+                        HttpResponseFixtures.createHttpResponse(200, testHeaders, "", false), null);
+        long actualKeepAliveSeconds = actualKeepAliveMs / 1000;
+
+        assertEquals(expectedkeepAliveSeconds, actualKeepAliveSeconds);
     }
 }

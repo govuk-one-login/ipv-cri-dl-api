@@ -2,7 +2,8 @@ package uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration;
 
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 @ExcludeFromGeneratedCoverageReport
 public class DvaConfiguration {
@@ -14,11 +15,14 @@ public class DvaConfiguration {
     public DvaConfiguration(ParameterStoreService parameterStoreService) {
 
         this.endpointUri =
-                parameterStoreService.getParameterValue(ParameterStoreParameters.DVA_ENDPOINT);
+                parameterStoreService.getParameterValue(
+                        ParameterPrefix.OVERRIDE, ParameterStoreParameters.DVA_ENDPOINT);
         this.userName =
-                parameterStoreService.getParameterValue(ParameterStoreParameters.DVA_USERNAME);
+                parameterStoreService.getParameterValue(
+                        ParameterPrefix.OVERRIDE, ParameterStoreParameters.DVA_USERNAME);
         this.password =
-                parameterStoreService.getParameterValue(ParameterStoreParameters.DVA_PASSWORD);
+                parameterStoreService.getParameterValue(
+                        ParameterPrefix.OVERRIDE, ParameterStoreParameters.DVA_PASSWORD);
     }
 
     public String getEndpointUri() {

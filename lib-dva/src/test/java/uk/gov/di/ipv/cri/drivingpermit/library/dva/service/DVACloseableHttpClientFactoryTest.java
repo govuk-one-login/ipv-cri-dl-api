@@ -5,9 +5,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.HttpClientException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -124,6 +125,7 @@ class DVACloseableHttpClientFactoryTest {
                         CertAndKeyTestFixtures.TEST_TLS_CRT);
 
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DVACloseableHttpClientFactory.HTTP_CLIENT_PARAMETER_PATH))
                 .thenReturn(testDvaHtpClientCertsKeysMap);
     }

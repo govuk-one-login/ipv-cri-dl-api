@@ -4,7 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
@@ -61,9 +62,11 @@ class DvaCryptographyServiceConfigurationTest {
                         CertAndKeyTestFixtures.TEST_TLS_KEY);
 
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWS_PARAMETER_PATH))
                 .thenReturn(testJWSParamMap);
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWE_PARAMETER_PATH))
                 .thenReturn(testJWEParamMap);
     }

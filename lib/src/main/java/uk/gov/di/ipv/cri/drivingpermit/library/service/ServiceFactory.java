@@ -10,7 +10,7 @@ import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.time.Clock;
 
@@ -52,7 +52,8 @@ public class ServiceFactory {
         this.sessionService = new SessionService();
 
         final String documentCheckTableName =
-                parameterStoreService.getStackParameterValue(
+                parameterStoreService.getParameterValue(
+                        ParameterPrefix.STACK,
                         ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TABLE_NAME);
 
         this.documentCheckResultStorageService =
@@ -61,7 +62,10 @@ public class ServiceFactory {
         this.personIdentityService = new PersonIdentityService();
     }
 
+    // Service factory used to avoid passing all these parameters elsewhere
+    // Suppressed S107 added, to avoid breaking apart the service factory (just yet)
     @ExcludeFromGeneratedCoverageReport
+    @java.lang.SuppressWarnings("java:S107")
     ServiceFactory(
             EventProbe eventProbe,
             ClientFactoryService clientFactoryService,

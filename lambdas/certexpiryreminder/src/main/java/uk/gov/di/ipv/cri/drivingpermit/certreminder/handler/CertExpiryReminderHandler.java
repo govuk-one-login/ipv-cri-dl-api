@@ -10,9 +10,9 @@ import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.certreminder.config.CertExpiryReminderConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;

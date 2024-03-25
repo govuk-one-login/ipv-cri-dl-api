@@ -1,8 +1,9 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration;
 
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -57,7 +58,7 @@ public class DvaCryptographyServiceConfiguration {
         /////////////////
         Map<String, String> dvaJWSmap =
                 parameterStoreService.getAllParametersFromPathWithDecryption(
-                        DVA_JWS_PARAMETER_PATH);
+                        ParameterPrefix.OVERRIDE, DVA_JWS_PARAMETER_PATH);
 
         // JWS SHA-1 Certificate Thumbprint (Header)
         signingThumbprintCert =
@@ -76,7 +77,7 @@ public class DvaCryptographyServiceConfiguration {
         /////////////////
         Map<String, String> dvaJWEmap =
                 parameterStoreService.getAllParametersFromPathWithDecryption(
-                        DVA_JWE_PARAMETER_PATH);
+                        ParameterPrefix.OVERRIDE, DVA_JWE_PARAMETER_PATH);
 
         // JWE encryptionCertThumbprints
         X509Certificate encryptionX509Cert =

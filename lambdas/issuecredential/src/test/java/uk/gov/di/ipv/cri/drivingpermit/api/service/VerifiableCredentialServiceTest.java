@@ -26,9 +26,10 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.PersonIdentityDetailedTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.VcIssuedAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.testdata.DocumentCheckTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -102,8 +103,8 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                 .thenReturn(UNIT_TEST_VC_ISSUER);
         when(mockCommonLibConfigurationService.getMaxJwtTtl()).thenReturn(UNIT_TEST_MAX_JWT_TTL);
 
-        when(mockParameterStoreService.getStackParameterValue(
-                        ParameterStoreParameters.MAX_JWT_TTL_UNIT))
+        when(mockParameterStoreService.getParameterValue(
+                        ParameterPrefix.STACK, ParameterStoreParameters.MAX_JWT_TTL_UNIT))
                 .thenReturn(UNIT_TEST_MAX_JWT_TTL_UNIT);
 
         SignedJWT signedJWT =

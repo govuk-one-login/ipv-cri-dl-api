@@ -10,7 +10,6 @@ plugins {
 }
 
 dependencies {
-
 	implementation project(":lib"),
 			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
 			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",

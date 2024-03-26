@@ -29,15 +29,17 @@ import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.PersonIdentityDetailedTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.VcIssuedAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.testdata.DocumentCheckTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -55,30 +57,36 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
 class IssueCredentialHandlerTest {
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     public static final String SUBJECT = "subject";
-    @Mock private Context context;
-    @Mock private VerifiableCredentialService mockVerifiableCredentialService;
-    @Mock private SessionService mockSessionService;
-    @Mock private PersonIdentityService mockPersonIdentityService;
-    @Mock private DocumentCheckRetrievalService mockDocumentCheckRetrievalService;
+
+    @Mock ConfigurationService mockCommonLibConfigurationService;
+
+    @Mock ServiceFactory mockServiceFactory;
+
     @Mock private EventProbe mockEventProbe;
+
+    @Mock private SessionService mockSessionService;
     @Mock private AuditService mockAuditService;
 
+    @Mock private PersonIdentityService mockPersonIdentityService;
+    @Mock private DocumentCheckResultStorageService mockDocumentCheckResultStorageService;
+
+    @Mock private VerifiableCredentialService mockVerifiableCredentialService;
+
+    @Mock private Context context;
+
     private IssueCredentialHandler handler;
-    @SystemStub private EnvironmentVariables environmentVariables;
 
     @BeforeEach
     void setup() {
         environmentVariables.set("AWS_REGION", "eu-west-2");
 
+        mockServiceFactoryBehaviour();
+
         this.handler =
-                new IssueCredentialHandler(
-                        mockVerifiableCredentialService,
-                        mockSessionService,
-                        mockEventProbe,
-                        mockAuditService,
-                        mockPersonIdentityService,
-                        mockDocumentCheckRetrievalService);
+                new IssueCredentialHandler(mockServiceFactory, mockVerifiableCredentialService);
     }
 
     @Test
@@ -107,7 +115,8 @@ class IssueCredentialHandlerTest {
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
                 .thenReturn(savedPersonIdentityDetailed);
-        when(mockDocumentCheckRetrievalService.getDocumentCheckResult(sessionItem.getSessionId()))
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(
+                        sessionItem.getSessionId()))
                 .thenReturn(savedDocumentCheckResultItem);
         when(mockVerifiableCredentialService.generateSignedVerifiableCredentialJwt(
                         sessionItem.getSubject(),
@@ -124,7 +133,7 @@ class IssueCredentialHandlerTest {
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
         verify(mockSessionService).getSessionByAccessToken(accessToken);
-        verify(mockDocumentCheckRetrievalService)
+        verify(mockDocumentCheckResultStorageService)
                 .getDocumentCheckResult(sessionItem.getSessionId());
         verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
         verify(mockVerifiableCredentialService)
@@ -176,7 +185,8 @@ class IssueCredentialHandlerTest {
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
                 .thenReturn(savedPersonIdentityDetailed);
-        when(mockDocumentCheckRetrievalService.getDocumentCheckResult(sessionItem.getSessionId()))
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(
+                        sessionItem.getSessionId()))
                 .thenReturn(savedDocumentCheckResultItem);
         when(mockVerifiableCredentialService.generateSignedVerifiableCredentialJwt(
                         sessionItem.getSubject(),
@@ -187,7 +197,7 @@ class IssueCredentialHandlerTest {
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
         verify(mockSessionService).getSessionByAccessToken(accessToken);
-        verify(mockDocumentCheckRetrievalService)
+        verify(mockDocumentCheckResultStorageService)
                 .getDocumentCheckResult(sessionItem.getSessionId());
         verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
         verify(mockVerifiableCredentialService)
@@ -333,5 +343,21 @@ class IssueCredentialHandlerTest {
                         .serialize();
 
         event.setBody(requestJWT);
+    }
+
+    private void mockServiceFactoryBehaviour() {
+
+        when(mockServiceFactory.getCommonLibConfigurationService())
+                .thenReturn(mockCommonLibConfigurationService);
+
+        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+
+        when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
+        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+
+        when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
+
+        when(mockServiceFactory.getDocumentCheckResultStorageService())
+                .thenReturn(mockDocumentCheckResultStorageService);
     }
 }

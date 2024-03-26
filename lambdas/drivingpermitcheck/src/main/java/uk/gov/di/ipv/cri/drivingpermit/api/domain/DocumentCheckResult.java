@@ -16,7 +16,9 @@ public class DocumentCheckResult {
     private boolean isValid;
     private int attemptCount;
 
-    public DocumentCheckResult() {}
+    public DocumentCheckResult() {
+        /* Intended */
+    }
 
     public boolean isExecutedSuccessfully() {
         return executedSuccessfully;

@@ -8,17 +8,11 @@ public enum ErrorResponse {
     FAILED_TO_PARSE_DRIVING_PERMIT_FORM_DATA(1000, "Failed to parse Driving Permit form data"),
     FORM_DATA_FAILED_VALIDATION(1001, "Form Data failed validation"),
     TOO_MANY_RETRY_ATTEMPTS(1002, "Too many retry attempts made"),
+    FAILED_TO_SELECT_THIRD_PARTY_API_SERVICE(
+            1003, "Failed to select third party api gateway service"),
 
     // Common to DCS + DVLA
     FAILED_TO_RETRIEVE_HTTP_RESPONSE_BODY(1099, "Failed to retrieve http response body"),
-
-    /**************************************DCS Specific Errors************************************/
-    FAILED_TO_PREPARE_DCS_PAYLOAD(1103, "Failed to prepare DCS payload"),
-    ERROR_CONTACTING_DCS(1104, "Error when contacting DCS for document check"),
-    FAILED_TO_UNWRAP_DCS_RESPONSE(1105, "Failed to unwrap DCS response"),
-    DCS_RETURNED_AN_ERROR_RESPONSE(1106, "DCS returned an error response"),
-    ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE(
-            1127, "DCS returned unexpected http status code"),
 
     /**************************************DVA Specific Errors************************************/
     FAILED_TO_PREPARE_DVA_PAYLOAD(1227, "Failed to prepare DVA payload"),

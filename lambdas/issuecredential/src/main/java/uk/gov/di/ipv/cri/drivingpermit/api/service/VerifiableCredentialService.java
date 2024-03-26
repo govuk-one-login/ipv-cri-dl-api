@@ -1,22 +1,23 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jwt.SignedJWT;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
-import uk.gov.di.ipv.cri.common.library.util.KMSSigner;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ThirdPartyAddress;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.EvidenceHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 
 import java.time.Clock;
 import java.time.format.DateTimeFormatter;
@@ -29,36 +30,22 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DV
 
 public class VerifiableCredentialService {
 
-    private final SignedJWTFactory signedJwtFactory;
-    private final ConfigurationService configurationService;
     private final ObjectMapper objectMapper;
+    private final ParameterStoreService parameterStoreService;
+    private final ConfigurationService commonLibConfigurationService;
+    private final SignedJWTFactory signedJwtFactory;
     private final VerifiableCredentialClaimsSetBuilder vcClaimsSetBuilder;
 
-    public VerifiableCredentialService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-        this.signedJwtFactory =
-                new SignedJWTFactory(
-                        new KMSSigner(
-                                configurationService.getCommonParameterValue(
-                                        "verifiableCredentialKmsSigningKeyId")));
-        this.objectMapper =
-                new ObjectMapper()
-                        .registerModule(new Jdk8Module())
-                        .registerModule(new JavaTimeModule());
+    public VerifiableCredentialService(ServiceFactory serviceFactory, JWSSigner jwsSigner) {
+        this.objectMapper = serviceFactory.getObjectMapper();
+        this.parameterStoreService = serviceFactory.getParameterStoreService();
+        this.commonLibConfigurationService = serviceFactory.getCommonLibConfigurationService();
+
+        this.signedJwtFactory = new SignedJWTFactory(jwsSigner);
+
         this.vcClaimsSetBuilder =
                 new VerifiableCredentialClaimsSetBuilder(
-                        this.configurationService, Clock.systemUTC());
-    }
-
-    public VerifiableCredentialService(
-            SignedJWTFactory signedClaimSetJwt,
-            ConfigurationService configurationService,
-            ObjectMapper objectMapper,
-            VerifiableCredentialClaimsSetBuilder vcClaimsSetBuilder) {
-        this.signedJwtFactory = signedClaimSetJwt;
-        this.configurationService = configurationService;
-        this.objectMapper = objectMapper;
-        this.vcClaimsSetBuilder = vcClaimsSetBuilder;
+                        commonLibConfigurationService, Clock.systemUTC());
     }
 
     public SignedJWT generateSignedVerifiableCredentialJwt(
@@ -66,10 +53,12 @@ public class VerifiableCredentialService {
             DocumentCheckResultItem documentCheckResultItem,
             PersonIdentityDetailed personIdentityDetailed)
             throws JOSEException {
-        long jwtTtl = this.configurationService.getMaxJwtTtl();
+        long jwtTtl = commonLibConfigurationService.getMaxJwtTtl();
 
         ChronoUnit jwtTtlUnit =
-                ChronoUnit.valueOf(this.configurationService.getParameterValue("JwtTtlUnit"));
+                ChronoUnit.valueOf(
+                        parameterStoreService.getStackParameterValue(
+                                ParameterStoreParameters.MAX_JWT_TTL_UNIT));
 
         var claimsSet =
                 this.vcClaimsSetBuilder
@@ -90,10 +79,6 @@ public class VerifiableCredentialService {
                         .build();
 
         return signedJwtFactory.createSignedJwt(claimsSet);
-    }
-
-    public String getVerifiableCredentialIssuer() {
-        return configurationService.getVerifiableCredentialIssuer();
     }
 
     private Object[] convertAddresses(List<Address> addresses) {

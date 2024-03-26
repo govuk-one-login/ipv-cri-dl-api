@@ -13,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
-import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
@@ -43,7 +43,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.SHA_256_T
 @ExtendWith(MockitoExtension.class)
 class DvaCryptographyServiceTest {
 
-    @Mock private DvaConfiguration dvaConfiguration;
+    @Mock private DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -53,18 +53,19 @@ class DvaCryptographyServiceTest {
                     InvalidKeySpecException, NoSuchAlgorithmException, ParseException {
 
         DvaCryptographyService dvaCryptographyService =
-                new DvaCryptographyService(dvaConfiguration);
+                new DvaCryptographyService(dvaCryptographyServiceConfiguration);
 
-        when(dvaConfiguration.getSigningKey()).thenReturn(getPrivateKey(BASE64_DCS_SIGNING_KEY));
-        when(dvaConfiguration.getSigningCertThumbprints())
+        when(dvaCryptographyServiceConfiguration.getSigningKey())
+                .thenReturn(getPrivateKey(BASE64_DCS_SIGNING_KEY));
+        when(dvaCryptographyServiceConfiguration.getSigningCertThumbprints())
                 .thenReturn(new Thumbprints(SHA_1_THUMBPRINT, SHA_256_THUMBPRINT));
 
-        when(dvaConfiguration.getEncryptionCertThumbprints())
+        when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
                 .thenReturn(
                         new Thumbprints(
                                 SHA_1_THUMBPRINT + "-encryption",
                                 SHA_256_THUMBPRINT + "-encryption"));
-        when(dvaConfiguration.getEncryptionCert())
+        when(dvaCryptographyServiceConfiguration.getEncryptionCert())
                 .thenReturn(KeyCertHelper.getDecodedX509Certificate(BASE64_ENCRYPTION_PUBLIC_CERT));
 
         DvaPayload dvaPayload = createSuccessDvaPayload();
@@ -101,26 +102,27 @@ class DvaCryptographyServiceTest {
                     InvalidKeySpecException, NoSuchAlgorithmException, ParseException {
 
         DvaCryptographyService dvaCryptographyService =
-                new DvaCryptographyService(dvaConfiguration);
+                new DvaCryptographyService(dvaCryptographyServiceConfiguration);
 
-        when(dvaConfiguration.getSigningKey()).thenReturn(getPrivateKey(BASE64_DCS_SIGNING_KEY));
-        when(dvaConfiguration.getSigningCertThumbprints())
+        when(dvaCryptographyServiceConfiguration.getSigningKey())
+                .thenReturn(getPrivateKey(BASE64_DCS_SIGNING_KEY));
+        when(dvaCryptographyServiceConfiguration.getSigningCertThumbprints())
                 .thenReturn(new Thumbprints(SHA_1_THUMBPRINT, SHA_256_THUMBPRINT));
 
-        when(dvaConfiguration.getEncryptionCertThumbprints())
+        when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
                 .thenReturn(
                         new Thumbprints(
                                 SHA_1_THUMBPRINT + "-encryption",
                                 SHA_256_THUMBPRINT + "-encryption"));
-        when(dvaConfiguration.getEncryptionCert())
+        when(dvaCryptographyServiceConfiguration.getEncryptionCert())
                 .thenReturn(KeyCertHelper.getDecodedX509Certificate(BASE64_ENCRYPTION_PUBLIC_CERT));
 
         JWSObject jwsResponseObject =
                 dvaCryptographyService.preparePayload(createSuccessDvaResponse());
 
-        when(dvaConfiguration.getSigningCert())
+        when(dvaCryptographyServiceConfiguration.getSigningCert())
                 .thenReturn(KeyCertHelper.getDecodedX509Certificate(BASE64_DCS_SIGNING_CERT));
-        when(dvaConfiguration.getEncryptionKey())
+        when(dvaCryptographyServiceConfiguration.getEncryptionKey())
                 .thenReturn(getPrivateKey(BASE64_ENCRYPTION_PRIVATE_KEY));
 
         DvaResponse dvaResponse =

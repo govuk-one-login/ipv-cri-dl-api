@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
+package uk.gov.di.ipv.cri.drivingpermit.library.dva.service;
 
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 

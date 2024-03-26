@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
@@ -59,6 +60,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private final SecretsManagerClient secretsManagerClient =
             SecretsManagerClient.builder()
                     .region(Region.EU_WEST_2)
+                    .httpClient(UrlConnectionHttpClient.create())
                     .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                     .build();
     private static final Logger LOGGER = LogManager.getLogger();
@@ -213,7 +215,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         ACCESS_TOKEN = deserialisedResponse.get("access_token");
     }
 
-    public String postRequestToDrivingLicenceVCEndpoint()
+    public void postRequestToDrivingLicenceVCEndpoint()
             throws IOException, InterruptedException, ParseException {
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
         HttpRequest request =
@@ -226,20 +228,16 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .build();
         String requestDrivingLicenceVCResponse = sendHttpRequest(request).body();
         LOGGER.info("requestDrivingLicenceVCResponse = " + requestDrivingLicenceVCResponse);
-        SignedJWT signedJWT = SignedJWT.parse(requestDrivingLicenceVCResponse);
-        return signedJWT.getJWTClaimsSet().toString();
+        VC = SignedJWT.parse(requestDrivingLicenceVCResponse).getJWTClaimsSet().toString();
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
             throws IOException, InterruptedException, ParseException {
-        VC = postRequestToDrivingLicenceVCEndpoint();
         scoreIs(validityScore, strengthScore, VC);
     }
 
-    public void ciInDrivingLicenceCriVc(String ci)
-            throws IOException, InterruptedException, ParseException {
-        String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
-        JsonNode jsonNode = objectMapper.readTree((drivingLicenceCRIVC));
+    public void ciInDrivingLicenceCriVc(String ci) throws IOException {
+        JsonNode jsonNode = objectMapper.readTree(VC);
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
         JsonNode ciInEvidenceArray = evidenceArray.get(0);
         LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);
@@ -250,18 +248,14 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     public void assertCheckDetails(
             String checkMethod, String identityCheckPolicy, String checkDetailsType)
-            throws URISyntaxException, IOException, InterruptedException, ParseException {
-        String drivingLicenceCRIVC = postRequestToDrivingLicenceVCEndpoint();
-        assertCheckDetailsWithinVc(
-                checkMethod, identityCheckPolicy, checkDetailsType, drivingLicenceCRIVC);
+            throws IOException {
+        assertCheckDetailsWithinVc(checkMethod, identityCheckPolicy, checkDetailsType, VC);
     }
 
-    public void assertJtiIsPresentAndNotNull()
-            throws IOException, ParseException, InterruptedException {
-        String result = postRequestToDrivingLicenceVCEndpoint();
-        LOGGER.info("result = " + result);
+    public void assertJtiIsPresentAndNotNull() throws IOException {
+        LOGGER.info("result = " + VC);
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode jsonNode = objectMapper.readTree(VC);
         JsonNode jtiNode = jsonNode.get("jti");
         LOGGER.info("jti = " + jtiNode.asText());
 

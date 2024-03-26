@@ -48,8 +48,6 @@ public class DriverMatchService {
 
     private static final String DVLA_RESPONSE_HEADER_REQUEST_ID_KEY = "X-DVLA-Request-Id";
 
-    private static final String HTTP_404_EXPECTED_ERROR_CODE = "ENQ018";
-
     private final URI requestURI;
     private final String apiKey;
 

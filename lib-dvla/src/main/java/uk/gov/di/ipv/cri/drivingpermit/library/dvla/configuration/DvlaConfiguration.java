@@ -5,18 +5,15 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_API_KEY;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_MATCH;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_PASSWORD_PATH;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_TOKEN;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_ENDPOINT_URL;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_PASSWORD;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_PASSWORD_ROTATION_ENABLED;
+import java.util.Map;
+
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_PASSWORD_SECRET;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_TOKEN_TABLE_NAME;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_USERNAME;
 
 @ExcludeFromGeneratedCoverageReport
 public class DvlaConfiguration {
+
+    private static final String DVLA_PARAMETER_PATH = "DVLA";
 
     private final String tokenEndpoint;
     private final String matchEndpoint;
@@ -37,31 +34,25 @@ public class DvlaConfiguration {
             SecretsManagerService secretsManagerService) {
         this.secretsManagerService = secretsManagerService;
 
-        final String endpointUri = parameterStoreService.getParameterValue(DVLA_ENDPOINT_URL);
-        this.tokenEndpoint =
-                String.format(
-                        "%s%s",
-                        endpointUri, parameterStoreService.getParameterValue(DVLA_ENDPOINT_TOKEN));
-        this.matchEndpoint =
-                String.format(
-                        "%s%s",
-                        endpointUri, parameterStoreService.getParameterValue(DVLA_ENDPOINT_MATCH));
+        Map<String, String> dvlaParameterMap =
+                parameterStoreService.getAllParametersFromPath(DVLA_PARAMETER_PATH);
+
+        final String endpointUri = dvlaParameterMap.get("endpointUrl");
+
+        this.tokenEndpoint = String.format("%s%s", endpointUri, dvlaParameterMap.get("tokenPath"));
+        this.matchEndpoint = String.format("%s%s", endpointUri, dvlaParameterMap.get("matchPath"));
         this.changePasswordEndpoint =
-                String.format(
-                        "%s%s",
-                        endpointUri,
-                        parameterStoreService.getParameterValue(DVLA_ENDPOINT_PASSWORD_PATH));
+                String.format("%s%s", endpointUri, dvlaParameterMap.get("passwordPath"));
+
+        this.apiKey = dvlaParameterMap.get("apiKey");
+        this.username = dvlaParameterMap.get("username");
+        this.password = dvlaParameterMap.get("password");
+
+        // Must be a stack param
         this.tokenTableName = parameterStoreService.getStackParameterValue(DVLA_TOKEN_TABLE_NAME);
 
-        this.apiKey = parameterStoreService.getParameterValue(DVLA_API_KEY);
-        this.username = parameterStoreService.getParameterValue(DVLA_USERNAME);
-
         this.passwordRotationEnabled =
-                Boolean.parseBoolean(
-                        parameterStoreService.getStackParameterValue(
-                                DVLA_PASSWORD_ROTATION_ENABLED));
-
-        this.password = parameterStoreService.getParameterValue(DVLA_PASSWORD);
+                Boolean.parseBoolean(System.getenv("DVLA_PASSWORD_ROTATION_ENABLED"));
     }
 
     public String getTokenEndpoint() {
@@ -87,8 +78,7 @@ public class DvlaConfiguration {
     public String getPassword() {
         if (isPasswordRotationEnabled()) {
             try {
-                String stackSecretValue = secretsManagerService.getStackSecretValue(DVLA_PASSWORD);
-                return stackSecretValue;
+                return secretsManagerService.getStackSecretValue(DVLA_PASSWORD_SECRET);
             } catch (ResourceNotFoundException e) {
                 return password;
             }

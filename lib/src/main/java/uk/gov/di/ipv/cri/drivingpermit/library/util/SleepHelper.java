@@ -29,7 +29,9 @@ public class SleepHelper {
 
         LOGGER.info("busyWaitWithExponentialBackOff start time : {}", startTime);
 
-        while (System.currentTimeMillis() < futureTime) {}
+        while (System.currentTimeMillis() < futureTime) {
+            /* Busy Wait Intended */
+        }
 
         long endTime = System.currentTimeMillis();
         long timeWaited = (endTime - startTime);

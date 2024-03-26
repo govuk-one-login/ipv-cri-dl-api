@@ -7,9 +7,15 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class RequestHashValidatorTest {
+
+    @Test
+    void shouldCreateRequestHashValidator() {
+        assertDoesNotThrow(() -> new RequestHashValidator());
+    }
 
     @Test
     void requestHashValidatorReturnsFalseOnHashValidationFail() throws NoSuchAlgorithmException {

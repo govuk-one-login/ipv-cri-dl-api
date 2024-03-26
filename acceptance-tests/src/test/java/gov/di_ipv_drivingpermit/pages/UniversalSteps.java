@@ -13,7 +13,7 @@ public class UniversalSteps {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final int MAX_WAIT_SEC = 10;
+    private static final int MAX_WAIT_SEC = 60;
 
     public UniversalSteps() {
         PageFactory.initElements(Driver.get(), this);
@@ -26,7 +26,10 @@ public class UniversalSteps {
 
         boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
 
-        LOGGER.info("Page title: " + title);
+        LOGGER.info(
+                String.format(
+                        "%s match - Page title: %s, Expected %s",
+                        fuzzy ? "Fuzzy" : "Match", title, expTitle));
         Assert.assertTrue(match);
     }
 

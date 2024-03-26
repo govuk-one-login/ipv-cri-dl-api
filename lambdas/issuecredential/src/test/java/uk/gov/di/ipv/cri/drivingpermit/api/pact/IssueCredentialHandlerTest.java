@@ -7,6 +7,7 @@ import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.PactBrokerAuth;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
@@ -107,6 +108,14 @@ class IssueCredentialHandlerTest {
     static void setupServer() {
         System.setProperty("pact.verifier.publishResults", "true");
         System.setProperty("pact.content_type.override.application/jwt", "text");
+    }
+
+    @au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder consumerVersionSelectors() {
+        return new SelectorBuilder()
+                .tag("DrivingLicenceVcProvider")
+                .branch("main", "IpvCoreBack")
+                .deployedOrReleased();
     }
 
     @BeforeEach

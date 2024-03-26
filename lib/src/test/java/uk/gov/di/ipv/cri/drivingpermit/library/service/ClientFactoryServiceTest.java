@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.service;
 
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,6 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
 import software.amazon.lambda.powertools.parameters.SecretsProvider;
 import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
-import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -23,8 +21,6 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -169,30 +165,5 @@ class ClientFactoryServiceTest {
                                         CertAndKeyTestFixtures.TEST_TLS_CRT));
 
         assertNotNull(closeableHttpClient);
-    }
-
-    @ParameterizedTest
-    @CsvSource({"30, false", "1000, true"})
-    void shouldCreateHTTPConnectionKeepAliveStrategy(
-            long keepAliveSeconds, boolean useRemoteHeader) {
-        Map<String, String> testHeaders = new HashMap<>();
-
-        ConnectionKeepAliveStrategy connectionKeepAliveStrategy =
-                clientFactoryService.createHTTPConnectionKeepAliveStrategy(
-                        keepAliveSeconds, useRemoteHeader);
-
-        long expectedkeepAliveSeconds = keepAliveSeconds;
-
-        if (useRemoteHeader) {
-            expectedkeepAliveSeconds = 50;
-            testHeaders.put("Keep-Alive", "timeout=" + String.valueOf(expectedkeepAliveSeconds));
-        }
-
-        long actualKeepAliveMs =
-                connectionKeepAliveStrategy.getKeepAliveDuration(
-                        HttpResponseFixtures.createHttpResponse(200, testHeaders, "", false), null);
-        long actualKeepAliveSeconds = actualKeepAliveMs / 1000;
-
-        assertEquals(expectedkeepAliveSeconds, actualKeepAliveSeconds);
     }
 }

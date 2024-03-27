@@ -15,6 +15,56 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         userEntersData("DVLA", drivingLicenceSubject);
     }
 
+    @And("User re-enters last name as (.*)$")
+    public void userEntersLastName(String InvalidLastName) {
+        userReEntersLastName(InvalidLastName);
+    }
+
+    @And("User re-enters first name as (.*)$")
+    public void userEntersFirstName(String InvalidFirstName) {
+        userReEntersFirstName(InvalidFirstName);
+    }
+
+    @And("User re-enters middle names as (.*)$")
+    public void userEntersMiddleNames(String InvalidMiddleNames) {
+        userReEntersMiddleNames(InvalidMiddleNames);
+    }
+
+    @And("User re-enters birth day as (.*)$")
+    public void userEntersBirthDay(String InvalidBirthDay) {
+        userReEntersBirthDay(InvalidBirthDay);
+    }
+
+    @And("User re-enters birth month as (.*)$")
+    public void userEntersBirthMonth(String InvalidBirthMonth) {
+        userReEntersBirthMonth(InvalidBirthMonth);
+    }
+
+    @And("User re-enters birth year as (.*)$")
+    public void userEntersBirthYear(String InvalidBirthYear) {
+        userReEntersBirthYear(InvalidBirthYear);
+    }
+
+    @And("User re-enters issue day as (.*)$")
+    public void userEntersValidToDay(String invalidLicenceIssueDay) {
+        userReEntersIssueDay(invalidLicenceIssueDay);
+    }
+
+    @And("User re-enters issue month as (.*)$")
+    public void userEntersValidToMonth(String invalidLicenceIssueMonth) {
+        userReEntersIssueMonth(invalidLicenceIssueMonth);
+    }
+
+    @And("User re-enters issue year as (.*)$")
+    public void userEntersValidToYear(String invalidLicenceIssueYear) {
+        userReEntersIssueYear(invalidLicenceIssueYear);
+    }
+
+    @And("User re-enters valid issue number as (.*)$")
+    public void userEntersIssueNumber(String invalidIssueNumber) {
+        userReEntersIssueNumber(invalidIssueNumber);
+    }
+
     @Given("I navigate to the IPV Core Stub")
     public void navigateToStub() {
         navigateToIPVCoreStub();

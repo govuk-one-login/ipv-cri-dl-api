@@ -1,0 +1,361 @@
+{
+  "consumer": {
+    "name": "IpvCoreBack"
+  },
+  "interactions": [
+    {
+      "description": "Valid credential request for DVLA VC",
+      "providerStates": [
+        {
+          "name": "dummyApiKey is a valid api key"
+        },
+        {
+          "name": "dummyAccessToken is a valid access token"
+        },
+        {
+          "name": "test-subject is a valid subject"
+        },
+        {
+          "name": "dummyDrivingLicenceComponentId is a valid issuer"
+        },
+        {
+          "name": "VC evidence activityHistoryScore is 1"
+        },
+        {
+          "name": "VC evidence validityScore is 2"
+        },
+        {
+          "name": "VC evidence txn is dummyTxn"
+        },
+        {
+          "name": "VC evidence checkDetails activityFrom is 1982-05-23"
+        },
+        {
+          "name": "VC address is BS981TL, GB"
+        },
+        {
+          "name": "VC is for Peter Benjamin Parker"
+        },
+        {
+          "name": "VC driving licence expiryDate is 2062-12-09"
+        },
+        {
+          "name": "VC driving licence issueNumber is 12"
+        },
+        {
+          "name": "VC driving licence issuedBy is DVLA"
+        },
+        {
+          "name": "VC driving licence personalNumber is PARKE610112PBFGH"
+        },
+        {
+          "name": "VC driving licence issuedDate is 1982-05-23"
+        },
+        {
+          "name": "VC birthDate is 1962-10-11"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer dummyAccessToken",
+          "x-api-key": "dummyApiKey"
+        },
+        "method": "POST",
+        "path": "/credential/issue"
+      },
+      "response": {
+        "body": "ZXlKaGJHY2lPaUpGVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKa2RXMXRlVVJ5YVhacGJtZE1hV05sYm1ObFEyOXRjRzl1Wlc1MFNXUWlMQ0p6ZFdJaU9pSjBaWE4wTFhOMVltcGxZM1FpTENKdVltWWlPalF3TnpBNU1EZzRNREFzSW5aaklqcDdJblI1Y0dVaU9sc2lWbVZ5YVdacFlXSnNaVU55WldSbGJuUnBZV3dpTENKSlpHVnVkR2wwZVVOb1pXTnJRM0psWkdWdWRHbGhiQ0pkTENKamNtVmtaVzUwYVdGc1UzVmlhbVZqZENJNmV5SmhaR1J5WlhOeklqcGJleUp3YjNOMFlXeERiMlJsSWpvaVFsTTVPREZVVENJc0ltRmtaSEpsYzNORGIzVnVkSEo1SWpvaVIwSWlmVjBzSW1KcGNuUm9SR0YwWlNJNlczc2lkbUZzZFdVaU9pSXhPVFl5TFRFd0xURXhJbjFkTENKa2NtbDJhVzVuVUdWeWJXbDBJanBiZXlKd1pYSnpiMjVoYkU1MWJXSmxjaUk2SWxCQlVrdEZOakV3TVRFeVVFSkdSMGdpTENKbGVIQnBjbmxFWVhSbElqb2lNakEyTWkweE1pMHdPU0lzSW1semMzVmxUblZ0WW1WeUlqb2lNVElpTENKcGMzTjFaV1JDZVNJNklrUldURUVpTENKcGMzTjFaVVJoZEdVaU9pSXhPVGd5TFRBMUxUSXpJbjFkTENKdVlXMWxJanBiZXlKdVlXMWxVR0Z5ZEhNaU9sdDdJblI1Y0dVaU9pSkhhWFpsYms1aGJXVWlMQ0oyWVd4MVpTSTZJbEJGVkVWU0luMHNleUowZVhCbElqb2lSMmwyWlc1T1lXMWxJaXdpZG1Gc2RXVWlPaUpDUlU1S1FVMUpUaUo5TEhzaWRIbHdaU0k2SWtaaGJXbHNlVTVoYldVaUxDSjJZV3gxWlNJNklsQkJVa3RGVWlKOVhYMWRmU3dpWlhacFpHVnVZMlVpT2x0N0luUjVjR1VpT2lKSlpHVnVkR2wwZVVOb1pXTnJJaXdpZEhodUlqb2laSFZ0YlhsVWVHNGlMQ0poWTNScGRtbDBlVWhwYzNSdmNubFRZMjl5WlNJNk1Td2ljM1J5Wlc1bmRHaFRZMjl5WlNJNk15d2lkbUZzYVdScGRIbFRZMjl5WlNJNk1pd2lZMmhsWTJ0RVpYUmhhV3h6SWpwYmV5SmphR1ZqYTAxbGRHaHZaQ0k2SW1SaGRHRWlMQ0pwWkdWdWRHbDBlVU5vWldOclVHOXNhV041SWpvaWNIVmliR2x6YUdWa0lpd2lZV04wYVhacGRIbEdjbTl0SWpvaU1UazRNaTB3TlMweU15SjlYWDFkZlN3aWFuUnBJam9pZFhKdU9uVjFhV1E2WWpBM1kyTTNaVE10WVRKa1l5MDBZakUzTFRrNE1qWXROamt3TjJaalpqUXdOVGxoSW4wLnNDZUJpNl9GVW5YM1hHRnh2QWFxWG9JNkJLU0hmQnJPYTR5LTRqNWlRXy0tSko0QTRfUFJiZ25QTkFGdFI2LUlOLUpEN2d4aGNZLTR5RE4zOFc4NTZR",
+        "headers": {
+          "Content-Type": "application/jwt"
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9\\.eyJpc3MiOiJkdW1teURyaXZpbmdMaWNlbmNlQ29tcG9uZW50SWQiLCJzdWIiOiJ0ZXN0LXN1YmplY3QiLCJuYmYiOjQwNzA5MDg4MDAsInZjIjp7InR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJJZGVudGl0eUNoZWNrQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJhZGRyZXNzIjpbeyJwb3N0YWxDb2RlIjoiQlM5ODFUTCIsImFkZHJlc3NDb3VudHJ5IjoiR0IifV0sImJpcnRoRGF0ZSI6W3sidmFsdWUiOiIxOTYyLTEwLTExIn1dLCJkcml2aW5nUGVybWl0IjpbeyJwZXJzb25hbE51bWJlciI6IlBBUktFNjEwMTEyUEJGR0giLCJleHBpcnlEYXRlIjoiMjA2Mi0xMi0wOSIsImlzc3VlTnVtYmVyIjoiMTIiLCJpc3N1ZWRCeSI6IkRWTEEiLCJpc3N1ZURhdGUiOiIxOTgyLTA1LTIzIn1dLCJuYW1lIjpbeyJuYW1lUGFydHMiOlt7InR5cGUiOiJHaXZlbk5hbWUiLCJ2YWx1ZSI6IlBFVEVSIn0seyJ0eXBlIjoiR2l2ZW5OYW1lIiwidmFsdWUiOiJCRU5KQU1JTiJ9LHsidHlwZSI6IkZhbWlseU5hbWUiLCJ2YWx1ZSI6IlBBUktFUiJ9XX1dfSwiZXZpZGVuY2UiOlt7InR5cGUiOiJJZGVudGl0eUNoZWNrIiwidHhuIjoiZHVtbXlUeG4iLCJhY3Rpdml0eUhpc3RvcnlTY29yZSI6MSwic3RyZW5ndGhTY29yZSI6MywidmFsaWRpdHlTY29yZSI6MiwiY2hlY2tEZXRhaWxzIjpbeyJjaGVja01ldGhvZCI6ImRhdGEiLCJpZGVudGl0eUNoZWNrUG9saWN5IjoicHVibGlzaGVkIiwiYWN0aXZpdHlGcm9tIjoiMTk4Mi0wNS0yMyJ9XX1dfSwianRpIjoidXJuOnV1aWQ6YjA3Y2M3ZTMtYTJkYy00YjE3LTk4MjYtNjkwN2ZjZjQwNTlhIn0\\..*"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "Valid credential request for DVA VC",
+      "providerStates": [
+        {
+          "name": "dummyApiKey is a valid api key"
+        },
+        {
+          "name": "dummyAccessToken is a valid access token"
+        },
+        {
+          "name": "test-subject is a valid subject"
+        },
+        {
+          "name": "dummyDrivingLicenceComponentId is a valid issuer"
+        },
+        {
+          "name": "VC evidence activityHistoryScore is 1"
+        },
+        {
+          "name": "VC evidence validityScore is 2"
+        },
+        {
+          "name": "VC evidence txn is dummyTxn"
+        },
+        {
+          "name": "VC evidence checkDetails activityFrom is 1982-05-23"
+        },
+        {
+          "name": "VC address is BS981TL, GB"
+        },
+        {
+          "name": "VC is for Peter Benjamin Parker"
+        },
+        {
+          "name": "VC driving licence expiryDate is 2062-12-09"
+        },
+        {
+          "name": "VC driving licence issuedBy is DVA"
+        },
+        {
+          "name": "VC driving licence personalNumber is 55667788"
+        },
+        {
+          "name": "VC driving licence issuedDate is 1982-05-23"
+        },
+        {
+          "name": "VC birthDate is 1962-10-11"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer dummyAccessToken",
+          "x-api-key": "dummyApiKey"
+        },
+        "method": "POST",
+        "path": "/credential/issue"
+      },
+      "response": {
+        "body": "ZXlKaGJHY2lPaUpGVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKa2RXMXRlVVJ5YVhacGJtZE1hV05sYm1ObFEyOXRjRzl1Wlc1MFNXUWlMQ0p6ZFdJaU9pSjBaWE4wTFhOMVltcGxZM1FpTENKdVltWWlPalF3TnpBNU1EZzRNREFzSW5aaklqcDdJblI1Y0dVaU9sc2lWbVZ5YVdacFlXSnNaVU55WldSbGJuUnBZV3dpTENKSlpHVnVkR2wwZVVOb1pXTnJRM0psWkdWdWRHbGhiQ0pkTENKamNtVmtaVzUwYVdGc1UzVmlhbVZqZENJNmV5SmhaR1J5WlhOeklqcGJleUp3YjNOMFlXeERiMlJsSWpvaVFsTTVPREZVVENJc0ltRmtaSEpsYzNORGIzVnVkSEo1SWpvaVIwSWlmVjBzSW1KcGNuUm9SR0YwWlNJNlczc2lkbUZzZFdVaU9pSXhPVFl5TFRFd0xURXhJbjFkTENKa2NtbDJhVzVuVUdWeWJXbDBJanBiZXlKd1pYSnpiMjVoYkU1MWJXSmxjaUk2SWpVMU5qWTNOemc0SWl3aVpYaHdhWEo1UkdGMFpTSTZJakl3TmpJdE1USXRNRGtpTENKcGMzTjFaV1JDZVNJNklrUldRU0lzSW1semMzVmxSR0YwWlNJNklqRTVPREl0TURVdE1qTWlmVjBzSW01aGJXVWlPbHQ3SW01aGJXVlFZWEowY3lJNlczc2lkSGx3WlNJNklrZHBkbVZ1VG1GdFpTSXNJblpoYkhWbElqb2lVRVZVUlZJaWZTeDdJblI1Y0dVaU9pSkhhWFpsYms1aGJXVWlMQ0oyWVd4MVpTSTZJa0pGVGtwQlRVbE9JbjBzZXlKMGVYQmxJam9pUm1GdGFXeDVUbUZ0WlNJc0luWmhiSFZsSWpvaVVFRlNTMFZTSW4xZGZWMTlMQ0psZG1sa1pXNWpaU0k2VzNzaWRIbHdaU0k2SWtsa1pXNTBhWFI1UTJobFkyc2lMQ0owZUc0aU9pSmtkVzF0ZVZSNGJpSXNJbUZqZEdsMmFYUjVTR2x6ZEc5eWVWTmpiM0psSWpveExDSnpkSEpsYm1kMGFGTmpiM0psSWpvekxDSjJZV3hwWkdsMGVWTmpiM0psSWpveUxDSmphR1ZqYTBSbGRHRnBiSE1pT2x0N0ltTm9aV05yVFdWMGFHOWtJam9pWkdGMFlTSXNJbWxrWlc1MGFYUjVRMmhsWTJ0UWIyeHBZM2tpT2lKd2RXSnNhWE5vWldRaUxDSmhZM1JwZG1sMGVVWnliMjBpT2lJeE9UZ3lMVEExTFRJekluMWRmVjE5TENKcWRHa2lPaUoxY200NmRYVnBaRHBpTURkall6ZGxNeTFoTW1SakxUUmlNVGN0T1RneU5pMDJPVEEzWm1ObU5EQTFPV0VpZlEuM1Bja1dQTXRPeUo1WXR0UFpsV1p3MHhYVFVOdUQ0b2dJeUl6UWlUbVV1QlpxYUhfT09VNnR2UERKWFZ0VTlQdmZEcjhDM1lERWhET1duRkZURzZQNmc=",
+        "headers": {
+          "Content-Type": "application/jwt"
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9\\.eyJpc3MiOiJkdW1teURyaXZpbmdMaWNlbmNlQ29tcG9uZW50SWQiLCJzdWIiOiJ0ZXN0LXN1YmplY3QiLCJuYmYiOjQwNzA5MDg4MDAsInZjIjp7InR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJJZGVudGl0eUNoZWNrQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJhZGRyZXNzIjpbeyJwb3N0YWxDb2RlIjoiQlM5ODFUTCIsImFkZHJlc3NDb3VudHJ5IjoiR0IifV0sImJpcnRoRGF0ZSI6W3sidmFsdWUiOiIxOTYyLTEwLTExIn1dLCJkcml2aW5nUGVybWl0IjpbeyJwZXJzb25hbE51bWJlciI6IjU1NjY3Nzg4IiwiZXhwaXJ5RGF0ZSI6IjIwNjItMTItMDkiLCJpc3N1ZWRCeSI6IkRWQSIsImlzc3VlRGF0ZSI6IjE5ODItMDUtMjMifV0sIm5hbWUiOlt7Im5hbWVQYXJ0cyI6W3sidHlwZSI6IkdpdmVuTmFtZSIsInZhbHVlIjoiUEVURVIifSx7InR5cGUiOiJHaXZlbk5hbWUiLCJ2YWx1ZSI6IkJFTkpBTUlOIn0seyJ0eXBlIjoiRmFtaWx5TmFtZSIsInZhbHVlIjoiUEFSS0VSIn1dfV19LCJldmlkZW5jZSI6W3sidHlwZSI6IklkZW50aXR5Q2hlY2siLCJ0eG4iOiJkdW1teVR4biIsImFjdGl2aXR5SGlzdG9yeVNjb3JlIjoxLCJzdHJlbmd0aFNjb3JlIjozLCJ2YWxpZGl0eVNjb3JlIjoyLCJjaGVja0RldGFpbHMiOlt7ImNoZWNrTWV0aG9kIjoiZGF0YSIsImlkZW50aXR5Q2hlY2tQb2xpY3kiOiJwdWJsaXNoZWQiLCJhY3Rpdml0eUZyb20iOiIxOTgyLTA1LTIzIn1dfV19LCJqdGkiOiJ1cm46dXVpZDpiMDdjYzdlMy1hMmRjLTRiMTctOTgyNi02OTA3ZmNmNDA1OWEifQ\\..*"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "Valid credential request for DVA VC with CI",
+      "providerStates": [
+        {
+          "name": "dummyApiKey is a valid api key"
+        },
+        {
+          "name": "dummyAccessToken is a valid access token"
+        },
+        {
+          "name": "test-subject is a valid subject"
+        },
+        {
+          "name": "dummyDrivingLicenceComponentId is a valid issuer"
+        },
+        {
+          "name": "VC has a CI of D02"
+        },
+        {
+          "name": "VC evidence txn is dummyTxn"
+        },
+        {
+          "name": "VC evidence checkDetails activityFrom is 1982-05-23"
+        },
+        {
+          "name": "VC address is BS981TL, GB"
+        },
+        {
+          "name": "VC is for Peter Benjamin Parker"
+        },
+        {
+          "name": "VC driving licence expiryDate is 2062-12-09"
+        },
+        {
+          "name": "VC driving licence issueNumber is 12"
+        },
+        {
+          "name": "VC driving licence issuedBy is DVA"
+        },
+        {
+          "name": "VC driving licence personalNumber is 55667780"
+        },
+        {
+          "name": "VC driving licence issuedDate is 1982-05-23"
+        },
+        {
+          "name": "VC birthDate is 1962-10-11"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer dummyAccessToken",
+          "x-api-key": "dummyApiKey"
+        },
+        "method": "POST",
+        "path": "/credential/issue"
+      },
+      "response": {
+        "body": "ZXlKaGJHY2lPaUpGVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKa2RXMXRlVVJ5YVhacGJtZE1hV05sYm1ObFEyOXRjRzl1Wlc1MFNXUWlMQ0p6ZFdJaU9pSjBaWE4wTFhOMVltcGxZM1FpTENKdVltWWlPalF3TnpBNU1EZzRNREFzSW5aaklqcDdJblI1Y0dVaU9sc2lWbVZ5YVdacFlXSnNaVU55WldSbGJuUnBZV3dpTENKSlpHVnVkR2wwZVVOb1pXTnJRM0psWkdWdWRHbGhiQ0pkTENKamNtVmtaVzUwYVdGc1UzVmlhbVZqZENJNmV5SmhaR1J5WlhOeklqcGJleUp3YjNOMFlXeERiMlJsSWpvaVFsTTVPREZVVENJc0ltRmtaSEpsYzNORGIzVnVkSEo1SWpvaVIwSWlmVjBzSW1KcGNuUm9SR0YwWlNJNlczc2lkbUZzZFdVaU9pSXhPVFl5TFRFd0xURXhJbjFkTENKa2NtbDJhVzVuVUdWeWJXbDBJanBiZXlKd1pYSnpiMjVoYkU1MWJXSmxjaUk2SWpVMU5qWTNOemd3SWl3aVpYaHdhWEo1UkdGMFpTSTZJakl3TmpJdE1USXRNRGtpTENKcGMzTjFaV1JDZVNJNklrUldRU0lzSW1semMzVmxSR0YwWlNJNklqRTVPREl0TURVdE1qTWlmVjBzSW01aGJXVWlPbHQ3SW01aGJXVlFZWEowY3lJNlczc2lkSGx3WlNJNklrZHBkbVZ1VG1GdFpTSXNJblpoYkhWbElqb2lVRVZVUlZJaWZTeDdJblI1Y0dVaU9pSkhhWFpsYms1aGJXVWlMQ0oyWVd4MVpTSTZJa0pGVGtwQlRVbE9JbjBzZXlKMGVYQmxJam9pUm1GdGFXeDVUbUZ0WlNJc0luWmhiSFZsSWpvaVVFRlNTMFZTSW4xZGZWMTlMQ0psZG1sa1pXNWpaU0k2VzNzaWRIbHdaU0k2SWtsa1pXNTBhWFI1UTJobFkyc2lMQ0owZUc0aU9pSmtkVzF0ZVZSNGJpSXNJbUZqZEdsMmFYUjVTR2x6ZEc5eWVWTmpiM0psSWpvd0xDSnpkSEpsYm1kMGFGTmpiM0psSWpvekxDSjJZV3hwWkdsMGVWTmpiM0psSWpvd0xDSmphU0k2V3lKRU1ESWlYU3dpWm1GcGJHVmtRMmhsWTJ0RVpYUmhhV3h6SWpwYmV5SmphR1ZqYTAxbGRHaHZaQ0k2SW1SaGRHRWlMQ0pwWkdWdWRHbDBlVU5vWldOclVHOXNhV041SWpvaWNIVmliR2x6YUdWa0lpd2lZV04wYVhacGRIbEdjbTl0SWpvaU1UazRNaTB3TlMweU15SjlYWDFkZlN3aWFuUnBJam9pZFhKdU9uVjFhV1E2WWpBM1kyTTNaVE10WVRKa1l5MDBZakUzTFRrNE1qWXROamt3TjJaalpqUXdOVGxoSW4wLmhUckNDVkVjN2VGWlgyd25pVHcxcHUxUHppMDdjUnlzWFY1UEh4VW84N0s4YjNFRFI3YTc1NnQ1aXBqRlk5aG1OZjF4by02VGRkM1VlclhrVlBtT253",
+        "headers": {
+          "Content-Type": "application/jwt"
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9\\.eyJpc3MiOiJkdW1teURyaXZpbmdMaWNlbmNlQ29tcG9uZW50SWQiLCJzdWIiOiJ0ZXN0LXN1YmplY3QiLCJuYmYiOjQwNzA5MDg4MDAsInZjIjp7InR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJJZGVudGl0eUNoZWNrQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJhZGRyZXNzIjpbeyJwb3N0YWxDb2RlIjoiQlM5ODFUTCIsImFkZHJlc3NDb3VudHJ5IjoiR0IifV0sImJpcnRoRGF0ZSI6W3sidmFsdWUiOiIxOTYyLTEwLTExIn1dLCJkcml2aW5nUGVybWl0IjpbeyJwZXJzb25hbE51bWJlciI6IjU1NjY3NzgwIiwiZXhwaXJ5RGF0ZSI6IjIwNjItMTItMDkiLCJpc3N1ZWRCeSI6IkRWQSIsImlzc3VlRGF0ZSI6IjE5ODItMDUtMjMifV0sIm5hbWUiOlt7Im5hbWVQYXJ0cyI6W3sidHlwZSI6IkdpdmVuTmFtZSIsInZhbHVlIjoiUEVURVIifSx7InR5cGUiOiJHaXZlbk5hbWUiLCJ2YWx1ZSI6IkJFTkpBTUlOIn0seyJ0eXBlIjoiRmFtaWx5TmFtZSIsInZhbHVlIjoiUEFSS0VSIn1dfV19LCJldmlkZW5jZSI6W3sidHlwZSI6IklkZW50aXR5Q2hlY2siLCJ0eG4iOiJkdW1teVR4biIsImFjdGl2aXR5SGlzdG9yeVNjb3JlIjowLCJzdHJlbmd0aFNjb3JlIjozLCJ2YWxpZGl0eVNjb3JlIjowLCJjaSI6WyJEMDIiXSwiZmFpbGVkQ2hlY2tEZXRhaWxzIjpbeyJjaGVja01ldGhvZCI6ImRhdGEiLCJpZGVudGl0eUNoZWNrUG9saWN5IjoicHVibGlzaGVkIiwiYWN0aXZpdHlGcm9tIjoiMTk4Mi0wNS0yMyJ9XX1dfSwianRpIjoidXJuOnV1aWQ6YjA3Y2M3ZTMtYTJkYy00YjE3LTk4MjYtNjkwN2ZjZjQwNTlhIn0\\..*"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "Valid credential request for DVLA VC with CI",
+      "providerStates": [
+        {
+          "name": "dummyApiKey is a valid api key"
+        },
+        {
+          "name": "dummyAccessToken is a valid access token"
+        },
+        {
+          "name": "test-subject is a valid subject"
+        },
+        {
+          "name": "dummyDrivingLicenceComponentId is a valid issuer"
+        },
+        {
+          "name": "VC has a CI of D02"
+        },
+        {
+          "name": "VC evidence txn is dummyTxn"
+        },
+        {
+          "name": "VC evidence checkDetails activityFrom is 1982-05-23"
+        },
+        {
+          "name": "VC address is BS981TL, GB"
+        },
+        {
+          "name": "VC is for Peter Benjamin Parker"
+        },
+        {
+          "name": "VC driving licence expiryDate is 2062-12-09"
+        },
+        {
+          "name": "VC driving licence issueNumber is 12"
+        },
+        {
+          "name": "VC driving licence issuedBy is DVLA"
+        },
+        {
+          "name": "VC driving licence personalNumber is PARKE610112PBFGH"
+        },
+        {
+          "name": "VC driving licence issuedDate is 1982-05-23"
+        },
+        {
+          "name": "VC birthDate is 1962-10-11"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer dummyAccessToken",
+          "x-api-key": "dummyApiKey"
+        },
+        "method": "POST",
+        "path": "/credential/issue"
+      },
+      "response": {
+        "body": "ZXlKaGJHY2lPaUpGVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKa2RXMXRlVVJ5YVhacGJtZE1hV05sYm1ObFEyOXRjRzl1Wlc1MFNXUWlMQ0p6ZFdJaU9pSjBaWE4wTFhOMVltcGxZM1FpTENKdVltWWlPalF3TnpBNU1EZzRNREFzSW5aaklqcDdJblI1Y0dVaU9sc2lWbVZ5YVdacFlXSnNaVU55WldSbGJuUnBZV3dpTENKSlpHVnVkR2wwZVVOb1pXTnJRM0psWkdWdWRHbGhiQ0pkTENKamNtVmtaVzUwYVdGc1UzVmlhbVZqZENJNmV5SmhaR1J5WlhOeklqcGJleUp3YjNOMFlXeERiMlJsSWpvaVFsTTVPREZVVENJc0ltRmtaSEpsYzNORGIzVnVkSEo1SWpvaVIwSWlmVjBzSW1KcGNuUm9SR0YwWlNJNlczc2lkbUZzZFdVaU9pSXhPVFl5TFRFd0xURXhJbjFkTENKa2NtbDJhVzVuVUdWeWJXbDBJanBiZXlKd1pYSnpiMjVoYkU1MWJXSmxjaUk2SWxCQlVrdEZOakV3TVRFeVVFSkdSMGdpTENKbGVIQnBjbmxFWVhSbElqb2lNakEyTWkweE1pMHdPU0lzSW1semMzVmxUblZ0WW1WeUlqb2lNVElpTENKcGMzTjFaV1JDZVNJNklrUldURUVpTENKcGMzTjFaVVJoZEdVaU9pSXhPVGd5TFRBMUxUSXpJbjFkTENKdVlXMWxJanBiZXlKdVlXMWxVR0Z5ZEhNaU9sdDdJblI1Y0dVaU9pSkhhWFpsYms1aGJXVWlMQ0oyWVd4MVpTSTZJbEJGVkVWU0luMHNleUowZVhCbElqb2lSMmwyWlc1T1lXMWxJaXdpZG1Gc2RXVWlPaUpDUlU1S1FVMUpUaUo5TEhzaWRIbHdaU0k2SWtaaGJXbHNlVTVoYldVaUxDSjJZV3gxWlNJNklsQkJVa3RGVWlKOVhYMWRmU3dpWlhacFpHVnVZMlVpT2x0N0luUjVjR1VpT2lKSlpHVnVkR2wwZVVOb1pXTnJJaXdpZEhodUlqb2laSFZ0YlhsVWVHNGlMQ0poWTNScGRtbDBlVWhwYzNSdmNubFRZMjl5WlNJNk1Dd2ljM1J5Wlc1bmRHaFRZMjl5WlNJNk15d2lkbUZzYVdScGRIbFRZMjl5WlNJNk1Dd2lZMmtpT2xzaVJEQXlJbDBzSW1aaGFXeGxaRU5vWldOclJHVjBZV2xzY3lJNlczc2lZMmhsWTJ0TlpYUm9iMlFpT2lKa1lYUmhJaXdpYVdSbGJuUnBkSGxEYUdWamExQnZiR2xqZVNJNkluQjFZbXhwYzJobFpDSXNJbUZqZEdsMmFYUjVSbkp2YlNJNklqRTVPREl0TURVdE1qTWlmVjE5WFgwc0ltcDBhU0k2SW5WeWJqcDFkV2xrT21Jd04yTmpOMlV6TFdFeVpHTXROR0l4TnkwNU9ESTJMVFk1TURkbVkyWTBNRFU1WVNKOS40bC1DQWxfWDhYdlBKa3UxenZfSm5YZm5UZm93MUtLZVFzYTdBVUlWU2UxcFVkSWx5dWdvSXlickpwNVNNdTdTeHAxUjAyQUNVa0gzNjFtMUZTUXdrZw==",
+        "headers": {
+          "Content-Type": "application/jwt"
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9\\.eyJpc3MiOiJkdW1teURyaXZpbmdMaWNlbmNlQ29tcG9uZW50SWQiLCJzdWIiOiJ0ZXN0LXN1YmplY3QiLCJuYmYiOjQwNzA5MDg4MDAsInZjIjp7InR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJJZGVudGl0eUNoZWNrQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJhZGRyZXNzIjpbeyJwb3N0YWxDb2RlIjoiQlM5ODFUTCIsImFkZHJlc3NDb3VudHJ5IjoiR0IifV0sImJpcnRoRGF0ZSI6W3sidmFsdWUiOiIxOTYyLTEwLTExIn1dLCJkcml2aW5nUGVybWl0IjpbeyJwZXJzb25hbE51bWJlciI6IlBBUktFNjEwMTEyUEJGR0giLCJleHBpcnlEYXRlIjoiMjA2Mi0xMi0wOSIsImlzc3VlTnVtYmVyIjoiMTIiLCJpc3N1ZWRCeSI6IkRWTEEiLCJpc3N1ZURhdGUiOiIxOTgyLTA1LTIzIn1dLCJuYW1lIjpbeyJuYW1lUGFydHMiOlt7InR5cGUiOiJHaXZlbk5hbWUiLCJ2YWx1ZSI6IlBFVEVSIn0seyJ0eXBlIjoiR2l2ZW5OYW1lIiwidmFsdWUiOiJCRU5KQU1JTiJ9LHsidHlwZSI6IkZhbWlseU5hbWUiLCJ2YWx1ZSI6IlBBUktFUiJ9XX1dfSwiZXZpZGVuY2UiOlt7InR5cGUiOiJJZGVudGl0eUNoZWNrIiwidHhuIjoiZHVtbXlUeG4iLCJhY3Rpdml0eUhpc3RvcnlTY29yZSI6MCwic3RyZW5ndGhTY29yZSI6MywidmFsaWRpdHlTY29yZSI6MCwiY2kiOlsiRDAyIl0sImZhaWxlZENoZWNrRGV0YWlscyI6W3siY2hlY2tNZXRob2QiOiJkYXRhIiwiaWRlbnRpdHlDaGVja1BvbGljeSI6InB1Ymxpc2hlZCIsImFjdGl2aXR5RnJvbSI6IjE5ODItMDUtMjMifV19XX0sImp0aSI6InVybjp1dWlkOmIwN2NjN2UzLWEyZGMtNGIxNy05ODI2LTY5MDdmY2Y0MDU5YSJ9\\..*"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "Invalid credential request due to invalid access token",
+      "providerStates": [
+        {
+          "name": "dummyApiKey is a valid api key"
+        },
+        {
+          "name": "dummyInvalidAccessToken is an invalid access token"
+        },
+        {
+          "name": "test-subject is a valid subject"
+        },
+        {
+          "name": "dummyDrivingLicenceComponentId is a valid issuer"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer dummyInvalidAccessToken",
+          "x-api-key": "dummyApiKey"
+        },
+        "method": "POST",
+        "path": "/credential/issue"
+      },
+      "response": {
+        "status": 500
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.5"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "DrivingLicenceVcProvider"
+  }
+}

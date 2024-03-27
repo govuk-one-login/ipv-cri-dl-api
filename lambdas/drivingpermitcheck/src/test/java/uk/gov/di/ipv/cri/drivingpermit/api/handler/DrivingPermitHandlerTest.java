@@ -6,14 +6,12 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -21,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
-import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
@@ -29,12 +26,9 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DrivingPermitServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.dcs.DcsThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
@@ -42,7 +36,14 @@ import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -61,78 +62,86 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVA;
-import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class DrivingPermitHandlerTest {
+
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     @Mock private ObjectMapper mockObjectMapper;
     @Mock private EventProbe mockEventProbe;
     @Mock private SessionService mockSessionService;
     @Mock private AuditService mockAuditService;
 
     @Mock private PersonIdentityService mockPersonIdentityService;
-    @Mock private DataStore<DocumentCheckResultItem> mockDataStore;
-    @Mock private ConfigurationService mockConfigurationService;
+    @Mock private DocumentCheckResultStorageService mockDocumentCheckResultStorageService;
+    @Mock private ParameterStoreService mockParameterStoreService;
 
-    @Mock private DrivingPermitServiceFactory mockDrivingPermitServiceFactory;
+    @Mock private ServiceFactory mockServiceFactory;
     @Mock private ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
-    @Mock private ThirdPartyAPIService mockThirdPartyAPIService;
 
     @Mock private IdentityVerificationService mockIdentityVerificationService;
 
     @Mock private Context context;
 
-    // Only used in SelectCorrectThirdPartyAPIService Test
-    @Mock private DcsThirdPartyDocumentGateway mockDcsThirdPartyDocumentGateway;
     @Mock private DvaThirdPartyDocumentGateway mockDvaThirdPartyDocumentGateway;
     @Mock private DvlaThirdPartyDocumentGateway mockDvlaThirdPartyDocumentGateway;
 
     private DrivingPermitHandler drivingPermitHandler;
 
-    private ObjectMapper realObjectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
     @BeforeEach
     void setup() {
+        environmentVariables.set("AWS_REGION", "eu-west-2");
+        environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
+        // EnvVar feature toggles
+        environmentVariables.set("DVA_PERFORMANCE_STUB_IN_USE", "false");
+        environmentVariables.set("LOG_DVA_RESPONSE", "false");
+        environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
 
-        when(mockDrivingPermitServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
-        when(mockDrivingPermitServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
-        when(mockDrivingPermitServiceFactory.getSessionService()).thenReturn(mockSessionService);
-        when(mockDrivingPermitServiceFactory.getAuditService()).thenReturn(mockAuditService);
+        when(mockServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
+        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
+        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
 
-        when(mockDrivingPermitServiceFactory.getPersonIdentityService())
-                .thenReturn(mockPersonIdentityService);
+        when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
 
-        when(mockDrivingPermitServiceFactory.getConfigurationService())
-                .thenReturn(mockConfigurationService);
-        when(mockDrivingPermitServiceFactory.getDataStore()).thenReturn(mockDataStore);
+        when(mockParameterStoreService.getParameterValue(
+                        ParameterPrefix.COMMON_API, DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
+                .thenReturn(String.valueOf(1000L));
+
+        when(mockServiceFactory.getDocumentCheckResultStorageService())
+                .thenReturn(mockDocumentCheckResultStorageService);
 
         this.drivingPermitHandler =
                 new DrivingPermitHandler(
-                        mockDrivingPermitServiceFactory,
+                        mockServiceFactory,
                         mockThirdPartyAPIServiceFactory,
                         mockIdentityVerificationService);
     }
 
-    @Test
-    void handleResponseShouldReturnOkResponseWhenValidInputProvided()
+    @ParameterizedTest
+    @CsvSource({"DVA", "DVLA"})
+    void handleResponseShouldReturnOkResponseWhenValidInputProvided(String issuingAuthority)
             throws IOException, SqsException, OAuthErrorResponseException {
         String testRequestBody = "request body";
         UUID sessionId = UUID.randomUUID();
 
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm =
+                DrivingPermitFormTestDataGenerator.generate(
+                        IssuingAuthority.valueOf(issuingAuthority));
 
         DocumentCheckVerificationResult testDocumentVerificationResult =
                 DocumentCheckVerificationResultDataGenerator.generate(drivingPermitForm);
-        DocumentCheckResultItem documentCheckResultItem =
-                generateDocCheckResultItem(
-                        sessionId, drivingPermitForm, testDocumentVerificationResult);
 
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
@@ -145,7 +154,6 @@ class DrivingPermitHandlerTest {
         sessionItem.setSessionId(sessionId);
         sessionItem.setAttemptCount(0); // No previous attempt
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
 
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
                 .thenReturn(drivingPermitForm);
@@ -157,14 +165,12 @@ class DrivingPermitHandlerTest {
                 .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        // Choose API
-        when(mockConfigurationService.getDvlaDirectEnabled()).thenReturn(true);
-        when(mockDvlaThirdPartyDocumentGateway.getServiceName())
-                .thenReturn(DvlaThirdPartyDocumentGateway.class.getSimpleName());
-        when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
-                .thenReturn(mockDvlaThirdPartyDocumentGateway);
-
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
+        switch (issuingAuthority) {
+            case "DVA" -> when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
+                    .thenReturn(mockDvaThirdPartyDocumentGateway);
+            case "DVLA" -> when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
+                    .thenReturn(mockDvlaThirdPartyDocumentGateway);
+        }
 
         when(mockIdentityVerificationService.verifyIdentity(
                         any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
@@ -172,31 +178,46 @@ class DrivingPermitHandlerTest {
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
-        when(mockConfigurationService.getDocumentCheckItemExpirationEpoch()).thenReturn(1000L);
 
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe)
                 .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+        verifyNoMoreInteractions(mockEventProbe);
 
-        verify(mockIdentityVerificationService)
-                .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
-        verify(mockDataStore).create(documentCheckResultItem);
+        switch (issuingAuthority) {
+            case "DVA" -> verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDvaThirdPartyDocumentGateway);
+            case "DVLA" -> verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
+        }
+
+        verify(mockDocumentCheckResultStorageService)
+                .saveDocumentCheckResult(any(DocumentCheckResultItem.class));
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
         assertEquals("{\"redirectUrl\":null,\"retry\":false}", responseEvent.getBody());
     }
 
     @ParameterizedTest
-    @MethodSource("getDocumentVerifiedStatus")
+    @CsvSource({
+        "DVA, false",
+        "DVA, true",
+        "DVLA, false",
+        "DVLA, true",
+    })
     void handleResponseShouldReturnCorrectResponsesForAttemptOneVerifiedStatus(
-            boolean documentVerified)
+            String issuingAuthority, boolean documentVerified)
             throws IOException, SqsException, OAuthErrorResponseException {
         String testRequestBody = "request body";
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm =
+                DrivingPermitFormTestDataGenerator.generate(
+                        IssuingAuthority.valueOf(issuingAuthority));
 
         DocumentCheckVerificationResult testDocumentVerificationResult =
                 DocumentCheckVerificationResultDataGenerator.generate(drivingPermitForm);
@@ -215,7 +236,6 @@ class DrivingPermitHandlerTest {
         sessionItem.setSessionId(UUID.randomUUID());
         sessionItem.setAttemptCount(0); // No previous attempt
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
 
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
                 .thenReturn(drivingPermitForm);
@@ -227,13 +247,12 @@ class DrivingPermitHandlerTest {
                 .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
-        when(mockThirdPartyAPIService.getServiceName())
-                .thenReturn(DcsThirdPartyDocumentGateway.class.getSimpleName());
-        when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
-                .thenReturn(mockThirdPartyAPIService);
-
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
+        switch (issuingAuthority) {
+            case "DVA" -> when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
+                    .thenReturn(mockDvaThirdPartyDocumentGateway);
+            case "DVLA" -> when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
+                    .thenReturn(mockDvlaThirdPartyDocumentGateway);
+        }
 
         when(mockIdentityVerificationService.verifyIdentity(
                         any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
@@ -245,12 +264,13 @@ class DrivingPermitHandlerTest {
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
         InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+
         if (documentVerified) {
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
             inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
-            verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockThirdPartyAPIService);
 
             assertNotNull(responseEvent);
             assertEquals(200, responseEvent.getStatusCode());
@@ -259,21 +279,35 @@ class DrivingPermitHandlerTest {
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY);
             inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
-            verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockThirdPartyAPIService);
 
             assertNotNull(responseEvent);
             assertEquals(200, responseEvent.getStatusCode());
             assertEquals("{\"redirectUrl\":null,\"retry\":true}", responseEvent.getBody());
         }
+        verifyNoMoreInteractions(mockEventProbe);
+
+        switch (issuingAuthority) {
+            case "DVA" -> verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDvaThirdPartyDocumentGateway);
+            case "DVLA" -> verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
+        }
     }
 
     @ParameterizedTest
-    @MethodSource("getDocumentVerifiedStatus")
-    void handleResponseShouldReturnCorrectResponsesForVerifiedStatus(boolean documentVerified)
+    @CsvSource({
+        "DVA, false",
+        "DVA, true",
+        "DVLA, false",
+        "DVLA, true",
+    })
+    void handleResponseShouldReturnCorrectResponsesForVerifiedStatus(
+            String issuingAuthority, boolean documentVerified)
             throws IOException, SqsException, OAuthErrorResponseException {
         String testRequestBody = "request body";
-        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        DrivingPermitForm drivingPermitForm =
+                DrivingPermitFormTestDataGenerator.generate(
+                        IssuingAuthority.valueOf(issuingAuthority));
 
         DocumentCheckVerificationResult testDocumentVerificationResult =
                 DocumentCheckVerificationResultDataGenerator.generate(drivingPermitForm);
@@ -292,7 +326,6 @@ class DrivingPermitHandlerTest {
         sessionItem.setSessionId(UUID.randomUUID());
         sessionItem.setAttemptCount(1); // One previous attempt
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
 
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
                 .thenReturn(drivingPermitForm);
@@ -304,13 +337,12 @@ class DrivingPermitHandlerTest {
                 .when(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockConfigurationService.getDvaDirectEnabled()).thenReturn(false);
-        when(mockThirdPartyAPIService.getServiceName())
-                .thenReturn(DcsThirdPartyDocumentGateway.class.getSimpleName());
-        when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
-                .thenReturn(mockThirdPartyAPIService);
-
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
+        switch (issuingAuthority) {
+            case "DVA" -> when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
+                    .thenReturn(mockDvaThirdPartyDocumentGateway);
+            case "DVLA" -> when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
+                    .thenReturn(mockDvlaThirdPartyDocumentGateway);
+        }
 
         when(mockIdentityVerificationService.verifyIdentity(
                         any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
@@ -322,6 +354,9 @@ class DrivingPermitHandlerTest {
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
         InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+
         if (documentVerified) {
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 2);
@@ -329,10 +364,17 @@ class DrivingPermitHandlerTest {
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED);
         }
-        verify(mockIdentityVerificationService)
-                .verifyIdentity(drivingPermitForm, mockThirdPartyAPIService);
+
+        switch (issuingAuthority) {
+            case "DVA" -> verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDvaThirdPartyDocumentGateway);
+            case "DVLA" -> verify(mockIdentityVerificationService)
+                    .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
+        }
 
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+        verifyNoMoreInteractions(mockEventProbe);
+
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
         assertEquals("{\"redirectUrl\":null,\"retry\":false}", responseEvent.getBody());
@@ -360,13 +402,14 @@ class DrivingPermitHandlerTest {
         sessionItem.setSessionId(UUID.randomUUID());
         sessionItem.setAttemptCount(2); // Two previous attempts
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
 
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
+        verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
         verify(mockEventProbe)
                 .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX);
         verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
@@ -411,14 +454,16 @@ class DrivingPermitHandlerTest {
         verify(mockAuditService, never())
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
-        when(mockConfigurationService.getMaxAttempts()).thenReturn(2);
-
         when(context.getFunctionName()).thenReturn("functionName");
         when(context.getFunctionVersion()).thenReturn("1.0");
         APIGatewayProxyResponseEvent responseEvent =
                 drivingPermitHandler.handleRequest(mockRequestEvent, context);
 
-        verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
 
         assertNotNull(responseEvent);
         assertEquals(500, responseEvent.getStatusCode());
@@ -473,40 +518,24 @@ class DrivingPermitHandlerTest {
 
     @ParameterizedTest
     @CsvSource({
-        // dvaEnabled, dvlaEnabled, licenseIssuer, expected api
-
-        // Only one direct api is enabled (ensure api feature flags are
-        // independent)
-        "false, true, DVA, DcsThirdPartyDocumentGateway",
-        "true, false, DVLA, DcsThirdPartyDocumentGateway",
-        "true, false, DVA, DvaThirdPartyDocumentGateway",
-        "false, true, DVLA, DvlaThirdPartyDocumentGateway",
-
-        // Failsafe for no header present
-        "false, false, DVA, DcsThirdPartyDocumentGateway",
-        "false, false, DVLA, DcsThirdPartyDocumentGateway",
-        "true, true, DVA, DvaThirdPartyDocumentGateway",
-        "true, true, DVLA, DvlaThirdPartyDocumentGateway",
+        "DVA, DvaThirdPartyDocumentGateway",
+        "DVLA, DvlaThirdPartyDocumentGateway",
     })
     void shouldSelectCorrectThirdPartyAPIServiceForEachIssuerAndFeatureToggle(
-            boolean dvaEnabled,
-            boolean dvlaEnabled,
-            String licenseIssuer,
-            String expectedServiceName)
+            String licenseIssuer, String expectedServiceName)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         IssuingAuthority issuingAuthority = IssuingAuthority.valueOf(licenseIssuer);
 
         // This section mocks the gets (if called) from the ThirdPartyAPIServiceFactory
-        if (dvaEnabled && (DVA == issuingAuthority)) {
+        if (IssuingAuthority.DVA == issuingAuthority) {
             when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
                     .thenReturn(mockDvaThirdPartyDocumentGateway);
-        } else if (dvlaEnabled && (DVLA == issuingAuthority)) {
+        } else if (IssuingAuthority.DVLA == issuingAuthority) {
             when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
                     .thenReturn(mockDvlaThirdPartyDocumentGateway);
         } else {
-            when(mockThirdPartyAPIServiceFactory.getDcsThirdPartyAPIService())
-                    .thenReturn(mockDcsThirdPartyDocumentGateway);
+            throw new IllegalThreadStateException();
         }
 
         DrivingPermitHandler spyHandler;
@@ -516,7 +545,7 @@ class DrivingPermitHandlerTest {
         // The following uses reflection to unlock the method and confirm its behaviour
         DrivingPermitHandler spyTarget =
                 new DrivingPermitHandler(
-                        mockDrivingPermitServiceFactory,
+                        mockServiceFactory,
                         mockThirdPartyAPIServiceFactory,
                         mockIdentityVerificationService);
 
@@ -524,14 +553,14 @@ class DrivingPermitHandlerTest {
 
         Method privateDetermineThirdPartyAPIServiceMethod =
                 DrivingPermitHandler.class.getDeclaredMethod(
-                        "selectThirdPartyAPIService", boolean.class, boolean.class, String.class);
+                        "selectThirdPartyAPIService", String.class);
         privateDetermineThirdPartyAPIServiceMethod.setAccessible(true);
 
         // Call the private method and capture result
         ThirdPartyAPIService thirdPartyAPIService =
                 (ThirdPartyAPIService)
                         privateDetermineThirdPartyAPIServiceMethod.invoke(
-                                spyHandler, dvaEnabled, dvlaEnabled, licenseIssuer);
+                                spyHandler, licenseIssuer);
 
         assertEquals(expectedServiceName, thirdPartyAPIService.getClass().getSimpleName());
     }

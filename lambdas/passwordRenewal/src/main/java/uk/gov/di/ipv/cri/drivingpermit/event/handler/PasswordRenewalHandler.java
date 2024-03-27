@@ -13,8 +13,6 @@ import org.passay.CharacterData;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -24,7 +22,6 @@ import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerExcept
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
-import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -32,13 +29,14 @@ import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangePasswordService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
 import java.util.Optional;
 
@@ -48,7 +46,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRotationEvent, String> {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    public final String password;
+
     private final SecretsManagerClient secretsManagerClient;
     private final ChangePasswordService changePasswordService;
     private final TokenRequestService tokenRequestService;
@@ -57,21 +55,23 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
 
     @ExcludeFromGeneratedCoverageReport
     public PasswordRenewalHandler() {
-        secretsManagerClient =
-                SecretsManagerClient.builder()
-                        .region(Region.EU_WEST_2)
-                        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                        .build();
+
+        ClientFactoryService clientFactoryService = new ClientFactoryService();
+
         ParameterStoreService parameterStoreService =
-                new ParameterStoreService((ParamManager.getSsmProvider()));
+                new ParameterStoreService(clientFactoryService);
+
+        secretsManagerClient = clientFactoryService.getSecretsManagerClient();
+
         SecretsManagerService secretsManagerService =
                 new SecretsManagerService(secretsManagerClient);
+
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         eventProbe = new EventProbe();
         HttpRetryer httpRetryer = new HttpRetryer(HttpClients.custom().build(), eventProbe, 0);
         dvlaConfiguration = new DvlaConfiguration(parameterStoreService, secretsManagerService);
         RequestConfig defaultRequestConfig = new HttpRequestConfig().getDefaultRequestConfig();
-        this.password = "/" + System.getenv("AWS_STACK_NAME") + "/DVLA/password";
+
         changePasswordService =
                 new ChangePasswordService(
                         dvlaConfiguration,
@@ -90,13 +90,11 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
     }
 
     public PasswordRenewalHandler(
-            String password,
             SecretsManagerClient secretsManagerClient,
             ChangePasswordService changePasswordService,
             TokenRequestService tokenRequestService,
             EventProbe eventProbe,
             DvlaConfiguration dvlaConfiguration) {
-        this.password = password;
         this.secretsManagerClient = secretsManagerClient;
         this.changePasswordService = changePasswordService;
         this.tokenRequestService = tokenRequestService;

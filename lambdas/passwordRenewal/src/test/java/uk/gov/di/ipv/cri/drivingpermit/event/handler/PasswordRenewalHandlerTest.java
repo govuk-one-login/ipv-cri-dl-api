@@ -60,10 +60,8 @@ class PasswordRenewalHandlerTest {
     @BeforeEach
     public void setup() {
 
-        String mockPassword = "DVLA/password";
         this.passwordRenewalHandler =
                 new PasswordRenewalHandler(
-                        mockPassword,
                         mockSecretsManagerClient,
                         mockChangePasswordService,
                         mockTokenRequestService,

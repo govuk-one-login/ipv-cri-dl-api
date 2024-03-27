@@ -19,34 +19,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.*;
 
 public enum ThirdPartyAPIEndpointMetric {
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DCS End Point Metrics                                                                     //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    DCS_REQUEST_CREATED(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_CREATED),
-    DCS_REQUEST_SEND_OK(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_SEND_OK),
-    DCS_REQUEST_SEND_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_SEND_ERROR),
-
-    DCS_RESPONSE_TYPE_VALID(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_VALID),
-    DCS_RESPONSE_TYPE_INVALID(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_INVALID),
-
-    DCS_RESPONSE_TYPE_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_ERROR),
-
-    DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
-    DCS_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
-
-    DCS_HTTP_RETRYER_REQUEST_SEND_OK(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
-    DCS_HTTP_RETRYER_REQUEST_SEND_FAIL(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_FAIL),
-    DCS_HTTP_RETRYER_REQUEST_SEND_RETRY(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_RETRY),
-    DCS_HTTP_RETRYER_SEND_MAX_RETRIES(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_SEND_MAX_RETRIES),
-    DCS_HTTP_RETRYER_SEND_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVA End Point Metrics                                                                     //
     ///////////////////////////////////////////////////////////////////////////////////////////////

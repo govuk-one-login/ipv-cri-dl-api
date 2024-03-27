@@ -18,6 +18,12 @@ public class Definitions {
     public static final String LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR =
             "lambda_issue_credential_completed_error";
 
+    // Runtime Capture of colds starts as custom metric for monitoring
+    public static final String LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION =
+            "lambda_driving_permit_check_function_init_duration";
+    public static final String LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION =
+            "lambda_issue_credential_function_init_duration";
+
     // Document Status after an attempt
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX =
             "lambda_driving_permit_check_attempt_status_verified_"; // Attempt count appended
@@ -25,11 +31,6 @@ public class Definitions {
             "lambda_driving_permit_check_attempt_status_retry";
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED =
             "lambda_driving_permit_check_attempt_status_unverified";
-
-    public static final String DL_FALL_BACK_EXECUTING = "driving_permit_fallback_executing";
-
-    public static final String DL_VERIFICATION_FALLBACK_DEVIATION =
-            "driving_permit_verification_fallback_deviation";
 
     // FormDataValidator
     public static final String FORM_DATA_VALIDATION_PASS = "form_data_validation_pass";

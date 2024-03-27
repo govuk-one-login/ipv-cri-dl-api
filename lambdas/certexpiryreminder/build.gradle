@@ -9,17 +9,6 @@ plugins {
 	id 'java-test-fixtures'
 }
 
-// Exclusion needed as http clients are picked from the classpath rather than from client builders.
-// The follow error occurs if exclusion removed -
-// "Multiple HTTP implementations were found on the classpath.
-// To avoid non-deterministic loading implementations, please explicitly provide an HTTP client via the client builders,
-// set the software.amazon.awssdk.http.service.impl system property with the FQCN of the HTTP service to use as the default,
-// or remove all but one HTTP implementation from the classpath: software.amazon.awssdk.core.exception.SdkClientException"
-// TODO switch to client builders and remove exclusion - see passport-v1 ClientFactoryService
-configurations.configureEach {
-	exclude group:"software.amazon.awssdk", module: "apache-client"
-}
-
 dependencies {
 	implementation project(":lib"), project(":lib-dva"),
 			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",

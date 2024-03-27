@@ -39,6 +39,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     private final ConfigurationService configurationService;
     private static final Logger LOGGER = LogManager.getLogger();
 
+    private static final String STUB_VC_PAGE_TITLE = "IPV Core Stub Credential Result - GOV.UK";
+    private static final String STUB_ERROR_PAGE_TITLE = "IPV Core Stub - GOV.UK";
+
     // Should be separate stub page
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
@@ -415,10 +418,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void navigateToDrivingLicenceResponse(String validOrInvalid) {
-        assertURLContains("callback");
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
+            assertPageTitle(STUB_ERROR_PAGE_TITLE, false);
+            assertURLContains("callback");
+            BrowserUtils.waitForVisibility(errorResponse, 10);
             errorResponse.click();
         } else {
+            assertPageTitle(STUB_VC_PAGE_TITLE, false);
+            assertURLContains("callback");
+            BrowserUtils.waitForVisibility(viewResponse, 10);
             viewResponse.click();
         }
     }

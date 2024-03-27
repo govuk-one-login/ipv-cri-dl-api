@@ -7,8 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.certreminder.config.CertExpiryReminderConfig;
 import uk.gov.di.ipv.cri.drivingpermit.certreminder.handler.CertExpiryReminderHandler;
-import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
@@ -23,9 +23,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CertExpiryReminderHandlerTest {
+class CertExpiryReminderHandlerTest {
 
-    @Mock private DvaConfiguration dvaConfiguration;
+    @Mock private CertExpiryReminderConfig certExpiryReminderConfig;
     @Mock private X509Certificate mockDvaSigningCert;
     @Mock private X509Certificate mockDvaEncryptionCert;
     @Mock private X509Certificate mockDvaTlsRootCert;
@@ -47,7 +47,7 @@ public class CertExpiryReminderHandlerTest {
         // The following certs are outside the expiryWindow (4 weeks)
         createCertificateMocks();
 
-        when(dvaConfiguration.getDVACertificates())
+        when(certExpiryReminderConfig.getDVACertificates())
                 .thenReturn(
                         Map.of(
                                 "Encryption", mockDvaEncryptionCert,
@@ -63,7 +63,7 @@ public class CertExpiryReminderHandlerTest {
 
         // Use below certificate as control for tests
         this.certExpiryReminderHandler =
-                new CertExpiryReminderHandler(dvaConfiguration, eventProbe);
+                new CertExpiryReminderHandler(certExpiryReminderConfig, eventProbe);
     }
 
     @Test

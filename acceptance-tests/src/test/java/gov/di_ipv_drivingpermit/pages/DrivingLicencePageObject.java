@@ -467,13 +467,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
         checkOkHttpResponseOnLink(changeCookiePageUrl);
     }
 
-    public void titleDVLAWithRadioBtn() {
+    public void titleDVLAWithRadioBtn(String expectedText) {
         optionDVLA.isDisplayed();
+        assertEquals(expectedText, optionDVLA.getText());
         radioBtnDVLA.isDisplayed();
     }
 
-    public void titleDVAWithRadioBtn() {
+    public void titleDVAWithRadioBtn(String expectedText) {
         optionDVA.isDisplayed();
+        assertEquals(expectedText, optionDVA.getText());
         radioBtnDVA.isDisplayed();
     }
 
@@ -483,8 +485,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
         noDLRadioBtn.isDisplayed();
     }
 
-    public void ContinueButton() {
+    public void ContinueButton(String expectedText) {
         CTButton.isDisplayed();
+        assertEquals(expectedText, CTButton.getText());
         CTButton.isEnabled();
     }
 
@@ -524,10 +527,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
         radioBtnDVLA.isEnabled();
     }
 
-    public void validateErrorText() {
-        String expectedText = "Error:\n" + "You must choose an option to continue";
-        String actualText = radioButtonError.getText();
-        assertEquals(expectedText, actualText);
+    public void validateErrorText(String expectedText) {
+        assertEquals(expectedText, radioButtonError.getText().trim().replace("\n", ""));
     }
 
     public void drivingLicencePageURLValidationWelsh() {
@@ -1088,10 +1089,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
                         .getText()
                         .trim()
                         .replace("\n", ""));
-    }
-
-    public void assertCTATextAs(String expectedText) {
-        assertEquals(CTButton.getText(), expectedText);
     }
 
     private List<String> getCIsFromEvidence(JsonNode evidenceNode) throws IOException {

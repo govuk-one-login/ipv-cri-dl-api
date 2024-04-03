@@ -12,10 +12,10 @@ Feature: Driving License Test Common
 
   @DrivingLicenceTest @build @staging @integration @smoke
   Scenario:3 options and Radio button available in Driving Licence page
-    Given I can see a radio button titled “DVLA”
-    Then I can see a radio button titled “DVA”
+    Given I can see a DVLA radio button titled DVLA
+    Then I can see a DVA radio button titled DVA
     And I can see a I do not have a UK driving licence radio button titled I do not have a UK driving licence
-    Then I can see CTA "continue"
+    Then I can see CTA Continue
     And The test is complete and I close the driver
 
   @DrivingLicenceTest @build @staging @integration @smoke
@@ -43,7 +43,7 @@ Feature: Driving License Test Common
     When I can see an error box highlighted red
     And An error heading copy You must choose an option to continue
     Then I can select a link which directs to the problem field
-    And The field error copy “You must choose an option to continue”
+    And The field error copy Error:You must choose an option to continue
     And The test is complete and I close the driver
 
   @DrivingLicenceTest @build @staging @integration

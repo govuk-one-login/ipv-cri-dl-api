@@ -686,6 +686,56 @@ public class DrivingLicencePageObject extends UniversalSteps {
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }
 
+    public void userReEntersLastName(String invalidLastName) {
+        LastName.clear();
+        LastName.sendKeys(invalidLastName);
+    }
+
+    public void userReEntersFirstName(String invalidFirstName) {
+        FirstName.clear();
+        FirstName.sendKeys(invalidFirstName);
+    }
+
+    public void userReEntersMiddleNames(String invalidMiddleNames) {
+        MiddleNames.clear();
+        MiddleNames.sendKeys(invalidMiddleNames);
+    }
+
+    public void userReEntersBirthDay(String invalidBirthDay) {
+        birthDay.clear();
+        birthDay.sendKeys(invalidBirthDay);
+    }
+
+    public void userReEntersBirthMonth(String invalidBirthMonth) {
+        birthMonth.clear();
+        birthMonth.sendKeys(invalidBirthMonth);
+    }
+
+    public void userReEntersBirthYear(String invalidBirthYear) {
+        birthYear.clear();
+        birthYear.sendKeys(invalidBirthYear);
+    }
+
+    public void userReEntersIssueDay(String invalidLicenceIssueDay) {
+        LicenceIssueDay.clear();
+        LicenceIssueDay.sendKeys(invalidLicenceIssueDay);
+    }
+
+    public void userReEntersIssueMonth(String invalidLicenceIssueMonth) {
+        LicenceIssueMonth.clear();
+        LicenceIssueMonth.sendKeys(invalidLicenceIssueMonth);
+    }
+
+    public void userReEntersIssueYear(String invalidLicenceIssueYear) {
+        LicenceIssueYear.clear();
+        LicenceIssueYear.sendKeys(invalidLicenceIssueYear);
+    }
+
+    public void userReEntersIssueNumber(String invalidIssueNumber) {
+        IssueNumber.clear();
+        IssueNumber.sendKeys(invalidIssueNumber);
+    }
+
     public void userEntersData(String issuer, String drivingLicenceSubjectScenario) {
         TestInput drivingLicenceSubject =
                 TestDataCreator.getTestUserFromMap(issuer, drivingLicenceSubjectScenario);

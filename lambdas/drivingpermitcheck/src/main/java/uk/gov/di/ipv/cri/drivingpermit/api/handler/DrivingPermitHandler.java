@@ -36,6 +36,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.util.RequestSentAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
@@ -94,7 +95,8 @@ public class DrivingPermitHandler
 
     @ExcludeFromGeneratedCoverageReport
     public DrivingPermitHandler()
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
+                    JsonProcessingException {
         ServiceFactory serviceFactory = new ServiceFactory();
 
         DrivingPermitConfigurationService drivingPermitConfigurationServiceNotYetAssigned =
@@ -154,7 +156,7 @@ public class DrivingPermitHandler
     }
 
     private DrivingPermitConfigurationService createDrivingPermitConfigurationService(
-            ServiceFactory serviceFactory) {
+            ServiceFactory serviceFactory) throws JsonProcessingException {
 
         ClientFactoryService clientFactoryService = serviceFactory.getClientFactoryService();
 
@@ -239,9 +241,15 @@ public class DrivingPermitHandler
             LOGGER.info(
                     "Verifying document details using {}", thirdPartyAPIService.getServiceName());
 
+            // TestStrategy Logic
+            String clientId = sessionItem.getClientId();
+            Strategy strategy = Strategy.fromClientIdString(clientId);
+
+            LOGGER.info("IPV Core Client Id {}, Routing set to {}", clientId, strategy);
+
             DocumentCheckVerificationResult documentCheckVerificationResult =
                     identityVerificationService.verifyIdentity(
-                            drivingPermitFormData, thirdPartyAPIService);
+                            drivingPermitFormData, thirdPartyAPIService, strategy);
 
             documentCheckVerificationResult.setAttemptCount(sessionItem.getAttemptCount());
 

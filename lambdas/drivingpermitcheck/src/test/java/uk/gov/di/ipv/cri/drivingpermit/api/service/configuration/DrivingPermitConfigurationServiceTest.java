@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.configuration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -26,7 +27,7 @@ class DrivingPermitConfigurationServiceTest {
     private DrivingPermitConfigurationService drivingPermitConfigurationService;
 
     @Test
-    void shouldCreateDrivingPermitConfigurationService() {
+    void shouldCreateDrivingPermitConfigurationService() throws JsonProcessingException {
         environmentVariables.set("AWS_REGION", "eu-west-2");
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
         // EnvVar feature toggles

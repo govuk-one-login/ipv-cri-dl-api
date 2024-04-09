@@ -13,6 +13,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.dynamo.TokenItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.RequestHeaderKeys;
@@ -48,7 +49,7 @@ public class TokenRequestService {
     private final String tokenTableName;
     private DataStore<TokenItem> dataStore;
 
-    private final URI requestURI;
+    private URI requestURI;
     private final String username;
     private final HttpRetryer httpRetryer;
     private final RequestConfig requestConfig;
@@ -103,11 +104,12 @@ public class TokenRequestService {
         this.dvlaConfiguration = dvlaConfiguration;
     }
 
-    public String requestToken(boolean alwaysRequestNewToken) throws OAuthErrorResponseException {
+    public String requestToken(boolean alwaysRequestNewToken, Strategy strategy)
+            throws OAuthErrorResponseException {
 
         LOGGER.info("Checking Table {} for existing cached token", tokenTableName);
 
-        TokenItem tokenItem = getTokenItemFromTable();
+        TokenItem tokenItem = getTokenItemFromTable(strategy);
 
         boolean existingCachedToken = tokenItem != null;
         boolean tokenTtlHasExpired =
@@ -130,13 +132,13 @@ public class TokenRequestService {
         if (newTokenRequest) {
 
             TokenResponse newTokenResponse =
-                    performNewTokenRequest(dvlaConfiguration.getPassword());
+                    performNewTokenRequest(dvlaConfiguration.getPassword(), strategy);
 
             LOGGER.info("Saving Token {}", newTokenResponse.getIdToken());
 
             tokenItem = new TokenItem(newTokenResponse.getIdToken());
 
-            saveTokenItem(tokenItem);
+            saveTokenItem(tokenItem, strategy);
         } else {
             long ttl = tokenItem.getTtl();
 
@@ -152,7 +154,7 @@ public class TokenRequestService {
         return tokenItem.getTokenValue();
     }
 
-    public TokenResponse performNewTokenRequest(String passwordParam)
+    public TokenResponse performNewTokenRequest(String passwordParam, Strategy strategy)
             throws OAuthErrorResponseException {
 
         final String requestId = UUID.randomUUID().toString();
@@ -160,7 +162,18 @@ public class TokenRequestService {
 
         // Token Request is posted as if via a form
         final HttpPost request = new HttpPost();
-        request.setURI(requestURI);
+
+        // TestStrategy Logic
+        if (strategy == Strategy.NO_CHANGE) {
+            request.setURI(requestURI);
+        } else {
+            final String endpointUri = dvlaConfiguration.getEndpointURLs().get(strategy.name());
+            final String tokenEndpoint =
+                    String.format("%s%s", endpointUri, dvlaConfiguration.getTokenPath());
+            this.requestURI = URI.create(tokenEndpoint);
+            request.setURI(requestURI);
+        }
+
         request.addHeader(
                 RequestHeaderKeys.HEADER_CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 
@@ -277,13 +290,14 @@ public class TokenRequestService {
         }
     }
 
-    private TokenItem getTokenItemFromTable() {
-        return dataStore.getItem(TOKEN_ITEM_ID);
+    private TokenItem getTokenItemFromTable(Strategy strategy) {
+        return dataStore.getItem(strategy.name() + TOKEN_ITEM_ID);
     }
 
-    private void saveTokenItem(TokenItem tokenItem) {
-        // id=TOKEN_ITEM_ID as same TokenItem is always used
-        tokenItem.setId(TOKEN_ITEM_ID);
+    private void saveTokenItem(TokenItem tokenItem, Strategy strategy) {
+        // id=<Strategy>TOKEN_ITEM_ID as tokenItem used is dependant on third party routing
+
+        tokenItem.setId(strategy.name() + TOKEN_ITEM_ID);
 
         long ttlSeconds = Instant.now().plusSeconds(TOKEN_ITEM_TTL_SECS).getEpochSecond();
 

@@ -225,15 +225,15 @@ Mappings:
     Environment:
       dev: "true"
       build: "true"
-      staging: "true"
+      staging: "false"
       integration: "false"
       production: "true"
 
   dvlaPasswordRotationWindow:
     Environment:
       dev: "rate(4 hours)"
-      build: "rate(4 hours)"
-      staging: "cron(0 10 ? 1/2 TUE#1 *)"
+      build: "cron(0 10 ? 1/2 TUE#1 *)"
+      staging: "cron(0 10 ? 1/2 TUE#1 *)" #This value will need updated to match build manually upon rotation
       integration: "cron(0 10 ? 1/2 TUE#1 *)"
       production: "cron(0 10 ? 1/2 TUE#1 *)"
 

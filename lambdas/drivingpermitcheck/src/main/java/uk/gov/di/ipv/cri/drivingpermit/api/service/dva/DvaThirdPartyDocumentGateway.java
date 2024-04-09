@@ -19,6 +19,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
@@ -90,7 +91,8 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     }
 
     @Override
-    public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
+    public DocumentCheckResult performDocumentCheck(
+            DrivingPermitForm drivingPermitData, Strategy strategy)
             throws OAuthErrorResponseException {
         LOGGER.info("Mapping person to third party document check request");
         DvaPayload dvaPayload = new DvaPayload();

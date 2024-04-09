@@ -21,6 +21,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
@@ -110,7 +111,8 @@ class DvaThirdPartyDocumentGatewayTest {
                 .thenReturn(true);
 
         DocumentCheckResult actualDocumentCheckResult =
-                dvaThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                dvaThirdPartyDocumentGateway.performDocumentCheck(
+                        drivingPermitForm, Strategy.NO_CHANGE);
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/api/ukverify",
@@ -148,7 +150,7 @@ class DvaThirdPartyDocumentGatewayTest {
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm);
+                                            drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_30X.getMessage();
@@ -191,7 +193,7 @@ class DvaThirdPartyDocumentGatewayTest {
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm);
+                                            drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_400.getMessage();
@@ -234,7 +236,7 @@ class DvaThirdPartyDocumentGatewayTest {
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm);
+                                            drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_50X.getMessage();
@@ -276,7 +278,7 @@ class DvaThirdPartyDocumentGatewayTest {
                         () -> {
                             DocumentCheckResult actualFraudCheckResult =
                                     dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm);
+                                            drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_X.getMessage();
@@ -320,7 +322,8 @@ class DvaThirdPartyDocumentGatewayTest {
                 .thenReturn(createSuccessDvaResponse());
 
         DocumentCheckResult actualFraudCheckResult =
-                dvaThirdPartyDocumentGateway.performDocumentCheck(drivingPermitForm);
+                dvaThirdPartyDocumentGateway.performDocumentCheck(
+                        drivingPermitForm, Strategy.NO_CHANGE);
 
         assertNotNull(actualFraudCheckResult);
         assertEquals(

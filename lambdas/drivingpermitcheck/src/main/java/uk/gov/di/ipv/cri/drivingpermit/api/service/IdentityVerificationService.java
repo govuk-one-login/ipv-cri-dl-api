@@ -10,6 +10,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
@@ -52,7 +53,9 @@ public class IdentityVerificationService {
     }
 
     public DocumentCheckVerificationResult verifyIdentity(
-            DrivingPermitForm drivingPermitData, ThirdPartyAPIService thirdPartyAPIService)
+            DrivingPermitForm drivingPermitData,
+            ThirdPartyAPIService thirdPartyAPIService,
+            Strategy strategy)
             throws OAuthErrorResponseException {
         DocumentCheckVerificationResult result = new DocumentCheckVerificationResult();
 
@@ -80,9 +83,8 @@ public class IdentityVerificationService {
             LOGGER.info("Document Issuer {}", issuingAuthority);
             eventProbe.counterMetric(
                     ISSUING_AUTHORITY_PREFIX + issuingAuthority.toString().toLowerCase());
-
             DocumentCheckResult documentCheckResult =
-                    thirdPartyAPIService.performDocumentCheck(drivingPermitData);
+                    thirdPartyAPIService.performDocumentCheck(drivingPermitData, strategy);
 
             LOGGER.info("Third party response mapped");
             if (Objects.nonNull(documentCheckResult)) {

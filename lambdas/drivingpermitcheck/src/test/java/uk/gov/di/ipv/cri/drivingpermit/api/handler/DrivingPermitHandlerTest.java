@@ -33,6 +33,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGate
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGateway;
 import uk.gov.di.ipv.cri.drivingpermit.api.testdata.DocumentCheckVerificationResultDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
@@ -153,6 +154,7 @@ class DrivingPermitHandlerTest {
         final var sessionItem = new SessionItem();
         sessionItem.setSessionId(sessionId);
         sessionItem.setAttemptCount(0); // No previous attempt
+        sessionItem.setClientId("NoChangeClientId"); // TestSrategy
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
 
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
@@ -173,7 +175,9 @@ class DrivingPermitHandlerTest {
         }
 
         when(mockIdentityVerificationService.verifyIdentity(
-                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
+                        any(DrivingPermitForm.class),
+                        any(ThirdPartyAPIService.class),
+                        eq(Strategy.NO_CHANGE)))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -192,9 +196,15 @@ class DrivingPermitHandlerTest {
 
         switch (issuingAuthority) {
             case "DVA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockDvaThirdPartyDocumentGateway);
+                    .verifyIdentity(
+                            drivingPermitForm,
+                            mockDvaThirdPartyDocumentGateway,
+                            Strategy.NO_CHANGE);
             case "DVLA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
+                    .verifyIdentity(
+                            drivingPermitForm,
+                            mockDvlaThirdPartyDocumentGateway,
+                            Strategy.NO_CHANGE);
         }
 
         verify(mockDocumentCheckResultStorageService)
@@ -235,6 +245,7 @@ class DrivingPermitHandlerTest {
         final var sessionItem = new SessionItem();
         sessionItem.setSessionId(UUID.randomUUID());
         sessionItem.setAttemptCount(0); // No previous attempt
+        sessionItem.setClientId("NoChangeClientId"); // TestSrategy
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
 
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
@@ -255,7 +266,9 @@ class DrivingPermitHandlerTest {
         }
 
         when(mockIdentityVerificationService.verifyIdentity(
-                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
+                        any(DrivingPermitForm.class),
+                        any(ThirdPartyAPIService.class),
+                        eq(Strategy.NO_CHANGE)))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -288,9 +301,15 @@ class DrivingPermitHandlerTest {
 
         switch (issuingAuthority) {
             case "DVA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockDvaThirdPartyDocumentGateway);
+                    .verifyIdentity(
+                            drivingPermitForm,
+                            mockDvaThirdPartyDocumentGateway,
+                            Strategy.NO_CHANGE);
             case "DVLA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
+                    .verifyIdentity(
+                            drivingPermitForm,
+                            mockDvlaThirdPartyDocumentGateway,
+                            Strategy.NO_CHANGE);
         }
     }
 
@@ -325,6 +344,7 @@ class DrivingPermitHandlerTest {
         final var sessionItem = new SessionItem();
         sessionItem.setSessionId(UUID.randomUUID());
         sessionItem.setAttemptCount(1); // One previous attempt
+        sessionItem.setClientId("NoChangeClientId"); // TestSrategy
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
 
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))
@@ -345,7 +365,9 @@ class DrivingPermitHandlerTest {
         }
 
         when(mockIdentityVerificationService.verifyIdentity(
-                        any(DrivingPermitForm.class), any(ThirdPartyAPIService.class)))
+                        any(DrivingPermitForm.class),
+                        any(ThirdPartyAPIService.class),
+                        eq(Strategy.NO_CHANGE)))
                 .thenReturn(testDocumentVerificationResult);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -367,9 +389,15 @@ class DrivingPermitHandlerTest {
 
         switch (issuingAuthority) {
             case "DVA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockDvaThirdPartyDocumentGateway);
+                    .verifyIdentity(
+                            drivingPermitForm,
+                            mockDvaThirdPartyDocumentGateway,
+                            Strategy.NO_CHANGE);
             case "DVLA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(drivingPermitForm, mockDvlaThirdPartyDocumentGateway);
+                    .verifyIdentity(
+                            drivingPermitForm,
+                            mockDvlaThirdPartyDocumentGateway,
+                            Strategy.NO_CHANGE);
         }
 
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
@@ -401,6 +429,7 @@ class DrivingPermitHandlerTest {
         final var sessionItem = new SessionItem();
         sessionItem.setSessionId(UUID.randomUUID());
         sessionItem.setAttemptCount(2); // Two previous attempts
+        sessionItem.setClientId("NoChangeClientId"); // TestSrategy
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
 
         when(context.getFunctionName()).thenReturn("functionName");
@@ -443,6 +472,7 @@ class DrivingPermitHandlerTest {
 
         final var sessionItem = new SessionItem();
         sessionItem.setSessionId(UUID.randomUUID());
+        sessionItem.setClientId("NoChangeClientId"); // TestSrategy
         when(mockSessionService.validateSessionId(anyString())).thenReturn(sessionItem);
 
         when(mockObjectMapper.readValue(testRequestBody, DrivingPermitForm.class))

@@ -10,7 +10,7 @@ Feature: DVA Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And I see a form requesting DVA LicenceNumber
 
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVA - Happy path
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -34,7 +34,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject      |
       |DVADrivingLicenceSubjectUnhappySelina |
 
-  @DVADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid driving licence number
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -48,7 +48,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject      |
       |IncorrectDrivingLicenceNumber |
 
-  @DVADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid date of birth and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -61,7 +61,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectDateOfBirth |
 
-  @DVADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid first name and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -74,7 +74,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectFirstName|
 
-  @DVADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid last name and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -87,7 +87,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectLastName|
 
-  @DVADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -100,7 +100,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectIssueDate|
 
-  @DVADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -113,7 +113,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectValidToDate|
 
-  @DVADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid postcode and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -127,7 +127,7 @@ Feature: DVA Driving Licence Test
       |IncorrectPostcode|
 
 
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -141,7 +141,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |DVADrivingLicenceSubjectHappyBilly |
 
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @stub @uat @smoke
   Scenario Outline: DVA - User attempts invalid journey and retries with invalid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -155,7 +155,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject |
       |IncorrectDrivingLicenceNumber |
 
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @stub @uat @smoke
   Scenario: DVA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -165,14 +165,14 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
 
-  @DVADrivingLicence_test @smoke
+  @smoke
   Scenario: DVA - User cancels before first attempt by clicking prove another way and returns an authorisation error
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVADrivingLicence_test @smoke
+  @smoke
   Scenario: DVA - User cancels before first attempt by clicking no driving licence and returns an authorisation error
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button
@@ -180,7 +180,7 @@ Feature: DVA Driving Licence Test
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVADrivingLicence_test @build
+  @build @stub
   Scenario Outline: DVA - User enters invalid details and returns enter your details as it appears error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -209,7 +209,7 @@ Feature: DVA Driving Licence Test
 
 ###########  DVA Field Validations ##########
     #not existing in front end repo
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @uat @stub
   Scenario: DVA - User consents to have DL checked and navigates to DVA privacy notice
     Then I see the DVA consent section Allow DVA to check your driving licence details
     And I see the Consent sentence in DVA page DVA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.
@@ -219,7 +219,7 @@ Feature: DVA Driving Licence Test
     And The test is complete and I close the driver
 
       #not existing in front end repo
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVA - User attempts journey with invalid details and clicks on prove another way and generates a VC
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -231,7 +231,7 @@ Feature: DVA Driving Licence Test
       |DVADrivingLicenceSubject           |
       | IncorrectDrivingLicenceNumber     |
 
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVA - User attempts journey with consent checkbox unselected and returns error
     Given User enters DVA data as a <DrivingLicenceSubject>
     And DVA consent checkbox is unselected
@@ -243,7 +243,7 @@ Feature: DVA Driving Licence Test
       |DrivingLicenceSubject             |
       |DVADrivingLicenceSubjectHappyBilly|
 
-  @DVADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario: DVA - User consents to have DL checked and navigates to DVA privacy notice
     Then I see the DVA consent section Allow DVA to check your driving licence details
     And I see the Consent sentence in DVA page DVA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.

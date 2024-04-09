@@ -10,7 +10,7 @@ Feature: Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And I see a form requesting DVLA LicenceNumber
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVLA - Happy path
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -22,7 +22,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid driving licence number
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -36,7 +36,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject         |
       | IncorrectDrivingLicenceNumber |
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVLA - User enters driving licence number and date of birth in incorrect format which returns validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -47,7 +47,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject               |
       | DrivingLicenceNumberWithNumericChar |
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid date of birth and returns field validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -58,7 +58,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | IncorrectDateOfBirth  |
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid last name and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -71,7 +71,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | IncorrectLastName     |
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -84,7 +84,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | IncorrectIssueDate    |
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -97,7 +97,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | IncorrectValidToDate  |
 
-  @DVLADrivingLicence_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid issue number and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -110,7 +110,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject |
       | IncorrectIssueNumber  |
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -124,7 +124,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -138,7 +138,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject         |
       | IncorrectDrivingLicenceNumber |
 
-  @DVLADrivingLicence_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario: DVLA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -148,14 +148,14 @@ Feature: Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @smoke
+  @smoke
   Scenario: DVLA - User cancels before first attempt by clicking prove another way and returns an authorisation error
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @smoke
+  @smoke
   Scenario: DVLA - User cancels before first attempt by clicking no driving licence and returns an authorisation error
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button
@@ -163,7 +163,7 @@ Feature: Driving Licence Test
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DVLADrivingLicence_test @build
+  @build @stub
   Scenario: DVLA - Password rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
     When User clicks on continue
@@ -171,7 +171,7 @@ Feature: Driving Licence Test
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
 
-  @DVLADrivingLicence_test @build
+  @build @stub
   Scenario Outline: DVLA - User enters invalid details and returns enter your details as it appears error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -202,7 +202,7 @@ Feature: Driving Licence Test
 
     ###########  DVLA Field Validations ##########
   #not existing in front end repo
-  @DVLADrivingLicence_test @build @staging @integration @dvlaDirect @cat
+  @build @staging @integration @dvlaDirect @stub @uat
   Scenario: DVLA - User consents to have DL checked and navigates to DVLA privacy notice
     Then I see the consent section Allow DVLA to check your driving licence details
     And I see the sentence DVLA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.

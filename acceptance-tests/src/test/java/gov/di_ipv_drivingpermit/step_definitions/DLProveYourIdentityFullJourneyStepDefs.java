@@ -99,4 +99,9 @@ public class DLProveYourIdentityFullJourneyStepDefs
     public void i_should_be_navigated_to(String expectedText) {
         govUkHeadingText(expectedText);
     }
+
+    @And("The user chooses the environment (.*) from dropdown$")
+    public void chooseTargetEnvironment(String environment) {
+        selectTargetEnvironmentFromDropdown(environment);
+    }
 }

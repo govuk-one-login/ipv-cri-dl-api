@@ -48,6 +48,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
@@ -57,6 +59,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -162,6 +165,9 @@ class DriverMatchServiceTest {
                 .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbe
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbe
+                .verify(mockEventProbe)
                 .counterMetric(DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
         inOrderMockEventProbe
                 .verify(mockEventProbe)
@@ -246,6 +252,9 @@ class DriverMatchServiceTest {
         inOrderMockEventProbe
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbe
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbe
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -344,6 +353,9 @@ class DriverMatchServiceTest {
                 .counterMetric(DVLA_MATCH_REQUEST_CREATED.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(
                         DVLA_MATCH_REQUEST_SEND_ERROR.withEndpointPrefixAndExceptionName(
                                 exceptionCaught));
@@ -412,6 +424,9 @@ class DriverMatchServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -483,6 +498,9 @@ class DriverMatchServiceTest {
                 .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(
                         DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
@@ -540,6 +558,9 @@ class DriverMatchServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());

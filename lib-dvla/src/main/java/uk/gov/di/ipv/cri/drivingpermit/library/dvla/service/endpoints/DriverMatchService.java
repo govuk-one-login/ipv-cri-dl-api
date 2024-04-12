@@ -29,6 +29,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +39,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.Res
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.SUCCESS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.UNAUTHORISED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_LATENCY;
 
 public class DriverMatchService {
 
@@ -63,6 +65,8 @@ public class DriverMatchService {
 
     private final DvlaConfiguration dvlaConfiguration;
 
+    private final StopWatch stopWatch;
+
     public DriverMatchService(
             DvlaConfiguration dvlaConfiguration,
             HttpRetryer httpRetryer,
@@ -81,6 +85,7 @@ public class DriverMatchService {
         this.eventProbe = eventProbe;
 
         this.httpRetryStatusConfig = new DriverMatchHttpRetryStatusConfig();
+        this.stopWatch = new StopWatch();
     }
 
     @java.lang.SuppressWarnings("java:S3776")
@@ -147,6 +152,7 @@ public class DriverMatchService {
         String requestURIString = requestURI.toString();
         LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
         LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
+        stopWatch.start();
         try (CloseableHttpResponse response =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
 
@@ -156,6 +162,10 @@ public class DriverMatchService {
             // throws OAuthErrorResponseException on error
             httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(
+                    DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
+
             LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
 
             eventProbe.counterMetric(
@@ -166,6 +176,10 @@ public class DriverMatchService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_MATCH_ENDPOINT);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(
+                DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         // There are two API response types possible depending on userdata
         if (httpReply.statusCode == SUCCESS || httpReply.statusCode == NOT_FOUND) {

@@ -31,6 +31,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -48,6 +49,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_TYPE_INVALID;
@@ -67,6 +69,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private final EventProbe eventProbe;
 
     private final HttpRetryStatusConfig httpRetryStatusConfig;
+    private final StopWatch stopWatch;
 
     public DvaThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
@@ -83,6 +86,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         this.eventProbe = eventProbe;
 
         this.httpRetryStatusConfig = new DvaHttpRetryStatusConfig();
+        this.stopWatch = new StopWatch();
     }
 
     @Override
@@ -157,7 +161,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         eventProbe.counterMetric(DVA_REQUEST_CREATED.withEndpointPrefix());
 
         LOGGER.info("Submitting document check request to DVA...");
-
+        stopWatch.start();
         DocumentCheckResult documentCheckResult;
         try (CloseableHttpResponse httpResponse =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
@@ -165,11 +169,16 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
             documentCheckResult =
                     responseHandler(dvaPayload, httpResponse, dvaPayload.getRequestId().toString());
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(DVA_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
+
             LOGGER.error("IOException executing http request {}", e.getMessage());
             eventProbe.counterMetric(DVA_REQUEST_SEND_ERROR.withEndpointPrefix());
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.ERROR_CONTACTING_DVA);
         } catch (ParseException | JOSEException e) {
+            // Response Latency but after error handling
+            eventProbe.counterMetric(DVA_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
             LOGGER.error(e.getMessage());
             eventProbe.counterMetric(DVA_RESPONSE_TYPE_INVALID.withEndpointPrefix());
@@ -178,6 +187,9 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(DVA_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         eventProbe.counterMetric(DVA_RESPONSE_TYPE_VALID.withEndpointPrefix());
 

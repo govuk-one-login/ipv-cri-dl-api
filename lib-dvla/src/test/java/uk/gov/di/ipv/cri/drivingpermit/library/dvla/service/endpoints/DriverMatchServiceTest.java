@@ -13,12 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaPayload;
@@ -81,7 +83,6 @@ class DriverMatchServiceTest {
     @BeforeEach
     void setUp() {
         realObjectMapper = new ObjectMapper();
-
         when(mockDvlaConfiguration.getMatchEndpoint()).thenReturn(TEST_END_POINT);
         when(mockDvlaConfiguration.getApiKey()).thenReturn(TEST_API_KEY);
 
@@ -141,7 +142,94 @@ class DriverMatchServiceTest {
         DvlaFormFields dvlaFormFields = getTestData();
 
         DriverMatchServiceResult driverMatchServiceResult =
-                driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE);
+                driverMatchService.performMatch(
+                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE);
+
+        // (POST)
+        InOrder inOrderMockCloseableHttpClient = inOrder(mockHttpRetryer);
+        inOrderMockCloseableHttpClient
+                .verify(mockHttpRetryer, times(1))
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(DriverMatchHttpRetryStatusConfig.class));
+        verifyNoMoreInteractions(mockHttpRetryer);
+
+        InOrder inOrderMockEventProbe = inOrder(mockEventProbe);
+        inOrderMockEventProbe
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_MATCH_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbe
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_MATCH_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbe
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+        inOrderMockEventProbe
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_MATCH_RESPONSE_TYPE_VALID.withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertNotNull(driverMatchServiceResult);
+        assertNotNull(driverMatchServiceResult.getValidity());
+        assertEquals(expectedValidity, driverMatchServiceResult.getValidity());
+        assertDriverMatchHeaders(httpRequestCaptor);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Strategy.class)
+    void shouldReturnDriverMatchServiceResultWithTestStrategy(Strategy strategy)
+            throws OAuthErrorResponseException, IOException {
+        int status = 200;
+        boolean validDocument = true;
+        Validity expectedValidity = Validity.VALID;
+        if (!(strategy == Strategy.NO_CHANGE)) {
+            when(mockDvlaConfiguration.getEndpointURLs())
+                    .thenReturn(
+                            Map.of(
+                                    "STUB",
+                                    "http://stub",
+                                    "UAT",
+                                    "http://uat",
+                                    "LIVE",
+                                    "http://live"));
+        }
+
+        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
+                ArgumentCaptor.forClass(HttpPost.class);
+
+        String testDriverMatchAPIResponse;
+        if (status == 200) {
+            DriverMatchAPIResponse driverMatchAPIResponse =
+                    DriverMatchAPIResponse.builder().validDocument(validDocument).build();
+            testDriverMatchAPIResponse =
+                    realObjectMapper.writeValueAsString(driverMatchAPIResponse);
+        } else {
+            Errors errors =
+                    Errors.builder()
+                            .code("ENQ018")
+                            .status("404")
+                            .detail("Driver number not found")
+                            .build();
+
+            DriverMatchErrorResponse driverMatchErrorResponse =
+                    DriverMatchErrorResponse.builder().errors(List.of(errors)).build();
+            testDriverMatchAPIResponse =
+                    realObjectMapper.writeValueAsString(driverMatchErrorResponse);
+        }
+
+        CloseableHttpResponse driverMatchResponse =
+                HttpResponseFixtures.createHttpResponse(
+                        status, null, testDriverMatchAPIResponse, false);
+
+        // HttpClient response
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DriverMatchHttpRetryStatusConfig.class)))
+                .thenReturn(driverMatchResponse);
+
+        // Method arg
+        DvlaFormFields dvlaFormFields = getTestData();
+
+        DriverMatchServiceResult driverMatchServiceResult =
+                driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE, strategy);
 
         // (POST)
         InOrder inOrderMockCloseableHttpClient = inOrder(mockHttpRetryer);
@@ -209,7 +297,7 @@ class DriverMatchServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 thisTestOnlyDriverMatchService.performMatch(
-                                        dvlaFormFields, TEST_TOKEN_VALUE),
+                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -237,7 +325,9 @@ class DriverMatchServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE),
+                        () ->
+                                driverMatchService.performMatch(
+                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post)
@@ -302,7 +392,9 @@ class DriverMatchServiceTest {
         DVLAMatchUnauthorizedException thrownException =
                 assertThrows(
                         DVLAMatchUnauthorizedException.class,
-                        () -> driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE),
+                        () ->
+                                driverMatchService.performMatch(
+                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
                         "Expected DVLAMatchUnauthorizedException");
 
         // (Post) DriverMatch
@@ -369,7 +461,9 @@ class DriverMatchServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE),
+                        () ->
+                                driverMatchService.performMatch(
+                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) DriverMatch
@@ -426,7 +520,9 @@ class DriverMatchServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE),
+                        () ->
+                                driverMatchService.performMatch(
+                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) DriverMatch

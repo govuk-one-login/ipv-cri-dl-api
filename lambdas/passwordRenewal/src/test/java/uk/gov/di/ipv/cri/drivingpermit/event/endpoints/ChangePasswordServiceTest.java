@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.request.ChangePasswordPayload;
 import uk.gov.di.ipv.cri.drivingpermit.event.service.ChangePasswordHttpRetryStatusConfig;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
@@ -87,7 +88,10 @@ class ChangePasswordServiceTest {
                         any(ChangePasswordHttpRetryStatusConfig.class)))
                 .thenReturn(changePasswordResponse);
 
-        assertDoesNotThrow(() -> changePasswordService.sendPasswordChangeRequest("NEWPASSWORD"));
+        assertDoesNotThrow(
+                () ->
+                        changePasswordService.sendPasswordChangeRequest(
+                                "NEWPASSWORD", Strategy.NO_CHANGE));
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
         inOrderMockEventProbeSequence
@@ -125,7 +129,9 @@ class ChangePasswordServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> changePasswordService.sendPasswordChangeRequest("NEW_PASSWORD"),
+                        () ->
+                                changePasswordService.sendPasswordChangeRequest(
+                                        "NEW_PASSWORD", Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Change Password
@@ -175,7 +181,9 @@ class ChangePasswordServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> changePasswordService.sendPasswordChangeRequest("NEW_PASSWORD"),
+                        () ->
+                                changePasswordService.sendPasswordChangeRequest(
+                                        "NEW_PASSWORD", Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Change Password
@@ -243,11 +251,47 @@ class ChangePasswordServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 thisTestOnlyChangePasswordService.sendPasswordChangeRequest(
-                                        "NEW_PASSWORD"),
+                                        "NEW_PASSWORD", Strategy.NO_CHANGE),
                         "JsonProcessingException creating request body");
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
         assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
+    }
+
+    @Test
+    void shouldReturn200WhenChangePasswordServiceCalledWithLiveTestStrategy() throws IOException {
+
+        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
+                ArgumentCaptor.forClass(HttpPost.class);
+
+        CloseableHttpResponse changePasswordResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, null, false);
+
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(),
+                        any(ChangePasswordHttpRetryStatusConfig.class)))
+                .thenReturn(changePasswordResponse);
+
+        assertDoesNotThrow(
+                () ->
+                        changePasswordService.sendPasswordChangeRequest(
+                                "NEWPASSWORD", Strategy.LIVE));
+
+        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_EXPECTED_HTTP_STATUS
+                                .withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertChangePasswordHeaders(httpRequestCaptor);
     }
 
     private void assertChangePasswordHeaders(

@@ -1,5 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
@@ -16,6 +18,8 @@ public class DvlaConfiguration {
 
     private static final String DVLA_PARAMETER_PATH = "DVLA";
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     private final String tokenEndpoint;
     private final String matchEndpoint;
     private final String changePasswordEndpoint;
@@ -30,9 +34,17 @@ public class DvlaConfiguration {
 
     private final SecretsManagerService secretsManagerService;
 
+    // TestDataStrategy mvp updates
+    private final Map<String, String> endpointURLs;
+
+    private final String tokenPath;
+    private final String matchPath;
+    private final String changePasswordPath;
+
     public DvlaConfiguration(
             ParameterStoreService parameterStoreService,
-            SecretsManagerService secretsManagerService) {
+            SecretsManagerService secretsManagerService)
+            throws JsonProcessingException {
         this.secretsManagerService = secretsManagerService;
 
         Map<String, String> dvlaParameterMap =
@@ -40,11 +52,16 @@ public class DvlaConfiguration {
                         ParameterPrefix.OVERRIDE, DVLA_PARAMETER_PATH);
 
         final String endpointUri = dvlaParameterMap.get("endpointUrl");
+        ////////////////////////// TestStrategyMVP////////////////////////////////////
+        this.endpointURLs = constructParameterMap(dvlaParameterMap.get("testStrategy/endpointUrl"));
+        this.tokenPath = dvlaParameterMap.get("tokenPath");
+        this.matchPath = dvlaParameterMap.get("matchPath");
+        this.changePasswordPath = dvlaParameterMap.get("passwordPath");
+        /////////////////////////////////////////////////////////////////////////////
 
-        this.tokenEndpoint = String.format("%s%s", endpointUri, dvlaParameterMap.get("tokenPath"));
-        this.matchEndpoint = String.format("%s%s", endpointUri, dvlaParameterMap.get("matchPath"));
-        this.changePasswordEndpoint =
-                String.format("%s%s", endpointUri, dvlaParameterMap.get("passwordPath"));
+        this.tokenEndpoint = String.format("%s%s", endpointUri, tokenPath);
+        this.matchEndpoint = String.format("%s%s", endpointUri, matchPath);
+        this.changePasswordEndpoint = String.format("%s%s", endpointUri, changePasswordPath);
 
         this.apiKey = dvlaParameterMap.get("apiKey");
         this.username = dvlaParameterMap.get("username");
@@ -97,5 +114,37 @@ public class DvlaConfiguration {
 
     public boolean isPasswordRotationEnabled() {
         return passwordRotationEnabled;
+    }
+
+    public Map<String, String> getEndpointURLs() {
+        return endpointURLs;
+    }
+
+    public String getTokenPath() {
+        return tokenPath;
+    }
+
+    public String getMatchPath() {
+        return matchPath;
+    }
+
+    public String getChangePasswordPath() {
+        return changePasswordPath;
+    }
+
+    private Map<String, String> constructParameterMap(String parameterValue)
+            throws JsonProcessingException {
+        if (null == parameterValue) {
+            // null check is for testing DrivingPermitConfiguration creation purposes ONLY
+            return Map.of(
+                    "STUB",
+                    "unassignedStubEndpoint",
+                    "UAT",
+                    "unassignedUatEndpoint",
+                    "LIVE",
+                    "unassignedLiveEndpoint");
+        } else {
+            return objectMapper.readValue(parameterValue, Map.class);
+        }
     }
 }

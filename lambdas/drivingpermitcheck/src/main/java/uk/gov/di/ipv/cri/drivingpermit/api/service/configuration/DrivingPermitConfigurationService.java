@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.configuration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
@@ -16,7 +17,8 @@ public class DrivingPermitConfigurationService {
 
     public DrivingPermitConfigurationService(
             ParameterStoreService parameterStoreService,
-            SecretsManagerService secretsManagerService) {
+            SecretsManagerService secretsManagerService)
+            throws JsonProcessingException {
 
         // ****************************Private Parameters****************************
 

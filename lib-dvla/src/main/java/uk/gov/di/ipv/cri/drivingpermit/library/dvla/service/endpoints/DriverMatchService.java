@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaPayload;
@@ -48,7 +49,7 @@ public class DriverMatchService {
 
     private static final String DVLA_RESPONSE_HEADER_REQUEST_ID_KEY = "X-DVLA-Request-Id";
 
-    private final URI requestURI;
+    private URI requestURI;
     private final String apiKey;
 
     private final HttpRetryer httpRetryer;
@@ -60,6 +61,8 @@ public class DriverMatchService {
 
     private final HttpRetryStatusConfig httpRetryStatusConfig;
 
+    private final DvlaConfiguration dvlaConfiguration;
+
     public DriverMatchService(
             DvlaConfiguration dvlaConfiguration,
             HttpRetryer httpRetryer,
@@ -67,6 +70,7 @@ public class DriverMatchService {
             ObjectMapper objectMapper,
             EventProbe eventProbe) {
 
+        this.dvlaConfiguration = dvlaConfiguration;
         this.requestURI = URI.create(dvlaConfiguration.getMatchEndpoint());
         this.apiKey = dvlaConfiguration.getApiKey();
 
@@ -79,12 +83,24 @@ public class DriverMatchService {
         this.httpRetryStatusConfig = new DriverMatchHttpRetryStatusConfig();
     }
 
-    public DriverMatchServiceResult performMatch(DvlaFormFields dvlaFormFields, String tokenValue)
+    @java.lang.SuppressWarnings("java:S3776")
+    public DriverMatchServiceResult performMatch(
+            DvlaFormFields dvlaFormFields, String tokenValue, Strategy strategy)
             throws OAuthErrorResponseException {
 
         // Request is posted as if JSON
         final HttpPost request = new HttpPost();
-        request.setURI(requestURI);
+
+        // TestStrategy Logic
+        if (strategy == Strategy.NO_CHANGE) {
+            request.setURI(requestURI);
+        } else {
+            final String endpointUri = dvlaConfiguration.getEndpointURLs().get(strategy.name());
+            this.requestURI =
+                    URI.create(
+                            String.format("%s%s", endpointUri, dvlaConfiguration.getMatchPath()));
+            request.setURI(requestURI);
+        }
 
         request.addHeader(
                 RequestHeaderKeys.HEADER_CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());

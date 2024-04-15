@@ -152,6 +152,9 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/div[3]/div/dl/div[2]/dd/details/div/pre")
     public WebElement dlJsonPayload;
 
+    @FindBy(id = "targetEnvironment")
+    public WebElement ChooseYourEnvironmentFromTheList;
+
     public DLProveYourIdentityFullJourneyPageObject() {
         this.configurationService = new ConfigurationService(System.getenv("ENVIRONMENT"));
         PageFactory.initElements(Driver.get(), this);
@@ -478,5 +481,10 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
             vcMap.put(key, vc);
         }
         return vcMap;
+    }
+
+    public void selectTargetEnvironmentFromDropdown(String environment) {
+        Select select = new Select(ChooseYourEnvironmentFromTheList);
+        select.selectByValue(environment);
     }
 }

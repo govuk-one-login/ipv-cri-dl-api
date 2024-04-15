@@ -2,7 +2,9 @@ Feature: Prove Your Identity Full Journey
 
   Background:
     Given I navigate to the Orchestrator Stub
+    And The user chooses the environment STAGING from dropdown
     And I click on Full journey route and Continue
+    And I select the radio option UK driving licence and click on Continue
     And clicks continue on the signed into your GOV.UK One Login page
 
   @dlProveYourIdentityFullJourney
@@ -69,8 +71,8 @@ Feature: Prove Your Identity Full Journey
     Then Proper error message for Could not find your details is displayed
     When User Re-enters DVA data as a <DVADrivingLicenceSubject>
     And User clicks on continue
-    Then I check the page title is Sorry, we cannot prove your identity – GOV.UK
-    And I can see the error heading Sorry, we cannot prove your identity
+    Then I check the page title is Sorry, you’ll need to prove your identity another way – GOV.UK
+    And I can see the error heading Sorry, you’ll need to prove your identity another way
     And The test is complete and I close the driver
     Examples:
       |DVADrivingLicenceSubject |

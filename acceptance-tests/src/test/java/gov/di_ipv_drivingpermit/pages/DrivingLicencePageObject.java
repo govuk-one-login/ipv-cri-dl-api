@@ -108,6 +108,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "licenceIssuer-error")
     public WebElement radioButtonError;
 
+    @FindBy(xpath = "/html/body/div[2]/nav/ul/li[2]/a")
+    public WebElement languageToggle;
+
+    @FindBy(xpath = "/html/body/div[2]/nav/ul/li[1]/a")
+    public WebElement languageToggleWales;
+
     // ---------------
 
     @FindBy(className = "error-summary")
@@ -532,7 +538,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void drivingLicencePageURLValidationWelsh() {
-        assertURLContains("/licence-issuer/?lang=cy");
+        assertURLContains("/licence-issuer/?lng=cy");
     }
 
     public void assertOrLabelText(String expectedText) {

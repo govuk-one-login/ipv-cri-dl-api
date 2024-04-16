@@ -210,3 +210,17 @@ Feature: Driving Licence Test
     And I see privacy notice link the GOV.UK One Login privacy notice (opens in a new tab)
     Then I see the DVLA privacy notice link the DVLA privacy notice (opens in a new tab)
     And The test is complete and I close the driver
+
+  @build @stub @Language-regression
+  Scenario Outline: Language Title validation
+    Given User clicks on language toggle and switches to Welsh
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
+    Then User enters DVLA data as a <DrivingLicenceSubject>
+    When User clicks on continue
+    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
+    And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject             |
+      | DrivingLicenceSubjectHappyKenneth |

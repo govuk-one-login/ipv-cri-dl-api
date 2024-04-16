@@ -416,4 +416,14 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     public void navigateToPage(String page) {
         goToPage(page);
     }
+
+    @Given("User clicks on language toggle and switches to Welsh")
+    public void userClickOnLanguageToggle() {
+        languageToggle.click();
+    }
+
+    @Given("User clicks language toggle and switches to English")
+    public void userClickOnLanguageToggleWales() {
+        languageToggleWales.click();
+    }
 }

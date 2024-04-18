@@ -36,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
@@ -103,6 +105,11 @@ class ChangePasswordServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
+                        eq(DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix()),
+                        anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
                         DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_EXPECTED_HTTP_STATUS
                                 .withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
@@ -146,6 +153,11 @@ class ChangePasswordServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        eq(DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix()),
+                        anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -201,6 +213,11 @@ class ChangePasswordServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        eq(DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix()),
+                        anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -284,6 +301,11 @@ class ChangePasswordServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        eq(DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix()),
+                        anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(

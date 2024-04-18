@@ -27,6 +27,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +39,7 @@ import java.util.UUID;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.BAD_REQUEST;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.UNAUTHORISED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_LATENCY;
 
 public class TokenRequestService {
 
@@ -79,6 +81,8 @@ public class TokenRequestService {
     public static final String INVALID_EXPIRY_WINDOW_ERROR_MESSAGE =
             "Token expiry window not valid";
 
+    private final StopWatch stopWatch;
+
     public TokenRequestService(
             DvlaConfiguration dvlaConfiguration,
             DynamoDbEnhancedClient dynamoDbEnhancedClient,
@@ -102,6 +106,8 @@ public class TokenRequestService {
 
         this.httpRetryStatusConfig = new TokenHttpRetryStatusConfig();
         this.dvlaConfiguration = dvlaConfiguration;
+
+        this.stopWatch = new StopWatch();
     }
 
     public String requestToken(boolean alwaysRequestNewToken, Strategy strategy)
@@ -212,6 +218,7 @@ public class TokenRequestService {
         String requestURIString = requestURI.toString();
         LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
         LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
+        stopWatch.start();
         try (CloseableHttpResponse response =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
             eventProbe.counterMetric(
@@ -220,6 +227,9 @@ public class TokenRequestService {
             // throws OAuthErrorResponseException on error
             httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(
+                    DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
             LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
 
@@ -231,6 +241,10 @@ public class TokenRequestService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_TOKEN_ENDPOINT);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(
+                DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         if (httpReply.statusCode == 200) {
             LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode);

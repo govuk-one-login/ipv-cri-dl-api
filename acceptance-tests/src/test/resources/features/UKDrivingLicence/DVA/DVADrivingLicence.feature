@@ -20,8 +20,8 @@ Feature: DVA Driving Licence Test
     And JSON response should contain JTI field
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject             |
-      |DVADrivingLicenceSubjectHappyBilly   |
+      | DVADrivingLicenceSubject           |
+      | DVADrivingLicenceSubjectHappyBilly |
 
   @DVADrivingLicence_test
   Scenario Outline: DVA - User attempts journey with invalid details and returns authorisation error
@@ -31,8 +31,8 @@ Feature: DVA Driving Licence Test
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject      |
-      |DVADrivingLicenceSubjectUnhappySelina |
+      | DVADrivingLicenceSubject              |
+      | DVADrivingLicenceSubjectUnhappySelina |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid driving licence number
@@ -45,8 +45,8 @@ Feature: DVA Driving Licence Test
     And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject      |
-      |IncorrectDrivingLicenceNumber |
+      | DVADrivingLicenceSubject      |
+      | IncorrectDrivingLicenceNumber |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid date of birth and returns could not find your details error message
@@ -58,8 +58,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |IncorrectDateOfBirth |
+      | DVADrivingLicenceSubject |
+      | IncorrectDateOfBirth     |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid first name and returns could not find your details error message
@@ -71,8 +71,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |IncorrectFirstName|
+      | DVADrivingLicenceSubject |
+      | IncorrectFirstName       |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid last name and returns could not find your details error message
@@ -84,8 +84,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |IncorrectLastName|
+      | DVADrivingLicenceSubject |
+      | IncorrectLastName        |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid issue date and returns could not find your details error message
@@ -97,8 +97,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |IncorrectIssueDate|
+      | DVADrivingLicenceSubject |
+      | IncorrectIssueDate       |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid valid-to date and returns could not find your details error message
@@ -110,8 +110,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |IncorrectValidToDate|
+      | DVADrivingLicenceSubject |
+      | IncorrectValidToDate     |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid postcode and returns could not find your details error message
@@ -123,8 +123,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |IncorrectPostcode|
+      | DVADrivingLicenceSubject |
+      | IncorrectPostcode        |
 
 
   @build @staging @integration @smoke @stub @uat
@@ -138,8 +138,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |DVADrivingLicenceSubjectHappyBilly |
+      | DVADrivingLicenceSubject           |
+      | DVADrivingLicenceSubjectHappyBilly |
 
   @build @staging @integration @stub @uat @smoke
   Scenario Outline: DVA - User attempts invalid journey and retries with invalid details
@@ -152,8 +152,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject |
-      |IncorrectDrivingLicenceNumber |
+      | DVADrivingLicenceSubject      |
+      | IncorrectDrivingLicenceNumber |
 
   @build @staging @integration @stub @uat @smoke
   Scenario: DVA - User attempts invalid journey and cancels after first attempt
@@ -187,25 +187,25 @@ Feature: DVA Driving Licence Test
     Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject             |
-      |NoLastName   |
-      |NoFirstName |
-      |NoDateOfBirth   |
-      |NoIssueDate   |
-      |NoValidToDate  |
-      |NoDrivingLicenceNumber |
-      |NoPostcode|
-      |InvalidFirstNameWithNumbers|
-      |InvalidFirstNameWithSpecialCharacters|
-      |DateOfBirthWithSpecialCharacters     |
-      |InvalidDateOfBirth|
-      |DateOfBirthInFuture            |
-      |IssueDateWithSpecialCharacters|
-      |ValidToDateWithSpecialCharacters|
-      |ValidToDateInPast |
-      |DrivingLicenceNumberWithSpecialChar|
-      |PostcodeWithSpecialChar            |
-      |InternationalPostcode              |
+      | DVADrivingLicenceSubject              |
+      | NoLastName                            |
+      | NoFirstName                           |
+      | NoDateOfBirth                         |
+      | NoIssueDate                           |
+      | NoValidToDate                         |
+      | NoDrivingLicenceNumber                |
+      | NoPostcode                            |
+      | InvalidFirstNameWithNumbers           |
+      | InvalidFirstNameWithSpecialCharacters |
+      | DateOfBirthWithSpecialCharacters      |
+      | InvalidDateOfBirth                    |
+      | DateOfBirthInFuture                   |
+      | IssueDateWithSpecialCharacters        |
+      | ValidToDateWithSpecialCharacters      |
+      | ValidToDateInPast                     |
+      | DrivingLicenceNumberWithSpecialChar   |
+      | PostcodeWithSpecialChar               |
+      | InternationalPostcode                 |
 
 ###########  DVA Field Validations ##########
     #not existing in front end repo
@@ -228,8 +228,8 @@ Feature: DVA Driving Licence Test
     And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
-      |DVADrivingLicenceSubject           |
-      | IncorrectDrivingLicenceNumber     |
+      | DVADrivingLicenceSubject      |
+      | IncorrectDrivingLicenceNumber |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVA - User attempts journey with consent checkbox unselected and returns error
@@ -240,8 +240,8 @@ Feature: DVA Driving Licence Test
     And User can see the DVA consent error on the checkbox as Error:You must give your consent to continue
     And The test is complete and I close the driver
     Examples:
-      |DrivingLicenceSubject             |
-      |DVADrivingLicenceSubjectHappyBilly|
+      | DrivingLicenceSubject              |
+      | DVADrivingLicenceSubjectHappyBilly |
 
   @build @staging @integration @smoke @stub @uat
   Scenario: DVA - User consents to have DL checked and navigates to DVA privacy notice
@@ -251,3 +251,18 @@ Feature: DVA Driving Licence Test
     And I see privacy DVA notice link the GOV.UK One Login privacy notice (opens in a new tab)
     Then I see the DVA privacy notice link the DVA privacy notice (opens in a new tab)
     And The test is complete and I close the driver
+
+  @build @stub @Language-regression
+  Scenario Outline: Language Title validation
+    Given User clicks on language toggle and switches to Welsh
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
+    Then User enters DVA data as a <DVADrivingLicenceSubject>
+    When User clicks on continue
+    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
+    And JSON response should contain personal number 55667788 same as given Driving Licence
+    And JSON response should contain JTI field
+    And The test is complete and I close the driver
+    Examples:
+      | DVADrivingLicenceSubject           |
+      | DVADrivingLicenceSubjectHappyBilly |

@@ -56,3 +56,34 @@ Feature: Driving License Language Test
     And I see privacy DVA notice link hysbysiad preifatrwydd GOV.UK One Login (agor mewn tab newydd)
     Then I see the DVA privacy notice link hysbysiad preifatrwydd DVA (agor mewn tab newydd)
     And The test is complete and I close the driver
+
+  @Language-regression
+  Scenario Outline: Language Title validation Welsh DVLA
+    Given I click on DVLA radio button and Parhau
+    Then User clicks language toggle and switches to English
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    Then User enters DVLA data as a <DrivingLicenceSubject>
+    When User clicks on continue
+    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
+    And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject             |
+      | DrivingLicenceSubjectHappyKenneth |
+
+  @Language-regression
+  Scenario Outline: Language Title validation Welsh DVA
+    Given I click on DVA radio button and Parhau
+    Then User clicks language toggle and switches to English
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    Then User enters DVA data as a <DVADrivingLicenceSubject>
+    When User clicks on continue
+    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
+    And JSON response should contain personal number 55667788 same as given Driving Licence
+    And JSON response should contain JTI field
+    And The test is complete and I close the driver
+    Examples:
+      | DVADrivingLicenceSubject           |
+      | DVADrivingLicenceSubjectHappyBilly |

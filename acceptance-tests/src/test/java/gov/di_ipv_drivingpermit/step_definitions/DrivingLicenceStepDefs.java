@@ -45,24 +45,84 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         userReEntersBirthYear(InvalidBirthYear);
     }
 
+    @And("User re-enters DVA birth day as (.*)$")
+    public void userEntersDvaBirthDay(String InvalidBirthDay) {
+        userReEntersDvaBirthDay(InvalidBirthDay);
+    }
+
+    @And("User re-enters DVA birth month as (.*)$")
+    public void userEntersDvaBirthMonth(String InvalidBirthMonth) {
+        userReEntersDvaBirthMonth(InvalidBirthMonth);
+    }
+
+    @And("User re-enters DVA birth year as (.*)$")
+    public void userEntersDvaBirthYear(String InvalidBirthYear) {
+        userReEntersDvaBirthYear(InvalidBirthYear);
+    }
+
     @And("User re-enters issue day as (.*)$")
-    public void userEntersValidToDay(String invalidLicenceIssueDay) {
+    public void userEntersIssueDay(String invalidLicenceIssueDay) {
         userReEntersIssueDay(invalidLicenceIssueDay);
     }
 
     @And("User re-enters issue month as (.*)$")
-    public void userEntersValidToMonth(String invalidLicenceIssueMonth) {
-        userReEntersIssueMonth(invalidLicenceIssueMonth);
+    public void userEntersIssueMonth(String InvalidLicenceIssueMonth) {
+        userReEntersIssueMonth(InvalidLicenceIssueMonth);
     }
 
     @And("User re-enters issue year as (.*)$")
-    public void userEntersValidToYear(String invalidLicenceIssueYear) {
-        userReEntersIssueYear(invalidLicenceIssueYear);
+    public void userEntersIssueYear(String InvalidLicenceIssueYear) {
+        userReEntersIssueYear(InvalidLicenceIssueYear);
+    }
+
+    @And("User re-enters DVA issue day as (.*)$")
+    public void userEntersDvaIssueDay(String invalidLicenceIssueDay) {
+        userReEntersDvaIssueDay(invalidLicenceIssueDay);
+    }
+
+    @And("User re-enters DVA issue month as (.*)$")
+    public void userEntersDvaIssueMonth(String invalidLicenceIssueMonth) {
+        userReEntersDvaIssueMonth(invalidLicenceIssueMonth);
+    }
+
+    @And("User re-enters DVA issue year as (.*)$")
+    public void userEntersDvaIssueYear(String invalidLicenceIssueYear) {
+        userReEntersDvaIssueYear(invalidLicenceIssueYear);
+    }
+
+    @And("User re-enters license number as (.*)$")
+    public void userEntersLicenceNumber(String InvalidLicenceNumber) {
+        userReEntersLicenceNumber(InvalidLicenceNumber);
+    }
+
+    @And("User re-enters DVA license number as (.*)$")
+    public void userEntersDVALicenceNumber(String InvalidLicenceNumber) {
+        userReEntersDvaLicenceNumber(InvalidLicenceNumber);
     }
 
     @And("User re-enters valid issue number as (.*)$")
     public void userEntersIssueNumber(String invalidIssueNumber) {
         userReEntersIssueNumber(invalidIssueNumber);
+    }
+
+    @And("User re-enters valid to day as (.*)$")
+    public void userEntersValidToDay(String InvalidValidToDay) {
+        userReEntersValidToDay(InvalidValidToDay);
+    }
+
+    @And("User re-enters valid to month as (.*)$")
+    public void userEntersValidToMonth(String InvalidValidToMonth) {
+        userReEntersValidToMonth(InvalidValidToMonth);
+    }
+
+    @And("User re-enters valid to year as (.*)$")
+    public void userEntersValidToYear(String InvalidValidToYear) {
+        userReEntersValidToYear(InvalidValidToYear);
+    }
+
+    @And("User re-enters postcode as (.*)$")
+    public void userEntersPostcode(String invalidPostcode) {
+        userReEntersPostcode(invalidPostcode);
     }
 
     @Given("I navigate to the IPV Core Stub")

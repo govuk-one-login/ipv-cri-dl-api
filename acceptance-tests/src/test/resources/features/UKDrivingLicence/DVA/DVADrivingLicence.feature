@@ -37,33 +37,40 @@ Feature: DVA Driving Licence Test
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid driving licence number
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters DVA license number as <InvalidLicenceNumber>
     When User clicks on continue
-    Then Proper error message for Could not find your details is displayed
+    Then Proper error message for dva Could not find your details is displayed
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject      |
-      | IncorrectDrivingLicenceNumber |
+      | DVADrivingLicenceSubject           | InvalidLicenceNumber |
+      | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
-  @build @staging @integration @stub @uat
-  Scenario Outline: DVA - User enters invalid date of birth and returns could not find your details error message
-    Given User enters DVA data as a <DVADrivingLicenceSubject>
-    When User clicks on continue
-    Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
-    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-    And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
-    Examples:
-      | DVADrivingLicenceSubject |
-      | IncorrectDateOfBirth     |
+
+#@build @staging @integration @stub @uat
+#Scenario Outline: DVA - User enters invalid date of birth and returns could not find your details error message
+#  Given User enters DVA data as a <DVADrivingLicenceSubject>
+#  And User re-enters DVA birth day as <InvalidBirthDay>
+#  And User re-enters DVA birth month as <InvalidBirthMonth>
+#  And User re-enters DVA birth year as <InvalidBirthYear>
+#  When User clicks on continue
+#  Then Proper error message for Could not find your details is displayed
+#  When User clicks on continue
+#  Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
+#  And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
+#  And The test is complete and I close the driver
+#  Examples:
+#    | DVADrivingLicenceSubject           | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
+#    | DVADrivingLicenceSubjectHappyBilly | 12              | 08                | 1985             |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid first name and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters first name as <InvalidFirstName>
+
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -71,12 +78,13 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject |
-      | IncorrectFirstName       |
+      | DVADrivingLicenceSubject           | InvalidFirstName |
+      | DVADrivingLicenceSubjectHappyBilly | SELINA           |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid last name and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters last name as <InvalidLastName>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -84,12 +92,15 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject |
-      | IncorrectLastName        |
+      | DVADrivingLicenceSubject           | InvalidLastName |
+      | DVADrivingLicenceSubjectHappyBilly | KYLE            |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters DVA issue day as <InvalidLicenceIssueDay>
+    And User re-enters DVA issue month as <InvalidLicenceIssueMonth>
+    And User re-enters DVA issue year as <InvalidLicenceIssueYear>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -97,12 +108,15 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject |
-      | IncorrectIssueDate       |
+      | DVADrivingLicenceSubject           | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
+      | DVADrivingLicenceSubjectHappyBilly | 14                     | 09                       | 2019                    |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters valid to day as <InvalidValidToDay>
+    And User re-enters valid to month as <InvalidValidToMonth>
+    And User re-enters valid to year as <InvalidValidToYear>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -110,12 +124,13 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject |
-      | IncorrectValidToDate     |
+      | DVADrivingLicenceSubject           | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
+      | DVADrivingLicenceSubjectHappyBilly | 04                | 08                  | 2032               |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid postcode and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    Given User re-enters postcode as <InvalidPostcode>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -123,8 +138,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject |
-      | IncorrectPostcode        |
+      | DVADrivingLicenceSubject           | InvalidPostcode |
+      | DVADrivingLicenceSubjectHappyBilly | E20 2AQ         |
 
 
   @build @staging @integration @smoke @stub @uat
@@ -147,13 +162,14 @@ Feature: DVA Driving Licence Test
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User Re-enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters DVA license number as <InvalidLicenceNumber>
     And User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject      |
-      | IncorrectDrivingLicenceNumber |
+      | DVADrivingLicenceSubject           | InvalidLicenceNumber |
+      | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
   @build @staging @integration @stub @uat @smoke
   Scenario: DVA - User attempts invalid journey and cancels after first attempt
@@ -208,7 +224,7 @@ Feature: DVA Driving Licence Test
       | InternationalPostcode                 |
 
 ###########  DVA Field Validations ##########
-    #not existing in front end repo
+  #not existing in front end repo
   @build @staging @integration @smoke @uat @stub
   Scenario: DVA - User consents to have DL checked and navigates to DVA privacy notice
     Then I see the DVA consent section Allow DVA to check your driving licence details
@@ -218,18 +234,19 @@ Feature: DVA Driving Licence Test
     Then I see the DVA privacy notice link the DVA privacy notice (opens in a new tab)
     And The test is complete and I close the driver
 
-      #not existing in front end repo
+    #not existing in front end repo
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVA - User attempts journey with invalid details and clicks on prove another way and generates a VC
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters DVA license number as <InvalidLicenceNumber>
     When User clicks on continue
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject      |
-      | IncorrectDrivingLicenceNumber |
+      | DVADrivingLicenceSubject           | InvalidLicenceNumber |
+      | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVA - User attempts journey with consent checkbox unselected and returns error

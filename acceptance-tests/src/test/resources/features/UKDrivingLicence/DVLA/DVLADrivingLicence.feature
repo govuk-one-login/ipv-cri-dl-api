@@ -25,6 +25,7 @@ Feature: Driving Licence Test
   @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid driving licence number
     Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters license number as <InvalidLicenceNumber>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -33,34 +34,39 @@ Feature: Driving Licence Test
     And JSON response should contain personal number PARKE610112PBFGI same as given Driving Licence
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject         |
-      | IncorrectDrivingLicenceNumber |
+      | DrivingLicenceSubject           | InvalidLicenceNumber |
+      | DrivingLicenceSubjectHappyPeter | PARKE610112PBFGI     |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVLA - User enters driving licence number and date of birth in incorrect format which returns validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters license number as <InvalidLicenceNumber>
     When User clicks on continue
     Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
     #And I see check date of birth sentence as Error:Check you have entered your date of birth correctly
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject               |
-      | DrivingLicenceNumberWithNumericChar |
+      | DrivingLicenceSubject           | InvalidLicenceNumber |
+      | DrivingLicenceSubjectHappyPeter | 1234567890111213     |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid date of birth and returns field validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters birth day as <InvalidBirthDay>
+    And User re-enters birth month as <InvalidBirthMonth>
+    And User re-enters birth year as <InvalidBirthYear>
     When User clicks on continue
     Then I see check date of birth sentence as Check you have entered your date of birth correctly
     Then I see enter the date as it appears above the field as Error:Check you have entered your date of birth correctly
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject |
-      | IncorrectDateOfBirth  |
+      | DrivingLicenceSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
+      | DrivingLicenceSubjectHappyKenneth | 12              | 08                | 1985             |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid last name and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters last name as <InvalidLastName>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -68,12 +74,15 @@ Feature: Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject |
-      | IncorrectLastName     |
+      | DrivingLicenceSubject             | InvalidLastName |
+      | DrivingLicenceSubjectHappyKenneth | KYLE            |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters issue day as <InvalidLicenceIssueDay>
+    And User re-enters issue month as <InvalidLicenceIssueMonth>
+    And User re-enters issue year as <InvalidLicenceIssueYear>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -81,12 +90,15 @@ Feature: Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject |
-      | IncorrectIssueDate    |
+      | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
+      | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters valid to day as <InvalidValidToDay>
+    And User re-enters valid to month as <InvalidValidToMonth>
+    And User re-enters valid to year as <InvalidValidToYear>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -94,12 +106,15 @@ Feature: Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject |
-      | IncorrectValidToDate  |
+      | DrivingLicenceSubject             | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
+      | DrivingLicenceSubjectHappyKenneth | 04                | 08                  | 2032               |
 
   @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters invalid issue number and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters issue day as <InvalidLicenceIssueDay>
+    And User re-enters issue month as <InvalidLicenceIssueMonth>
+    And User re-enters issue year as <InvalidLicenceIssueYear>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -107,8 +122,8 @@ Feature: Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject |
-      | IncorrectIssueNumber  |
+      | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
+      | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
@@ -130,13 +145,14 @@ Feature: Driving Licence Test
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User Re-enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters license number as <InvalidLicenceNumber>
     And User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
     Examples:
-      | DrivingLicenceSubject         |
-      | IncorrectDrivingLicenceNumber |
+      | DrivingLicenceSubject           | InvalidLicenceNumber |
+      | DrivingLicenceSubjectHappyPeter | PARKE610112PBFGI     |
 
   @build @staging @integration @smoke @stub @uat
   Scenario: DVLA - User attempts invalid journey and cancels after first attempt

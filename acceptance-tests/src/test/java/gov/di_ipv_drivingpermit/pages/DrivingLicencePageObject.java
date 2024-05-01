@@ -122,6 +122,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@class='govuk-notification-banner__content']")
     public WebElement userNotFoundInThirdPartyBanner;
 
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div[1]/div[2]")
+    public WebElement userNotFoundInThirdPartyBannerDva;
+
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div/a")
     public WebElement proveAnotherWay;
 
@@ -158,6 +161,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "drivingLicenceNumber")
     public WebElement LicenceNumber;
 
+    @FindBy(xpath = "//*[@id=\"dvaLicenceNumber\"]")
+    public WebElement LicenceNumberDva;
+
     @FindBy(id = "surname")
     public WebElement LastName;
 
@@ -176,6 +182,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "dateOfBirth-year")
     public WebElement birthYear;
 
+    @FindBy(xpath = "//*[@id=\"dvaDateOfBirth-day\"]")
+    public WebElement birthDayDva;
+
+    @FindBy(xpath = "//*[@id=\"dvaDateOfBirth-day\"]")
+    public WebElement birthMonthDva;
+
+    @FindBy(xpath = "//*[@id=\"dvaDateOfBirth-day\"]")
+    public WebElement birthYearDva;
+
     @FindBy(id = "expiryDate-day")
     public WebElement LicenceValidToDay;
 
@@ -193,6 +208,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(id = "issueDate-year")
     public WebElement LicenceIssueYear;
+
+    @FindBy(xpath = "//*[@id=\"dateOfIssue-day\"]")
+    public WebElement LicenceIssueDayDva;
+
+    @FindBy(xpath = "//*[@id=\"dateOfIssue-month\"]")
+    public WebElement LicenceIssueMonthDva;
+
+    @FindBy(xpath = "//*[@id=\"dateOfIssue-year\"]")
+    public WebElement LicenceIssueYearDva;
 
     @FindBy(id = "issueNumber")
     public WebElement IssueNumber;
@@ -692,6 +716,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }
 
+    public void userNotFoundInThirdPartyErrorIsDisplayedDva() {
+        assertTrue(userNotFoundInThirdPartyBannerDva.isDisplayed());
+        LOGGER.info(userNotFoundInThirdPartyBannerDva.getText());
+    }
+
     public void userReEntersLastName(String invalidLastName) {
         LastName.clear();
         LastName.sendKeys(invalidLastName);
@@ -712,6 +741,21 @@ public class DrivingLicencePageObject extends UniversalSteps {
         birthDay.sendKeys(invalidBirthDay);
     }
 
+    public void userReEntersDvaBirthDay(String invalidBirthDay) {
+        birthDayDva.clear();
+        birthDayDva.sendKeys(invalidBirthDay);
+    }
+
+    public void userReEntersDvaBirthMonth(String invalidBirthMonth) {
+        birthMonthDva.clear();
+        birthMonthDva.sendKeys(invalidBirthMonth);
+    }
+
+    public void userReEntersDvaBirthYear(String invalidBirthYear) {
+        birthYearDva.clear();
+        birthYearDva.sendKeys(invalidBirthYear);
+    }
+
     public void userReEntersBirthMonth(String invalidBirthMonth) {
         birthMonth.clear();
         birthMonth.sendKeys(invalidBirthMonth);
@@ -727,6 +771,31 @@ public class DrivingLicencePageObject extends UniversalSteps {
         LicenceIssueDay.sendKeys(invalidLicenceIssueDay);
     }
 
+    public void userReEntersDvaIssueDay(String invalidLicenceIssueDay) {
+        LicenceIssueDayDva.clear();
+        LicenceIssueDayDva.sendKeys(invalidLicenceIssueDay);
+    }
+
+    public void userReEntersDvaIssueMonth(String invalidLicenceIssueMonth) {
+        LicenceIssueMonthDva.clear();
+        LicenceIssueMonthDva.sendKeys(invalidLicenceIssueMonth);
+    }
+
+    public void userReEntersDvaIssueYear(String invalidLicenceIssueYear) {
+        LicenceIssueYearDva.clear();
+        LicenceIssueYearDva.sendKeys(invalidLicenceIssueYear);
+    }
+
+    public void userReEntersLicenceNumber(String invalidLicenceNumber) {
+        LicenceNumber.clear();
+        LicenceNumber.sendKeys(invalidLicenceNumber);
+    }
+
+    public void userReEntersDvaLicenceNumber(String invalidLicenceNumber) {
+        LicenceNumberDva.clear();
+        LicenceNumberDva.sendKeys(invalidLicenceNumber);
+    }
+
     public void userReEntersIssueMonth(String invalidLicenceIssueMonth) {
         LicenceIssueMonth.clear();
         LicenceIssueMonth.sendKeys(invalidLicenceIssueMonth);
@@ -740,6 +809,26 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public void userReEntersIssueNumber(String invalidIssueNumber) {
         IssueNumber.clear();
         IssueNumber.sendKeys(invalidIssueNumber);
+    }
+
+    public void userReEntersValidToDay(String invalidValidToDate) {
+        LicenceValidToDay.clear();
+        LicenceValidToDay.sendKeys(invalidValidToDate);
+    }
+
+    public void userReEntersValidToMonth(String invalidValidToMonth) {
+        LicenceValidToMonth.clear();
+        LicenceValidToMonth.sendKeys(invalidValidToMonth);
+    }
+
+    public void userReEntersValidToYear(String invalidValidToYear) {
+        LicenceValidToYear.clear();
+        LicenceValidToYear.sendKeys(invalidValidToYear);
+    }
+
+    public void userReEntersPostcode(String invalidPostcode) {
+        Postcode.clear();
+        Postcode.sendKeys(invalidPostcode);
     }
 
     public void userEntersData(String issuer, String drivingLicenceSubjectScenario) {

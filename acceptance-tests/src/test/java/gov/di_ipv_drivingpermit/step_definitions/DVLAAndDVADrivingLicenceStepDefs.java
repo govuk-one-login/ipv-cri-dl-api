@@ -22,6 +22,11 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         userNotFoundInThirdPartyErrorIsDisplayed();
     }
 
+    @Then("Proper error message for dva Could not find your details is displayed")
+    public void properErrorMessageForCouldNotFindDVLADetailsIsDisplayedDva() {
+        userNotFoundInThirdPartyErrorIsDisplayedDva();
+    }
+
     @Then("^I see enter the date as it appears above the field as (.*)$")
     public void fieldErrorMessageForNoDOBIsDisplayed(String expectedText) {
         assertInvalidDoBOnField(expectedText);

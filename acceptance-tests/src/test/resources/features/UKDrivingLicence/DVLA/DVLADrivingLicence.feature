@@ -187,37 +187,6 @@ Feature: Driving Licence Test
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
 
-  @build @stub
-  Scenario Outline: DVLA - User enters invalid details and returns enter your details as it appears error message
-    Given User enters DVLA data as a <DrivingLicenceSubject>
-    When User clicks on continue
-    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
-    And The test is complete and I close the driver
-    Examples:
-      | DrivingLicenceSubject                 |
-      | NoLastName                            |
-      | NoFirstName                           |
-      | NoDateOfBirth                         |
-      | NoIssueDate                           |
-      | NoValidToDate                         |
-      | NoDrivingLicenceNumber                |
-      | NoIssueNumber                         |
-      | NoPostcode                            |
-      | InvalidFirstNameWithNumbers           |
-      | InvalidFirstNameWithSpecialCharacters |
-      | DateOfBirthWithSpecialCharacters      |
-      | InvalidDateOfBirth                    |
-      | IssueDateWithSpecialCharacters        |
-      | ValidToDateWithSpecialCharacters      |
-      | ValidToDateInPast                     |
-      | DrivingLicenceNumberWithSpecialChar   |
-      | IssueNumberWithSpecialChar            |
-      | PostcodeWithSpecialChar               |
-      | InternationalPostcode                 |
-
-
-    ###########  DVLA Field Validations ##########
-  #not existing in front end repo
   @build @staging @integration @dvlaDirect @stub @uat
   Scenario: DVLA - User consents to have DL checked and navigates to DVLA privacy notice
     Then I see the consent section Allow DVLA to check your driving licence details
@@ -240,3 +209,45 @@ Feature: Driving Licence Test
     Examples:
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
+
+  @build @stub
+  Scenario Outline: DVLA - User enters invalid details and returns enter your details as it appears error message
+    Given User enters DVLA data as a <DrivingLicenceSubject>
+    And User re-enters last name as <InvalidLastName>
+    And User re-enters first name as <InvalidFirstName>
+    And User re-enters birth day as <InvalidBirthDay>
+    And User re-enters birth month as <InvalidBirthMonth>
+    And User re-enters birth year as <InvalidBirthYear>
+    And User re-enters issue day as <InvalidIssueDay>
+    And User re-enters issue month as <InvalidIssueMonth>
+    And User re-enters issue year as <InvalidIssueYear>
+    And User re-enters valid to day as <InvalidValidToDay>
+    And User re-enters valid to month as <InvalidValidToMonth>
+    And User re-enters valid to year as <InvalidValidToYear>
+    And User re-enters license number as <InvalidLicenceNumber>
+    And User re-enters valid issue number as <InvalidIssueNumber>
+    And User re-enters postcode as <InvalidPostCode>
+    When User clicks on continue
+    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And The test is complete and I close the driver
+    Examples:
+      | DrivingLicenceSubject           | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidIssueDay | InvalidIssueMonth | InvalidIssueYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | InvalidLicenceNumber | InvalidIssueNumber | InvalidPostCode | Scenario                              |
+      | DrivingLicenceSubjectHappyPeter |                 | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | NoLastName                            |
+      | DrivingLicenceSubjectHappyPeter | PARKER          |                  | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | NoFirstName                           |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            |                 |                   |                  | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | NoDateOfBirth                         |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             |                 |                   |                  | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | NoIssueDate                           |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             |                   |                     |                    | PARKE610112PBFGH     | 12                 | NW3 5RG         | NoValidToDate                         |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               |                      | 12                 | NW3 5RG         | NoDrivingLicenceNumber                |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     |                    | NW3 5RG         | NoIssueNumber                         |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 |                 | NoPostcode                            |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER987         | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | InvalidFirstNameWithNumbers           |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER%$@         | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | InvalidFirstNameWithSpecialCharacters |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | @               | *&                | 19 7             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | DateOfBirthWithSpecialCharacters      |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 51              | 71                | 198              | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | InvalidDateOfBirth                    |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | &               | ^%                | £$ ^             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         | IssueDateWithSpecialCharacters        |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | !@                | £$                  | %^ *               | PARKE610112PBFGH     | 12                 | NW3 5RG         | ValidToDateWithSpecialCharacters      |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 10                | 01                  | 2010               | PARKE610112PBFGH     | 12                 | NW3 5RG         | ValidToDateInPast                     |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PB^&*     | 12                 | NW3 5RG         | DrivingLicenceNumberWithSpecialChar   |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | A@                 | NW3 5RG         | IssueNumberWithSpecialChar            |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW* ^%G         | PostcodeWithSpecialChar               |
+      | DrivingLicenceSubjectHappyPeter | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | CA 95128        | InternationalPostcode                 |

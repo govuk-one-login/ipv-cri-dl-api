@@ -199,29 +199,42 @@ Feature: DVA Driving Licence Test
   @build @stub
   Scenario Outline: DVA - User enters invalid details and returns enter your details as it appears error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
+    And User re-enters last name as <InvalidLastName>
+    And User re-enters first name as <InvalidFirstName>
+    And User re-enters DVA birth day as <InvalidBirthDay>
+    And User re-enters DVA birth month as <InvalidBirthMonth>
+    And User re-enters DVA birth year as <InvalidBirthYear>
+    And User re-enters DVA issue day as <InvalidIssueDay>
+    And User re-enters DVA issue month as <InvalidIssueMonth>
+    And User re-enters DVA issue year as <InvalidIssueYear>
+    And User re-enters valid to day as <InvalidValidToDay>
+    And User re-enters valid to month as <InvalidValidToMonth>
+    And User re-enters valid to year as <InvalidValidToYear>
+    And User re-enters DVA license number as <InvalidLicenceNumber>
+    And User re-enters postcode as <InvalidPostCode>
     When User clicks on continue
     Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject              |
-      | NoLastName                            |
-      | NoFirstName                           |
-      | NoDateOfBirth                         |
-      | NoIssueDate                           |
-      | NoValidToDate                         |
-      | NoDrivingLicenceNumber                |
-      | NoPostcode                            |
-      | InvalidFirstNameWithNumbers           |
-      | InvalidFirstNameWithSpecialCharacters |
-      | DateOfBirthWithSpecialCharacters      |
-      | InvalidDateOfBirth                    |
-      | DateOfBirthInFuture                   |
-      | IssueDateWithSpecialCharacters        |
-      | ValidToDateWithSpecialCharacters      |
-      | ValidToDateInPast                     |
-      | DrivingLicenceNumberWithSpecialChar   |
-      | PostcodeWithSpecialChar               |
-      | InternationalPostcode                 |
+      | DVADrivingLicenceSubject           | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidIssueDay | InvalidIssueMonth | InvalidIssueYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | InvalidLicenceNumber | InvalidPostCode | Scenario                              |
+      | DVADrivingLicenceSubjectHappyBilly |                 | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | NoLastName                            |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          |                  | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | NoFirstName                           |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            |                 |                   |                  | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | NoDateOfBirth                         |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             |                 |                   |                  | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | NoIssueDate                           |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             |                   |                     |                    | PARKE610112PBFGH     | NW3 5RG         | NoValidToDate                         |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               |                      | NW3 5RG         | NoDrivingLicenceNumber                |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | NoIssueNumber                         |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     |                 | NoPostcode                            |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER987         | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | InvalidFirstNameWithNumbers           |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER%$@         | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | InvalidFirstNameWithSpecialCharacters |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | @               | *&                | 19 7             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | DateOfBirthWithSpecialCharacters      |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 51              | 71                | 198              | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | InvalidDateOfBirth                    |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | &               | ^%                | £$ ^             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         | IssueDateWithSpecialCharacters        |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | !@                | £$                  | %^ *               | PARKE610112PBFGH     | NW3 5RG         | ValidToDateWithSpecialCharacters      |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 10                | 01                  | 2010               | PARKE610112PBFGH     | NW3 5RG         | ValidToDateInPast                     |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PB^&*     | NW3 5RG         | DrivingLicenceNumberWithSpecialChar   |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW* ^%G         | PostcodeWithSpecialChar               |
+      | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | CA 95128        | InternationalPostcode                 |
 
 ###########  DVA Field Validations ##########
   #not existing in front end repo

@@ -14,7 +14,6 @@ public class TestDataCreator {
     public static DrivingLicenceSubject peterHappyPath;
     public static DrivingLicenceSubject kennethDecerqueiraDvlaHappyPath;
 
-
     public static void createDefaultResponses() {
         billyBatsonHappyPath =
                 new DVADrivingLicenceSubject(
@@ -108,7 +107,6 @@ public class TestDataCreator {
 
         dvlaTestUsers.put("DrivingLicenceSubjectHappyPeter", peterHappyPath);
         dvlaTestUsers.put("DrivingLicenceSubjectHappyKenneth", kennethDecerqueiraDvlaHappyPath);
-
     }
 
     public static TestInput getTestUserFromMap(String issuer, String scenario) {

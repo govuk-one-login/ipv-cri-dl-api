@@ -24,9 +24,9 @@ public class DvaCryptographyServiceConfiguration {
     public static final String DVA_JWE_PARAMETER_PATH = "DVA/JWE";
 
     public static final String MAP_KEY_ENCRYPTION_CERT_FOR_DRIVING_PERMIT_TO_ENCRYPT =
-            "encryptionCertForDrivingPermitToEncrypt-14-05-2024";
+            "encryptionCertForDrivingPermitToEncrypt-16-05-2024";
     public static final String MAP_KEY_SIGNING_CERT_FOR_DRIVING_PERMIT_TO_VERIFY =
-            "signingCertForDrivingPermitToVerify-14-05-2024";
+            "signingCertForDrivingPermitToVerify-16-05-2024";
     public static final String MAP_KEY_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT =
             "encryptionKeyForDrivingPermitToDecrypt";
 

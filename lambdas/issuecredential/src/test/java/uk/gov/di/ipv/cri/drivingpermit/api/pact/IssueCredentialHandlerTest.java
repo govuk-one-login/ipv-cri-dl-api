@@ -102,6 +102,7 @@ class IssueCredentialHandlerTest {
     @Mock private DataStore<SessionItem> mockSessionItemDataStore;
     @Mock private DataStore<PersonIdentityItem> mockPersonIdentityDataStore;
 
+    //Rerunning pact tests
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModules(new JavaTimeModule());
 

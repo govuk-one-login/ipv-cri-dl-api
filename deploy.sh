@@ -46,6 +46,7 @@ sam deploy --stack-name "$stack_name" \
    AuditEventNamePrefix=$audit_event_name_prefix \
    CommonStackName=driving-permit-common-cri-api-local \
    CriIdentifier=$cri_identifier \
+   CreateMockTxmaResourcesOverride=true \
    ParameterPrefix="dl-cri-api-v1" \
    UseApiKey="' '" \
    DeploymentType="not-pipeline"

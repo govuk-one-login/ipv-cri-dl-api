@@ -78,10 +78,10 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     public void dlUserIdentityAsJwtString(String criId, Integer rowNumber)
             throws URISyntaxException, IOException, InterruptedException {
         String jsonString = getAuthorisationJwtFromStub(criId, rowNumber);
-        LOGGER.info("jsonString = " + jsonString);
+        LOGGER.info("jsonString = {}", jsonString);
         String coreStubUrl = configurationService.getCoreStubUrl(false);
         SESSION_REQUEST_BODY = createRequest(coreStubUrl, criId, jsonString);
-        LOGGER.info("SESSION_REQUEST_BODY = " + SESSION_REQUEST_BODY);
+        LOGGER.info("SESSION_REQUEST_BODY = {}", SESSION_REQUEST_BODY);
 
         // Capture client id for using later in the auth request
         Map<String, String> deserialisedSessionResponse =
@@ -92,7 +92,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     public void dlPostRequestToSessionEndpoint() throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
-        LOGGER.info("getPrivateAPIEndpoint() ==> " + privateApiGatewayUrl);
+        LOGGER.info("getPrivateAPIEndpoint() ==> {}", privateApiGatewayUrl);
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(privateApiGatewayUrl + "/session"))
@@ -102,7 +102,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .POST(HttpRequest.BodyPublishers.ofString(SESSION_REQUEST_BODY))
                         .build();
         String sessionResponse = sendHttpRequest(request).body();
-        LOGGER.info("sessionResponse = " + sessionResponse);
+        LOGGER.info("sessionResponse = {}", sessionResponse);
         Map<String, String> deserialisedResponse =
                 objectMapper.readValue(sessionResponse, new TypeReference<>() {});
         SESSION_ID = deserialisedResponse.get("session_id");
@@ -115,7 +115,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void getSessionIdForDL() {
-        LOGGER.info("SESSION_ID = " + SESSION_ID);
+        LOGGER.info("SESSION_ID = {}", SESSION_ID);
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
@@ -154,13 +154,13 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session_id", SESSION_ID)
                         .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
-        LOGGER.info("drivingLicenceRequestBody = " + dlInputJsonString);
+        LOGGER.info("drivingLicenceRequestBody = {}", dlInputJsonString);
         DRIVING_LICENCE_CHECK_RESPONSE = sendHttpRequest(request.build()).body();
-        LOGGER.info("drivingLicenceCheckResponse = " + DRIVING_LICENCE_CHECK_RESPONSE);
+        LOGGER.info("drivingLicenceCheckResponse = {}", DRIVING_LICENCE_CHECK_RESPONSE);
         DocumentCheckResponse documentCheckResponse =
                 objectMapper.readValue(DRIVING_LICENCE_CHECK_RESPONSE, DocumentCheckResponse.class);
         RETRY = documentCheckResponse.getRetry();
-        LOGGER.info("RETRY = " + RETRY);
+        LOGGER.info("RETRY = {}", RETRY);
     }
 
     public void postRequestToDrivingLicenceEndpoint(String drivingPermitJsonRequestBody)
@@ -193,21 +193,21 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .GET()
                         .build();
         String authCallResponse = sendHttpRequest(request).body();
-        LOGGER.info("authCallResponse = " + authCallResponse);
+        LOGGER.info("authCallResponse = {}", authCallResponse);
         AuthorisationResponse deserialisedResponse =
                 objectMapper.readValue(authCallResponse, AuthorisationResponse.class);
         if (null != deserialisedResponse.getAuthorizationCode()) {
             AUTHCODE = deserialisedResponse.getAuthorizationCode().getValue();
-            LOGGER.info("authorizationCode = " + AUTHCODE);
+            LOGGER.info("authorizationCode = {}", AUTHCODE);
         }
     }
 
     public void postRequestToAccessTokenEndpointForDL(String criId)
             throws IOException, InterruptedException {
         String accessTokenRequestBody = getAccessTokenRequest(criId);
-        LOGGER.info("Access Token Request Body = " + accessTokenRequestBody);
+        LOGGER.info("Access Token Request Body = {}", accessTokenRequestBody);
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
-        LOGGER.info("getPublicAPIEndpoint() ==> " + publicApiGatewayUrl);
+        LOGGER.info("getPublicAPIEndpoint() ==> {}", publicApiGatewayUrl);
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(publicApiGatewayUrl + "/token"))
@@ -216,7 +216,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .POST(HttpRequest.BodyPublishers.ofString(accessTokenRequestBody))
                         .build();
         String accessTokenPostCallResponse = sendHttpRequest(request).body();
-        LOGGER.info("accessTokenPostCallResponse = " + accessTokenPostCallResponse);
+        LOGGER.info("accessTokenPostCallResponse = {}", accessTokenPostCallResponse);
         Map<String, String> deserialisedResponse =
                 objectMapper.readValue(accessTokenPostCallResponse, new TypeReference<>() {});
         ACCESS_TOKEN = deserialisedResponse.get("access_token");
@@ -234,7 +234,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .POST(HttpRequest.BodyPublishers.ofString(""))
                         .build();
         String requestDrivingLicenceVCResponse = sendHttpRequest(request).body();
-        LOGGER.info("requestDrivingLicenceVCResponse = " + requestDrivingLicenceVCResponse);
+        LOGGER.info("requestDrivingLicenceVCResponse = {}", requestDrivingLicenceVCResponse);
         VC = SignedJWT.parse(requestDrivingLicenceVCResponse).getJWTClaimsSet().toString();
     }
 
@@ -247,7 +247,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         JsonNode jsonNode = objectMapper.readTree(VC);
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
         JsonNode ciInEvidenceArray = evidenceArray.get(0);
-        LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);
+        LOGGER.info("ciInEvidenceArray = {}", ciInEvidenceArray);
         JsonNode ciNode = ciInEvidenceArray.get("ci").get(0);
         String actualCI = ciNode.asText();
         Assert.assertEquals(ci, actualCI);
@@ -260,11 +260,11 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void assertJtiIsPresentAndNotNull() throws IOException {
-        LOGGER.info("result = " + VC);
+        LOGGER.info("result = {}", VC);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(VC);
         JsonNode jtiNode = jsonNode.get("jti");
-        LOGGER.info("jti = " + jtiNode.asText());
+        LOGGER.info("jti = {}", jtiNode.asText());
 
         assertNotNull(jtiNode.asText());
     }
@@ -280,7 +280,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                                 + "&rowNumber="
                                 + userDataRowNumber);
 
-        LOGGER.info("URL =>> " + url);
+        LOGGER.info("URL =>> {}", url);
 
         HttpRequest request =
                 HttpRequest.newBuilder()

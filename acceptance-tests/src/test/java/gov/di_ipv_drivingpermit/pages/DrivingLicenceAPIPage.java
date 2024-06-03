@@ -239,7 +239,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException {
+            throws IOException {
         scoreIs(validityScore, strengthScore, VC);
     }
 

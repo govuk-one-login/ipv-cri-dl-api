@@ -261,7 +261,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     public void assertJtiIsPresentAndNotNull() throws IOException {
         LOGGER.info("result = {}", VC);
-        ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(VC);
         JsonNode jtiNode = jsonNode.get("jti");
         LOGGER.info("jti = {}", jtiNode.asText());

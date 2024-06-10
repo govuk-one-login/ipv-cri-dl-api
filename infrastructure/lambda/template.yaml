@@ -1302,49 +1302,6 @@ Resources:
             Period: 300
             Stat: Sum
 
-  DrivingLicenceLambdaInvocationDeviation:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} Deviation between the session and issue credential lambda
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicDL
-      OKActions:
-        - !Ref AlarmTopicDL
-      InsufficientDataActions: [ ]
-      DatapointsToAlarm: 10
-      EvaluationPeriods: 10
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: booleanDevationMetric
-          Label: BooleanDevationMetric
-          ReturnData: true
-          Expression: IF(ABS(((sessionInvocations-issueCredentialInvocations)/sessionInvocations) *100) > 50, 2, 1)
-        - Id: issueCredentialInvocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/Lambda
-              MetricName: Invocations
-              Dimensions:
-                - Name: FunctionName
-                  Value: !Ref IssueCredentialFunction
-            Period: 300
-            Stat: Sum
-        - Id: sessionInvocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/Lambda
-              MetricName: Invocations
-              Dimensions:
-                - Name: FunctionName
-                  Value: !Sub "${CommonStackName}-SessionFunction"
-            Period: 300
-            Stat: Sum
-
   DVLAAuthenticateTokenRequestDeniedAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:

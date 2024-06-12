@@ -1864,11 +1864,25 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
+  AuthorizationFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-AuthorizationFunction
+      RetentionInDays: 30
+
+  AuthorizationFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: LogSendingEnabled
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref AuthorizationFunctionLogGroup
+
   AuthorizationFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Condition: "DeployAlarms"
     Properties:
-      LogGroupName: !Sub "${CommonStackName}-AuthorizationFunctionLogGroup"
+      LogGroupName: !Ref AuthorizationFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         -
@@ -2115,11 +2129,25 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
+  AccessTokenFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-AccessTokenFunction
+      RetentionInDays: 30
+
+  AccessTokenFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: LogSendingEnabled
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref AccessTokenFunctionLogGroup
+
   AccessTokenFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Condition: "DeployAlarms"
     Properties:
-      LogGroupName: !Sub "${CommonStackName}-AccessTokenFunctionLogGroup"
+      LogGroupName: !Ref AccessTokenFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         -
@@ -2364,11 +2392,25 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
 
+  SessionFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-SessionFunction
+      RetentionInDays: 30
+
+  SessionFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: LogSendingEnabled
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref SessionFunctionLogGroup
+
   SessionFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Condition: "DeployAlarms"
     Properties:
-      LogGroupName: !Sub "${CommonStackName}-SessionFunctionLogGroup"
+      LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
       MetricTransformations:
         -

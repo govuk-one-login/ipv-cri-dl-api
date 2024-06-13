@@ -1464,6 +1464,9 @@ Resources:
           Label: errorThreshold
           ReturnData: true
           Expression: IF(invocations<10,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          Expression: invocationspriv + invocationspub
         - Id: invocationspriv
           ReturnData: false
           MetricStat:
@@ -1486,6 +1489,9 @@ Resources:
                   Value: !Sub "${AWS::StackName}-PublicDLApi"
             Period: 60
             Stat: Sum
+        - Id: error
+          ReturnData: false
+          Expression: errorpriv + errorpub
         - Id: errorPercentage
           Label: errorPercentage
           ReturnData: false
@@ -1536,6 +1542,9 @@ Resources:
           Label: errorThreshold
           ReturnData: true
           Expression: IF(invocations<10,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          Expression: invocationspriv + invocationspub
         - Id: invocationspriv
           ReturnData: false
           MetricStat:
@@ -1558,6 +1567,9 @@ Resources:
                   Value: !Sub "${AWS::StackName}-PublicDLApi"
             Period: 60
             Stat: Sum
+        - Id: error
+          ReturnData: false
+          Expression: errorpriv + errorpub
         - Id: errorPercentage
           Label: errorPercentage
           ReturnData: false
@@ -1608,6 +1620,12 @@ Resources:
           Label: safeLatency
           ReturnData: true
           Expression: IF(invocations<10,0,maxLatency)
+        - Id: invocations
+          ReturnData: false
+          Expression: invocationspriv + invocationspub
+        - Id: maxLatency
+          ReturnData: false
+          Expression: MAX([maxLatencypriv, maxLatencypub])
         - Id: invocationspriv
           ReturnData: false
           MetricStat:
@@ -1652,6 +1670,78 @@ Resources:
                   Value: !Sub "${AWS::StackName}-PublicDLApi"
             Period: 60
             Stat: Maximum
+
+  PublicDrivingPermitApiAccessLogGroupFatalErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
+    Properties:
+      LogGroupName: !Ref PublicDrivingPermitApiAccessLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "PublicDrivingPermitApi-Fatalerror"
+
+  PublicDrivingPermitAPIGatewayFatalErrorAlarm:
+    DependsOn:
+      - "PublicDrivingPermitApiAccessLogGroupFatalErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PublicDrivingPermitApi-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs in Public Driving Permit API. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: PublicDrivingPermitApi-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  PrivateDrivingPermitApiAccessLogGroupFatalErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Condition: "DeployAlarms"
+    Properties:
+      LogGroupName: !Ref PrivateDrivingPermitApiAccessLogGroup
+      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+      MetricTransformations:
+        - MetricValue: "1"
+          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
+          MetricName: "PrivateDrivingPermitApi-Fatalerror"
+
+  PrivateDrivingPermitAPIGatewayFatalErrorAlarm:
+    DependsOn:
+      - "PrivateDrivingPermitApiAccessLogGroupFatalErrorMetricFilter"
+    Type: AWS::CloudWatch::Alarm
+    Condition: "DeployAlarms"
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-PrivateDrivingPermitApi-FatalErrorAlarm"
+      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs in Private Driving Permit API. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      AlarmActions:
+        - !ImportValue platform-alarm-topic-slack-warning-alert
+      InsufficientDataActions: [ ]
+      MetricName: PrivateDrivingPermitApi-Fatalerror
+      Namespace: !Sub "${AWS::StackName}/LogMessages"
+      Statistic: Sum
+      Dimensions: [ ]
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
 ################################# Common Lambda Authorization Alarms ##############################
   Authorization5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -2691,82 +2781,6 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
-
-  PublicDrivingPermitApiAccessLogGroupFatalErrorMetricFilter:
-    Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
-    Properties:
-      LogGroupName: !Ref PublicDrivingPermitApiAccessLogGroup
-      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
-      MetricTransformations:
-        -
-          MetricValue: "1"
-          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "IssueCredentialFunction-Fatalerror"
-
-  PublicDrivingPermitApiFatalErrorAlarm:
-    DependsOn:
-      - "PublicDrivingPermitApiAccessLogGroupFatalErrorMetricFilter"
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-PublicDrivingPermitApi-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      InsufficientDataActions: [ ]
-      MetricName: PublicDrivingPermitApi-Fatalerror
-      Namespace: !Sub "${AWS::StackName}/LogMessages"
-      Statistic: Sum
-      Dimensions: [ ]
-      Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-
-  PrivateDrivingPermitApiAccessLogGroupFatalErrorMetricFilter:
-    Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
-    Properties:
-      LogGroupName: !Ref PrivateDrivingPermitApiAccessLogGroup
-      FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
-      MetricTransformations:
-        -
-          MetricValue: "1"
-          MetricNamespace: !Sub "${AWS::StackName}/LogMessages"
-          MetricName: "IssueCredentialFunction-Fatalerror"
-
-  PrivateDrivingPermitApiFatalErrorAlarm:
-    DependsOn:
-      - "PublicDrivingPermitApiAccessLogGroupFatalErrorMetricFilter"
-    Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-PrivateDrivingPermitApi-FatalErrorAlarm"
-      AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      AlarmActions:
-        - !ImportValue platform-alarm-topic-slack-warning-alert
-      InsufficientDataActions: [ ]
-      MetricName: PrivateDrivingPermitApi-Fatalerror
-      Namespace: !Sub "${AWS::StackName}/LogMessages"
-      Statistic: Sum
-      Dimensions: [ ]
-      Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-
-
 ################################# IssueCredential Alarms ##############################
   IssueCredential5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm

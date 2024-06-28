@@ -144,7 +144,7 @@ task cucumber() {
 	}
 }
 
-task dlCriSmokeBuild() {
+task smokeTestBuild() {
 	dependsOn assemble, compileTestJava
 	doLast {
 		javaexec {
@@ -165,7 +165,7 @@ task dlCriSmokeBuild() {
 	}
 }
 
-task dlCriSmokeStaging() {
+task smokeTestStaging() {
 	dependsOn assemble, compileTestJava
 	doLast {
 		javaexec {

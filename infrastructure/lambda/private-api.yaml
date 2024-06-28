@@ -184,4 +184,3 @@ x-amazon-apigateway-request-validators:
   Validate both:
     validateRequestBody: true
     validateRequestParameters: true
-

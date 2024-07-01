@@ -276,22 +276,27 @@ Mappings:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "true"
+      useAcm: "true"
     build:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      useAcm: "fale"
     staging:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      useAcm: "false"
     integration:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      useAcm: "false"
     production:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      useAcm: "false"
 
 Resources:
 
@@ -494,6 +499,11 @@ Resources:
           LOG_DVA_RESPONSE: !FindInMap [LogDVAResponseEnvVar, Environment, !Ref 'Environment']
           DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [DevEnvironmentOnlyEnhancedDebugMappingEnvVar, Environment, !Ref Environment ]
+          USE_ACM: !FindInMap [ FeatureFlagMapping, !Ref Environment, useAcm ]
+          SIGNING_CERTIFICATE_ARN: !ImportValue acm-infra-DLCRISigningCertificateArn
+          TLS_CERTIFICATE_ARN: !ImportValue acm-infra-DLCRIMtlsCertificateArn
+          SIGNING_KEY_ID: !GetAtt DvaSigningKey.KeyId
+          ENCRYPTION_KEY_ID: !GetAtt DvaEncryptionKey.KeyId
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -519,12 +529,23 @@ Resources:
         - Statement:
             Effect: Allow
             Action:
+              - "kms:Sign"
+            Resource: !GetAtt DvaSigningKey.Arn
+        - Statement:
+            Effect: Allow
+            Action:
               - kms:Decrypt
               - kms:GenerateDataKey
             Resource: !If
               - CreateMockTxmaResources
               - !GetAtt MockAuditEventQueueEncryptionKey.Arn
               - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !GetAtt DvaEncryptionKey.Arn
         - Statement:
             - Effect: Allow
               Action:
@@ -589,6 +610,16 @@ Resources:
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - acm:ExportCertificate
+              Resource: !ImportValue acm-infra-DLCRISigningCertificateArn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - acm:ExportCertificate
+              Resource: !ImportValue acm-infra-DLCRIMtlsCertificateArn
         - SQSSendMessagePolicy:
             QueueName: !If [CreateMockTxmaResources, !GetAtt MockAuditEventQueue.QueueName, !ImportValue AuditEventQueueName]
       ProvisionedConcurrencyConfig:
@@ -941,6 +972,40 @@ Resources:
     Properties:
       AliasName: !Sub alias/${AWS::StackName}/auditEventQueueEncryptionKey
       TargetKeyId: !Ref MockAuditEventQueueEncryptionKey
+
+####################################################################
+#                                                                  #
+# DVA Crypto Keys                                                  #
+#                                                                  #
+####################################################################
+
+  DvaEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms encryption key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      Origin: EXTERNAL
+
+  DvaEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/acm-encryption-key
+      TargetKeyId: !Ref DvaEncryptionKey
+
+  DvaSigningKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms signing key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      Origin: EXTERNAL
+
+  DvaSigningKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/acm-signing-key
+      TargetKeyId: !Ref DvaSigningKey
 
   ####################################################################
 #                                                                  #

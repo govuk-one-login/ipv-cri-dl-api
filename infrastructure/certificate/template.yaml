@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: DVA certificate infra
+
+Parameters:
+  Environment:
+    Description: "The environment type"
+    Type: "String"
+    AllowedValues:
+      - "dev"
+      - "build"
+      - "staging"
+      - "integration"
+      - "production"
+    ConstraintDescription: must be dev, build, staging, integration or production
+
+Conditions:
+  IsCAEnvironment:
+    Fn::Or:
+      - !Equals [!Ref Environment, "production"]
+      - !Equals [!Ref Environment, "staging"]
+
+Resources:
+  DLPrivateCA:
+    Type: AWS::ACMPCA::CertificateAuthority
+    Condition: IsCAEnvironment
+    Properties:
+      KeyAlgorithm: RSA_2048
+      KeyStorageSecurityStandard: FIPS_140_2_LEVEL_3_OR_HIGHER
+      SigningAlgorithm: SHA256WITHRSA
+      Subject:
+        CommonName: GDS DL DVA Test Root CA G3
+        Country: GB
+        Organization: GOVUK One Login
+        OrganizationalUnit: GDS
+      Type: ROOT
+      UsageMode: GENERAL_PURPOSE
+      RevocationConfiguration:
+        CrlConfiguration:
+          Enabled: false
+      Tags:
+        - Key: CreatedBy
+          Value: InfraAsCode
+
+  RootCACertificate:
+    Type: AWS::ACMPCA::Certificate
+    Condition: IsCAEnvironment
+    Properties:
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      CertificateSigningRequest: !GetAtt DLPrivateCA.CertificateSigningRequest
+      SigningAlgorithm: SHA256WITHRSA
+      TemplateArn: arn:aws:acm-pca:::template/RootCACertificate/V1
+      Validity:
+        Type: DAYS
+        Value: 3563
+
+  RootCAActivation:
+    Type: AWS::ACMPCA::CertificateAuthorityActivation
+    Condition: IsCAEnvironment
+    Properties:
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      Certificate: !GetAtt RootCACertificate.Certificate
+      Status: ACTIVE
+
+  RootCAPermission:
+    Type: AWS::ACMPCA::Permission
+    Condition: IsCAEnvironment
+    Properties:
+      Actions:
+        - IssueCertificate
+        - GetCertificate
+        - ListPermissions
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      Principal: acm.amazonaws.com
+
+  SigningCertificatePrivate:
+    DependsOn:
+      - RootCAActivation
+    Type: "AWS::CertificateManager::Certificate"
+    Condition: IsCAEnvironment
+    Properties:
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      DomainName: !Sub review-d.${Environment}.account.gov.uk
+      DomainValidationOptions:
+        - DomainName: !Sub review-d.${Environment}.account.gov.uk
+          ValidationDomain: !Sub review-d.${Environment}.account.gov.uk
+      ValidationMethod: DNS
+      KeyAlgorithm: RSA_2048
+      Tags:
+        - Key: CreatedBy
+          Value: InfraAsCode
+
+  MtlsCertificatePrivate:
+    DependsOn:
+      - RootCAActivation
+    Type: "AWS::CertificateManager::Certificate"
+    Condition: IsCAEnvironment
+    Properties:
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      DomainName: !Sub review-d.${Environment}.account.gov.uk
+      DomainValidationOptions:
+        - DomainName: !Sub review-d.${Environment}.account.gov.uk
+          ValidationDomain: !Sub review-d.${Environment}.account.gov.uk
+      ValidationMethod: DNS
+      KeyAlgorithm: RSA_2048
+      Tags:
+        - Key: CreatedBy
+          Value: InfraAsCode
+
+  EncryptionCertificatePrivate:
+    DependsOn:
+      - RootCAActivation
+    Type: "AWS::CertificateManager::Certificate"
+    Condition: IsCAEnvironment
+    Properties:
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      DomainName: !Sub review-d.${Environment}.account.gov.uk
+      DomainValidationOptions:
+        - DomainName: !Sub review-d.${Environment}.account.gov.uk
+          ValidationDomain: !Sub review-d.${Environment}.account.gov.uk
+      ValidationMethod: DNS
+      KeyAlgorithm: RSA_2048
+      Tags:
+        - Key: CreatedBy
+          Value: InfraAsCode
+
+Outputs:
+  RootCACertificateArn:
+    Condition: IsCAEnvironment
+    Description: Root certificate Arn
+    Value: !Ref RootCACertificate
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DLCRIRootCertificateArn
+        
+  SigningCertificateArnPrivate:
+    Condition: IsCAEnvironment
+    Description: Signing certificate Arn
+    Value: !Ref SigningCertificatePrivate
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DLCRISigningCertificateArn
+
+  EncryptionCertificateArnPrivate:
+    Condition: IsCAEnvironment
+    Description: Encryption certificate Arn
+    Value: !Ref EncryptionCertificatePrivate
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DLCRIEncryptionCertificateArn
+
+  MtlsCertificateArnPrivate:
+    Condition: IsCAEnvironment
+    Description: MTLS certificate Arn
+    Value: !Ref MtlsCertificatePrivate
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DLCRIMtlsCertificateArn

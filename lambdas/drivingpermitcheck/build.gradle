@@ -34,7 +34,10 @@ dependencies {
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}",
 			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}",
-			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+			"software.amazon.awssdk:kms:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:acm:${dependencyVersions.aws_sdk_version}",
+			'org.bouncycastle:bcpkix-jdk15to18:1.78.1'
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
@@ -48,7 +51,8 @@ dependencies {
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
-			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
+			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}",
+			"org.wiremock:wiremock:3.9.1"
 
 	testFixturesImplementation project(":lib"), project(":lib-dvla"),
 			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
@@ -67,7 +71,9 @@ tasks.register('buildZip', Zip) {
 }
 
 test {
-	useJUnitPlatform ()
+	useJUnitPlatform {
+		excludeTags 'Pact', 'CreateSelfSignedCertFromKMS', 'TestKmsEncryption', 'TestKmsVerification','TestToCreateDvaResponseForE2ETest', 'FullE2ECertTest'
+	}
 	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
 

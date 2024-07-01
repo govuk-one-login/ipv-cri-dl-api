@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.impl.client.CloseableHttpClient;
+import software.amazon.awssdk.services.kms.KmsClient;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.dva.DvaThirdPartyDocumentGateway;
@@ -10,9 +11,13 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptography
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DVACloseableHttpClientFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.RequestHashValidator;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.JweKmsDecrypter;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DVLACloseableHttpClientFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DvlaEndpointFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
@@ -20,9 +25,13 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 
 public class ThirdPartyAPIServiceFactory {
+
+    public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
+    public static final String END_CERT = "-----END CERTIFICATE-----";
 
     private static final int MAX_HTTP_RETRIES = 2;
 
@@ -33,14 +42,18 @@ public class ThirdPartyAPIServiceFactory {
 
     public ThirdPartyAPIServiceFactory(
             ServiceFactory serviceFactory,
-            DrivingPermitConfigurationService drivingPermitConfigurationService)
+            DrivingPermitConfigurationService drivingPermitConfigurationService,
+            AcmCertificateService acmCertificateService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         boolean tlsOnDva = !drivingPermitConfigurationService.isDvaPerformanceStub();
 
         thirdPartyAPIServices[DVA] =
                 createDvaThirdPartyDocumentGateway(
-                        serviceFactory, drivingPermitConfigurationService, tlsOnDva);
+                        serviceFactory,
+                        drivingPermitConfigurationService,
+                        acmCertificateService,
+                        tlsOnDva);
         thirdPartyAPIServices[DVLA] =
                 createDvlaThirdPartyDocumentGateway(
                         serviceFactory, drivingPermitConfigurationService);
@@ -49,6 +62,7 @@ public class ThirdPartyAPIServiceFactory {
     private ThirdPartyAPIService createDvaThirdPartyDocumentGateway(
             ServiceFactory serviceFactory,
             DrivingPermitConfigurationService drivingPermitConfigurationService,
+            AcmCertificateService acmCertificateService,
             boolean tlsOn)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
 
@@ -58,9 +72,25 @@ public class ThirdPartyAPIServiceFactory {
         ApacheHTTPClientFactoryService apacheHTTPClientFactoryService =
                 serviceFactory.getApacheHTTPClientFactoryService();
 
+        DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration =
+                new DvaCryptographyServiceConfiguration(parameterStoreService);
+        String signingKeyId = dvaCryptographyServiceConfiguration.getKmsSigningKeyId();
+        String encryptionKeyId = dvaCryptographyServiceConfiguration.getKmsEncryptionKeyId();
+        String dlSigningCertificateString = acmCertificateService.exportAcmSigningCertificate();
+        dlSigningCertificateString =
+                dlSigningCertificateString
+                        .replace("\n", "")
+                        .replace(BEGIN_CERT, "")
+                        .replace(END_CERT, "");
+        X509Certificate dlSigningCertificate =
+                KeyCertHelper.getDecodedX509Certificate(dlSigningCertificateString);
+
+        KmsClient kmsClient = serviceFactory.getClientProviderFactory().getKMSClient();
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(
-                        new DvaCryptographyServiceConfiguration(parameterStoreService));
+                        dvaCryptographyServiceConfiguration,
+                        new KmsSigner(signingKeyId, dlSigningCertificate, kmsClient),
+                        new JweKmsDecrypter(encryptionKeyId, kmsClient));
 
         RequestHashValidator requestHashValidator = new RequestHashValidator();
 
@@ -69,7 +99,10 @@ public class ThirdPartyAPIServiceFactory {
 
         CloseableHttpClient httpClient =
                 dvaCloseableHttpClientFactory.getClient(
-                        parameterStoreService, apacheHTTPClientFactoryService, tlsOn);
+                        parameterStoreService,
+                        apacheHTTPClientFactoryService,
+                        acmCertificateService,
+                        tlsOn);
 
         HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe, MAX_HTTP_RETRIES);
 

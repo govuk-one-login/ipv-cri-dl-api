@@ -1,10 +1,10 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -35,8 +35,8 @@ import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
@@ -63,7 +63,6 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private static final APIResultSource API_RESULT_SOURCE = DVA;
     private final DvaCryptographyService dvaCryptographyService;
     private final RequestHashValidator requestHashValidator;
-    private final ObjectMapper objectMapper;
     private final DrivingPermitConfigurationService drivingPermitConfigurationService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
@@ -78,7 +77,6 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
             DrivingPermitConfigurationService drivingPermitConfigurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
-        this.objectMapper = objectMapper;
         this.dvaCryptographyService = dvaCryptographyService;
         this.requestHashValidator = requestHashValidator;
         this.drivingPermitConfigurationService = drivingPermitConfigurationService;
@@ -202,8 +200,8 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         LOGGER.info("Preparing payload for DVA");
         try {
             return dvaCryptographyService.preparePayload(dvaPayload);
-        } catch (JOSEException | JsonProcessingException e) {
-            LOGGER.error(("Failed to prepare payload for DVA: " + e.getMessage()));
+        } catch (JOSEException | IOException | GeneralSecurityException e) {
+            LOGGER.error("Failed to prepare payload for DVA: " + e.getMessage());
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_PREPARE_DVA_PAYLOAD);
@@ -259,7 +257,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 documentCheckResult.setValid(unwrappedDvaResponse.isValidDocument());
 
                 return documentCheckResult;
-            } catch (IpvCryptoException e) {
+            } catch (IpvCryptoException | java.text.ParseException e) {
                 // Seen when a signing cert has expired and all message signatures fail verification
                 // We need to log this specific error message from the IpvCryptoException for
                 // context

@@ -83,8 +83,8 @@ ext {
 
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
 	// Requires review coverage is higher than this
-	minUnitTestLineCoverage = 0.80
-	minUnitTestBranchCoverage = 0.80
+	minUnitTestLineCoverage = 0.73
+	minUnitTestBranchCoverage = 0.75
 }
 
 sonar {

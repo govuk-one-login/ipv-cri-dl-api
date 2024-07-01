@@ -8,7 +8,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterP
 @ExcludeFromGeneratedCoverageReport
 public class DvaConfiguration {
 
-    private final String endpointUri;
+    private String endpointUri;
     private final String userName;
     private final String password;
 

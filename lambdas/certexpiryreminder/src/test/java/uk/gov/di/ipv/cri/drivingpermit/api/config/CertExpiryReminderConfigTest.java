@@ -72,10 +72,6 @@ class CertExpiryReminderConfigTest {
 
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
                         ParameterPrefix.OVERRIDE,
-                        DvaCryptographyServiceConfiguration.DVA_JWS_PARAMETER_PATH))
-                .thenReturn(testJWSParamMap);
-        when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
-                        ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWE_PARAMETER_PATH))
                 .thenReturn(testJWEParamMap);
     }

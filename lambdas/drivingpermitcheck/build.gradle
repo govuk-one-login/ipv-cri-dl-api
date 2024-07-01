@@ -27,7 +27,10 @@ dependencies {
 			"com.google.code.gson:gson:${dependencyVersions.gson_version}",
 			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
 			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}",
-			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+			'software.amazon.awssdk:kms:2.26.8',
+			'software.amazon.awssdk:acm:2.27.9',
+			'org.bouncycastle:bcpkix-jdk15to18:1.72'
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
@@ -41,7 +44,9 @@ dependencies {
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
-			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
+			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}",
+			"org.wiremock:wiremock:3.9.1",
+			"org.assertj:assertj-core:3.24.2"
 
 	testFixturesImplementation project(":lib"), project(":lib-dvla"),
 			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
@@ -60,7 +65,9 @@ tasks.register('buildZip', Zip) {
 }
 
 test {
-	useJUnitPlatform ()
+	useJUnitPlatform {
+		excludeTags 'Pact', 'CreateSelfSignedCertFromKMS', 'TestKmsEncryption', 'TestKmsVerification','TestToCreateDvaResponseForE2ETest', 'FullE2ECertTest'
+	}
 	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
 

@@ -157,9 +157,9 @@ public class ClientFactoryService {
 
         Certificate tlsRootCert = KeyCertHelper.getDecodedX509Certificate(base64TLSRootCertString);
 
-        Certificate tlsIntCert = KeyCertHelper.getDecodedX509Certificate(base64TLSIntCertString);
+        // Certificate tlsIntCert = KeyCertHelper.getDecodedX509Certificate(base64TLSIntCertString);
 
-        KeyStore trustStore = createTrustStore(new Certificate[] {tlsRootCert, tlsIntCert});
+        KeyStore trustStore = createTrustStore(new Certificate[] {tlsRootCert});
 
         SSLContext sslContext = sslContextSetup(keystoreTLS, trustStore);
 
@@ -170,7 +170,7 @@ public class ClientFactoryService {
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException,
                     KeyManagementException {
         return SSLContexts.custom()
-                .loadKeyMaterial(clientTls, RANDOM_RUN_TIME_KEYSTORE_PASSWORD)
+                .loadKeyMaterial(clientTls, "password".toCharArray())
                 .loadTrustMaterial(caBundle, null)
                 .build();
     }
@@ -178,10 +178,9 @@ public class ClientFactoryService {
     private KeyStore createKeyStore(Certificate cert, Key key)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(null, RANDOM_RUN_TIME_KEYSTORE_PASSWORD);
+        keyStore.load(null, "password".toCharArray());
 
-        keyStore.setKeyEntry(
-                "TlSKey", key, RANDOM_RUN_TIME_KEYSTORE_PASSWORD, new Certificate[] {cert});
+        keyStore.setKeyEntry("TlSKey", key, "password".toCharArray(), new Certificate[] {cert});
         keyStore.setCertificateEntry("my-ca-1", cert);
         return keyStore;
     }
@@ -189,7 +188,7 @@ public class ClientFactoryService {
     private KeyStore createTrustStore(Certificate[] certificates)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(null, null);
+        keyStore.load(null, "passsword".toCharArray());
         int k = 0;
         for (Certificate cert : certificates) {
             k++;

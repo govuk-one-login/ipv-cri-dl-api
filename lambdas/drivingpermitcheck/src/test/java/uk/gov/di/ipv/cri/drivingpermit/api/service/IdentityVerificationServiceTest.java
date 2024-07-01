@@ -1,18 +1,15 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
@@ -34,9 +31,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 @ExtendWith(MockitoExtension.class)
 class IdentityVerificationServiceTest {
     @Mock private FormDataValidator mockFormDataValidator;
-    @Mock private AuditService mockAuditService;
-    @Mock private DrivingPermitConfigurationService drivingPermitConfigurationService;
-    @Mock private ObjectMapper objectMapper;
     @Mock private EventProbe mockEventProbe;
 
     @Mock private ThirdPartyAPIService mockThirdPartyAPIService;

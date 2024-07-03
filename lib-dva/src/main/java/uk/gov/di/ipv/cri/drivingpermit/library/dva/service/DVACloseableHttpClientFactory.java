@@ -18,8 +18,8 @@ import java.util.Map;
 public class DVACloseableHttpClientFactory {
     public static final String HTTP_CLIENT_PARAMETER_PATH = "DVA/HttpClient";
 
-    public static final String MAP_KEY_TLS_CERT = "tlsCert";
-    public static final String MAP_KEY_TLS_KEY = "tlsKey";
+    public static final String MAP_KEY_TLS_CERT = "tlsCert-03-07-2024";
+    public static final String MAP_KEY_TLS_KEY = "tlsKey-03-07-2024";
     public static final String MAP_KEY_TLS_ROOT_CERT = "tlsRootCertificate-2023-11-13";
     public static final String MAP_KEY_TLS_INT_CERT = "tlsIntermediateCertificate-2023-11-13";
 

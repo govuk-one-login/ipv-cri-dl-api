@@ -45,7 +45,7 @@ ext {
 		// ---------------------------------------------------------
 
 		// AWS  aws-lambda-java-libs see https://github.com/aws/aws-lambda-java-libs
-		aws_lambda_core_version            : "1.2.1",
+		aws_lambda_core_version            : "1.2.3",
 		// Object mapper
 		jackson_version                    : "2.15.0",
 		// GSON used in DCS/DVA pathway remove with DCS removal rework to jackson

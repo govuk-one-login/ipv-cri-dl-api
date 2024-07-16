@@ -13,7 +13,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DVLACloseableHttpClientFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.DvlaEndpointFactory;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
@@ -55,7 +55,8 @@ public class ThirdPartyAPIServiceFactory {
         ObjectMapper objectMapper = serviceFactory.getObjectMapper();
         EventProbe eventProbe = serviceFactory.getEventProbe();
         ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();
-        ClientFactoryService clientFactoryService = serviceFactory.getClientFactoryService();
+        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService =
+                serviceFactory.getApacheHTTPClientFactoryService();
 
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(
@@ -68,7 +69,7 @@ public class ThirdPartyAPIServiceFactory {
 
         CloseableHttpClient httpClient =
                 dvaCloseableHttpClientFactory.getClient(
-                        parameterStoreService, clientFactoryService, tlsOn);
+                        parameterStoreService, apacheHTTPClientFactoryService, tlsOn);
 
         HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe, MAX_HTTP_RETRIES);
 
@@ -89,9 +90,11 @@ public class ThirdPartyAPIServiceFactory {
                 drivingPermitConfigurationService.getDvlaConfiguration();
         ObjectMapper objectMapper = serviceFactory.getObjectMapper();
         EventProbe eventProbe = serviceFactory.getEventProbe();
+        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService =
+                serviceFactory.getApacheHTTPClientFactoryService();
 
         DVLACloseableHttpClientFactory dvlaCloseableHttpClientFactory =
-                new DVLACloseableHttpClientFactory();
+                new DVLACloseableHttpClientFactory(apacheHTTPClientFactoryService);
 
         HttpRetryer httpRetryer =
                 new HttpRetryer(

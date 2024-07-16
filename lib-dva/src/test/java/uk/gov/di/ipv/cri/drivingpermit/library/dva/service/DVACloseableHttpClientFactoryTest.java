@@ -6,7 +6,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.HttpClientException;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
@@ -37,7 +37,7 @@ class DVACloseableHttpClientFactoryTest {
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock private ParameterStoreService mockParameterStoreService;
-    @Mock private ClientFactoryService mockClientFactoryService;
+    @Mock private ApacheHTTPClientFactoryService mockApacheHTTPClientFactoryService;
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
@@ -55,7 +55,9 @@ class DVACloseableHttpClientFactoryTest {
         assertDoesNotThrow(
                 () ->
                         dvaCloseableHttpClientFactory.getClient(
-                                mockParameterStoreService, new ClientFactoryService(), tlsOn));
+                                mockParameterStoreService,
+                                new ApacheHTTPClientFactoryService(),
+                                tlsOn));
     }
 
     @ParameterizedTest
@@ -96,7 +98,7 @@ class DVACloseableHttpClientFactoryTest {
                             "Unexpected value: " + thrownExceptionName);
                 };
 
-        when(mockClientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
+        when(mockApacheHTTPClientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
                         anyString(), anyString(), anyString(), anyString()))
                 .thenThrow(thrownException);
 
@@ -105,7 +107,9 @@ class DVACloseableHttpClientFactoryTest {
                         HttpClientException.class,
                         () ->
                                 dvaCloseableHttpClientFactory.getClient(
-                                        mockParameterStoreService, mockClientFactoryService, true));
+                                        mockParameterStoreService,
+                                        mockApacheHTTPClientFactoryService,
+                                        true));
 
         assertEquals(
                 thrownException.getClass().getName() + ": " + thrownException.getMessage(),

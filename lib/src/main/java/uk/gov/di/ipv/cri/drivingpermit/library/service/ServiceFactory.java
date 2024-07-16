@@ -8,6 +8,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
@@ -19,7 +20,8 @@ public class ServiceFactory {
     private final ObjectMapper objectMapper;
     private final EventProbe eventProbe;
 
-    private final ClientFactoryService clientFactoryService;
+    private final ClientProviderFactory clientProviderFactory;
+    private final ApacheHTTPClientFactoryService apacheHTTPClientFactoryService;
     private final ParameterStoreService parameterStoreService;
 
     private final AuditService auditService;
@@ -32,24 +34,32 @@ public class ServiceFactory {
     // Common-Lib
     private final ConfigurationService commonLibConfigurationService;
 
+    @ExcludeFromGeneratedCoverageReport
     public ServiceFactory() {
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = new EventProbe();
 
-        this.clientFactoryService = new ClientFactoryService();
-        this.parameterStoreService = new ParameterStoreService(clientFactoryService);
+        this.clientProviderFactory = new ClientProviderFactory();
+        this.apacheHTTPClientFactoryService = new ApacheHTTPClientFactoryService();
+        this.parameterStoreService =
+                new ParameterStoreService(clientProviderFactory.getSSMProvider());
 
         this.commonLibConfigurationService =
-                new uk.gov.di.ipv.cri.common.library.service.ConfigurationService();
+                new uk.gov.di.ipv.cri.common.library.service.ConfigurationService(
+                        clientProviderFactory.getSSMProvider(),
+                        clientProviderFactory.getSecretsProvider());
 
         this.auditService =
                 new AuditService(
-                        clientFactoryService.getSqsClient(),
+                        clientProviderFactory.getSqsClient(),
                         commonLibConfigurationService,
                         objectMapper,
                         new AuditEventFactory(commonLibConfigurationService, Clock.systemUTC()));
 
-        this.sessionService = new SessionService();
+        this.sessionService =
+                new SessionService(
+                        commonLibConfigurationService,
+                        clientProviderFactory.getDynamoDbEnhancedClient());
 
         final String documentCheckTableName =
                 parameterStoreService.getParameterValue(
@@ -59,16 +69,19 @@ public class ServiceFactory {
         this.documentCheckResultStorageService =
                 new DocumentCheckResultStorageService(documentCheckTableName);
 
-        this.personIdentityService = new PersonIdentityService();
+        this.personIdentityService =
+                new PersonIdentityService(
+                        commonLibConfigurationService,
+                        clientProviderFactory.getDynamoDbEnhancedClient());
     }
 
     // Service factory used to avoid passing all these parameters elsewhere
     // Suppressed S107 added, to avoid breaking apart the service factory (just yet)
-    @ExcludeFromGeneratedCoverageReport
     @java.lang.SuppressWarnings("java:S107")
     ServiceFactory(
             EventProbe eventProbe,
-            ClientFactoryService clientFactoryService,
+            ClientProviderFactory clientProviderFactory,
+            ApacheHTTPClientFactoryService apacheHTTPClientFactoryService,
             ParameterStoreService parameterStoreService,
             SessionService sessionService,
             AuditService auditService,
@@ -77,7 +90,8 @@ public class ServiceFactory {
             ConfigurationService commonLibConfigurationService) {
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = eventProbe;
-        this.clientFactoryService = clientFactoryService;
+        this.clientProviderFactory = clientProviderFactory;
+        this.apacheHTTPClientFactoryService = apacheHTTPClientFactoryService;
         this.parameterStoreService = parameterStoreService;
         this.sessionService = sessionService;
         this.auditService = auditService;
@@ -110,8 +124,12 @@ public class ServiceFactory {
         return personIdentityService;
     }
 
-    public ClientFactoryService getClientFactoryService() {
-        return clientFactoryService;
+    public ClientProviderFactory getClientProviderFactory() {
+        return clientProviderFactory;
+    }
+
+    public ApacheHTTPClientFactoryService getApacheHTTPClientFactoryService() {
+        return apacheHTTPClientFactoryService;
     }
 
     public ParameterStoreService getParameterStoreService() {

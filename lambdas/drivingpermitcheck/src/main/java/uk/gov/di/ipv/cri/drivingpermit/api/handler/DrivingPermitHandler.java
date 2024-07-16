@@ -23,6 +23,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
@@ -42,7 +43,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
@@ -158,12 +158,12 @@ public class DrivingPermitHandler
     private DrivingPermitConfigurationService createDrivingPermitConfigurationService(
             ServiceFactory serviceFactory) throws JsonProcessingException {
 
-        ClientFactoryService clientFactoryService = serviceFactory.getClientFactoryService();
+        ClientProviderFactory clientProviderFactory = serviceFactory.getClientProviderFactory();
 
         ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();
 
         SecretsManagerService secretsManagerService =
-                new SecretsManagerService(clientFactoryService.getSecretsManagerClient());
+                new SecretsManagerService(clientProviderFactory.getSecretsManagerClient());
 
         return new DrivingPermitConfigurationService(parameterStoreService, secretsManagerService);
     }

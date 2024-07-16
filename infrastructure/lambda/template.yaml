@@ -271,6 +271,23 @@ Mappings:
       integration: "https://review-d.integration.account.gov.uk"
       production: "https://review-d.account.gov.uk"
 
+  FeatureFlagMapping:
+    dev:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    build:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    staging:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    integration:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    production:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+
 Resources:
 
 ####################################################################
@@ -610,6 +627,8 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
+          ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
+          ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess

@@ -2,7 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.library.dva.service;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.HttpClientException;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
@@ -29,7 +29,7 @@ public class DVACloseableHttpClientFactory {
 
     public CloseableHttpClient getClient(
             ParameterStoreService parameterStoreService,
-            ClientFactoryService clientFactoryService,
+            ApacheHTTPClientFactoryService apacheHTTPClientFactoryService,
             boolean tlsOn) {
 
         try {
@@ -48,13 +48,14 @@ public class DVACloseableHttpClientFactory {
                 final String base64TLSIntCertString =
                         dvaHtpClientCertsKeysMap.get(MAP_KEY_TLS_INT_CERT);
 
-                return clientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
-                        base64TLSCertString,
-                        base64TLSKeyString,
-                        base64TLSRootCertString,
-                        base64TLSIntCertString);
+                return apacheHTTPClientFactoryService
+                        .generateHTTPClientFromExternalApacheHttpClient(
+                                base64TLSCertString,
+                                base64TLSKeyString,
+                                base64TLSRootCertString,
+                                base64TLSIntCertString);
             } else {
-                return new ClientFactoryService().generatePublicHttpClient();
+                return apacheHTTPClientFactoryService.generatePublicHttpClient();
             }
         } catch (NoSuchAlgorithmException
                 | InvalidKeySpecException

@@ -10,6 +10,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -25,7 +26,8 @@ class ServiceFactoryTest {
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock EventProbe mockEventProbe;
-    @Mock ClientFactoryService mockClientFactoryService;
+    @Mock ClientProviderFactory mockClientProviderFactory;
+    @Mock ApacheHTTPClientFactoryService mockApacheHTTPClientFactoryService;
     @Mock ParameterStoreService mockParameterStoreService;
     @Mock SessionService mockSessionService;
     @Mock AuditService mockAuditService;
@@ -43,7 +45,8 @@ class ServiceFactoryTest {
         serviceFactory =
                 new ServiceFactory(
                         mockEventProbe,
-                        mockClientFactoryService,
+                        mockClientProviderFactory,
+                        mockApacheHTTPClientFactoryService,
                         mockParameterStoreService,
                         mockSessionService,
                         mockAuditService,
@@ -72,12 +75,23 @@ class ServiceFactoryTest {
     }
 
     @Test
-    void shouldReturnClientFactoryService() {
-        ClientFactoryService clientFactoryService = serviceFactory.getClientFactoryService();
-        assertNotNull(clientFactoryService);
+    void shouldReturnClientProviderFactory() {
+        ClientProviderFactory clientProviderFactory1 = serviceFactory.getClientProviderFactory();
+        assertNotNull(clientProviderFactory1);
 
-        ClientFactoryService clientFactoryService2 = serviceFactory.getClientFactoryService();
-        assertEquals(clientFactoryService, clientFactoryService2);
+        ClientProviderFactory clientProviderFactory2 = serviceFactory.getClientProviderFactory();
+        assertEquals(clientProviderFactory1, clientProviderFactory2);
+    }
+
+    @Test
+    void shouldReturnApacheHTTPClientFactoryService() {
+        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService1 =
+                serviceFactory.getApacheHTTPClientFactoryService();
+        assertNotNull(apacheHTTPClientFactoryService1);
+
+        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService2 =
+                serviceFactory.getApacheHTTPClientFactoryService();
+        assertEquals(apacheHTTPClientFactoryService1, apacheHTTPClientFactoryService2);
     }
 
     @Test

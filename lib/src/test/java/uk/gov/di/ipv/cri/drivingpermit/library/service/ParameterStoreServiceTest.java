@@ -27,7 +27,6 @@ class ParameterStoreServiceTest {
 
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Mock private ClientFactoryService mockClientFactoryService;
     @Mock SSMProvider mockSSMProvider;
 
     private final String AWS_STACK_NAME = "cri-api-dev";
@@ -45,9 +44,7 @@ class ParameterStoreServiceTest {
         environmentVariables.set("AWS_STACK_NAME", AWS_STACK_NAME);
         environmentVariables.set("COMMON_PARAMETER_NAME_PREFIX", COMMON_PARAMETER_NAME_PREFIX);
 
-        when(mockClientFactoryService.getSSMProvider()).thenReturn(mockSSMProvider);
-
-        parameterStoreService = new ParameterStoreService(mockClientFactoryService);
+        parameterStoreService = new ParameterStoreService(mockSSMProvider);
     }
 
     @ParameterizedTest
@@ -90,7 +87,7 @@ class ParameterStoreServiceTest {
         String testPath = "TESTPATH/SUBPATH";
         String fullPath = String.format("/%s/%s", prefixToTest.getPrefixValue(), testPath);
 
-        when(mockClientFactoryService.getSSMProvider().recursive()).thenReturn(mockSSMProvider);
+        when(mockSSMProvider.recursive()).thenReturn(mockSSMProvider);
         when(mockSSMProvider.getMultiple(fullPath)).thenReturn(testParameterMap);
 
         assertEquals(

@@ -7,13 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.kms.KmsClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.lambda.powertools.parameters.SSMProvider;
-import software.amazon.lambda.powertools.parameters.SecretsProvider;
-import uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -26,77 +19,32 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures.TEST_ROOT_CRT;
+import static uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures.TEST_TLS_CRT;
+import static uk.gov.di.ipv.cri.drivingpermit.util.CertAndKeyTestFixtures.TEST_TLS_KEY;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
-class ClientFactoryServiceTest {
+class ApacheHTTPClientFactoryServiceTest {
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    private ClientFactoryService clientFactoryService;
+    private ApacheHTTPClientFactoryService apacheHTTPClientFactoryService;
 
     @BeforeEach
     void setUp() {
         environmentVariables.set("AWS_REGION", "eu-west-2");
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
 
-        clientFactoryService = new ClientFactoryService();
-    }
-
-    @Test
-    void shouldReturnKMSClient() {
-
-        KmsClient kmsClient = clientFactoryService.getKMSClient();
-
-        assertNotNull(kmsClient);
-    }
-
-    @Test
-    void shouldReturnSqsClient() {
-
-        SqsClient sqsClient = clientFactoryService.getSqsClient();
-
-        assertNotNull(sqsClient);
-    }
-
-    @Test
-    void shouldReturnDynamoDbEnhancedClient() {
-
-        DynamoDbEnhancedClient dynamoDbEnhancedClient =
-                clientFactoryService.getDynamoDbEnhancedClient();
-
-        assertNotNull(dynamoDbEnhancedClient);
-    }
-
-    @Test
-    void shouldReturnSSMProvider() {
-
-        SSMProvider ssmProvider = clientFactoryService.getSSMProvider();
-
-        assertNotNull(ssmProvider);
-    }
-
-    @Test
-    void shouldReturnSecretsProvider() {
-
-        SecretsProvider secretsProvider = clientFactoryService.getSecretsProvider();
-
-        assertNotNull(secretsProvider);
+        apacheHTTPClientFactoryService = new ApacheHTTPClientFactoryService();
     }
 
     @Test
     void shouldReturnHttpClientWithNoSSL() {
 
-        CloseableHttpClient closeableHttpClient = clientFactoryService.generatePublicHttpClient();
+        CloseableHttpClient closeableHttpClient =
+                apacheHTTPClientFactoryService.generatePublicHttpClient();
 
         assertNotNull(closeableHttpClient);
-    }
-
-    @Test
-    void shouldReturnClientWithRegionManuallySet() {
-        ClientFactoryService clientFactoryServiceManual =
-                new ClientFactoryService(Region.EU_WEST_2);
-
-        assertNotNull(clientFactoryServiceManual);
     }
 
     @ParameterizedTest
@@ -109,10 +57,10 @@ class ClientFactoryServiceTest {
     void shouldCatchExceptionAndThrowHttpClientExceptionForExceptionsGettingHttpClient(
             String exceptionName) {
 
-        String base64TLSCertString = CertAndKeyTestFixtures.TEST_TLS_CRT;
-        String base64TLSKeyString = CertAndKeyTestFixtures.TEST_TLS_KEY;
-        String base64TLSRootCertString = CertAndKeyTestFixtures.TEST_ROOT_CRT;
-        String base64TLSIntCertString = CertAndKeyTestFixtures.TEST_TLS_CRT;
+        String base64TLSCertString = TEST_TLS_CRT;
+        String base64TLSKeyString = TEST_TLS_KEY;
+        String base64TLSRootCertString = TEST_ROOT_CRT;
+        String base64TLSIntCertString = TEST_TLS_CRT;
 
         String badData = new String(Base64.getEncoder().encode("TEST1234".getBytes()));
 
@@ -133,6 +81,8 @@ class ClientFactoryServiceTest {
 
                 expectedExceptionClass = InvalidKeySpecException.class;
                 break;
+            default:
+                break;
         }
 
         String finalBase64TLSCertString = base64TLSCertString;
@@ -141,11 +91,12 @@ class ClientFactoryServiceTest {
                 assertThrows(
                         expectedExceptionClass,
                         () ->
-                                clientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
-                                        finalBase64TLSCertString,
-                                        finalBase64TLSKeyString,
-                                        base64TLSRootCertString,
-                                        base64TLSIntCertString),
+                                apacheHTTPClientFactoryService
+                                        .generateHTTPClientFromExternalApacheHttpClient(
+                                                finalBase64TLSCertString,
+                                                finalBase64TLSKeyString,
+                                                base64TLSRootCertString,
+                                                base64TLSIntCertString),
                         "An Error Message");
 
         assert expectedExceptionClass != null;
@@ -158,11 +109,12 @@ class ClientFactoryServiceTest {
         CloseableHttpClient closeableHttpClient =
                 assertDoesNotThrow(
                         () ->
-                                clientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
-                                        CertAndKeyTestFixtures.TEST_TLS_CRT,
-                                        CertAndKeyTestFixtures.TEST_TLS_KEY,
-                                        CertAndKeyTestFixtures.TEST_ROOT_CRT,
-                                        CertAndKeyTestFixtures.TEST_TLS_CRT));
+                                apacheHTTPClientFactoryService
+                                        .generateHTTPClientFromExternalApacheHttpClient(
+                                                TEST_TLS_CRT,
+                                                TEST_TLS_KEY,
+                                                TEST_ROOT_CRT,
+                                                TEST_TLS_CRT));
 
         assertNotNull(closeableHttpClient);
     }

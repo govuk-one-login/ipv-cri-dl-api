@@ -14,7 +14,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.dvla.DvlaThirdPartyDocumentGa
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
@@ -42,7 +42,7 @@ class ThirdPartyAPIServiceFactoryTest {
     @Mock DrivingPermitConfigurationService mockDrivingPermitConfigurationService;
 
     @Mock ParameterStoreService mockParameterStoreService;
-    @Mock ClientFactoryService mockClientFactoryService;
+    @Mock ApacheHTTPClientFactoryService mockApacheHTTPClientFactoryService;
 
     @Mock DvaConfiguration mockDvaConfiguration;
     @Mock DvlaConfiguration mockDvlaConfiguration;
@@ -59,7 +59,8 @@ class ThirdPartyAPIServiceFactoryTest {
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
 
         when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
-        when(mockServiceFactory.getClientFactoryService()).thenReturn(mockClientFactoryService);
+        when(mockServiceFactory.getApacheHTTPClientFactoryService())
+                .thenReturn(mockApacheHTTPClientFactoryService);
 
         when(mockDrivingPermitConfigurationService.isDvaPerformanceStub()).thenReturn(false);
 

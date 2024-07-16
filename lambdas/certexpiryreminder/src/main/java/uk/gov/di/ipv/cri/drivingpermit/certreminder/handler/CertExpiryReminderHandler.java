@@ -8,10 +8,10 @@ import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.certreminder.config.CertExpiryReminderConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
 import java.security.NoSuchAlgorithmException;
@@ -34,10 +34,10 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
     @ExcludeFromGeneratedCoverageReport
     public CertExpiryReminderHandler()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
-        ClientFactoryService clientFactoryService = new ClientFactoryService();
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
 
         ParameterStoreService parameterStoreService =
-                new ParameterStoreService(clientFactoryService);
+                new ParameterStoreService(clientProviderFactory.getSSMProvider());
 
         certExpiryReminderConfig = new CertExpiryReminderConfig(parameterStoreService);
 

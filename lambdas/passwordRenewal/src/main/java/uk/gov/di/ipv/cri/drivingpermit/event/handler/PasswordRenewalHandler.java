@@ -25,6 +25,7 @@ import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangePasswordService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
@@ -36,7 +37,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfigurat
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
@@ -58,12 +58,12 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
     @ExcludeFromGeneratedCoverageReport
     public PasswordRenewalHandler() throws JsonProcessingException {
 
-        ClientFactoryService clientFactoryService = new ClientFactoryService();
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
 
         ParameterStoreService parameterStoreService =
-                new ParameterStoreService(clientFactoryService);
+                new ParameterStoreService(clientProviderFactory.getSSMProvider());
 
-        secretsManagerClient = clientFactoryService.getSecretsManagerClient();
+        secretsManagerClient = clientProviderFactory.getSecretsManagerClient();
 
         SecretsManagerService secretsManagerService =
                 new SecretsManagerService(secretsManagerClient);

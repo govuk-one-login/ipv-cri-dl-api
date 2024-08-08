@@ -20,6 +20,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -53,8 +56,12 @@ public class VerifiableCredentialService {
             String subject,
             DocumentCheckResultItem documentCheckResultItem,
             PersonIdentityDetailed personIdentityDetailed)
-            throws JOSEException {
+            throws JOSEException, MalformedURLException, NoSuchAlgorithmException {
         long jwtTtl = commonLibConfigurationService.getMaxJwtTtl();
+        String issuer =
+                removeIssuerPrefix(commonLibConfigurationService.getVerifiableCredentialIssuer());
+        String kmsSigningKeyId =
+                commonLibConfigurationService.getVerifiableCredentialKmsSigningKeyId();
 
         ChronoUnit jwtTtlUnit =
                 ChronoUnit.valueOf(
@@ -79,7 +86,7 @@ public class VerifiableCredentialService {
                         .verifiableCredentialEvidence(calculateEvidence(documentCheckResultItem))
                         .build();
 
-        return signedJwtFactory.createSignedJwt(claimsSet);
+        return signedJwtFactory.createSignedJwt(claimsSet, issuer, kmsSigningKeyId);
     }
 
     private Object[] convertAddresses(List<Address> addresses) {
@@ -125,5 +132,10 @@ public class VerifiableCredentialService {
                     EvidenceHelper.documentCheckResultItemToEvidence(documentCheckResultItem),
                     Map.class)
         };
+    }
+
+    private String removeIssuerPrefix(String issuerUrl) throws MalformedURLException {
+        URL url = new URL(issuerUrl);
+        return url.getAuthority() + url.getPath();
     }
 }

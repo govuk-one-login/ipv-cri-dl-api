@@ -48,7 +48,8 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static String ACCESS_TOKEN;
     private static String DATE_TIME_OF_ROTATION;
 
-    private static String VC;
+    private static String vcHeader;
+    private static String vcBody;
 
     private static Boolean RETRY;
     private static String DRIVING_LICENCE_CHECK_RESPONSE;
@@ -235,16 +236,22 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .build();
         String requestDrivingLicenceVCResponse = sendHttpRequest(request).body();
         LOGGER.info("requestDrivingLicenceVCResponse = {}", requestDrivingLicenceVCResponse);
-        VC = SignedJWT.parse(requestDrivingLicenceVCResponse).getJWTClaimsSet().toString();
+        SignedJWT signedJWT = SignedJWT.parse(requestDrivingLicenceVCResponse);
+
+        vcHeader = signedJWT.getHeader().toString();
+        LOGGER.info("VC Header = {}", vcHeader);
+
+        vcBody = signedJWT.getJWTClaimsSet().toString();
+        LOGGER.info("VC Body = {}", vcBody);
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
             throws IOException {
-        scoreIs(validityScore, strengthScore, VC);
+        scoreIs(validityScore, strengthScore, vcBody);
     }
 
     public void ciInDrivingLicenceCriVc(String ci) throws IOException {
-        JsonNode jsonNode = objectMapper.readTree(VC);
+        JsonNode jsonNode = objectMapper.readTree(vcBody);
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
         JsonNode ciInEvidenceArray = evidenceArray.get(0);
         LOGGER.info("ciInEvidenceArray = {}", ciInEvidenceArray);
@@ -256,12 +263,11 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     public void assertCheckDetails(
             String checkMethod, String identityCheckPolicy, String checkDetailsType)
             throws IOException {
-        assertCheckDetailsWithinVc(checkMethod, identityCheckPolicy, checkDetailsType, VC);
+        assertCheckDetailsWithinVc(checkMethod, identityCheckPolicy, checkDetailsType, vcBody);
     }
 
     public void assertJtiIsPresentAndNotNull() throws IOException {
-        LOGGER.info("result = {}", VC);
-        JsonNode jsonNode = objectMapper.readTree(VC);
+        JsonNode jsonNode = objectMapper.readTree(vcBody);
         JsonNode jtiNode = jsonNode.get("jti");
         LOGGER.info("jti = {}", jtiNode.asText());
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -35,6 +36,7 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
@@ -55,7 +57,13 @@ class VerifiableCredentialServiceTest implements TestFixtures {
 
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    private final String UNIT_TEST_VC_ISSUER = "UNIT_TEST_VC_ISSUER";
+    @SuppressWarnings("java:S116")
+    private final String UNIT_TEST_VC_KEYID = "UNIT_TEST_VC_KEYID";
+
+    @SuppressWarnings("java:S116")
+    private final String UNIT_TEST_VC_ISSUER = "https://UNIT_TEST_VC_ISSUER";
+
+    @SuppressWarnings("java:S116")
     private final String UNIT_TEST_SUBJECT = "urn:fdc:12345678";
 
     private final String UNIT_TEST_MAX_JWT_TTL_UNIT = "SECONDS";
@@ -84,9 +92,16 @@ class VerifiableCredentialServiceTest implements TestFixtures {
     }
 
     @ParameterizedTest
-    @CsvSource({"DVA", "DVLA"})
-    void testGenerateSignedVerifiableCredentialJWT(String issuer)
-            throws JOSEException, JsonProcessingException, ParseException {
+    @CsvSource({
+        "DVA, false",
+        "DVA, true",
+        "DVLA, false",
+        "DVLA, true",
+    })
+    void testGenerateSignedVerifiableCredentialJWT(String issuer, boolean includeKidInVC)
+            throws JOSEException, JsonProcessingException, ParseException, NoSuchAlgorithmException,
+                    MalformedURLException {
+        environmentVariables.set("INCLUDE_VC_KID", includeKidInVC);
 
         PersonIdentityDetailed savedPersonIdentityDetailed =
                 PersonIdentityDetailedTestDataGenerator.generate(issuer);
@@ -98,6 +113,15 @@ class VerifiableCredentialServiceTest implements TestFixtures {
         var auditEventPersonIdentityDetailed =
                 VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
                         savedPersonIdentityDetailed, savedDocumentCheckResultItem);
+
+        if (includeKidInVC) {
+            when(mockCommonLibConfigurationService.getCommonParameterValue(
+                            "verifiableCredentialKmsSigningKeyId"))
+                    .thenReturn(UNIT_TEST_VC_KEYID);
+            when(mockCommonLibConfigurationService.getCommonParameterValue(
+                            "verifiable-credential/issuer"))
+                    .thenReturn(UNIT_TEST_VC_ISSUER);
+        }
 
         when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);
@@ -122,6 +146,16 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                         .withDefaultPrettyPrinter()
                         .writeValueAsString(generatedClaims);
         LOGGER.info(jsonGeneratedClaims);
+
+        JWSHeader generatedJWSHeader = null;
+        if (includeKidInVC) {
+            generatedJWSHeader = signedJWT.getHeader();
+            String[] jwsHeaderParts = generatedJWSHeader.getKeyID().split(":");
+
+            assertEquals("did", jwsHeaderParts[0]);
+            assertEquals("web", jwsHeaderParts[1]);
+            assertEquals("UNIT_TEST_VC_ISSUER", jwsHeaderParts[2]);
+        }
 
         JsonNode claimsSet = realObjectMapper.readTree(generatedClaims.toString());
         assertEquals(5, claimsSet.size());

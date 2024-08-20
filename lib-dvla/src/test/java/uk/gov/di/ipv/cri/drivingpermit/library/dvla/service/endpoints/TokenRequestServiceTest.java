@@ -21,6 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.dynamo.TokenItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.TokenResponse;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -51,6 +53,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_STATUS_CODE_ALERT_METRIC;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_INVALID;
@@ -78,7 +81,8 @@ class TokenRequestServiceTest {
     private TokenRequestService tokenRequestService;
 
     @Mock DynamoDbTable<TokenItem> mockTokenTable; // To mock the internals of Datastore
-    private final Key TOKEN_ITEM_KEY = Key.builder().partitionValue(TOKEN_ITEM_ID).build();
+    private final Key TOKEN_ITEM_KEY =
+            Key.builder().partitionValue(Strategy.NO_CHANGE.name() + TOKEN_ITEM_ID).build();
 
     @BeforeEach
     void setUp() {
@@ -122,7 +126,7 @@ class TokenRequestServiceTest {
                         httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
                 .thenReturn(tokenResponse);
 
-        String tokenValue = tokenRequestService.requestToken(false);
+        String tokenValue = tokenRequestService.requestToken(false, Strategy.NO_CHANGE);
 
         // (POST) Token
         InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
@@ -139,6 +143,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -172,7 +179,7 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestToken(true),
+                        () -> tokenRequestService.requestToken(true, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
@@ -187,6 +194,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_TOKEN_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -220,7 +230,7 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestToken(true),
+                        () -> tokenRequestService.requestToken(true, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
@@ -238,6 +248,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -273,7 +286,7 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestToken(true),
+                        () -> tokenRequestService.requestToken(true, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
@@ -291,6 +304,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -327,7 +343,7 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestToken(true),
+                        () -> tokenRequestService.requestToken(true, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
@@ -345,6 +361,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -380,14 +399,14 @@ class TokenRequestServiceTest {
                 .thenReturn(tokenResponse);
         // Token put capture
         doNothing().when(mockTokenTable).putItem(dynamoPutItemTokenItemCaptor.capture());
-        String tokenResponseOne = tokenRequestService.requestToken(false);
+        String tokenResponseOne = tokenRequestService.requestToken(false, Strategy.NO_CHANGE);
         assertEquals(TEST_TOKEN_VALUE, tokenResponseOne);
 
         // Request two
         TokenItem testTokenFromDynamo = dynamoPutItemTokenItemCaptor.getValue();
         // Captured token get
         when(mockTokenTable.getItem(TOKEN_ITEM_KEY)).thenReturn(testTokenFromDynamo);
-        String tokenResponseTwo = tokenRequestService.requestToken(false);
+        String tokenResponseTwo = tokenRequestService.requestToken(false, Strategy.NO_CHANGE);
 
         assertEquals(tokenResponseOne, tokenResponseTwo);
 
@@ -407,6 +426,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -442,7 +464,7 @@ class TokenRequestServiceTest {
                 .thenReturn(tokenResponse);
         // Token put capture
         doNothing().when(mockTokenTable).putItem(dynamoPutItemTokenItemCaptor.capture());
-        String tokenResponseOne = tokenRequestService.requestToken(false);
+        String tokenResponseOne = tokenRequestService.requestToken(false, Strategy.NO_CHANGE);
         assertEquals(TEST_TOKEN_VALUE, tokenResponseOne);
 
         // Request two
@@ -453,7 +475,7 @@ class TokenRequestServiceTest {
 
         // Captured token get
         when(mockTokenTable.getItem(TOKEN_ITEM_KEY)).thenReturn(testTokenFromDynamo);
-        String tokenResponseTwo = tokenRequestService.requestToken(false);
+        String tokenResponseTwo = tokenRequestService.requestToken(false, Strategy.NO_CHANGE);
 
         assertEquals(tokenResponseOne, tokenResponseTwo);
 
@@ -476,6 +498,9 @@ class TokenRequestServiceTest {
                 .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe, times(1))
                 .counterMetric(DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
@@ -487,6 +512,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVLA_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe, times(1))
+                .counterMetric(eq(DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());

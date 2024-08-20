@@ -1,0 +1,81 @@
+name: Smoke Test against Build
+
+on:
+  schedule:
+    # Every weekday at 5am
+    - cron: "0 5 * * 1-5"
+  push:
+
+concurrency:
+  group: smoke-test-build
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          submodules: true
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: zulu
+          cache: gradle
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: wrapper
+          cache-overwrite-existing: true
+      - name: Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .gradle/
+            */build/
+            */**/build/
+            !*/build/reports
+            !*/build/jacoco
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+      - name: Run Smoke test against build environment
+        env:
+          BROWSER: chrome-headless
+          ENVIRONMENT: ${{ secrets.TEST_ENVIRONMENT }}
+          coreStubUrl: ${{ secrets.CORE_STUB_URL }}
+          coreStubUsername: ${{ secrets.CORE_STUB_USERNAME }}
+          coreStubPassword: ${{ secrets.CORE_STUB_PASSWORD }}
+          orchestratorStubUrl: ${{ secrets.ORCHESTRATOR_STUB_URL }}
+        run: cd acceptance-tests && ./gradlew smokeTestBuild
+
+      - name: Get test results history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: LIME-DL-Cucumber-gh-pages
+          path: LIME-DL-Cucumber-gh-pages
+
+      - name: Cucumber HTML Report action
+        uses: PavanMudigonda/html-reporter-github-pages@v1.1
+        id: test-report
+        if: always()
+        with:
+          test_results: acceptance-tests/target/cucumber-report
+          gh_pages: LIME-DL-Cucumber-gh-pages
+          results_history: acceptance-tests/results-history
+
+      - name: Publish Github Pages
+        if: always() && ${{ github.actor != 'dependabot[bot]' }}
+        uses: peaceiris/actions-gh-pages@v4.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: LIME-DL-Cucumber-gh-pages
+          publish_dir: acceptance-tests/results-history
+          keep_files: true

@@ -34,7 +34,9 @@ public class DocumentCheckResultItem {
     // expiry for documentCheckResultItem in DynamoDb
     private long expiry;
 
-    public DocumentCheckResultItem() {}
+    public DocumentCheckResultItem() {
+        /* Intended */
+    }
 
     @DynamoDbPartitionKey()
     public UUID getSessionId() {

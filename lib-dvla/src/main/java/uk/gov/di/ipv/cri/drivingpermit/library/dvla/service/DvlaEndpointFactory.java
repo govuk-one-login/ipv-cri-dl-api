@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.library.dvla.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.http.client.config.RequestConfig;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
@@ -11,6 +12,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatc
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 
+@ExcludeFromGeneratedCoverageReport
 @Getter
 public class DvlaEndpointFactory {
 

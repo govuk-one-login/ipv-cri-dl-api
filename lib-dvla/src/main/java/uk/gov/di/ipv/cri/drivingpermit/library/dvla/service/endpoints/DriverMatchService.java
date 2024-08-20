@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaPayload;
@@ -28,6 +29,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,6 +39,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.Res
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.SUCCESS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.UNAUTHORISED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_LATENCY;
 
 public class DriverMatchService {
 
@@ -48,9 +51,7 @@ public class DriverMatchService {
 
     private static final String DVLA_RESPONSE_HEADER_REQUEST_ID_KEY = "X-DVLA-Request-Id";
 
-    private static final String HTTP_404_EXPECTED_ERROR_CODE = "ENQ018";
-
-    private final URI requestURI;
+    private URI requestURI;
     private final String apiKey;
 
     private final HttpRetryer httpRetryer;
@@ -62,6 +63,10 @@ public class DriverMatchService {
 
     private final HttpRetryStatusConfig httpRetryStatusConfig;
 
+    private final DvlaConfiguration dvlaConfiguration;
+
+    private final StopWatch stopWatch;
+
     public DriverMatchService(
             DvlaConfiguration dvlaConfiguration,
             HttpRetryer httpRetryer,
@@ -69,6 +74,7 @@ public class DriverMatchService {
             ObjectMapper objectMapper,
             EventProbe eventProbe) {
 
+        this.dvlaConfiguration = dvlaConfiguration;
         this.requestURI = URI.create(dvlaConfiguration.getMatchEndpoint());
         this.apiKey = dvlaConfiguration.getApiKey();
 
@@ -79,14 +85,27 @@ public class DriverMatchService {
         this.eventProbe = eventProbe;
 
         this.httpRetryStatusConfig = new DriverMatchHttpRetryStatusConfig();
+        this.stopWatch = new StopWatch();
     }
 
-    public DriverMatchServiceResult performMatch(DvlaFormFields dvlaFormFields, String tokenValue)
+    @java.lang.SuppressWarnings("java:S3776")
+    public DriverMatchServiceResult performMatch(
+            DvlaFormFields dvlaFormFields, String tokenValue, Strategy strategy)
             throws OAuthErrorResponseException {
 
         // Request is posted as if JSON
         final HttpPost request = new HttpPost();
-        request.setURI(requestURI);
+
+        // TestStrategy Logic
+        if (strategy == Strategy.NO_CHANGE) {
+            request.setURI(requestURI);
+        } else {
+            final String endpointUri = dvlaConfiguration.getEndpointURLs().get(strategy.name());
+            this.requestURI =
+                    URI.create(
+                            String.format("%s%s", endpointUri, dvlaConfiguration.getMatchPath()));
+            request.setURI(requestURI);
+        }
 
         request.addHeader(
                 RequestHeaderKeys.HEADER_CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
@@ -133,6 +152,7 @@ public class DriverMatchService {
         String requestURIString = requestURI.toString();
         LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
         LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
+        stopWatch.start();
         try (CloseableHttpResponse response =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
 
@@ -142,6 +162,10 @@ public class DriverMatchService {
             // throws OAuthErrorResponseException on error
             httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(
+                    DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
+
             LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
 
             eventProbe.counterMetric(
@@ -152,6 +176,10 @@ public class DriverMatchService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_MATCH_ENDPOINT);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(
+                DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         // There are two API response types possible depending on userdata
         if (httpReply.statusCode == SUCCESS || httpReply.statusCode == NOT_FOUND) {

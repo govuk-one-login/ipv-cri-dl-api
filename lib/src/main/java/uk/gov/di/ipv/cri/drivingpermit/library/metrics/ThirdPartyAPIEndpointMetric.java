@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.library.metrics;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.MetricException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_INVALID;
@@ -19,34 +20,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.*;
 
 public enum ThirdPartyAPIEndpointMetric {
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DCS End Point Metrics                                                                     //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    DCS_REQUEST_CREATED(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_CREATED),
-    DCS_REQUEST_SEND_OK(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_SEND_OK),
-    DCS_REQUEST_SEND_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_SEND_ERROR),
-
-    DCS_RESPONSE_TYPE_VALID(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_VALID),
-    DCS_RESPONSE_TYPE_INVALID(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_INVALID),
-
-    DCS_RESPONSE_TYPE_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_ERROR),
-
-    DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
-    DCS_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
-
-    DCS_HTTP_RETRYER_REQUEST_SEND_OK(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
-    DCS_HTTP_RETRYER_REQUEST_SEND_FAIL(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_FAIL),
-    DCS_HTTP_RETRYER_REQUEST_SEND_RETRY(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_RETRY),
-    DCS_HTTP_RETRYER_SEND_MAX_RETRIES(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_SEND_MAX_RETRIES),
-    DCS_HTTP_RETRYER_SEND_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVA End Point Metrics                                                                     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,6 +36,8 @@ public enum ThirdPartyAPIEndpointMetric {
             DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
     DVA_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    DVA_RESPONSE_LATENCY(DVA_THIRD_PARTY_API_DVA_ENDPOINT, API_RESPONSE_LATENCY),
 
     DVA_HTTP_RETRYER_REQUEST_SEND_OK(
             DVA_THIRD_PARTY_API_DVA_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
@@ -96,6 +71,8 @@ public enum ThirdPartyAPIEndpointMetric {
             DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
     DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    DVLA_TOKEN_RESPONSE_LATENCY(DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_LATENCY),
 
     DVLA_TOKEN_RESPONSE_STATUS_CODE_ALERT_METRIC(
             DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT,
@@ -131,6 +108,8 @@ public enum ThirdPartyAPIEndpointMetric {
     DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
+    DVLA_MATCH_RESPONSE_LATENCY(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, API_RESPONSE_LATENCY),
+
     DVLA_MATCH_HTTP_RETRYER_REQUEST_SEND_OK(
             DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
     DVLA_MATCH_HTTP_RETRYER_REQUEST_SEND_FAIL(
@@ -162,6 +141,10 @@ public enum ThirdPartyAPIEndpointMetric {
     DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT,
             API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY(
+            DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT, API_RESPONSE_LATENCY),
+
     DVLA_CHANGE_PASSWORD_HTTP_RETRYER_REQUEST_SEND_OK(
             DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT, HTTP_RETRYER_REQUEST_SEND_OK),
     DVLA_CHANGE_PASSWORD_HTTP_RETRYER_REQUEST_SEND_FAIL(

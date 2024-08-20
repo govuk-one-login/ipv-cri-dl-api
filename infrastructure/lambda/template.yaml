@@ -1,6 +1,13 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: "AWS::Serverless-2016-10-31"
 Description: "Digital Identity Driving Permit Credential Issuer API"
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W2031
+        - W1020
+        - E3020
 
 Parameters:
   VpcStackName:
@@ -56,6 +63,10 @@ Parameters:
     Description: "Link to the DL support manual"
     Type: String
     Default: 'https://govukverify.atlassian.net/wiki/spaces/FTFCRI/pages/3623583745/F2F+Support+Documentation'
+  CreateMockTxmaResourcesOverride:
+    Description: "Mock TXMA SQS Queue"
+    Type: String
+    Default: "false"
 
 Conditions:
   IsDeployedFromPipeline: !Equals
@@ -102,6 +113,10 @@ Conditions:
     - Condition: IsNotDevelopment
     - !Equals [!Ref DeployAlarmsInDev, true]
 
+  CreateMockTxmaResources:
+    Fn::And:
+      - !Equals [!Ref Environment, "dev"]
+      - !Equals [ !Ref CreateMockTxmaResourcesOverride, "true" ]
 Globals:
   Function:
     CodeSigningConfigArn: !If
@@ -146,7 +161,10 @@ Globals:
         AWS_STACK_NAME: !Sub ${AWS::StackName}
         POWERTOOLS_LOG_LEVEL: INFO
         SQS_AUDIT_EVENT_PREFIX: !Ref AuditEventNamePrefix
-        SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
+        SQS_AUDIT_EVENT_QUEUE_URL: !If
+          - CreateMockTxmaResources
+          - !GetAtt MockAuditEventQueue.QueueUrl
+          - Fn::ImportValue: AuditEventQueueUrl
         POWERTOOLS_METRICS_NAMESPACE: !Ref CriIdentifier
         COMMON_PARAMETER_NAME_PREFIX: !Ref CommonStackName
         ENVIRONMENT: !Ref Environment
@@ -168,13 +186,6 @@ Mappings:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     production:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
-  MaximumAttemptCountMapping:
-    Environment:
-      dev: 2
-      build: 2
-      staging: 2
-      integration: 2
-      production: 2
 
   MemorySizeMapping:
     Environment:
@@ -216,9 +227,10 @@ Mappings:
       integration: MONTHS
       production: MONTHS
 
+  # Set as EnvVar on the CheckLambda
   # devEnvironmentOnlyEnhancedDebug changes CRI behaviour
   # Do not enable outside of Dev
-  devEnvironmentOnlyEnhancedDebugMapping:
+  DevEnvironmentOnlyEnhancedDebugMappingEnvVar:
     Environment:
       dev: "false"
       build: "false"
@@ -226,35 +238,37 @@ Mappings:
       integration: "false"
       production: "false"
 
-  dvaDirectEnabledMapping:
+  # Set as EnvVar on the CheckLambda
+  DVAPerformanceStubEnabledEnvVar:
     Environment:
       dev: "true"
       build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
+      staging: "false"
+      integration: "false"
+      production: "false"
 
-  dvlaDirectEnabledMapping:
+  LogDVAResponseEnvVar:
     Environment:
-      dev: "true"
-      build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
+      dev: "false"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
 
-  dvlaPasswordRotationEnabledMapping:
+  # Set as EnvVar on the CheckLambda
+  DVLAPasswordRotationEnabledEnvVar:
     Environment:
       dev: "true"
       build: "true"
-      staging: "true"
+      staging: "false"
       integration: "false"
       production: "true"
 
   dvlaPasswordRotationWindow:
     Environment:
       dev: "rate(4 hours)"
-      build: "rate(4 hours)"
-      staging: "cron(0 10 ? 1/2 TUE#1 *)"
+      build: "cron(0 10 ? 1/2 TUE#1 *)"
+      staging: "cron(0 10 ? 1/2 TUE#1 *)" #This value will need updated to match build manually upon rotation
       integration: "cron(0 10 ? 1/2 TUE#1 *)"
       production: "cron(0 10 ? 1/2 TUE#1 *)"
 
@@ -273,6 +287,28 @@ Mappings:
       staging: "https://review-d.staging.account.gov.uk"
       integration: "https://review-d.integration.account.gov.uk"
       production: "https://review-d.account.gov.uk"
+
+  FeatureFlagMapping:
+    dev:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+      IncludeKidInVc: "true"
+    build:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+      IncludeKidInVc: "false"
+    staging:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+      IncludeKidInVc: "false"
+    integration:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+      IncludeKidInVc: "false"
+    production:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+      IncludeKidInVc: "false"
 
 Resources:
 
@@ -471,6 +507,10 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-drivingpermitcheck"
+          DVA_PERFORMANCE_STUB_IN_USE: !FindInMap [DVAPerformanceStubEnabledEnvVar, Environment, !Ref 'Environment']
+          LOG_DVA_RESPONSE: !FindInMap [LogDVAResponseEnvVar, Environment, !Ref 'Environment']
+          DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
+          DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [DevEnvironmentOnlyEnhancedDebugMappingEnvVar, Environment, !Ref Environment ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -498,8 +538,10 @@ Resources:
             Action:
               - kms:Decrypt
               - kms:GenerateDataKey
-            Resource:
-              - !ImportValue AuditEventQueueEncryptionKeyArn
+            Resource: !If
+              - CreateMockTxmaResources
+              - !GetAtt MockAuditEventQueueEncryptionKey.Arn
+              - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
         - Statement:
             - Effect: Allow
               Action:
@@ -507,27 +549,7 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/TokenTableName"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/maximumAttemptCount"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvaDirectEnabled"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/dvlaDirectEnabled"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDvaResponse"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordRotationEnabled"
 
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDcsPerformanceStub"
-                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDvaPerformanceStub"
-                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDvlaPerformanceStub"
-                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
-
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
@@ -552,8 +574,40 @@ Resources:
                 - 'secretsmanager:GetSecretValue'
               Resource:
                 - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/password*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA/HttpClient"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA/JWE"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA/JWS"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
         - SQSSendMessagePolicy:
-            QueueName: !ImportValue AuditEventQueueName
+            QueueName: !If [CreateMockTxmaResources, !GetAtt MockAuditEventQueue.QueueName, !ImportValue AuditEventQueueName]
       ProvisionedConcurrencyConfig:
         !If
         - AddProvisionedConcurrency
@@ -595,6 +649,9 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
+          ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
+          ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
+          INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -610,7 +667,7 @@ Resources:
               - "kms:Sign"
             Resource: !ImportValue core-infrastructure-CriVcSigningKey1Arn
         - SQSSendMessagePolicy:
-            QueueName: !ImportValue AuditEventQueueName
+            QueueName: !If [CreateMockTxmaResources, !GetAtt MockAuditEventQueue.QueueName, !ImportValue AuditEventQueueName]
         - Statement:
             Effect: Allow
             Action:
@@ -619,11 +676,13 @@ Resources:
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiable-credential/issuer"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiableCredentialKmsSigningKeyId"
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiableCredentialKmsSigningKeyId"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
-              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiableCredentialKmsSigningKeyId"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/release-flags/vc-contains-unique-id"
         - Statement:
@@ -639,8 +698,10 @@ Resources:
             Action:
               - kms:Decrypt
               - kms:GenerateDataKey
-            Resource:
-              - !ImportValue AuditEventQueueEncryptionKeyArn
+            Resource: !If
+              - CreateMockTxmaResources
+              - !GetAtt MockAuditEventQueueEncryptionKey.Arn
+              - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
       ProvisionedConcurrencyConfig:
         !If
         - AddProvisionedConcurrency
@@ -682,6 +743,7 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-passwordRenewal"
+          DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -716,10 +778,14 @@ Resources:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/TokenTableName"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordRotationEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DVLA/passwordPath"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
                 - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA*"
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
 
   PasswordRenewalFunctionLogGroup:
@@ -778,31 +844,48 @@ Resources:
               - "kms:Sign"
             Resource: !ImportValue core-infrastructure-CriVcSigningKey1Arn
         - SQSSendMessagePolicy:
-            QueueName: !ImportValue AuditEventQueueName
+            QueueName: !If [CreateMockTxmaResources, !GetAtt MockAuditEventQueue.QueueName, !ImportValue AuditEventQueueName]
         - Statement:
             - Effect: Allow
               Action:
-                - ssm:GetParameter
+                - ssm:GetParametersByPath
               Resource:
                 - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
-                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA/HttpClient"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
                 - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA*"
-                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA/JWE"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
                 - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA*"
-                  - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/*"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}*"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/dl-cri-api-v1/*"
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA/JWS"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVA/heldByDVA"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
         - Statement:
             Effect: Allow
             Action:
               - kms:Decrypt
               - kms:GenerateDataKey
-            Resource:
-              - !ImportValue AuditEventQueueEncryptionKeyArn
+            Resource: !If
+              - CreateMockTxmaResources
+              - !GetAtt MockAuditEventQueueEncryptionKey.Arn
+              - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
 
   CertExpiryReminderFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -836,6 +919,45 @@ Resources:
           Id: scheduled-Cert-Expiry-event
           RetryPolicy:
             MaximumRetryAttempts: 0
+
+
+  #############################
+  # New consumer queue for testing TxMA header
+  #############################
+
+  MockAuditEventQueue:
+    Type: AWS::SQS::Queue
+    Condition: CreateMockTxmaResources
+    Properties:
+      MessageRetentionPeriod: 3600 # 1 hour
+      KmsMasterKeyId: !Ref MockAuditEventQueueEncryptionKeyAlias
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt MockAuditEventDeadLetterQueue.Arn
+        maxReceiveCount: 10
+
+  MockAuditEventDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Condition: CreateMockTxmaResources
+    Properties:
+      MessageRetentionPeriod: 604800 # 7 days
+      KmsMasterKeyId: !Ref MockAuditEventQueueEncryptionKeyAlias
+
+  MockAuditEventQueueEncryptionKey:
+    Type: AWS::KMS::Key
+    Condition: CreateMockTxmaResources
+    Properties:
+      Description: Symmetric key used to encrypt audit messages at rest in SQS
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+
+  MockAuditEventQueueEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: CreateMockTxmaResources
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/auditEventQueueEncryptionKey
+      TargetKeyId: !Ref MockAuditEventQueueEncryptionKey
 
   ####################################################################
 #                                                                  #
@@ -995,85 +1117,13 @@ Resources:
       Value: !FindInMap [ JwtTtlUnitMapping, Environment, !Ref Environment ]
       Description: The unit for the time-to-live for an JWT e.g. (MONTHS)
 
-  IsDcsPerformanceStubParameter:
+  VerifiableCredentialKmsSigningKeyParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/isDcsPerformanceStub"
+      Name: !Sub "/${AWS::StackName}/verifiableCredentialKmsSigningKeyId"
       Type: String
-      Value: "false"
-      Description: Feature toggle to allow performance testing passed SSL
-
-  IsDvaPerformanceStubParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/isDvaPerformanceStub"
-      Type: String
-      Value: "false"
-      Description: Feature toggle to allow performance testing passed SSL
-
-  IsDvlaPerformanceStubParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/isDvlaPerformanceStub"
-      Type: String
-      Value: "false"
-      Description: Feature toggle to allow performance testing passed SSL
-
-  logDcsResponseParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/logDcsResponse"
-      Type: String
-      Value: "false"
-      Description: Feature toggle to allow logging of DCS responses
-
-  logDvaResponseParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/logDvaResponse"
-      Type: String
-      Value: "false"
-      Description: Feature toggle to allow logging of DVA responses
-
-  devEnvironmentOnlyEnhancedDebugParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
-      Type: String
-      Value: !FindInMap [ devEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
-      Description: Enable enhanced debug - this is achieved via modifying CRI oauth behaviour to include debug messages
-
-  dvaDirectEnabledParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/dvaDirectEnabled"
-      Type: String
-      Value: !FindInMap [ dvaDirectEnabledMapping, Environment, !Ref Environment ]
-      Description: Feature toggle to switch between dcs/dva direct
-
-  dvlaDirectEnabledParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/dvlaDirectEnabled"
-      Type: String
-      Value: !FindInMap [ dvlaDirectEnabledMapping, Environment, !Ref Environment ]
-      Description: Feature toggle to switch between dcs/dvla direct
-
-  dvlaPasswordRotationEnabledParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/DVLA/passwordRotationEnabled"
-      Type: String
-      Value: !FindInMap [ dvlaPasswordRotationEnabledMapping, Environment, !Ref Environment ]
-      Description: Feature toggle to enable password rotation
-
-  MaximumAttemptCountParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/maximumAttemptCount"
-      Value: !FindInMap [MaximumAttemptCountMapping, Environment, !Ref 'Environment']
-      Type: String
-      Description: maximum driving permit verification attempts
+      Value: !ImportValue core-infrastructure-CriVcSigningKey1Id
+      Description: Verifiable Credential Key Id
 
   DVLAPasswordSecret:
     Type: 'AWS::SecretsManager::Secret'
@@ -1300,49 +1350,6 @@ Resources:
               Dimensions:
                 - Name: ApiName
                   Value: !Sub "${AWS::StackName}-PrivateDLApi"
-            Period: 300
-            Stat: Sum
-
-  DrivingLicenceLambdaInvocationDeviation:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} Deviation between the session and issue credential lambda
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicDL
-      OKActions:
-        - !Ref AlarmTopicDL
-      InsufficientDataActions: [ ]
-      DatapointsToAlarm: 10
-      EvaluationPeriods: 10
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: booleanDevationMetric
-          Label: BooleanDevationMetric
-          ReturnData: true
-          Expression: IF(ABS(((sessionInvocations-issueCredentialInvocations)/sessionInvocations) *100) > 50, 2, 1)
-        - Id: issueCredentialInvocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/Lambda
-              MetricName: Invocations
-              Dimensions:
-                - Name: FunctionName
-                  Value: !Ref IssueCredentialFunction
-            Period: 300
-            Stat: Sum
-        - Id: sessionInvocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/Lambda
-              MetricName: Invocations
-              Dimensions:
-                - Name: FunctionName
-                  Value: !Sub "${CommonStackName}-SessionFunction"
             Period: 300
             Stat: Sum
 

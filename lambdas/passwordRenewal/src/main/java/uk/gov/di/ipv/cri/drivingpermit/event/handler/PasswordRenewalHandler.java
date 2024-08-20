@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.event.handler;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SecretsManagerRotationEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.client.config.RequestConfig;
@@ -13,8 +14,6 @@ import org.passay.CharacterData;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -24,21 +23,22 @@ import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerExcept
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
-import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangePasswordService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
 import java.util.Optional;
 
@@ -48,7 +48,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRotationEvent, String> {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    public final String password;
+
     private final SecretsManagerClient secretsManagerClient;
     private final ChangePasswordService changePasswordService;
     private final TokenRequestService tokenRequestService;
@@ -56,22 +56,24 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
     private final DvlaConfiguration dvlaConfiguration;
 
     @ExcludeFromGeneratedCoverageReport
-    public PasswordRenewalHandler() {
-        secretsManagerClient =
-                SecretsManagerClient.builder()
-                        .region(Region.EU_WEST_2)
-                        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                        .build();
+    public PasswordRenewalHandler() throws JsonProcessingException {
+
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
+
         ParameterStoreService parameterStoreService =
-                new ParameterStoreService((ParamManager.getSsmProvider()));
+                new ParameterStoreService(clientProviderFactory.getSSMProvider());
+
+        secretsManagerClient = clientProviderFactory.getSecretsManagerClient();
+
         SecretsManagerService secretsManagerService =
                 new SecretsManagerService(secretsManagerClient);
+
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         eventProbe = new EventProbe();
         HttpRetryer httpRetryer = new HttpRetryer(HttpClients.custom().build(), eventProbe, 0);
         dvlaConfiguration = new DvlaConfiguration(parameterStoreService, secretsManagerService);
         RequestConfig defaultRequestConfig = new HttpRequestConfig().getDefaultRequestConfig();
-        this.password = "/" + System.getenv("AWS_STACK_NAME") + "/DVLA/password";
+
         changePasswordService =
                 new ChangePasswordService(
                         dvlaConfiguration,
@@ -90,13 +92,11 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
     }
 
     public PasswordRenewalHandler(
-            String password,
             SecretsManagerClient secretsManagerClient,
             ChangePasswordService changePasswordService,
             TokenRequestService tokenRequestService,
             EventProbe eventProbe,
             DvlaConfiguration dvlaConfiguration) {
-        this.password = password;
         this.secretsManagerClient = secretsManagerClient;
         this.changePasswordService = changePasswordService;
         this.tokenRequestService = tokenRequestService;
@@ -139,6 +139,10 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                     LOGGER.info("{} step is complete", SecretsManagerRotationStep.CREATE_SECRET);
                     // CREATE SECRET END
 
+                    // Setting TestStrategy to default until approach for password renewal has been
+                    // agreed
+                    Strategy strategy = Strategy.NO_CHANGE;
+
                     // SET SECRET START
                     LOGGER.info("{} commenced", SecretsManagerRotationStep.SET_SECRET);
                     /*Second step is to retrieve the AWS Pending Password and to send it to DVLA*/
@@ -162,7 +166,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                                 LOGGER.info(
                                         "Running DVLA password updated with the value from pending");
                                 newPassword = passwordFromPreviousRun;
-                                callDVLAApi(passwordFromPreviousRun);
+                                callDVLAApi(passwordFromPreviousRun, strategy);
                             } catch (UnauthorisedException e) {
                                 LOGGER.info(
                                         "Unauthorised. Password or username has already been changed. Moving to testing");
@@ -171,7 +175,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                         } else {
                             LOGGER.info(
                                     "Running DVLA password updated with a newly generated password");
-                            callDVLAApi(newPassword);
+                            callDVLAApi(newPassword, strategy);
                         }
                     }
                     LOGGER.info("{} step is complete", SecretsManagerRotationStep.SET_SECRET);
@@ -184,7 +188,8 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                      * not replace the token in the DB, and does not invalidate the existing one*/
                     if (dvlaConfiguration.isPasswordRotationEnabled()) {
                         LOGGER.info("Testing the new password against DVLA");
-                        tokenRequestService.performNewTokenRequest(newPassword);
+                        tokenRequestService.performNewTokenRequest(
+                                newPassword, strategy); // This may be breaking
                         LOGGER.info("Token retrieved successfully");
                     }
                     LOGGER.info("{} step is complete", SecretsManagerRotationStep.TEST_SECRET);
@@ -251,9 +256,9 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                 14, splCharRule, lowerCaseRule, upperCaseRule, digitalRule);
     }
 
-    private void callDVLAApi(String newPassword)
+    private void callDVLAApi(String newPassword, Strategy strategy)
             throws OAuthErrorResponseException, UnauthorisedException {
-        changePasswordService.sendPasswordChangeRequest(newPassword);
+        changePasswordService.sendPasswordChangeRequest(newPassword, strategy);
     }
 
     private void updateSecret(String secretId, String newPassword) {

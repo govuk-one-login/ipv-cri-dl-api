@@ -15,6 +15,116 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         userEntersData("DVLA", drivingLicenceSubject);
     }
 
+    @And("User re-enters last name as (.*)$")
+    public void userEntersLastName(String InvalidLastName) {
+        userReEntersLastName(InvalidLastName);
+    }
+
+    @And("User re-enters first name as (.*)$")
+    public void userEntersFirstName(String InvalidFirstName) {
+        userReEntersFirstName(InvalidFirstName);
+    }
+
+    @And("User re-enters middle names as (.*)$")
+    public void userEntersMiddleNames(String InvalidMiddleNames) {
+        userReEntersMiddleNames(InvalidMiddleNames);
+    }
+
+    @And("User re-enters birth day as (.*)$")
+    public void userEntersBirthDay(String InvalidBirthDay) {
+        userReEntersBirthDay(InvalidBirthDay);
+    }
+
+    @And("User re-enters birth month as (.*)$")
+    public void userEntersBirthMonth(String InvalidBirthMonth) {
+        userReEntersBirthMonth(InvalidBirthMonth);
+    }
+
+    @And("User re-enters birth year as (.*)$")
+    public void userEntersBirthYear(String InvalidBirthYear) {
+        userReEntersBirthYear(InvalidBirthYear);
+    }
+
+    @And("User re-enters DVA birth day as (.*)$")
+    public void userEntersDvaBirthDay(String InvalidBirthDay) {
+        userReEntersDvaBirthDay(InvalidBirthDay);
+    }
+
+    @And("User re-enters DVA birth month as (.*)$")
+    public void userEntersDvaBirthMonth(String InvalidBirthMonth) {
+        userReEntersDvaBirthMonth(InvalidBirthMonth);
+    }
+
+    @And("User re-enters DVA birth year as (.*)$")
+    public void userEntersDvaBirthYear(String InvalidBirthYear) {
+        userReEntersDvaBirthYear(InvalidBirthYear);
+    }
+
+    @And("User re-enters issue day as (.*)$")
+    public void userEntersIssueDay(String invalidLicenceIssueDay) {
+        userReEntersIssueDay(invalidLicenceIssueDay);
+    }
+
+    @And("User re-enters issue month as (.*)$")
+    public void userEntersIssueMonth(String InvalidLicenceIssueMonth) {
+        userReEntersIssueMonth(InvalidLicenceIssueMonth);
+    }
+
+    @And("User re-enters issue year as (.*)$")
+    public void userEntersIssueYear(String InvalidLicenceIssueYear) {
+        userReEntersIssueYear(InvalidLicenceIssueYear);
+    }
+
+    @And("User re-enters DVA issue day as (.*)$")
+    public void userEntersDvaIssueDay(String invalidLicenceIssueDay) {
+        userReEntersDvaIssueDay(invalidLicenceIssueDay);
+    }
+
+    @And("User re-enters DVA issue month as (.*)$")
+    public void userEntersDvaIssueMonth(String invalidLicenceIssueMonth) {
+        userReEntersDvaIssueMonth(invalidLicenceIssueMonth);
+    }
+
+    @And("User re-enters DVA issue year as (.*)$")
+    public void userEntersDvaIssueYear(String invalidLicenceIssueYear) {
+        userReEntersDvaIssueYear(invalidLicenceIssueYear);
+    }
+
+    @And("User re-enters license number as (.*)$")
+    public void userEntersLicenceNumber(String InvalidLicenceNumber) {
+        userReEntersLicenceNumber(InvalidLicenceNumber);
+    }
+
+    @And("User re-enters DVA license number as (.*)$")
+    public void userEntersDVALicenceNumber(String InvalidLicenceNumber) {
+        userReEntersDvaLicenceNumber(InvalidLicenceNumber);
+    }
+
+    @And("User re-enters valid issue number as (.*)$")
+    public void userEntersIssueNumber(String invalidIssueNumber) {
+        userReEntersIssueNumber(invalidIssueNumber);
+    }
+
+    @And("User re-enters valid to day as (.*)$")
+    public void userEntersValidToDay(String InvalidValidToDay) {
+        userReEntersValidToDay(InvalidValidToDay);
+    }
+
+    @And("User re-enters valid to month as (.*)$")
+    public void userEntersValidToMonth(String InvalidValidToMonth) {
+        userReEntersValidToMonth(InvalidValidToMonth);
+    }
+
+    @And("User re-enters valid to year as (.*)$")
+    public void userEntersValidToYear(String InvalidValidToYear) {
+        userReEntersValidToYear(InvalidValidToYear);
+    }
+
+    @And("User re-enters postcode as (.*)$")
+    public void userEntersPostcode(String invalidPostcode) {
+        userReEntersPostcode(invalidPostcode);
+    }
+
     @Given("I navigate to the IPV Core Stub")
     public void navigateToStub() {
         navigateToIPVCoreStub();
@@ -35,14 +145,14 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         assertPageTitle(pageTitle, false);
     }
 
-    @Given("I can see a radio button titled “DVLA”")
-    public void i_can_see_a_radio_button_titled_dvla() {
-        titleDVLAWithRadioBtn();
+    @Given("I can see a DVLA radio button titled (.*)$")
+    public void i_can_see_a_radio_button_titled_dvla(String expectedText) {
+        titleDVLAWithRadioBtn(expectedText);
     }
 
-    @Then("I can see a radio button titled “DVA”")
-    public void i_can_see_a_radio_button_titled_dva() {
-        titleDVAWithRadioBtn();
+    @Then("I can see a DVA radio button titled (.*)$")
+    public void i_can_see_a_radio_button_titled_dva(String expectedText) {
+        titleDVAWithRadioBtn(expectedText);
     }
 
     @And("^I can see a I do not have a UK driving licence radio button titled (.*)$")
@@ -51,9 +161,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         noDrivingLicenceBtn(expectedText);
     }
 
-    @Then("I can see CTA {string}")
-    public void i_can_see_cta(String string) {
-        ContinueButton();
+    @Then("I can see CTA (.*)$")
+    public void i_can_see_cta(String expectedText) {
+        ContinueButton(expectedText);
     }
 
     @Given("I click on DVLA radio button and Continue")
@@ -102,9 +212,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         errorLink();
     }
 
-    @And("The field error copy “You must choose an option to continue”")
-    public void the_field_error_copy_you_must_choose_an_option_to_continue() {
-        validateErrorText();
+    @And("The field error copy (.*)$")
+    public void the_field_error_copy_you_must_choose_an_option_to_continue(String expectedText) {
+        validateErrorText(expectedText);
     }
 
     @And("I validate the URL having access denied")
@@ -357,11 +467,6 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         assertErrorPrefix(expectedText);
     }
 
-    @And("^I can see CTA as (.*)$")
-    public void iCanSeeCTAAs(String expectedText) {
-        assertCTATextAs(expectedText);
-    }
-
     @When("^User Re-enters DVLA data as a (.*)$")
     public void userReInputsDataAsADrivingLicenceSubject(String drivingLicenceSubject) {
         userReEntersDataAsADrivingLicenceSubject(drivingLicenceSubject);
@@ -370,5 +475,15 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     @And("^I navigate to the page (.*)$")
     public void navigateToPage(String page) {
         goToPage(page);
+    }
+
+    @Given("User clicks on language toggle and switches to Welsh")
+    public void userClickOnLanguageToggle() {
+        languageToggle.click();
+    }
+
+    @Given("User clicks language toggle and switches to English")
+    public void userClickOnLanguageToggleWales() {
+        languageToggleWales.click();
     }
 }

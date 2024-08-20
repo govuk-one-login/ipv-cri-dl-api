@@ -16,6 +16,7 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -29,20 +30,24 @@ import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.PersonIdentityDetailedTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.VcIssuedAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.testdata.DocumentCheckTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -51,38 +56,46 @@ import static org.mockito.Mockito.*;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DRIVING_PERMIT_CI_PREFIX;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
 class IssueCredentialHandlerTest {
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     public static final String SUBJECT = "subject";
-    @Mock private Context context;
-    @Mock private VerifiableCredentialService mockVerifiableCredentialService;
-    @Mock private SessionService mockSessionService;
-    @Mock private PersonIdentityService mockPersonIdentityService;
-    @Mock private DocumentCheckRetrievalService mockDocumentCheckRetrievalService;
+
+    @Mock ConfigurationService mockCommonLibConfigurationService;
+
+    @Mock ServiceFactory mockServiceFactory;
+
     @Mock private EventProbe mockEventProbe;
+
+    @Mock private SessionService mockSessionService;
     @Mock private AuditService mockAuditService;
 
+    @Mock private PersonIdentityService mockPersonIdentityService;
+    @Mock private DocumentCheckResultStorageService mockDocumentCheckResultStorageService;
+
+    @Mock private VerifiableCredentialService mockVerifiableCredentialService;
+
+    @Mock private Context context;
+
     private IssueCredentialHandler handler;
-    @SystemStub private EnvironmentVariables environmentVariables;
 
     @BeforeEach
     void setup() {
         environmentVariables.set("AWS_REGION", "eu-west-2");
 
+        mockServiceFactoryBehaviour();
+
         this.handler =
-                new IssueCredentialHandler(
-                        mockVerifiableCredentialService,
-                        mockSessionService,
-                        mockEventProbe,
-                        mockAuditService,
-                        mockPersonIdentityService,
-                        mockDocumentCheckRetrievalService);
+                new IssueCredentialHandler(mockServiceFactory, mockVerifiableCredentialService);
     }
 
     @Test
-    void shouldReturn200OkWhenIssueCredentialRequestIsValid() throws JOSEException, SqsException {
+    void shouldReturn200OkWhenIssueCredentialRequestIsValid()
+            throws JOSEException, SqsException, MalformedURLException, NoSuchAlgorithmException {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         AccessToken accessToken = new BearerAccessToken();
         event.withHeaders(
@@ -107,7 +120,8 @@ class IssueCredentialHandlerTest {
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
                 .thenReturn(savedPersonIdentityDetailed);
-        when(mockDocumentCheckRetrievalService.getDocumentCheckResult(sessionItem.getSessionId()))
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(
+                        sessionItem.getSessionId()))
                 .thenReturn(savedDocumentCheckResultItem);
         when(mockVerifiableCredentialService.generateSignedVerifiableCredentialJwt(
                         sessionItem.getSubject(),
@@ -124,7 +138,7 @@ class IssueCredentialHandlerTest {
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
         verify(mockSessionService).getSessionByAccessToken(accessToken);
-        verify(mockDocumentCheckRetrievalService)
+        verify(mockDocumentCheckResultStorageService)
                 .getDocumentCheckResult(sessionItem.getSessionId());
         verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
         verify(mockVerifiableCredentialService)
@@ -137,11 +151,17 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
-        verify(mockEventProbe)
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe)
                 .counterMetric(
                         DRIVING_PERMIT_CI_PREFIX
                                 + savedDocumentCheckResultItem.getContraIndicators().get(0));
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
+        verifyNoMoreInteractions(mockEventProbe);
+
         assertEquals(
                 ContentType.APPLICATION_JWT.getType(), response.getHeaders().get("Content-Type"));
         assertEquals(HttpStatusCode.OK, response.getStatusCode());
@@ -149,7 +169,8 @@ class IssueCredentialHandlerTest {
 
     @Test
     void shouldThrowJOSEExceptionWhenGenerateVerifiableCredentialIsMalformed()
-            throws JOSEException, SqsException, JsonProcessingException {
+            throws JOSEException, SqsException, JsonProcessingException, MalformedURLException,
+                    NoSuchAlgorithmException {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         AccessToken accessToken = new BearerAccessToken();
         event.withHeaders(
@@ -176,7 +197,8 @@ class IssueCredentialHandlerTest {
         when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
                 .thenReturn(savedPersonIdentityDetailed);
-        when(mockDocumentCheckRetrievalService.getDocumentCheckResult(sessionItem.getSessionId()))
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(
+                        sessionItem.getSessionId()))
                 .thenReturn(savedDocumentCheckResultItem);
         when(mockVerifiableCredentialService.generateSignedVerifiableCredentialJwt(
                         sessionItem.getSubject(),
@@ -187,7 +209,7 @@ class IssueCredentialHandlerTest {
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
         verify(mockSessionService).getSessionByAccessToken(accessToken);
-        verify(mockDocumentCheckRetrievalService)
+        verify(mockDocumentCheckResultStorageService)
                 .getDocumentCheckResult(sessionItem.getSessionId());
         verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
         verify(mockVerifiableCredentialService)
@@ -195,13 +217,19 @@ class IssueCredentialHandlerTest {
                         sessionItem.getSubject(),
                         savedDocumentCheckResultItem,
                         savedPersonIdentityDetailed);
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
         // There is a CI in the test result, we check we do not record CI metrics for a VC
         // generation Error
-        verify(mockEventProbe, never())
+        inOrder.verify(mockEventProbe, never())
                 .counterMetric(
                         DRIVING_PERMIT_CI_PREFIX
                                 + savedDocumentCheckResultItem.getContraIndicators().get(0));
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+
         verifyNoMoreInteractions(mockVerifiableCredentialService);
         verify(mockAuditService, never())
                 .sendAuditEvent(
@@ -222,7 +250,13 @@ class IssueCredentialHandlerTest {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+
         verify(mockAuditService, never())
                 .sendAuditEvent(
                         eq(AuditEventType.VC_ISSUED),
@@ -271,7 +305,13 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
-        verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+
         verify(mockAuditService, never()).sendAuditEvent((AuditEventType) any());
         String responseBody = new ObjectMapper().readValue(response.getBody(), String.class);
         assertEquals(awsErrorDetails.sdkHttpResponse().statusCode(), response.getStatusCode());
@@ -333,5 +373,21 @@ class IssueCredentialHandlerTest {
                         .serialize();
 
         event.setBody(requestJWT);
+    }
+
+    private void mockServiceFactoryBehaviour() {
+
+        when(mockServiceFactory.getCommonLibConfigurationService())
+                .thenReturn(mockCommonLibConfigurationService);
+
+        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+
+        when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
+        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+
+        when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
+
+        when(mockServiceFactory.getDocumentCheckResultStorageService())
+                .thenReturn(mockDocumentCheckResultStorageService);
     }
 }

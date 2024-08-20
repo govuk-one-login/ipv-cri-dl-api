@@ -13,6 +13,7 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.request.ChangePasswordPayload;
 import uk.gov.di.ipv.cri.drivingpermit.event.service.ChangePasswordHttpRetryStatusConfig;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
@@ -21,6 +22,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -30,6 +32,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.Reques
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_PASSWORD_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_PASSWORD_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_PASSWORD_RESPONSE_STATUS_CODE_ALERT_METRIC;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -41,7 +44,7 @@ public class ChangePasswordService {
     private static final String ENDPOINT_NAME = "change password endpoint";
     private static final String REQUEST_NAME = "Change Password";
 
-    private final URI requestURI;
+    private URI requestURI;
     private final String username;
 
     private final HttpRetryer httpRetryer;
@@ -54,12 +57,15 @@ public class ChangePasswordService {
 
     private final DvlaConfiguration dvlaConfiguration;
 
+    private final StopWatch stopWatch;
+
     public ChangePasswordService(
             DvlaConfiguration dvlaConfiguration,
             HttpRetryer httpRetryer,
             RequestConfig requestConfig,
             ObjectMapper objectMapper,
             EventProbe eventProbe) {
+        this.dvlaConfiguration = dvlaConfiguration;
 
         this.requestURI = URI.create(dvlaConfiguration.getChangePasswordEndpoint());
         this.username = dvlaConfiguration.getUsername();
@@ -71,15 +77,17 @@ public class ChangePasswordService {
         this.eventProbe = eventProbe;
 
         this.httpRetryStatusConfig = new ChangePasswordHttpRetryStatusConfig();
-        this.dvlaConfiguration = dvlaConfiguration;
+
+        this.stopWatch = new StopWatch();
     }
 
-    public void sendPasswordChangeRequest(String newPassword)
+    public void sendPasswordChangeRequest(String newPassword, Strategy strategy)
             throws OAuthErrorResponseException, UnauthorisedException {
-        sendPasswordChangeRequest(newPassword, dvlaConfiguration.getPassword());
+        sendPasswordChangeRequest(newPassword, dvlaConfiguration.getPassword(), strategy);
     }
 
-    public void sendPasswordChangeRequest(String newPassword, String exisitingPassword)
+    public void sendPasswordChangeRequest(
+            String newPassword, String exisitingPassword, Strategy strategy)
             throws OAuthErrorResponseException, UnauthorisedException {
 
         final String requestId = UUID.randomUUID().toString();
@@ -87,7 +95,20 @@ public class ChangePasswordService {
 
         // Change Password Request is posted as if via a form
         final HttpPost request = new HttpPost();
-        request.setURI(requestURI);
+
+        // TestStrategy Logic
+        if (strategy == Strategy.NO_CHANGE) {
+            request.setURI(requestURI);
+        } else {
+            final String endpointUri = dvlaConfiguration.getEndpointURLs().get(strategy.name());
+            this.requestURI =
+                    URI.create(
+                            String.format(
+                                    "%s%s",
+                                    endpointUri, dvlaConfiguration.getChangePasswordPath()));
+            request.setURI(requestURI);
+        }
+
         request.addHeader(HEADER_CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 
         // Enforce connection timeout values
@@ -102,10 +123,13 @@ public class ChangePasswordService {
         eventProbe.counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_CREATED.withEndpointPrefix());
 
         final HTTPReply httpReply;
+
         String requestURIString = requestURI.toString();
+
         LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
         LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
         // This will also need tidied up in LIME-906
+        stopWatch.start();
         try (CloseableHttpResponse response =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
             eventProbe.counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK.withEndpointPrefix());
@@ -113,6 +137,9 @@ public class ChangePasswordService {
             // throws OAuthErrorResponseException on error
             httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(
+                    DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
             LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
 
@@ -123,6 +150,10 @@ public class ChangePasswordService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(
+                DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         if (httpReply.statusCode == 200) {
             LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode);

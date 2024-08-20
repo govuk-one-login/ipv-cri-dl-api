@@ -39,6 +39,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     private final ConfigurationService configurationService;
     private static final Logger LOGGER = LogManager.getLogger();
 
+    private static final String STUB_VC_PAGE_TITLE = "IPV Core Stub Credential Result - GOV.UK";
+    private static final String STUB_ERROR_PAGE_TITLE = "IPV Core Stub - GOV.UK";
+
     // Should be separate stub page
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
@@ -105,6 +108,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "licenceIssuer-error")
     public WebElement radioButtonError;
 
+    @FindBy(xpath = "/html/body/div[2]/nav/ul/li[2]/a")
+    public WebElement languageToggle;
+
+    @FindBy(xpath = "/html/body/div[2]/nav/ul/li[1]/a")
+    public WebElement languageToggleWales;
+
     // ---------------
 
     @FindBy(className = "error-summary")
@@ -112,6 +121,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(xpath = "//*[@class='govuk-notification-banner__content']")
     public WebElement userNotFoundInThirdPartyBanner;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div[1]/div[2]")
+    public WebElement userNotFoundInThirdPartyBannerDva;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div/a")
     public WebElement proveAnotherWay;
@@ -149,6 +161,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "drivingLicenceNumber")
     public WebElement LicenceNumber;
 
+    @FindBy(xpath = "//*[@id=\"dvaLicenceNumber\"]")
+    public WebElement LicenceNumberDva;
+
     @FindBy(id = "surname")
     public WebElement LastName;
 
@@ -167,6 +182,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "dateOfBirth-year")
     public WebElement birthYear;
 
+    @FindBy(xpath = "//*[@id=\"dvaDateOfBirth-day\"]")
+    public WebElement birthDayDva;
+
+    @FindBy(xpath = "//*[@id=\"dvaDateOfBirth-day\"]")
+    public WebElement birthMonthDva;
+
+    @FindBy(xpath = "//*[@id=\"dvaDateOfBirth-day\"]")
+    public WebElement birthYearDva;
+
     @FindBy(id = "expiryDate-day")
     public WebElement LicenceValidToDay;
 
@@ -184,6 +208,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(id = "issueDate-year")
     public WebElement LicenceIssueYear;
+
+    @FindBy(xpath = "//*[@id=\"dateOfIssue-day\"]")
+    public WebElement LicenceIssueDayDva;
+
+    @FindBy(xpath = "//*[@id=\"dateOfIssue-month\"]")
+    public WebElement LicenceIssueMonthDva;
+
+    @FindBy(xpath = "//*[@id=\"dateOfIssue-year\"]")
+    public WebElement LicenceIssueYearDva;
 
     @FindBy(id = "issueNumber")
     public WebElement IssueNumber;
@@ -415,10 +448,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void navigateToDrivingLicenceResponse(String validOrInvalid) {
-        assertURLContains("callback");
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
+            assertPageTitle(STUB_ERROR_PAGE_TITLE, false);
+            assertURLContains("callback");
+            BrowserUtils.waitForVisibility(errorResponse, 10);
             errorResponse.click();
         } else {
+            assertPageTitle(STUB_VC_PAGE_TITLE, false);
+            assertURLContains("callback");
+            BrowserUtils.waitForVisibility(viewResponse, 10);
             viewResponse.click();
         }
     }
@@ -459,13 +497,15 @@ public class DrivingLicencePageObject extends UniversalSteps {
         checkOkHttpResponseOnLink(changeCookiePageUrl);
     }
 
-    public void titleDVLAWithRadioBtn() {
+    public void titleDVLAWithRadioBtn(String expectedText) {
         optionDVLA.isDisplayed();
+        assertEquals(expectedText, optionDVLA.getText());
         radioBtnDVLA.isDisplayed();
     }
 
-    public void titleDVAWithRadioBtn() {
+    public void titleDVAWithRadioBtn(String expectedText) {
         optionDVA.isDisplayed();
+        assertEquals(expectedText, optionDVA.getText());
         radioBtnDVA.isDisplayed();
     }
 
@@ -475,8 +515,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
         noDLRadioBtn.isDisplayed();
     }
 
-    public void ContinueButton() {
+    public void ContinueButton(String expectedText) {
         CTButton.isDisplayed();
+        assertEquals(expectedText, CTButton.getText());
         CTButton.isEnabled();
     }
 
@@ -516,14 +557,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
         radioBtnDVLA.isEnabled();
     }
 
-    public void validateErrorText() {
-        String expectedText = "Error:\n" + "You must choose an option to continue";
-        String actualText = radioButtonError.getText();
-        assertEquals(expectedText, actualText);
+    public void validateErrorText(String expectedText) {
+        assertEquals(expectedText, radioButtonError.getText().trim().replace("\n", ""));
     }
 
     public void drivingLicencePageURLValidationWelsh() {
-        assertURLContains("/licence-issuer/?lang=cy");
+        assertURLContains("/licence-issuer/?lng=cy");
     }
 
     public void assertOrLabelText(String expectedText) {
@@ -675,6 +714,121 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
         assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
+    }
+
+    public void userNotFoundInThirdPartyErrorIsDisplayedDva() {
+        assertTrue(userNotFoundInThirdPartyBannerDva.isDisplayed());
+        LOGGER.info(userNotFoundInThirdPartyBannerDva.getText());
+    }
+
+    public void userReEntersLastName(String invalidLastName) {
+        LastName.clear();
+        LastName.sendKeys(invalidLastName);
+    }
+
+    public void userReEntersFirstName(String invalidFirstName) {
+        FirstName.clear();
+        FirstName.sendKeys(invalidFirstName);
+    }
+
+    public void userReEntersMiddleNames(String invalidMiddleNames) {
+        MiddleNames.clear();
+        MiddleNames.sendKeys(invalidMiddleNames);
+    }
+
+    public void userReEntersBirthDay(String invalidBirthDay) {
+        birthDay.clear();
+        birthDay.sendKeys(invalidBirthDay);
+    }
+
+    public void userReEntersDvaBirthDay(String invalidBirthDay) {
+        birthDayDva.clear();
+        birthDayDva.sendKeys(invalidBirthDay);
+    }
+
+    public void userReEntersDvaBirthMonth(String invalidBirthMonth) {
+        birthMonthDva.clear();
+        birthMonthDva.sendKeys(invalidBirthMonth);
+    }
+
+    public void userReEntersDvaBirthYear(String invalidBirthYear) {
+        birthYearDva.clear();
+        birthYearDva.sendKeys(invalidBirthYear);
+    }
+
+    public void userReEntersBirthMonth(String invalidBirthMonth) {
+        birthMonth.clear();
+        birthMonth.sendKeys(invalidBirthMonth);
+    }
+
+    public void userReEntersBirthYear(String invalidBirthYear) {
+        birthYear.clear();
+        birthYear.sendKeys(invalidBirthYear);
+    }
+
+    public void userReEntersIssueDay(String invalidLicenceIssueDay) {
+        LicenceIssueDay.clear();
+        LicenceIssueDay.sendKeys(invalidLicenceIssueDay);
+    }
+
+    public void userReEntersDvaIssueDay(String invalidLicenceIssueDay) {
+        LicenceIssueDayDva.clear();
+        LicenceIssueDayDva.sendKeys(invalidLicenceIssueDay);
+    }
+
+    public void userReEntersDvaIssueMonth(String invalidLicenceIssueMonth) {
+        LicenceIssueMonthDva.clear();
+        LicenceIssueMonthDva.sendKeys(invalidLicenceIssueMonth);
+    }
+
+    public void userReEntersDvaIssueYear(String invalidLicenceIssueYear) {
+        LicenceIssueYearDva.clear();
+        LicenceIssueYearDva.sendKeys(invalidLicenceIssueYear);
+    }
+
+    public void userReEntersLicenceNumber(String invalidLicenceNumber) {
+        LicenceNumber.clear();
+        LicenceNumber.sendKeys(invalidLicenceNumber);
+    }
+
+    public void userReEntersDvaLicenceNumber(String invalidLicenceNumber) {
+        LicenceNumberDva.clear();
+        LicenceNumberDva.sendKeys(invalidLicenceNumber);
+    }
+
+    public void userReEntersIssueMonth(String invalidLicenceIssueMonth) {
+        LicenceIssueMonth.clear();
+        LicenceIssueMonth.sendKeys(invalidLicenceIssueMonth);
+    }
+
+    public void userReEntersIssueYear(String invalidLicenceIssueYear) {
+        LicenceIssueYear.clear();
+        LicenceIssueYear.sendKeys(invalidLicenceIssueYear);
+    }
+
+    public void userReEntersIssueNumber(String invalidIssueNumber) {
+        IssueNumber.clear();
+        IssueNumber.sendKeys(invalidIssueNumber);
+    }
+
+    public void userReEntersValidToDay(String invalidValidToDate) {
+        LicenceValidToDay.clear();
+        LicenceValidToDay.sendKeys(invalidValidToDate);
+    }
+
+    public void userReEntersValidToMonth(String invalidValidToMonth) {
+        LicenceValidToMonth.clear();
+        LicenceValidToMonth.sendKeys(invalidValidToMonth);
+    }
+
+    public void userReEntersValidToYear(String invalidValidToYear) {
+        LicenceValidToYear.clear();
+        LicenceValidToYear.sendKeys(invalidValidToYear);
+    }
+
+    public void userReEntersPostcode(String invalidPostcode) {
+        Postcode.clear();
+        Postcode.sendKeys(invalidPostcode);
     }
 
     public void userEntersData(String issuer, String drivingLicenceSubjectScenario) {
@@ -1080,10 +1234,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
                         .getText()
                         .trim()
                         .replace("\n", ""));
-    }
-
-    public void assertCTATextAs(String expectedText) {
-        assertEquals(CTButton.getText(), expectedText);
     }
 
     private List<String> getCIsFromEvidence(JsonNode evidenceNode) throws IOException {

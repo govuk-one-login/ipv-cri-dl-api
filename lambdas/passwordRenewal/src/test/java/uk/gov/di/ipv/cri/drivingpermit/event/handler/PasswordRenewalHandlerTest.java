@@ -19,6 +19,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangePasswordService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.TokenResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -60,10 +62,8 @@ class PasswordRenewalHandlerTest {
     @BeforeEach
     public void setup() {
 
-        String mockPassword = "DVLA/password";
         this.passwordRenewalHandler =
                 new PasswordRenewalHandler(
-                        mockPassword,
                         mockSecretsManagerClient,
                         mockChangePasswordService,
                         mockTokenRequestService,
@@ -144,8 +144,9 @@ class PasswordRenewalHandlerTest {
 
         passwordRenewalHandler.handleRequest(mockInput, mockContext);
 
-        verify(mockChangePasswordService).sendPasswordChangeRequest("asdfghjkl");
-        verify(mockTokenRequestService).performNewTokenRequest("asdfghjkl");
+        verify(mockChangePasswordService)
+                .sendPasswordChangeRequest("asdfghjkl", Strategy.NO_CHANGE);
+        verify(mockTokenRequestService).performNewTokenRequest("asdfghjkl", Strategy.NO_CHANGE);
         ArgumentCaptor<UpdateSecretRequest> updateSecretRequestArgumentCaptor =
                 ArgumentCaptor.forClass(UpdateSecretRequest.class);
 
@@ -169,10 +170,13 @@ class PasswordRenewalHandlerTest {
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("1234567");
         String newPassword = "asdfghjkl";
-        doNothing().when(mockChangePasswordService).sendPasswordChangeRequest((newPassword));
+        doNothing()
+                .when(mockChangePasswordService)
+                .sendPasswordChangeRequest((newPassword), Strategy.NO_CHANGE);
 
         passwordRenewalHandler.handleRequest(mockInput, mockContext);
-        verify(mockChangePasswordService).sendPasswordChangeRequest("asdfghjkl");
+        verify(mockChangePasswordService)
+                .sendPasswordChangeRequest("asdfghjkl", Strategy.NO_CHANGE);
     }
 
     @Test
@@ -188,11 +192,11 @@ class PasswordRenewalHandlerTest {
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("1234567");
         String newPassword = "asdfghjkl";
-        when(mockTokenRequestService.performNewTokenRequest(newPassword))
+        when(mockTokenRequestService.performNewTokenRequest(newPassword, Strategy.NO_CHANGE))
                 .thenReturn(new TokenResponse("qwertyuiop"));
 
         passwordRenewalHandler.handleRequest(mockInput, mockContext);
-        verify(mockTokenRequestService).performNewTokenRequest("asdfghjkl");
+        verify(mockTokenRequestService).performNewTokenRequest("asdfghjkl", Strategy.NO_CHANGE);
     }
 
     @Test
@@ -257,12 +261,14 @@ class PasswordRenewalHandlerTest {
             throws OAuthErrorResponseException, UnauthorisedException {
         when(dvlaConfiguration.isPasswordRotationEnabled()).thenReturn(true);
 
-        doNothing().when(mockChangePasswordService).sendPasswordChangeRequest((anyString()));
+        doNothing()
+                .when(mockChangePasswordService)
+                .sendPasswordChangeRequest((anyString()), eq(Strategy.NO_CHANGE));
         doThrow(
                         new OAuthErrorResponseException(
                                 500, ERROR_INVOKING_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT))
                 .when(mockTokenRequestService)
-                .performNewTokenRequest("ASDFGHJ");
+                .performNewTokenRequest("ASDFGHJ", Strategy.NO_CHANGE);
         GetSecretValueResponse secretValueResponse =
                 GetSecretValueResponse.builder().secretString("ASDFGHJ").build();
 
@@ -277,7 +283,7 @@ class PasswordRenewalHandlerTest {
                 () -> passwordRenewalHandler.handleRequest(mockInput, mockContext),
                 "Exception performing password renewal request");
 
-        verify(mockTokenRequestService).performNewTokenRequest("ASDFGHJ");
+        verify(mockTokenRequestService).performNewTokenRequest("ASDFGHJ", Strategy.NO_CHANGE);
 
         verifyNoMoreInteractions(mockChangePasswordService, mockSecretsManagerClient);
     }
@@ -291,7 +297,7 @@ class PasswordRenewalHandlerTest {
                         new OAuthErrorResponseException(
                                 500, ERROR_INVOKING_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT))
                 .when(mockChangePasswordService)
-                .sendPasswordChangeRequest(anyString());
+                .sendPasswordChangeRequest(anyString(), eq(Strategy.NO_CHANGE));
         GetSecretValueResponse secretValueResponse =
                 GetSecretValueResponse.builder().secretString("ASDFGHJ").build();
 
@@ -307,7 +313,7 @@ class PasswordRenewalHandlerTest {
                 "Exception updating password");
 
         verify(mockChangePasswordService)
-                .sendPasswordChangeRequest(secretValueResponse.secretString());
+                .sendPasswordChangeRequest(secretValueResponse.secretString(), Strategy.NO_CHANGE);
 
         verifyNoMoreInteractions(mockChangePasswordService, mockSecretsManagerClient);
     }
@@ -322,7 +328,7 @@ class PasswordRenewalHandlerTest {
                         new UnauthorisedException(
                                 500, ERROR_INVOKING_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT))
                 .when(mockChangePasswordService)
-                .sendPasswordChangeRequest(anyString());
+                .sendPasswordChangeRequest(anyString(), eq(Strategy.NO_CHANGE));
         GetSecretValueResponse secretValueResponse =
                 GetSecretValueResponse.builder().secretString("ASDFGHJ").build();
 
@@ -335,8 +341,8 @@ class PasswordRenewalHandlerTest {
         passwordRenewalHandler.handleRequest(mockInput, mockContext);
 
         verify(mockChangePasswordService)
-                .sendPasswordChangeRequest(secretValueResponse.secretString());
-        verify(mockTokenRequestService).performNewTokenRequest("ASDFGHJ");
+                .sendPasswordChangeRequest(secretValueResponse.secretString(), Strategy.NO_CHANGE);
+        verify(mockTokenRequestService).performNewTokenRequest("ASDFGHJ", Strategy.NO_CHANGE);
         ArgumentCaptor<UpdateSecretRequest> updateSecretRequestArgumentCaptor =
                 ArgumentCaptor.forClass(UpdateSecretRequest.class);
 

@@ -12,7 +12,8 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
@@ -34,7 +35,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 class IdentityVerificationServiceTest {
     @Mock private FormDataValidator mockFormDataValidator;
     @Mock private AuditService mockAuditService;
-    @Mock private ConfigurationService configurationService;
+    @Mock private DrivingPermitConfigurationService drivingPermitConfigurationService;
     @Mock private ObjectMapper objectMapper;
     @Mock private EventProbe mockEventProbe;
 
@@ -63,18 +64,19 @@ class IdentityVerificationServiceTest {
         testFraudCheckResult.setValid(true);
         when(mockFormDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
-        when(mockThirdPartyAPIService.performDocumentCheck(drivingPermitForm))
+        when(mockThirdPartyAPIService.performDocumentCheck(drivingPermitForm, Strategy.NO_CHANGE))
                 .thenReturn(testFraudCheckResult);
 
         DocumentCheckVerificationResult result =
                 this.identityVerificationService.verifyIdentity(
-                        drivingPermitForm, mockThirdPartyAPIService);
+                        drivingPermitForm, mockThirdPartyAPIService, Strategy.NO_CHANGE);
 
         assertNotNull(result);
         verify(mockFormDataValidator).validate(drivingPermitForm);
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
         verify(mockEventProbe).counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED);
-        verify(mockThirdPartyAPIService).performDocumentCheck(drivingPermitForm);
+        verify(mockThirdPartyAPIService)
+                .performDocumentCheck(drivingPermitForm, Strategy.NO_CHANGE);
     }
 
     @Test
@@ -89,7 +91,9 @@ class IdentityVerificationServiceTest {
                         OAuthErrorResponseException.class,
                         () -> {
                             this.identityVerificationService.verifyIdentity(
-                                    drivingPermitForm, mockThirdPartyAPIService);
+                                    drivingPermitForm,
+                                    mockThirdPartyAPIService,
+                                    Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = String.valueOf(ErrorResponse.FORM_DATA_FAILED_VALIDATION);
@@ -105,11 +109,12 @@ class IdentityVerificationServiceTest {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         when(mockFormDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
-        when(mockThirdPartyAPIService.performDocumentCheck(drivingPermitForm)).thenReturn(null);
+        when(mockThirdPartyAPIService.performDocumentCheck(drivingPermitForm, Strategy.NO_CHANGE))
+                .thenReturn(null);
 
         DocumentCheckVerificationResult result =
                 this.identityVerificationService.verifyIdentity(
-                        drivingPermitForm, mockThirdPartyAPIService);
+                        drivingPermitForm, mockThirdPartyAPIService, Strategy.NO_CHANGE);
 
         assertNotNull(result);
         assertFalse(result.isExecutedSuccessfully());

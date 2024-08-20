@@ -7,6 +7,7 @@ import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.PactBrokerAuth;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
@@ -15,6 +16,9 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,8 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import uk.gov.di.ipv.cri.common.library.domain.SessionRequest;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.CanonicalAddress;
@@ -40,15 +42,19 @@ import uk.gov.di.ipv.cri.common.library.service.PersonIdentityMapper;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.common.library.util.ListUtil;
-import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
-import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.drivingpermit.api.handler.IssueCredentialHandler;
 import uk.gov.di.ipv.cri.drivingpermit.api.pact.utils.Injector;
 import uk.gov.di.ipv.cri.drivingpermit.api.pact.utils.MockHttpServer;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DocumentCheckRetrievalService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.IOException;
 import java.net.URI;
@@ -72,6 +78,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder.ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID;
+import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder.ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED;
 
 // For static tests against potential new contracts
 @Tag("Pact")
@@ -83,56 +91,60 @@ import static org.mockito.Mockito.when;
                         username = "${PACT_BROKER_USERNAME}",
                         password = "${PACT_BROKER_PASSWORD}"))
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(SystemStubsExtension.class)
 class IssueCredentialHandlerTest {
 
-    private static final int PORT = 5050;
+    private static final int PORT = 5040;
 
-    @Mock private ConfigurationService configurationService;
+    // Needs to be created here
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Mock
-    private uk.gov.di.ipv.cri.drivingpermit.api.service.ConfigurationService
-            drivingPermitConfigService;
-
-    @Mock private DataStore<SessionItem> dataStore;
-    @Mock private DataStore<PersonIdentityItem> personIdentityDataStore;
-    @Mock private DataStore<DocumentCheckResultItem> documentCheckResultStore;
-    @Mock private EventProbe eventProbe;
-    @Mock private AuditService auditService;
+    @Mock private ServiceFactory mockServiceFactory;
+    @Mock private EventProbe mockEventProbe;
+    @Mock private ConfigurationService mockCommonLibConfigurationService;
     private SessionService sessionService;
+    @Mock private AuditService mockAuditService;
+    @Mock private DocumentCheckResultStorageService mockDocumentCheckResultStorageService;
+    @Mock private ParameterStoreService mockParameterStoreService;
+
+    @Mock private DataStore<SessionItem> mockSessionItemDataStore;
+    @Mock private DataStore<PersonIdentityItem> mockPersonIdentityDataStore;
+
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModules(new JavaTimeModule());
+
+    // Off by default to prevent logging all secrets
+    private static final boolean ENABLE_FULL_DEBUG = false;
 
     @BeforeAll
     static void setupServer() {
         System.setProperty("pact.verifier.publishResults", "true");
         System.setProperty("pact.content_type.override.application/jwt", "text");
+
+        if (ENABLE_FULL_DEBUG) {
+            // AutoConfig SL4j with Log4J
+            BasicConfigurator.configure();
+            Configurator.setAllLevels("", Level.DEBUG);
+        }
+    }
+
+    @au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors
+    public static SelectorBuilder consumerVersionSelectors() {
+        return new SelectorBuilder()
+                .tag("DrivingLicenceVcProvider")
+                .branch("main", "IpvCoreBack")
+                .deployedOrReleased();
     }
 
     @BeforeEach
     void pactSetup(PactVerificationContext context)
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
 
-        long todayPlusADay =
-                LocalDate.now().plusDays(2).toEpochSecond(LocalTime.now(), ZoneOffset.UTC);
+        environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED, true);
+        environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID, true);
+        environmentVariables.set("INCLUDE_VC_KID", "false");
 
-        when(configurationService.getVerifiableCredentialIssuer())
-                .thenReturn("dummyDrivingLicenceComponentId");
-        when(configurationService.getSessionExpirationEpoch()).thenReturn(todayPlusADay);
-        when(configurationService.getAuthorizationCodeExpirationEpoch()).thenReturn(todayPlusADay);
-        when(configurationService.getMaxJwtTtl()).thenReturn(1000L);
-        when(configurationService.getParameterValue("JwtTtlUnit")).thenReturn("HOURS");
-        when(configurationService.getVerifiableCredentialIssuer())
-                .thenReturn("dummyDrivingLicenceComponentId");
-        when(configurationService.getParameterValueByAbsoluteName(
-                        "/release-flags/vc-expiry-removed"))
-                .thenReturn("true");
-        when(configurationService.getParameterValue("release-flags/vc-contains-unique-id"))
-                .thenReturn("true");
-
-        sessionService =
-                new SessionService(
-                        dataStore, configurationService, Clock.systemUTC(), new ListUtil());
+        mockServiceFactoryBehaviour();
 
         KeyFactory kf = KeyFactory.getInstance("EC");
         EncodedKeySpec privateKeySpec =
@@ -143,29 +155,11 @@ class IssueCredentialHandlerTest {
                                                 + "gLV1xaks+DB5n6ity2MvBlzDUw=="));
         JWSSigner signer = new ECDSASigner((ECPrivateKey) kf.generatePrivate(privateKeySpec));
 
-        SignedJWTFactory signedJWTFactory = new SignedJWTFactory(signer);
-
-        VerifiableCredentialClaimsSetBuilder verifiableCredentialClaimsSetBuilder =
-                new VerifiableCredentialClaimsSetBuilder(
-                        this.configurationService, Clock.systemUTC());
-
         Injector tokenHandlerInjector =
                 new Injector(
                         new IssueCredentialHandler(
-                                new VerifiableCredentialService(
-                                        signedJWTFactory,
-                                        configurationService,
-                                        objectMapper,
-                                        verifiableCredentialClaimsSetBuilder),
-                                sessionService,
-                                eventProbe,
-                                auditService,
-                                new PersonIdentityService(
-                                        new PersonIdentityMapper(),
-                                        configurationService,
-                                        personIdentityDataStore),
-                                new DocumentCheckRetrievalService(
-                                        documentCheckResultStore, drivingPermitConfigService)),
+                                mockServiceFactory,
+                                new VerifiableCredentialService(mockServiceFactory, signer)),
                         "/credential/issue",
                         "/");
         MockHttpServer.startServer(new ArrayList<>(List.of(tokenHandlerInjector)), PORT, signer);
@@ -183,6 +177,10 @@ class IssueCredentialHandlerTest {
 
     @State("dummyAccessToken is a valid access token")
     void accessTokenIsValid() {
+
+        // Controls the TTLS
+        mockHappyPathVcParameters();
+
         long todayPlusADay =
                 LocalDate.now().plusDays(2).toEpochSecond(LocalTime.now(), ZoneOffset.UTC);
 
@@ -220,7 +218,8 @@ class IssueCredentialHandlerTest {
         personIdentityItem.setNames(List.of(name));
         personIdentityItem.setBirthDates(List.of(birthDate));
 
-        when(personIdentityDataStore.getItem(sessionId.toString())).thenReturn(personIdentityItem);
+        when(mockPersonIdentityDataStore.getItem(sessionId.toString()))
+                .thenReturn(personIdentityItem);
 
         // SESSION HANDBACK
         performAuthorizationCodeSet(sessionService, sessionId);
@@ -230,7 +229,8 @@ class IssueCredentialHandlerTest {
         SessionItem session = performAccessTokenSet(sessionService, sessionId);
         // ACCESS TOKEN GENERATION AND SETTING
 
-        when(dataStore.getItemByIndex(SessionItem.ACCESS_TOKEN_INDEX, "Bearer dummyAccessToken"))
+        when(mockSessionItemDataStore.getItemByIndex(
+                        SessionItem.ACCESS_TOKEN_INDEX, "Bearer dummyAccessToken"))
                 .thenReturn(List.of(session));
     }
 
@@ -267,7 +267,8 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setIssueDate("1982-05-23");
         documentCheckResultItem.setContraIndicators(List.of("D02"));
         documentCheckResultItem.setActivityHistoryScore(0);
-        when(documentCheckResultStore.getItem(sessionId)).thenReturn(documentCheckResultItem);
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(sessionUUID))
+                .thenReturn(documentCheckResultItem);
     }
 
     @State("VC evidence validityScore is 2")
@@ -290,7 +291,8 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setIssueNumber("12");
         documentCheckResultItem.setIssueDate("1982-05-23");
         documentCheckResultItem.setActivityHistoryScore(1);
-        when(documentCheckResultStore.getItem(sessionId)).thenReturn(documentCheckResultItem);
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(sessionUUID))
+                .thenReturn(documentCheckResultItem);
     }
 
     @State("VC evidence txn is dummyTxn")
@@ -340,7 +342,8 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setIssueNumber("12");
         documentCheckResultItem.setIssueDate("1982-05-23");
         documentCheckResultItem.setActivityHistoryScore(1);
-        when(documentCheckResultStore.getItem(sessionId)).thenReturn(documentCheckResultItem);
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(sessionUUID))
+                .thenReturn(documentCheckResultItem);
     }
 
     @State("VC driving licence personalNumber is 55667780")
@@ -365,7 +368,8 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setActivityHistoryScore(0);
         documentCheckResultItem.setContraIndicators(List.of("D02"));
         ;
-        when(documentCheckResultStore.getItem(sessionId)).thenReturn(documentCheckResultItem);
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(sessionUUID))
+                .thenReturn(documentCheckResultItem);
     }
 
     @State("VC driving licence issuedDate is 1982-05-23")
@@ -401,11 +405,11 @@ class IssueCredentialHandlerTest {
         ArgumentCaptor<SessionItem> sessionItemArgumentCaptor =
                 ArgumentCaptor.forClass(SessionItem.class);
 
-        verify(dataStore).create(sessionItemArgumentCaptor.capture());
+        verify(mockSessionItemDataStore).create(sessionItemArgumentCaptor.capture());
 
         SessionItem savedSessionitem = sessionItemArgumentCaptor.getValue();
 
-        when(dataStore.getItem(sessionId.toString())).thenReturn(savedSessionitem);
+        when(mockSessionItemDataStore.getItem(sessionId.toString())).thenReturn(savedSessionitem);
     }
 
     private UUID performInitialSessionRequest(SessionService sessionService, long todayPlusADay) {
@@ -419,7 +423,7 @@ class IssueCredentialHandlerTest {
         sessionRequest.setClientId("ipv-core");
         sessionRequest.setSubject("test-subject");
 
-        doNothing().when(dataStore).create(any(SessionItem.class));
+        doNothing().when(mockSessionItemDataStore).create(any(SessionItem.class));
 
         return sessionService.saveSession(sessionRequest);
     }
@@ -432,5 +436,49 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setExpiryDate(LocalDate.of(2062, 12, 9).toString());
         documentCheckResultItem.setSessionId(sessionUUID);
         return documentCheckResultItem;
+    }
+
+    private void mockServiceFactoryBehaviour() {
+
+        when(mockServiceFactory.getObjectMapper()).thenReturn(objectMapper);
+        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
+        when(mockServiceFactory.getCommonLibConfigurationService())
+                .thenReturn(mockCommonLibConfigurationService);
+        sessionService =
+                new SessionService(
+                        mockSessionItemDataStore,
+                        mockCommonLibConfigurationService,
+                        Clock.systemUTC());
+        when(mockServiceFactory.getSessionService()).thenReturn(sessionService);
+        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+        when(mockServiceFactory.getPersonIdentityService())
+                .thenReturn(
+                        new PersonIdentityService(
+                                new PersonIdentityMapper(),
+                                mockCommonLibConfigurationService,
+                                mockPersonIdentityDataStore));
+        when(mockServiceFactory.getDocumentCheckResultStorageService())
+                .thenReturn(mockDocumentCheckResultStorageService);
+    }
+
+    private void mockHappyPathVcParameters() {
+        // Mock mockCommonLibConfigurationService and TTL's
+        long todayPlusADay =
+                LocalDate.now().plusDays(2).toEpochSecond(LocalTime.now(), ZoneOffset.UTC);
+        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
+                .thenReturn("dummyDrivingLicenceComponentId");
+        when(mockCommonLibConfigurationService.getSessionExpirationEpoch())
+                .thenReturn(todayPlusADay);
+        when(mockCommonLibConfigurationService.getAuthorizationCodeExpirationEpoch())
+                .thenReturn(todayPlusADay);
+        when(mockCommonLibConfigurationService.getMaxJwtTtl()).thenReturn(1000L);
+
+        when(mockParameterStoreService.getParameterValue(
+                        ParameterPrefix.STACK, ParameterStoreParameters.MAX_JWT_TTL_UNIT))
+                .thenReturn("HOURS");
+        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
+                .thenReturn("dummyDrivingLicenceComponentId");
     }
 }

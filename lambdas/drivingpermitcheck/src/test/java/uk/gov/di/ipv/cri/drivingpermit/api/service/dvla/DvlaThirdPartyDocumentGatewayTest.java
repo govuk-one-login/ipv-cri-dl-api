@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource.DVLA;
 import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY;
@@ -67,13 +69,16 @@ class DvlaThirdPartyDocumentGatewayTest {
         DriverMatchServiceResult testDriverMatchServiceResult =
                 DriverMatchServiceResult.builder().validity(validity).requestId("123456").build();
 
-        when(mockTokenRequestService.requestToken(any(Boolean.class))).thenReturn(testTokenValue);
+        when(mockTokenRequestService.requestToken(any(Boolean.class), eq(Strategy.NO_CHANGE)))
+                .thenReturn(testTokenValue);
 
-        when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue))
+        when(mockDriverMatchService.performMatch(
+                        drivingPermitForm, testTokenValue, Strategy.NO_CHANGE))
                 .thenReturn(testDriverMatchServiceResult);
 
         DocumentCheckResult result =
-                dvlaThirdPartyAPIService.performDocumentCheck(drivingPermitForm);
+                dvlaThirdPartyAPIService.performDocumentCheck(
+                        drivingPermitForm, Strategy.NO_CHANGE);
 
         // Using the correct third party API?
         assertEquals(
@@ -105,7 +110,7 @@ class DvlaThirdPartyDocumentGatewayTest {
                         .requestId("123456")
                         .build();
 
-        when(mockTokenRequestService.requestToken(any(Boolean.class)))
+        when(mockTokenRequestService.requestToken(any(Boolean.class), eq(Strategy.NO_CHANGE)))
                 .thenReturn(testTokenValue)
                 .thenReturn(testTokenValue); // second request
 
@@ -120,12 +125,14 @@ class DvlaThirdPartyDocumentGatewayTest {
 
         if (recoverySucessful) {
             // Match issue resolved via new token
-            when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue))
+            when(mockDriverMatchService.performMatch(
+                            drivingPermitForm, testTokenValue, Strategy.NO_CHANGE))
                     .thenThrow(exceptionCaught)
                     .thenReturn(testDriverMatchServiceResult);
 
             DocumentCheckResult result =
-                    dvlaThirdPartyAPIService.performDocumentCheck(drivingPermitForm);
+                    dvlaThirdPartyAPIService.performDocumentCheck(
+                            drivingPermitForm, Strategy.NO_CHANGE);
 
             assertNotNull(result);
             assertNotNull(result.getTransactionId());
@@ -133,7 +140,8 @@ class DvlaThirdPartyDocumentGatewayTest {
             assertEquals(DVLA, result.getApiResultSource());
         } else {
             // Match issue remains
-            when(mockDriverMatchService.performMatch(drivingPermitForm, testTokenValue))
+            when(mockDriverMatchService.performMatch(
+                            drivingPermitForm, testTokenValue, Strategy.NO_CHANGE))
                     .thenThrow(exceptionCaught)
                     .thenThrow(exceptionCaught);
 
@@ -145,7 +153,9 @@ class DvlaThirdPartyDocumentGatewayTest {
             OAuthErrorResponseException thrownException =
                     assertThrows(
                             OAuthErrorResponseException.class,
-                            () -> dvlaThirdPartyAPIService.performDocumentCheck(drivingPermitForm),
+                            () ->
+                                    dvlaThirdPartyAPIService.performDocumentCheck(
+                                            drivingPermitForm, Strategy.NO_CHANGE),
                             "Expected OAuthErrorResponseException");
 
             assertEquals(

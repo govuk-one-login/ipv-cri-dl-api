@@ -18,22 +18,24 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DvaCryptographyService;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DvaHttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.RequestHashValidator;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
+import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Base64;
@@ -47,6 +49,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVA_RESPONSE_TYPE_INVALID;
@@ -61,27 +64,29 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private final DvaCryptographyService dvaCryptographyService;
     private final RequestHashValidator requestHashValidator;
     private final ObjectMapper objectMapper;
-    private final ConfigurationService configurationService;
+    private final DrivingPermitConfigurationService drivingPermitConfigurationService;
     private final HttpRetryer httpRetryer;
     private final EventProbe eventProbe;
 
     private final HttpRetryStatusConfig httpRetryStatusConfig;
+    private final StopWatch stopWatch;
 
     public DvaThirdPartyDocumentGateway(
             ObjectMapper objectMapper,
             DvaCryptographyService dvaCryptographyService,
             RequestHashValidator requestHashValidator,
-            ConfigurationService configurationService,
+            DrivingPermitConfigurationService drivingPermitConfigurationService,
             HttpRetryer httpRetryer,
             EventProbe eventProbe) {
         this.objectMapper = objectMapper;
         this.dvaCryptographyService = dvaCryptographyService;
         this.requestHashValidator = requestHashValidator;
-        this.configurationService = configurationService;
+        this.drivingPermitConfigurationService = drivingPermitConfigurationService;
         this.httpRetryer = httpRetryer;
         this.eventProbe = eventProbe;
 
         this.httpRetryStatusConfig = new DvaHttpRetryStatusConfig();
+        this.stopWatch = new StopWatch();
     }
 
     @Override
@@ -90,7 +95,8 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     }
 
     @Override
-    public DocumentCheckResult performDocumentCheck(DrivingPermitForm drivingPermitData)
+    public DocumentCheckResult performDocumentCheck(
+            DrivingPermitForm drivingPermitData, Strategy strategy)
             throws OAuthErrorResponseException {
         LOGGER.info("Mapping person to third party document check request");
         DvaPayload dvaPayload = new DvaPayload();
@@ -103,7 +109,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         String drivingPermitDriverLicenceNumber = drivingPermitData.getDrivingLicenceNumber();
         String drivingPermitAddress = drivingPermitData.getPostcode();
 
-        DvaConfiguration dvaConfiguration = configurationService.getDvaConfiguration();
+        DvaConfiguration dvaConfiguration = drivingPermitConfigurationService.getDvaConfiguration();
 
         String dvaEndpointUri = null;
 
@@ -136,12 +142,14 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         String password = dvaConfiguration.getPassword();
         HttpPost request = requestBuilder(endpoint, username, password, requestBody);
 
-        if (configurationService.isDvaPerformanceStub()) {
+        if (drivingPermitConfigurationService.isDvaPerformanceStub()) {
             try {
                 request.addHeader(
                         "request-hash",
                         new RequestHashValidator.HashFactory()
-                                .getHash(dvaPayload, configurationService.isDvaPerformanceStub()));
+                                .getHash(
+                                        dvaPayload,
+                                        drivingPermitConfigurationService.isDvaPerformanceStub()));
             } catch (NoSuchAlgorithmException e) {
                 LOGGER.error("failed to hash payload successfully for testing");
                 throw new OAuthErrorResponseException(
@@ -153,7 +161,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         eventProbe.counterMetric(DVA_REQUEST_CREATED.withEndpointPrefix());
 
         LOGGER.info("Submitting document check request to DVA...");
-
+        stopWatch.start();
         DocumentCheckResult documentCheckResult;
         try (CloseableHttpResponse httpResponse =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
@@ -161,11 +169,16 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
             documentCheckResult =
                     responseHandler(dvaPayload, httpResponse, dvaPayload.getRequestId().toString());
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(DVA_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
+
             LOGGER.error("IOException executing http request {}", e.getMessage());
             eventProbe.counterMetric(DVA_REQUEST_SEND_ERROR.withEndpointPrefix());
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.ERROR_CONTACTING_DVA);
         } catch (ParseException | JOSEException e) {
+            // Response Latency but after error handling
+            eventProbe.counterMetric(DVA_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
             LOGGER.error(e.getMessage());
             eventProbe.counterMetric(DVA_RESPONSE_TYPE_INVALID.withEndpointPrefix());
@@ -174,6 +187,9 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(DVA_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         eventProbe.counterMetric(DVA_RESPONSE_TYPE_VALID.withEndpointPrefix());
 
@@ -186,7 +202,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         LOGGER.info("Preparing payload for DVA");
         try {
             return dvaCryptographyService.preparePayload(dvaPayload);
-        } catch (CertificateException | JOSEException | JsonProcessingException e) {
+        } catch (JOSEException | JsonProcessingException e) {
             LOGGER.error(("Failed to prepare payload for DVA: " + e.getMessage()));
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -201,7 +217,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
             if (!requestHashValidator.valid(
                     dvaPayload,
                     dvaResponse.getRequestHash(),
-                    configurationService.isDvaPerformanceStub())) {
+                    drivingPermitConfigurationService.isDvaPerformanceStub())) {
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.BAD_REQUEST, ErrorResponse.DVA_D_HASH_VALIDATION_ERROR);
             } else {
@@ -226,7 +242,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
         if (statusCode == 200) {
             try {
-                if (configurationService.isLogDvaResponse()) {
+                if (drivingPermitConfigurationService.isLogDvaResponse()) {
                     LOGGER.info("DVA response " + responseBody);
                 }
                 DvaResponse unwrappedDvaResponse =

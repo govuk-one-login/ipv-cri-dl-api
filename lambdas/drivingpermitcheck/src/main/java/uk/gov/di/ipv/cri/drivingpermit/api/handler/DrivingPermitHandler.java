@@ -7,120 +7,165 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
-import org.apache.http.HttpException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.SharedClaims;
-import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.DrivingPermitServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.FormDataValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIServiceFactory;
-import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.ConfigurationService;
+import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.RequestSentAuditHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
+import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
-import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
+import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 
 public class DrivingPermitHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
+    // We need this first and static for it to be created as soon as possible during function init
+    private static final long FUNCTION_INIT_START_TIME_MILLISECONDS = System.currentTimeMillis();
+
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
+
+    private static final boolean DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG =
+            Boolean.parseBoolean(System.getenv("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG"));
+
+    // Maximum submissions from the front end form
+    private static final int MAX_ATTEMPTS = 2;
 
     private ObjectMapper objectMapper;
     private EventProbe eventProbe;
-    private PersonIdentityService personIdentityService;
+
     private SessionService sessionService;
-    private DataStore<DocumentCheckResultItem> dataStore;
-    private ConfigurationService configurationService;
     private AuditService auditService;
+
+    private PersonIdentityService personIdentityService;
+    private DocumentCheckResultStorageService documentCheckResultStorageService;
 
     private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
     private IdentityVerificationService identityVerificationService;
 
+    private long documentCheckResultItemTtl;
+
     private String environment;
 
+    // For capturing run-time function init metric
+    private long functionInitMetricLatchedValue = 0;
+    private boolean functionInitMetricCaptured = false;
+
+    @ExcludeFromGeneratedCoverageReport
     public DrivingPermitHandler()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
-                    HttpException, KeyStoreException, IOException {
-        DrivingPermitServiceFactory drivingPermitServiceFactory = new DrivingPermitServiceFactory();
+                    JsonProcessingException {
+        ServiceFactory serviceFactory = new ServiceFactory();
+
+        DrivingPermitConfigurationService drivingPermitConfigurationServiceNotYetAssigned =
+                createDrivingPermitConfigurationService(serviceFactory);
+
         ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactoryNotAssignedYet =
-                new ThirdPartyAPIServiceFactory(drivingPermitServiceFactory);
+                new ThirdPartyAPIServiceFactory(
+                        serviceFactory, drivingPermitConfigurationServiceNotYetAssigned);
 
         IdentityVerificationService identityVerificationServiceNotAssignedYet =
-                createIdentityVerificationService(drivingPermitServiceFactory);
+                createIdentityVerificationService(serviceFactory);
 
         initializeLambdaServices(
-                drivingPermitServiceFactory,
+                serviceFactory,
                 thirdPartyAPIServiceFactoryNotAssignedYet,
                 identityVerificationServiceNotAssignedYet);
     }
 
     public DrivingPermitHandler(
-            DrivingPermitServiceFactory drivingPermitServiceFactory,
+            ServiceFactory serviceFactory,
             ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
             IdentityVerificationService identityVerificationService) {
         initializeLambdaServices(
-                drivingPermitServiceFactory,
-                thirdPartyAPIServiceFactory,
-                identityVerificationService);
+                serviceFactory, thirdPartyAPIServiceFactory, identityVerificationService);
     }
 
     public void initializeLambdaServices(
-            DrivingPermitServiceFactory drivingPermitServiceFactory,
+            ServiceFactory serviceFactory,
             ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
             IdentityVerificationService identityVerificationService) {
-        this.objectMapper = drivingPermitServiceFactory.getObjectMapper();
-        this.eventProbe = drivingPermitServiceFactory.getEventProbe();
-        this.sessionService = drivingPermitServiceFactory.getSessionService();
-        this.auditService = drivingPermitServiceFactory.getAuditService();
-        this.personIdentityService = drivingPermitServiceFactory.getPersonIdentityService();
+        this.objectMapper = serviceFactory.getObjectMapper();
+        this.eventProbe = serviceFactory.getEventProbe();
+        this.sessionService = serviceFactory.getSessionService();
+        this.auditService = serviceFactory.getAuditService();
+        this.personIdentityService = serviceFactory.getPersonIdentityService();
 
-        this.configurationService = drivingPermitServiceFactory.getConfigurationService();
-        this.dataStore = drivingPermitServiceFactory.getDataStore();
+        this.documentCheckResultStorageService =
+                serviceFactory.getDocumentCheckResultStorageService();
         this.thirdPartyAPIServiceFactory = thirdPartyAPIServiceFactory;
         this.identityVerificationService = identityVerificationService;
+
+        ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();
+
+        documentCheckResultItemTtl =
+                Long.parseLong(
+                        parameterStoreService.getParameterValue(
+                                ParameterPrefix.COMMON_API, DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
 
         // Get environment to decide if to output internal state
         // for api test asserts (dev only)
         String tEnvironment = System.getenv("ENVIRONMENT");
         this.environment = tEnvironment == null ? "Not-Set" : tEnvironment;
+
+        // Runtime/SnapStart function init duration
+        functionInitMetricLatchedValue =
+                System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
+    }
+
+    private DrivingPermitConfigurationService createDrivingPermitConfigurationService(
+            ServiceFactory serviceFactory) throws JsonProcessingException {
+
+        ClientProviderFactory clientProviderFactory = serviceFactory.getClientProviderFactory();
+
+        ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();
+
+        SecretsManagerService secretsManagerService =
+                new SecretsManagerService(clientProviderFactory.getSecretsManagerClient());
+
+        return new DrivingPermitConfigurationService(parameterStoreService, secretsManagerService);
     }
 
     @Override
@@ -134,6 +179,31 @@ public class DrivingPermitHandler
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),
                     context.getFunctionVersion());
+
+            // Recorded here as sending metrics during function init may fail depending on lambda
+            // config
+            if (!functionInitMetricCaptured) {
+                eventProbe.counterMetric(
+                        Definitions.LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION,
+                        functionInitMetricLatchedValue);
+                LOGGER.info("Lambda function init duration {}ms", functionInitMetricLatchedValue);
+                functionInitMetricCaptured = true;
+            }
+
+            // Lambda Lifetime
+            long runTimeDuration =
+                    System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
+            Duration duration = Duration.of(runTimeDuration, ChronoUnit.MILLIS);
+            String formattedDuration =
+                    String.format(
+                            "%d:%02d:%02d",
+                            duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
+            LOGGER.info(
+                    "Lambda {}, Lifetime duration {}, {}ms",
+                    context.getFunctionName(),
+                    formattedDuration,
+                    runTimeDuration);
+
             Map<String, String> headers = input.getHeaders();
             final String sessionId = headers.get("session_id");
             LOGGER.info("Extracting session from header ID {}", sessionId);
@@ -142,8 +212,6 @@ public class DrivingPermitHandler
             // Attempt Start
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
-
-            final int MAX_ATTEMPTS = configurationService.getMaxAttempts();
 
             // Check we are not "now" above max_attempts to prevent doing another remote API call
             if (sessionItem.getAttemptCount() > MAX_ATTEMPTS) {
@@ -156,7 +224,7 @@ public class DrivingPermitHandler
                         MAX_ATTEMPTS);
 
                 eventProbe.counterMetric(
-                        LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX);
+                        Definitions.LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX);
 
                 APIGatewayProxyResponseEvent responseEvent = generateExitResponseEvent(false);
 
@@ -168,17 +236,20 @@ public class DrivingPermitHandler
                     parseDrivingPermitFormRequest(input.getBody());
 
             ThirdPartyAPIService thirdPartyAPIService =
-                    selectThirdPartyAPIService(
-                            configurationService.getDvaDirectEnabled(),
-                            configurationService.getDvlaDirectEnabled(),
-                            drivingPermitFormData.getLicenceIssuer());
+                    selectThirdPartyAPIService(drivingPermitFormData.getLicenceIssuer());
 
             LOGGER.info(
                     "Verifying document details using {}", thirdPartyAPIService.getServiceName());
 
+            // TestStrategy Logic
+            String clientId = sessionItem.getClientId();
+            Strategy strategy = Strategy.fromClientIdString(clientId);
+
+            LOGGER.info("IPV Core Client Id {}, Routing set to {}", clientId, strategy);
+
             DocumentCheckVerificationResult documentCheckVerificationResult =
                     identityVerificationService.verifyIdentity(
-                            drivingPermitFormData, thirdPartyAPIService);
+                            drivingPermitFormData, thirdPartyAPIService, strategy);
 
             documentCheckVerificationResult.setAttemptCount(sessionItem.getAttemptCount());
 
@@ -207,11 +278,11 @@ public class DrivingPermitHandler
             return lambdaCompletedOK(responseEvent);
         } catch (OAuthErrorResponseException e) {
             // Driving Permit Lambda Completed with an Error
-            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+            eventProbe.counterMetric(Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
             CommonExpressOAuthError commonExpressOAuthError;
 
-            if (!configurationService.isDevEnvironmentOnlyEnhancedDebugSet()) {
+            if (!DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG) {
                 // Standard oauth compliant route
                 commonExpressOAuthError = new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR);
             } else {
@@ -246,7 +317,7 @@ public class DrivingPermitHandler
 
             LOGGER.debug(e.getMessage(), e);
 
-            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+            eventProbe.counterMetric(Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
 
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -280,11 +351,9 @@ public class DrivingPermitHandler
 
         final DocumentCheckResultItem documentCheckResultItem =
                 mapVerificationResultToResultItem(sessionItem, result, drivingPermitFormData);
-        documentCheckResultItem.setExpiry(
-                configurationService.getDocumentCheckItemExpirationEpoch());
 
         LOGGER.info("Saving document check results...");
-        dataStore.create(documentCheckResultItem);
+        documentCheckResultStorageService.saveDocumentCheckResult(documentCheckResultItem);
         LOGGER.info("document check results saved.");
     }
 
@@ -331,33 +400,51 @@ public class DrivingPermitHandler
         documentCheckResultItem.setIssueDate(drivingPermitFormData.getIssueDate().toString());
 
         // DVLA only field(s)
-        if (issuingAuthority == DVLA) {
+        if (issuingAuthority == IssuingAuthority.DVLA) {
             documentCheckResultItem.setIssueNumber(drivingPermitFormData.getIssueNumber());
         }
 
         documentCheckResultItem.setTransactionId(result.getTransactionId());
 
+        // DocumentCheckResultItem TTL/Expiry
+        documentCheckResultItem.setExpiry(
+                Clock.systemUTC()
+                        .instant()
+                        .plus(documentCheckResultItemTtl, ChronoUnit.SECONDS)
+                        .getEpochSecond());
+
         return documentCheckResultItem;
     }
 
     private IdentityVerificationService createIdentityVerificationService(
-            DrivingPermitServiceFactory drivingPermitServiceFactory) {
+            ServiceFactory serviceFactory) {
 
         return new IdentityVerificationService(
-                new FormDataValidator(), drivingPermitServiceFactory.getEventProbe());
+                new FormDataValidator(), serviceFactory.getEventProbe());
     }
 
-    private ThirdPartyAPIService selectThirdPartyAPIService(
-            boolean dvaDirectEnabled, boolean dvlaDirectEnabled, String licenseIssuer) {
+    private ThirdPartyAPIService selectThirdPartyAPIService(String licenseIssuer)
+            throws OAuthErrorResponseException {
 
         IssuingAuthority issuingAuthority = IssuingAuthority.valueOf(licenseIssuer);
 
-        if ((issuingAuthority == IssuingAuthority.DVA) && dvaDirectEnabled) {
-            return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
-        } else if ((issuingAuthority == IssuingAuthority.DVLA) && dvlaDirectEnabled) {
-            return thirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService();
-        } else {
-            return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
+        switch (issuingAuthority) {
+            case DVA -> {
+                return thirdPartyAPIServiceFactory.getDvaThirdPartyAPIService();
+            }
+            case DVLA -> {
+                return thirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService();
+            }
+            default -> {
+                LOGGER.error(
+                        "Issuer not known {} {} ",
+                        issuingAuthority,
+                        ErrorResponse.FAILED_TO_SELECT_THIRD_PARTY_API_SERVICE);
+
+                throw new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_SELECT_THIRD_PARTY_API_SERVICE);
+            }
         }
     }
 
@@ -366,7 +453,7 @@ public class DrivingPermitHandler
             APIGatewayProxyResponseEvent responseEvent) {
 
         // Lambda Complete No Error
-        eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+        eventProbe.counterMetric(Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
 
         return responseEvent;
     }
@@ -380,7 +467,7 @@ public class DrivingPermitHandler
                 && documentCheckVerificationResult.isVerified()) {
             LOGGER.info("Document verified");
             eventProbe.counterMetric(
-                    LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX
+                    Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX
                             + sessionItem.getAttemptCount());
 
             return false;
@@ -388,20 +475,21 @@ public class DrivingPermitHandler
             LOGGER.info(
                     "Ending document verification after {} attempts",
                     documentCheckVerificationResult.getAttemptCount());
-            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED);
+            eventProbe.counterMetric(
+                    Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED);
 
             return false;
         } else {
             LOGGER.info(
                     "Document not verified at attempt {}",
                     documentCheckVerificationResult.getAttemptCount());
-            eventProbe.counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY);
+            eventProbe.counterMetric(Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY);
 
             return true;
         }
     }
 
-    APIGatewayProxyResponseEvent generateExitResponseEvent(boolean canRetry) {
+    private APIGatewayProxyResponseEvent generateExitResponseEvent(boolean canRetry) {
         DocumentVerificationResponse response = new DocumentVerificationResponse();
         response.setRetry(canRetry);
 

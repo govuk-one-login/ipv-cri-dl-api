@@ -1,8 +1,9 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dva.service;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
@@ -17,37 +18,42 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class HashFactoryTest {
+class HashFactoryTest {
     private RequestHashValidator.HashFactory hashFactory;
 
     @Mock
     private RequestHashValidator.HashFactory.Sha256MessageDigestFactory
             mockSha256MessageDigestFactory;
 
-    @Test
-    void hashValidationSuccess() throws NoSuchAlgorithmException {
-        DvaPayload dvaPayload = createSuccessDvaPayload();
-        DvaResponse dvaResponse = createSuccessDvaResponse();
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void hashValidationSuccess(boolean imposterStub) throws NoSuchAlgorithmException {
+        DvaPayload dvaPayload = createSuccessDvaPayload(imposterStub);
+        DvaResponse dvaResponse = createSuccessDvaResponse(imposterStub);
         hashFactory = new RequestHashValidator.HashFactory();
 
-        Assertions.assertDoesNotThrow(() -> hashFactory.getHash(createSuccessDvaPayload(), false));
-        assertEquals(hashFactory.getHash(dvaPayload, false), dvaResponse.getRequestHash());
+        Assertions.assertDoesNotThrow(
+                () -> hashFactory.getHash(createSuccessDvaPayload(imposterStub), imposterStub));
+        assertEquals(hashFactory.getHash(dvaPayload, imposterStub), dvaResponse.getRequestHash());
     }
 
-    @Test
-    void hashValidationAlgorithmException() throws NoSuchAlgorithmException {
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void hashValidationAlgorithmException(boolean imposterStub) throws NoSuchAlgorithmException {
         hashFactory = new RequestHashValidator.HashFactory(mockSha256MessageDigestFactory);
         when(mockSha256MessageDigestFactory.getInstance())
                 .thenThrow(new NoSuchAlgorithmException());
         assertThrows(
                 NoSuchAlgorithmException.class,
-                () -> hashFactory.getHash(createSuccessDvaPayload(), false));
+                () -> hashFactory.getHash(createSuccessDvaPayload(imposterStub), imposterStub));
     }
 
-    private DvaPayload createSuccessDvaPayload() {
+    private DvaPayload createSuccessDvaPayload(boolean imposterStub) {
         DvaPayload dvaPayload = new DvaPayload();
-        dvaPayload.setRequestId(
-                UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")); // dummy UUID
+        if (!imposterStub) {
+            dvaPayload.setRequestId(
+                    UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")); // dummy UUID
+        }
         dvaPayload.setForenames(Arrays.asList("KENNETH"));
         dvaPayload.setSurname("DECERQUEIRA");
         dvaPayload.setDriverLicenceNumber("12345678");
@@ -59,10 +65,15 @@ public class HashFactoryTest {
         return dvaPayload;
     }
 
-    private DvaResponse createSuccessDvaResponse() {
+    private DvaResponse createSuccessDvaResponse(boolean imposterStub) {
         DvaResponse dvaResponse = new DvaResponse();
-        dvaResponse.setRequestHash(
-                "98882b9f7f4173eb355f00a7510132b40aec702768a645c195678294bc16768d");
+
+        String requestHash =
+                imposterStub
+                        ? "a06d209caf647292dd8a3b7ef174485633899a470b7164707ec4aa0235072758"
+                        : "98882b9f7f4173eb355f00a7510132b40aec702768a645c195678294bc16768d";
+
+        dvaResponse.setRequestHash(requestHash);
         dvaResponse.setValidDocument(true);
         return dvaResponse;
     }

@@ -1454,7 +1454,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -1532,7 +1532,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
@@ -1697,7 +1697,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PublicDrivingPermitApi-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs in Public Driving Permit API. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -1733,7 +1733,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PrivateDrivingPermitApi-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs in Private Driving Permit API. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -1756,7 +1756,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -1818,7 +1818,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
@@ -1880,7 +1880,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the Authorization endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -1940,7 +1940,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
@@ -1995,7 +1995,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2021,7 +2021,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessToken5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2083,7 +2083,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessToken5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
@@ -2145,7 +2145,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessToken4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the AccessToken endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2205,7 +2205,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
@@ -2260,7 +2260,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessTokenFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2284,7 +2284,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2346,7 +2346,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
@@ -2408,7 +2408,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the Session endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2468,7 +2468,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
@@ -2523,7 +2523,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2547,7 +2547,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2609,7 +2609,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
@@ -2671,7 +2671,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2731,7 +2731,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
@@ -2772,7 +2772,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2795,7 +2795,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredential5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the IssueCredential endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2857,7 +2857,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredential5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the IssueCredential endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
@@ -2919,7 +2919,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredential4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the IssueCredential endpoint. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -2979,7 +2979,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: "DeployAlarms"
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
@@ -3020,7 +3020,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:

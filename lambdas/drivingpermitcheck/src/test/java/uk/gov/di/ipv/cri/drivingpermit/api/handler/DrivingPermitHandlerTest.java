@@ -16,6 +16,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
@@ -49,6 +50,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,6 +65,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
@@ -593,5 +596,40 @@ class DrivingPermitHandlerTest {
                                 spyHandler, licenseIssuer);
 
         assertEquals(expectedServiceName, thirdPartyAPIService.getClass().getSimpleName());
+    }
+
+    @Test
+    void handleResponseShouldThrowExceptionWhenSessionIdMissing() throws JsonProcessingException {
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        Map<String, String> headers = new HashMap<>();
+
+        when(mockRequestEvent.getHeaders()).thenReturn(headers);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                drivingPermitHandler.handleRequest(mockRequestEvent, context);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(
+                        OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage());
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
+
+        assertEquals(
+                "oauth_error",
+                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
     }
 }

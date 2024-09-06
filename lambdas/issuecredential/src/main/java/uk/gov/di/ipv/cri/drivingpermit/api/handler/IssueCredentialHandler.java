@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.OAuth2Error;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
@@ -21,6 +22,7 @@ import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.common.library.error.OauthErrorResponse;
+import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
@@ -33,6 +35,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.exception.CredentialRequestException;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.IssueCredentialDrivingPermitAuditExtensionUtil;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.VcIssuedAuditHelper;
+import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
@@ -43,6 +46,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 
 public class IssueCredentialHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -155,6 +160,11 @@ public class IssueCredentialHandler
             LOGGER.info("Validating authorization token...");
             var accessToken = validateInputHeaderBearerToken(input.getHeaders());
             var sessionItem = this.sessionService.getSessionByAccessToken(accessToken);
+
+            if (sessionItem == null || sessionItem.getSessionId() == null) {
+                throw new SessionNotFoundException("Session is not found");
+            }
+
             LOGGER.info("Extracted session from session store ID {}", sessionItem.getSessionId());
 
             LOGGER.info("Retrieving identity details and document check results...");
@@ -217,6 +227,18 @@ public class IssueCredentialHandler
 
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ex.awsErrorDetails().errorMessage());
+
+        } catch (SessionNotFoundException e) {
+            String customOAuth2ErrorDescription = SESSION_NOT_FOUND.getMessage();
+            LOGGER.error(customOAuth2ErrorDescription);
+            eventProbe.counterMetric(Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(e.getMessage(), e);
+
+            return ApiGatewayResponseGenerator.proxyJsonResponse(
+                    HttpStatusCode.FORBIDDEN,
+                    new CommonExpressOAuthError(
+                            OAuth2Error.ACCESS_DENIED, customOAuth2ErrorDescription));
         } catch (CredentialRequestException | ParseException | JOSEException e) {
             LOGGER.error(LAMBDA_HANDLING_EXCEPTION, context.getFunctionName(), e.getClass());
             eventProbe.counterMetric(Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);

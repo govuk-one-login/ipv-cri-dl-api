@@ -12,6 +12,7 @@ import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.junit.Assert;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
@@ -50,6 +51,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     private static String vcHeader;
     private static String vcBody;
+    private static final String KID_PREFIX = "did:web:review-d.dev.account.gov.uk:";
 
     private static Boolean RETRY;
     private static String DRIVING_LICENCE_CHECK_RESPONSE;
@@ -243,6 +245,33 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
         vcBody = signedJWT.getJWTClaimsSet().toString();
         LOGGER.info("VC Body = {}", vcBody);
+
+        JSONObject jsonHeader;
+        try {
+            jsonHeader = new JSONObject(vcHeader);
+        } catch (Exception e) {
+            LOGGER.error("Failed to parse VC Header as JSON", e);
+            throw new AssertionError("Failed to parse VC Header as JSON", e);
+        }
+        String[] expectedFields = {"kid", "typ", "alg"};
+        for (String field : expectedFields) {
+            Assert.assertTrue(
+                    "Field '" + field + "' is missing in the VC Header", jsonHeader.has(field));
+        }
+        Assert.assertEquals(
+                "The 'typ' field does not have the expected value",
+                "JWT",
+                jsonHeader.getString("typ"));
+        Assert.assertEquals(
+                "The 'alg' field does not have the expected value",
+                "ES256",
+                jsonHeader.getString("alg"));
+        String kid = jsonHeader.getString("kid");
+        Assert.assertTrue(
+                "The 'kid' field does not start with the expected prefix",
+                kid.startsWith(KID_PREFIX));
+        String kidSuffix = kid.substring(KID_PREFIX.length());
+        Assert.assertFalse("The 'kid' field suffix should not be empty", kidSuffix.isEmpty());
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)

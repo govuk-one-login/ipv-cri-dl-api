@@ -19,11 +19,7 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.TestTemplate;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -130,10 +126,7 @@ class IssueCredentialHandlerTest {
 
     @au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors
     public static SelectorBuilder consumerVersionSelectors() {
-        return new SelectorBuilder()
-                .tag("DrivingLicenceVcProvider")
-                .branch("main", "IpvCoreBack")
-                .deployedOrReleased();
+        return new SelectorBuilder().branch("main", "IpvCoreBack").deployedOrReleased();
     }
 
     @BeforeEach

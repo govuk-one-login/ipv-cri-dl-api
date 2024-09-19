@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import software.amazon.awssdk.services.acm.model.ExportCertificateResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.HttpClientException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
@@ -19,7 +20,6 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -43,6 +43,7 @@ class DVACloseableHttpClientFactoryTest {
 
     @Mock private ParameterStoreService mockParameterStoreService;
     @Mock private ApacheHTTPClientFactoryService mockApacheHTTPClientFactoryService;
+    @Mock private DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration;
 
     @Mock private AcmCertificateService acmCertificateService;
 
@@ -62,6 +63,7 @@ class DVACloseableHttpClientFactoryTest {
         assertDoesNotThrow(
                 () ->
                         dvaCloseableHttpClientFactory.getClient(
+                                dvaCryptographyServiceConfiguration,
                                 mockParameterStoreService,
                                 new ApacheHTTPClientFactoryService(),
                                 acmCertificateService,
@@ -79,9 +81,8 @@ class DVACloseableHttpClientFactoryTest {
     })
     void shouldThrowHttpClientExceptionOnCatchingException(String thrownExceptionName)
             throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
-                    InvalidKeySpecException, KeyStoreException, IOException, KeyManagementException,
-                    NoSuchMethodException, ClassNotFoundException, InvocationTargetException,
-                    InstantiationException, IllegalAccessException {
+                    InvalidKeySpecException, KeyStoreException, IOException,
+                    KeyManagementException {
         environmentVariables.set("AWS_REGION", "eu-west-2");
 
         mockReadDVAHTTPClientCerts();
@@ -115,6 +116,7 @@ class DVACloseableHttpClientFactoryTest {
                         HttpClientException.class,
                         () ->
                                 dvaCloseableHttpClientFactory.getClient(
+                                        dvaCryptographyServiceConfiguration,
                                         mockParameterStoreService,
                                         mockApacheHTTPClientFactoryService,
                                         acmCertificateService,

@@ -93,6 +93,7 @@ class ThirdPartyAPIServiceFactoryTest {
         mockDvaCryptographyServiceConfigurationParameterPathReads();
         when(acmCertificateService.exportAcmSigningCertificate())
                 .thenReturn(
+                        //  pragma: allowlist nextline secret
                         "-----BEGIN CERTIFICATE-----\n"
                                 + "MIIDsDCCApigAwIBAgIRAN8vzgI+5JH/ENYddMs21eowDQYJKoZIhvcNAQELBQAw\n"
                                 + "WTELMAkGA1UEBhMCR0IxFzAVBgNVBAoMDkNhYmluZXQgT2ZmaWNlMQwwCgYDVQQL\n"
@@ -121,6 +122,7 @@ class ThirdPartyAPIServiceFactoryTest {
                 .thenReturn(
                         ExportCertificateResponse.builder()
                                 .certificate(
+                                        //  pragma: allowlist nextline secret
                                         "-----BEGIN CERTIFICATE-----\n"
                                                 + "MIIDsDCCApigAwIBAgIRAN8vzgI+5JH/ENYddMs21eowDQYJKoZIhvcNAQELBQAw\n"
                                                 + "WTELMAkGA1UEBhMCR0IxFzAVBgNVBAoMDkNhYmluZXQgT2ZmaWNlMQwwCgYDVQQL\n"
@@ -144,6 +146,7 @@ class ThirdPartyAPIServiceFactoryTest {
                                                 + "bteNsvJYtttuyalLvQmepjYdGivN2y+pC7mYKCaFFFSPb2NE\n"
                                                 + "-----END CERTIFICATE-----\n")
                                 .privateKey(
+                                        //  pragma: allowlist nextline secret
                                         "-----BEGIN ENCRYPTED PRIVATE KEY-----\n"
                                                 + "MIIFKzBVBgkqhkiG9w0BBQ0wSDAnBgkqhkiG9w0BBQwwGgQUXYKIDhMlJtEG2lIe\n"
                                                 + "iVgL9D4wsuECAggAMB0GCWCGSAFlAwQBKgQQHEs/0ixG3g0xdW0fwVgW+QSCBNC7\n"

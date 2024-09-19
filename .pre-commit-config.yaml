@@ -8,6 +8,12 @@ repos:
     - id: detect-aws-credentials
       args: [ --allow-missing-credentials ]
     - id: detect-private-key
+      exclude: |
+        (?x)^(
+            lambdas/drivingpermitcheck/src/test/java/uk/gov/di/ipv/cri/drivingpermit/api/service/ThirdPartyAPIServiceFactoryTest.java|
+            scripts/load-crypto-params-for-non-ca-env-non-prod.sh|
+            lib-dva/src/test/java/uk/gov/di/ipv/cri/drivingpermit/library/dva/service/DVACloseableHttpClientFactoryTest.java
+        )$
 
   - repo: https://github.com/awslabs/cfn-python-lint
     rev: v1.2.5.a10 # The version of cfn-lint to use

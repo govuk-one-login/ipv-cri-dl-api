@@ -54,10 +54,16 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
 import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.http.HttpClient;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -75,13 +81,16 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService.RANDOM_RUN_TIME_PASSWORD;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(SystemStubsExtension.class)
 class DvaThirdPartyDocumentGatewayTest {
     public static final String SELF_SIGNED_ROOT_CERT = System.getenv("SELF_SIGNED_ROOT_CERT");
     private static final String TEST_API_RESPONSE_BODY = "test-api-response-content";
@@ -104,31 +113,45 @@ class DvaThirdPartyDocumentGatewayTest {
     @Mock private RequestHashValidator requestHashValidator;
     @Mock private EventProbe mockEventProbe;
 
-    // To be removed
-    @RegisterExtension
-    static WireMockExtension wm1 =
-            WireMockExtension.newInstance()
-                    .options(
-                            wireMockConfig()
-                                    .httpsPort(8443)
-                                    .httpDisabled(true)
-                                    .keystorePath("utils/v2/certs/wiremock-DVA-cert.jks")
-                                    .keystorePassword("password")
-                                    .keyManagerPassword("password")
-                                    .keystoreType("JKS")
-                                    .needClientAuth(true)
-                                    // Only works with absolute file path
-                                    // .trustStorePath("utils/v2/certs/myKeystore.jks")
-                                    .trustStorePassword("password")
-                                    .trustStoreType("JKS")
-                                    .stubRequestLoggingDisabled(false))
-                    .build();
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+    @RegisterExtension static WireMockExtension wm1;
+
+    static {
+        try {
+            wm1 =
+                    WireMockExtension.newInstance()
+                            .options(
+                                    wireMockConfig()
+                                            .httpsPort(8443)
+                                            .httpDisabled(true)
+                                            .keystorePath("utils/v2/certs/wiremock-DVA-cert.jks")
+                                            .keystorePassword("password")
+                                            .keyManagerPassword("password")
+                                            .keystoreType("JKS")
+                                            .needClientAuth(true)
+                                            // Only works with absolute file path
+                                            .trustStorePath(
+                                                    "src/test/resources/utils/v2/certs/mykeystore.jks")
+                                            .trustStorePassword(
+                                                    Files.readAllLines(
+                                                                    Paths.get(
+                                                                            "src/test/resources/utils/v2/certs/mykeystore-pass.txt"))
+                                                            .get(0))
+                                            .trustStoreType("JKS")
+                                            .stubRequestLoggingDisabled(false))
+                            .build();
+        } catch (IOException e) {
+            fail(e);
+        }
+    }
 
     @BeforeEach
     void setUp() {
 
         when(mockDrivingPermitConfigurationService.getDvaConfiguration())
                 .thenReturn(mockDvaConfiguration);
+        when(mockDrivingPermitConfigurationService.isDvaPerformanceStub()).thenReturn(true);
         when(mockDvaConfiguration.getEndpointUri()).thenReturn(TEST_ENDPOINT_URL);
 
         this.dvaThirdPartyDocumentGateway =
@@ -396,6 +419,11 @@ class DvaThirdPartyDocumentGatewayTest {
     @Test
     @Tag("FullE2ECertTest")
     void shouldInvokeRealThirdPartyAPIWithAws() throws Exception {
+        environmentVariables.set("SQS_AUDIT_EVENT_PREFIX", "PREFIX_CRI");
+        environmentVariables.set(
+                "COMMON_PARAMETER_NAME_PREFIX", "driving-permit-common-cri-api-local");
+        environmentVariables.set("SQS_AUDIT_EVENT_QUEUE_URL", "arn-for-sqs");
+        environmentVariables.set("HAS_CA", true);
 
         wm1.stubFor(
                 post("/api/ukverify")
@@ -459,6 +487,7 @@ class DvaThirdPartyDocumentGatewayTest {
                                                         .getSecretsManagerClient())),
                                 new HttpRetryer(
                                         dvaCloseableHttpClientFactory.getClient(
+                                                dvaCryptographyServiceConfiguration,
                                                 parameterStoreService,
                                                 serviceFactory.getApacheHTTPClientFactoryService(),
                                                 new AcmCertificateService(
@@ -482,7 +511,12 @@ class DvaThirdPartyDocumentGatewayTest {
                 new FileOutputStream("src/test/resources/utils/v2/certs/mykeystore.jks")) {
             KeyStore trustStore = createTrustStore(new Certificate[] {tlsRootCert});
 
-            trustStore.store(fos, "password".toCharArray());
+            trustStore.store(fos, RANDOM_RUN_TIME_PASSWORD.toCharArray());
+
+            Path path = Paths.get("src/test/resources/utils/v2/certs/mykeystore-pass.txt");
+            byte[] strToBytes = RANDOM_RUN_TIME_PASSWORD.getBytes();
+
+            Files.write(path, strToBytes);
         }
     }
 
@@ -501,7 +535,6 @@ class DvaThirdPartyDocumentGatewayTest {
         return dvaResponse;
     }
 
-    // To be removed
     private KeyStore createTrustStore(Certificate[] certificates)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");

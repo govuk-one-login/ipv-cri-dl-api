@@ -100,6 +100,7 @@ Conditions:
     Fn::And:
       - !Equals [!Ref Environment, "dev"]
       - !Equals [ !Ref CreateMockTxmaResourcesOverride, "true" ]
+
 Globals:
   Function:
     CodeSigningConfigArn: !If
@@ -276,27 +277,27 @@ Mappings:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "true"
-      useAcm: "true"
+      hasCA: "false"
     build:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
-      useAcm: "fale"
+      hasCA: "false"
     staging:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
-      useAcm: "false"
+      hasCA: "true"
     integration:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
-      useAcm: "false"
+      hasCA: "false"
     production:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
-      useAcm: "false"
+      hasCA: "false"
 
 Resources:
 
@@ -499,7 +500,7 @@ Resources:
           LOG_DVA_RESPONSE: !FindInMap [LogDVAResponseEnvVar, Environment, !Ref 'Environment']
           DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [DevEnvironmentOnlyEnhancedDebugMappingEnvVar, Environment, !Ref Environment ]
-          USE_ACM: !FindInMap [ FeatureFlagMapping, !Ref Environment, useAcm ]
+          HAS_CA: !FindInMap [ FeatureFlagMapping, !Ref Environment, hasCA ]
           SIGNING_CERTIFICATE_ARN: !ImportValue acm-infra-DLCRISigningCertificateArn
           TLS_CERTIFICATE_ARN: !ImportValue acm-infra-DLCRIMtlsCertificateArn
           SIGNING_KEY_ID: !GetAtt DvaSigningKey.KeyId

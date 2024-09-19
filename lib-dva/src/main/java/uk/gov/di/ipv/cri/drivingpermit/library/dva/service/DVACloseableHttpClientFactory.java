@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.library.dva.service;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import software.amazon.awssdk.services.acm.model.ExportCertificateResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.HttpClientException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
@@ -33,6 +34,7 @@ public class DVACloseableHttpClientFactory {
     }
 
     public CloseableHttpClient getClient(
+            DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration,
             ParameterStoreService parameterStoreService,
             ApacheHTTPClientFactoryService apacheHTTPClientFactoryService,
             AcmCertificateService acmCertificateService,
@@ -44,21 +46,19 @@ public class DVACloseableHttpClientFactory {
                         parameterStoreService.getAllParametersFromPathWithDecryption(
                                 ParameterPrefix.OVERRIDE, HTTP_CLIENT_PARAMETER_PATH);
 
-                // Comes from DVA
                 String base64TLSCertString = dvaHtpClientCertsKeysMap.get(MAP_KEY_TLS_CERT);
                 String base64TLSKeyString = dvaHtpClientCertsKeysMap.get(MAP_KEY_TLS_KEY);
 
+                // Comes from DVA
                 final String base64TLSRootCertString =
                         dvaHtpClientCertsKeysMap.get(MAP_KEY_TLS_ROOT_CERT);
 
                 final String base64TLSIntCertString =
                         dvaHtpClientCertsKeysMap.get(MAP_KEY_TLS_INT_CERT);
 
-                String useAcm =
-                        parameterStoreService.getParameterValue(
-                                ParameterPrefix.OVERRIDE, "DVA/useAcm");
+                String hasCA = dvaCryptographyServiceConfiguration.getHasCA();
 
-                if (Boolean.parseBoolean(useAcm)) {
+                if (Boolean.parseBoolean(hasCA)) {
                     ExportCertificateResponse getCertificateResponse =
                             acmCertificateService.exportAcmTlsCertificates();
 

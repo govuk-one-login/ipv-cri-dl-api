@@ -22,9 +22,12 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
+import java.util.UUID;
 
 @ExcludeFromGeneratedCoverageReport
 public class AcmCertificateService {
+
+    public static final String RANDOM_RUN_TIME_PASSWORD = UUID.randomUUID().toString();
 
     private AcmClient acmClient;
 
@@ -52,7 +55,9 @@ public class AcmCertificateService {
         ExportCertificateRequest describeRequest =
                 ExportCertificateRequest.builder()
                         .certificateArn(certificateArn)
-                        .passphrase(SdkBytes.fromString("password", StandardCharsets.UTF_8))
+                        .passphrase(
+                                SdkBytes.fromString(
+                                        RANDOM_RUN_TIME_PASSWORD, StandardCharsets.UTF_8))
                         .build();
 
         // Retrieve the certificate details
@@ -74,7 +79,9 @@ public class AcmCertificateService {
 
         String rawKey;
         try {
-            rawKey = Base64.toBase64String(readPrivateKey(acmKey, "password").getEncoded());
+            rawKey =
+                    Base64.toBase64String(
+                            readPrivateKey(acmKey, RANDOM_RUN_TIME_PASSWORD).getEncoded());
         } catch (IOException
                 | NoSuchAlgorithmException
                 | InvalidKeySpecException

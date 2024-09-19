@@ -6,6 +6,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DvaCryptographyServic
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.JweKmsDecrypter;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
@@ -39,12 +43,24 @@ import static org.mockito.Mockito.when;
 
 // @Disabled
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class CertificateAlternativesTest {
 
     public static final String SIGNING_KEY_ID = System.getenv("SIGNING_KEY_ID");
     public static final String ENC_KEY_ID = System.getenv("ENC_KEY_ID");
 
     @Mock private DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration;
+
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+    @BeforeEach
+    public void setup() {
+        environmentVariables.set("SQS_AUDIT_EVENT_PREFIX", "PREFIX_CRI");
+        environmentVariables.set(
+                "COMMON_PARAMETER_NAME_PREFIX", "driving-permit-common-cri-api-local");
+        environmentVariables.set("SQS_AUDIT_EVENT_QUEUE_URL", "arn-for-sqs");
+        environmentVariables.set("HAS_CA", true);
+    }
 
     @Test
     @Tag("TestKmsEncryption")
@@ -108,7 +124,7 @@ class CertificateAlternativesTest {
         when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
                 .thenReturn(new Thumbprints("sha1-encryption", "sha256-encryption"));
         when(dvaCryptographyServiceConfiguration.getEncryptionCert()).thenReturn(certificate);
-        when(dvaCryptographyServiceConfiguration.getUseAcm()).thenReturn("true");
+        when(dvaCryptographyServiceConfiguration.getHasCA()).thenReturn("true");
 
         // Step 1: Sign data using private key
         KmsClient kmsClient = new ServiceFactory().getClientProviderFactory().getKMSClient();

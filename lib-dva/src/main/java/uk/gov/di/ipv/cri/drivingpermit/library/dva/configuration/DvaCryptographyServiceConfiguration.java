@@ -53,7 +53,7 @@ public class DvaCryptographyServiceConfiguration {
     private final String kmsEncryptionKeyId;
     // cert used in thumbprint generation
     private final Certificate signingThumbprintCert;
-    private final String useAcm;
+    private final String hasCA;
 
     public DvaCryptographyServiceConfiguration(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -106,7 +106,7 @@ public class DvaCryptographyServiceConfiguration {
 
         kmsSigningKeyId = System.getenv("SIGNING_KEY_ID");
         kmsEncryptionKeyId = System.getenv("ENCRYPTION_KEY_ID");
-        useAcm = System.getenv("USE_ACM");
+        hasCA = System.getenv("HAS_CA");
     }
 
     public Certificate getEncryptionCert() {
@@ -150,7 +150,7 @@ public class DvaCryptographyServiceConfiguration {
         return signingThumbprintCert;
     }
 
-    public String getUseAcm() {
-        return useAcm;
+    public String getHasCA() {
+        return hasCA;
     }
 }

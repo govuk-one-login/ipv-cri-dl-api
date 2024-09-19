@@ -99,6 +99,7 @@ public class ThirdPartyAPIServiceFactory {
 
         CloseableHttpClient httpClient =
                 dvaCloseableHttpClientFactory.getClient(
+                        dvaCryptographyServiceConfiguration,
                         parameterStoreService,
                         apacheHTTPClientFactoryService,
                         acmCertificateService,

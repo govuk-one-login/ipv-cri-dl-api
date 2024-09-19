@@ -20,6 +20,15 @@ Conditions:
       - !Equals [!Ref Environment, "production"]
       - !Equals [!Ref Environment, "staging"]
 
+Mappings:
+  domain:
+    Environment:
+      dev: "https://review-d.dev.account.gov.uk"
+      build: "https://review-d.build.account.gov.uk"
+      staging: "https://review-d.staging.account.gov.uk"
+      integration: "https://review-d.integration.account.gov.uk"
+      production: "https://review-d.account.gov.uk"
+
 Resources:
   DLPrivateCA:
     Type: AWS::ACMPCA::CertificateAuthority
@@ -80,10 +89,10 @@ Resources:
     Condition: IsCAEnvironment
     Properties:
       CertificateAuthorityArn: !Ref DLPrivateCA
-      DomainName: !Sub review-d.${Environment}.account.gov.uk
+      DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
       DomainValidationOptions:
-        - DomainName: !Sub review-d.${Environment}.account.gov.uk
-          ValidationDomain: !Sub review-d.${Environment}.account.gov.uk
+        - DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+          ValidationDomain: !FindInMap [ domain, Environment, !Ref 'Environment' ]
       ValidationMethod: DNS
       KeyAlgorithm: RSA_2048
       Tags:
@@ -97,10 +106,10 @@ Resources:
     Condition: IsCAEnvironment
     Properties:
       CertificateAuthorityArn: !Ref DLPrivateCA
-      DomainName: !Sub review-d.${Environment}.account.gov.uk
+      DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
       DomainValidationOptions:
-        - DomainName: !Sub review-d.${Environment}.account.gov.uk
-          ValidationDomain: !Sub review-d.${Environment}.account.gov.uk
+        - DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+          ValidationDomain: !FindInMap [ domain, Environment, !Ref 'Environment' ]
       ValidationMethod: DNS
       KeyAlgorithm: RSA_2048
       Tags:
@@ -114,10 +123,10 @@ Resources:
     Condition: IsCAEnvironment
     Properties:
       CertificateAuthorityArn: !Ref DLPrivateCA
-      DomainName: !Sub review-d.${Environment}.account.gov.uk
+      DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
       DomainValidationOptions:
-        - DomainName: !Sub review-d.${Environment}.account.gov.uk
-          ValidationDomain: !Sub review-d.${Environment}.account.gov.uk
+        - DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+          ValidationDomain: !FindInMap [ domain, Environment, !Ref 'Environment' ]
       ValidationMethod: DNS
       KeyAlgorithm: RSA_2048
       Tags:
@@ -132,7 +141,7 @@ Outputs:
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-DLCRIRootCertificateArn
-        
+
   SigningCertificateArnPrivate:
     Condition: IsCAEnvironment
     Description: Signing certificate Arn

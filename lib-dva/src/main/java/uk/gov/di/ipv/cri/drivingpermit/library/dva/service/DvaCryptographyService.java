@@ -86,11 +86,10 @@ public class DvaCryptographyService {
 
     private JWSObject createJWS(String stringToSign)
             throws JOSEException, IOException, GeneralSecurityException {
-        boolean useAcm = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getUseAcm());
+        boolean hasCA = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getHasCA());
         Thumbprints thumbprints = dvaCryptographyServiceConfiguration.getSigningCertThumbprints();
 
-        if (useAcm) {
-            // replace with cert reference
+        if (hasCA) {
             thumbprints = KeyCertHelper.makeThumbprint(kmsSigner.getDlSigningCertificate());
         }
 
@@ -112,7 +111,7 @@ public class DvaCryptographyService {
                                 .build(),
                         new Payload(stringToSign));
 
-        if (useAcm) {
+        if (hasCA) {
             jwsObject.sign(kmsSigner);
         } else {
             jwsObject.sign(new RSASSASigner(dvaCryptographyServiceConfiguration.getSigningKey()));
@@ -170,9 +169,9 @@ public class DvaCryptographyService {
 
     public JWSObject decrypt(JWEObject encrypted) {
         try {
-            boolean useAcm = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getUseAcm());
+            boolean hasCA = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getHasCA());
 
-            if (useAcm) {
+            if (hasCA) {
                 encrypted.decrypt(jweKmsDecrypter);
             } else {
                 RSADecrypter rsaDecrypter =

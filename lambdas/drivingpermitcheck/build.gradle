@@ -72,7 +72,7 @@ tasks.register('buildZip', Zip) {
 
 test {
 	useJUnitPlatform {
-		excludeTags 'Pact', 'CreateSelfSignedCertFromKMS', 'TestKmsEncryption', 'TestKmsVerification','TestToCreateDvaResponseForE2ETest', 'FullE2ECertTest'
+		excludeTags 'Pact', 'TestKmsEncryption', 'TestKmsVerification','TestToCreateDvaResponseForE2ETest', 'FullE2ECertTest'
 	}
 	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }

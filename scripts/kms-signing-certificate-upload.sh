@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 mkdir kmsSigning
-privateKey=$(aws-vault exec dl-dev -- aws acm export-certificate --certificate-arn $SIGNING_CERT_ACM --passphrase fileb://passPhrase.txt | jq -r '"\(.PrivateKey)"')
+privateKey=$(aws-vault exec $ACCOUNT_ID -- aws acm export-certificate --certificate-arn $SIGNING_CERT_ACM --passphrase fileb://passPhrase.txt | jq -r '"\(.PrivateKey)"')
 echo "$privateKey" > ./kmsSigning/encrypted_key.pem
 openssl rsa -in ./kmsSigning/encrypted_key.pem -out ./kmsSigning/decrypted_key.pem
 openssl pkcs8 -topk8 -inform PEM -outform DER -in ./kmsSigning/decrypted_key.pem -out ./kmsSigning/PlaintextKeyMaterial.der -nocrypt
 mv ./kmsSigning/PlaintextKeyMaterial.der ./kmsSigning/PlaintextKeyMaterial.bin
 
 
-kmsSigningKeyId=$(aws-vault exec dl-dev -- aws kms create-key --description "acm kms signing key created with cli" --customer-master-key-spec "RSA_2048" --key-usage "SIGN_VERIFY" --origin "EXTERNAL" | jq .KeyMetadata.KeyId | tr -d '"')
+kmsSigningKeyId=$SIGNING_KEY_ID
 echo "KMS Signing key Id $kmsSigningKeyId"
-importData=$(aws-vault exec dl-dev -- aws kms get-parameters-for-import --key-id $kmsSigningKeyId --wrapping-algorithm RSA_AES_KEY_WRAP_SHA_256 --wrapping-key-spec RSA_2048 | jq .)
+importData=$(aws-vault exec $ACCOUNT_ID -- aws kms get-parameters-for-import --key-id $kmsSigningKeyId --wrapping-algorithm RSA_AES_KEY_WRAP_SHA_256 --wrapping-key-spec RSA_2048 | jq .)
 publicKey=$(echo $importData | jq .PublicKey | tr -d '"')
 importToken=$(echo $importData | jq .ImportToken | tr -d '"')
 
@@ -41,7 +41,7 @@ openssl pkeyutl \
 
 cat ./kmsSigning/aes-key-wrapped.bin ./kmsSigning/key-material-wrapped.bin > ./kmsSigning/EncryptedKeyMaterial.bin
 
-aws-vault exec dl-dev -- aws kms import-key-material --key-id $kmsSigningKeyId \
+aws-vault exec $ACCOUNT_ID -- aws kms import-key-material --key-id $kmsSigningKeyId \
     --encrypted-key-material fileb://./kmsSigning/EncryptedKeyMaterial.bin \
     --import-token fileb://./kmsSigning/ImportToken.bin \
     --expiration-model KEY_MATERIAL_DOES_NOT_EXPIRE

@@ -91,3 +91,26 @@ Feature: DrivingLicence CRI API
       |DVLAValidKennethJsonPayload | {"surname": "ServerError", "drivingLicenceNumber" : "SERVE500456AB1AB"}    | 1314                    | error match endpoint returned unexpected http status code   |
       |DVLAValidKennethJsonPayload | {"surname": "ServerError", "drivingLicenceNumber" : "SERVE502456AB1AB"}    | 1314                    | error match endpoint returned unexpected http status code   |
       |DVLAValidKennethJsonPayload | {"surname": "ServerError", "drivingLicenceNumber" : "SERVE504456AB1AB"}    | 1314                    | error match endpoint returned unexpected http status code   |
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario Outline: DVLA Driving Licence Un-Happy path with invalid sessionId on Driving Licence Endpoint
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint with a invalid <invalidHeaderValue> value using jsonRequest DVAInvalidJsonPayload
+    Examples:
+      |invalidHeaderValue              |
+      | mismatchSessionId               |
+      | malformedSessionId             |
+      | missingSessionId               |
+      | noSessionHeader                |
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario: DVLA Driving Licence Un-Happy path with invalid authCode on Credential Issuer Endpoint
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVLAValidKennethJsonPayload
+    And Driving Licence user gets authorisation code
+    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
+    Then User requests Driving Licence CRI VC from the Credential Issuer Endpoint with a invalid Bearer Token value

@@ -33,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
 import static org.junit.Assert.assertNotNull;
@@ -150,15 +151,16 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         String drivingPermitInputJsonString =
                 objectMapper.writeValueAsString(drivingPermitFormJson);
 
-        HttpRequest.Builder request =
+        HttpRequest.Builder builder =
                 HttpRequest.newBuilder()
                         .uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session_id", SESSION_ID)
                         .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
+        HttpRequest request = builder.build();
         LOGGER.info("drivingLicenceRequestBody = {}", dlInputJsonString);
-        DRIVING_LICENCE_CHECK_RESPONSE = sendHttpRequest(request.build()).body();
+        DRIVING_LICENCE_CHECK_RESPONSE = sendHttpRequest(request).body();
         LOGGER.info("drivingLicenceCheckResponse = {}", DRIVING_LICENCE_CHECK_RESPONSE);
         DocumentCheckResponse documentCheckResponse =
                 objectMapper.readValue(DRIVING_LICENCE_CHECK_RESPONSE, DocumentCheckResponse.class);
@@ -169,6 +171,72 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     public void postRequestToDrivingLicenceEndpoint(String drivingPermitJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         postRequestToDrivingLicenceEndpoint(drivingPermitJsonRequestBody, "");
+    }
+
+    public void postRequestToDrivingLicenceEndpointWithInvalidSessionId(
+            String invalidHeaderValue, String dlJsonRequestBody, String jsonEditsString)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
+        JsonNode dlJsonNode =
+                objectMapper.readTree(
+                        new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"));
+        String dlInputJsonString = dlJsonNode.toString();
+
+        Map<String, String> jsonEdits = new HashMap<>();
+        if (!StringUtils.isEmpty(jsonEditsString)) {
+            jsonEdits = objectMapper.readValue(jsonEditsString, Map.class);
+        }
+
+        DrivingPermitForm drivingPermitFormJson =
+                objectMapper.readValue(
+                        new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"),
+                        DrivingPermitForm.class);
+
+        for (Map.Entry<String, String> entry : jsonEdits.entrySet()) {
+            Field field = drivingPermitFormJson.getClass().getDeclaredField(entry.getKey());
+            field.setAccessible(true);
+
+            field.set(drivingPermitFormJson, entry.getValue());
+        }
+        String drivingPermitInputJsonString =
+                objectMapper.writeValueAsString(drivingPermitFormJson);
+
+        HttpRequest.Builder builder =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
+                        .setHeader("Accept", "application/json")
+                        .setHeader("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
+
+        switch (invalidHeaderValue) {
+            case "mismatchSessionId" -> builder.setHeader(
+                    "session_id", UUID.randomUUID().toString());
+            case "malformedSessionId" -> builder.setHeader("session_id", "&%^$£$%");
+            case "missingSessionId" -> builder.setHeader("session_id", "");
+            default -> {
+                /*Do Nothing - No Header Provided*/
+            }
+        }
+
+        HttpRequest request = builder.build();
+        LOGGER.info("drivingLicenceRequestHeaders = {}", request.headers());
+        LOGGER.info("drivingLicenceRequestBody = {}", dlInputJsonString);
+        DRIVING_LICENCE_CHECK_RESPONSE = sendHttpRequest(request).body();
+        LOGGER.info("drivingLicenceCheckResponse = {}", DRIVING_LICENCE_CHECK_RESPONSE);
+        String expectedResponseForInvalidSessionId =
+                "{\"oauth_error\":{\"error_description\":\"Session not found\",\"error\":\"access_denied\"}}";
+        assertEquals(expectedResponseForInvalidSessionId, DRIVING_LICENCE_CHECK_RESPONSE);
+        DocumentCheckResponse documentCheckResponse =
+                objectMapper.readValue(DRIVING_LICENCE_CHECK_RESPONSE, DocumentCheckResponse.class);
+        RETRY = documentCheckResponse.getRetry();
+        LOGGER.info("RETRY = {}", RETRY);
+    }
+
+    public void postRequestToDrivingLicenceEndpointWithInvalidSessionId(
+            String invalidHeaderValue, String drivingPermitJsonRequestBody)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToDrivingLicenceEndpointWithInvalidSessionId(
+                invalidHeaderValue, drivingPermitJsonRequestBody, "");
     }
 
     public void retryValueInDLCheckResponse(Boolean retry) {
@@ -272,6 +340,25 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                 kid.startsWith(KID_PREFIX));
         String kidSuffix = kid.substring(KID_PREFIX.length());
         Assert.assertFalse("The 'kid' field suffix should not be empty", kidSuffix.isEmpty());
+    }
+
+    public void postRequestToDrivingLicenceVCEndpointWithInvalidAuthCode()
+            throws IOException, InterruptedException {
+        String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
+        String randomAccessToken = UUID.randomUUID().toString();
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(publicApiGatewayUrl + "/credential/issue"))
+                        .setHeader("Accept", "application/json")
+                        .setHeader("Content-Type", "application/json")
+                        .setHeader("Authorization", "Bearer " + randomAccessToken)
+                        .POST(HttpRequest.BodyPublishers.ofString(""))
+                        .build();
+        String requestDrivingLicenceVCResponse = sendHttpRequest(request).body();
+        LOGGER.info("requestDrivingLicenceVCResponse = {}", requestDrivingLicenceVCResponse);
+        String expectedResponseForInvalidAuthCode =
+                "{\"oauth_error\":{\"error_description\":\"Session not found\",\"error\":\"access_denied\"}}";
+        assertEquals(expectedResponseForInvalidAuthCode, requestDrivingLicenceVCResponse);
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)

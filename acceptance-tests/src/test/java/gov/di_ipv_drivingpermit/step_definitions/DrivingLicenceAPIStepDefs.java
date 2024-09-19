@@ -38,6 +38,15 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         postRequestToDrivingLicenceEndpoint(dlJsonRequestBody);
     }
 
+    @When(
+            "Driving Licence user sends a POST request to Driving Licence endpoint with a invalid (.*) value using jsonRequest (.*)$")
+    public void DL_user_sends_a_post_request_to_driving_licence_end_point_with_invalid_session_id(
+            String invalidHeaderValue, String dlJsonRequestBody)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToDrivingLicenceEndpointWithInvalidSessionId(
+                invalidHeaderValue, dlJsonRequestBody);
+    }
+
     @And("Driving Licence check response should contain Retry value as (.*)$")
     public void DL_check_response_should_contain_Retry_value(Boolean retry) {
         retryValueInDLCheckResponse(retry);
@@ -57,6 +66,13 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     @Then("User requests Driving Licence CRI VC")
     public void user_requests_DL_vc() throws IOException, InterruptedException, ParseException {
         postRequestToDrivingLicenceVCEndpoint();
+    }
+
+    @Then(
+            "User requests Driving Licence CRI VC from the Credential Issuer Endpoint with a invalid Bearer Token value")
+    public void user_requests_DL_vc_with_invalid_headers()
+            throws IOException, InterruptedException {
+        postRequestToDrivingLicenceVCEndpointWithInvalidAuthCode();
     }
 
     @And("Driving Licence VC should contain validityScore (.*) and strengthScore (.*)$")

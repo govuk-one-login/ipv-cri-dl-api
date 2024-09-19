@@ -51,4 +51,4 @@ sam deploy --stack-name "$stack_name" \
   ParameterPrefix="dl-cri-api-v1" \
   UseApiKey="' '" \
   DeploymentType="not-pipeline" \
-  LambdaDeploymentPreference="Canary10Percent5Minutes"
+  LambdaDeploymentPreference="AllAtOnce"

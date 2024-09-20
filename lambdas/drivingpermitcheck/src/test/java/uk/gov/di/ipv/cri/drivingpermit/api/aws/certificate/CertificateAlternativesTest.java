@@ -64,7 +64,7 @@ class CertificateAlternativesTest {
 
     @Test
     @Tag("TestKmsEncryption")
-    public void encryptDecryptTest() throws Exception {
+    void encryptDecryptTest() throws Exception {
         // The source of randomness
         String certificatePath = "encryptionCert-acm.cer";
         String dataToEncrypt = "Hello, World!";
@@ -81,12 +81,12 @@ class CertificateAlternativesTest {
         System.out.println("Encrypted Data: " + encryptedData);
         String textBytes = decryptData(encryptedData, ENC_KEY_ID);
         System.out.println("Message decrypted with file private key:\n" + textBytes + "\n");
-        assertEquals(textBytes, "Hello, World!");
+        assertEquals("Hello, World!", textBytes);
     }
 
     @Test
     @Tag("TestKmsVerification")
-    public void signAndVerifyTest() throws Exception {
+    void signAndVerifyTest() throws Exception {
         // Step 1: Load certificate created by ACM
         String certificatePath = "signingCert-acm.cer";
         X509Certificate certificate = CryptoUtils.loadCertificate(certificatePath);
@@ -110,7 +110,7 @@ class CertificateAlternativesTest {
 
     @Test
     @Tag("TestToCreateDvaResponseForE2ETest")
-    public void createDVAResponse() throws Exception {
+    void createDVAResponse() throws Exception {
         BouncyCastleProvider provider = new BouncyCastleProvider();
         Security.addProvider(provider);
 
@@ -182,8 +182,7 @@ class CertificateAlternativesTest {
                         .build();
 
         // Create the JWS object
-        JWSObject jwsObject = new JWSObject(header, claimsSet.toPayload());
-        return jwsObject;
+        return new JWSObject(header, claimsSet.toPayload());
     }
 
     private static DvaResponse createSuccessDvaResponse() {

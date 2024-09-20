@@ -19,6 +19,7 @@ Conditions:
     Fn::Or:
       - !Equals [!Ref Environment, "production"]
       - !Equals [!Ref Environment, "staging"]
+      - !Equals [ !Ref Environment, "dev" ]
 
 Mappings:
   domain:

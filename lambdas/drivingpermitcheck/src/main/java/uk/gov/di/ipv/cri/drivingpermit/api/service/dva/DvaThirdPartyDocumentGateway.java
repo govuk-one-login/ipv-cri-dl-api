@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import org.apache.http.HttpEntity;
@@ -71,7 +70,6 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private final StopWatch stopWatch;
 
     public DvaThirdPartyDocumentGateway(
-            ObjectMapper objectMapper,
             DvaCryptographyService dvaCryptographyService,
             RequestHashValidator requestHashValidator,
             DrivingPermitConfigurationService drivingPermitConfigurationService,
@@ -201,7 +199,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         try {
             return dvaCryptographyService.preparePayload(dvaPayload);
         } catch (JOSEException | IOException | GeneralSecurityException e) {
-            LOGGER.error("Failed to prepare payload for DVA: " + e.getMessage());
+            LOGGER.error("Failed to prepare payload for DVA: {}", e.getMessage());
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_PREPARE_DVA_PAYLOAD);

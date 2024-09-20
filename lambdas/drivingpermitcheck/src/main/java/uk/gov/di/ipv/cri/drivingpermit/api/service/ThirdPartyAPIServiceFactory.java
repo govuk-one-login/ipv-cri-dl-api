@@ -66,7 +66,6 @@ public class ThirdPartyAPIServiceFactory {
             boolean tlsOn)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
 
-        ObjectMapper objectMapper = serviceFactory.getObjectMapper();
         EventProbe eventProbe = serviceFactory.getEventProbe();
         ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();
         ApacheHTTPClientFactoryService apacheHTTPClientFactoryService =
@@ -108,7 +107,6 @@ public class ThirdPartyAPIServiceFactory {
         HttpRetryer httpRetryer = new HttpRetryer(httpClient, eventProbe, MAX_HTTP_RETRIES);
 
         return new DvaThirdPartyDocumentGateway(
-                objectMapper,
                 dvaCryptographyService,
                 requestHashValidator,
                 drivingPermitConfigurationService,

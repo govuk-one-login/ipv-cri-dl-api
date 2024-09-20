@@ -12,22 +12,19 @@ import software.amazon.awssdk.services.acm.AcmClient;
 import software.amazon.awssdk.services.acm.model.ExportCertificateRequest;
 import software.amazon.awssdk.services.acm.model.ExportCertificateResponse;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.IpvCryptoException;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.Security;
-import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
 @ExcludeFromGeneratedCoverageReport
 public class AcmCertificateService {
 
-    public static final String RANDOM_RUN_TIME_PASSWORD = UUID.randomUUID().toString();
+    public static String RANDOM_RUN_TIME_PASSWORD = UUID.randomUUID().toString(); //NOSONAR
 
     private AcmClient acmClient;
 
@@ -37,8 +34,7 @@ public class AcmCertificateService {
 
     public ExportCertificateResponse exportAcmTlsCertificates() {
         String tlsCertificateArn = System.getenv("TLS_CERTIFICATE_ARN");
-        ExportCertificateResponse getCertificateResponse = exportAcmCertificate(tlsCertificateArn);
-        return getCertificateResponse;
+        return exportAcmCertificate(tlsCertificateArn);
     }
 
     public String exportAcmSigningCertificate() {
@@ -61,16 +57,14 @@ public class AcmCertificateService {
                         .build();
 
         // Retrieve the certificate details
-        ExportCertificateResponse getCertificateResponse =
-                acmClient.exportCertificate(describeRequest);
-        return getCertificateResponse;
+        return acmClient.exportCertificate(describeRequest);
     }
 
     public static String parseAcmCertificate(String acmCertificate) {
         Security.addProvider(new BouncyCastleProvider());
-        String rawCertificate = acmCertificate.replaceAll("-----BEGIN CERTIFICATE-----", "");
-        rawCertificate = rawCertificate.replaceAll("-----END CERTIFICATE-----", "");
-        rawCertificate = rawCertificate.replaceAll("\n", "");
+        String rawCertificate = acmCertificate.replace("-----BEGIN CERTIFICATE-----", "");
+        rawCertificate = rawCertificate.replace("-----END CERTIFICATE-----", "");
+        rawCertificate = rawCertificate.replace("\n", "");
         return rawCertificate;
     }
 
@@ -82,48 +76,39 @@ public class AcmCertificateService {
             rawKey =
                     Base64.toBase64String(
                             readPrivateKey(acmKey, RANDOM_RUN_TIME_PASSWORD).getEncoded());
-        } catch (IOException
-                | NoSuchAlgorithmException
-                | InvalidKeySpecException
-                | InvalidKeyException
-                | NoSuchProviderException e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new IpvCryptoException(e.getMessage());
         }
         return rawKey;
     }
 
     private static PrivateKey readPrivateKey(String privateKeyContent, String passPhrase)
-            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException,
-                    InvalidKeyException, NoSuchProviderException {
+            throws IOException {
         try (StringReader stringReader = new StringReader(privateKeyContent);
                 PEMParser pemParser = new PEMParser(stringReader)) {
 
             Object object = pemParser.readObject();
 
-            if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
+            if (object instanceof PKCS8EncryptedPrivateKeyInfo encryptedPrivateKeyInfo) {
                 // Decrypt the PKCS#8 encrypted private key using the passphrase
-                PKCS8EncryptedPrivateKeyInfo encryptedPrivateKeyInfo =
-                        (PKCS8EncryptedPrivateKeyInfo) object;
 
                 // Use the JcePKCSPBEInputDecryptorProviderBuilder to decrypt the private key
                 JcePKCSPBEInputDecryptorProviderBuilder decryptorProviderBuilder =
                         new JcePKCSPBEInputDecryptorProviderBuilder();
-                PrivateKey decryptedKey =
-                        new JcaPEMKeyConverter()
-                                .setProvider("BC")
-                                .getPrivateKey(
-                                        encryptedPrivateKeyInfo.decryptPrivateKeyInfo(
-                                                decryptorProviderBuilder
-                                                        .setProvider("BC")
-                                                        .build(passPhrase.toCharArray())));
 
-                return decryptedKey;
+                return new JcaPEMKeyConverter()
+                        .setProvider("BC")
+                        .getPrivateKey(
+                                encryptedPrivateKeyInfo.decryptPrivateKeyInfo(
+                                        decryptorProviderBuilder
+                                                .setProvider("BC")
+                                                .build(passPhrase.toCharArray())));
             } else {
                 throw new IllegalArgumentException(
                         "The provided key is not in the expected encrypted PKCS#8 format.");
             }
         } catch (PKCSException e) {
-            throw new RuntimeException(e);
+            throw new IpvCryptoException(e.getMessage());
         }
     }
 }

@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dva.util;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -30,24 +29,20 @@ public class KmsSigner implements JWSSigner {
     }
 
     @Override
-    public Base64URL sign(JWSHeader header, byte[] signingInput) throws JOSEException {
-        try {
-            // Create the sign request
-            SignRequest signRequest =
-                    SignRequest.builder()
-                            .keyId(keyId)
-                            .message(SdkBytes.fromByteArray(signingInput))
-                            .signingAlgorithm(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
-                            .build();
+    public Base64URL sign(JWSHeader header, byte[] signingInput) {
+        // Create the sign request
+        SignRequest signRequest =
+                SignRequest.builder()
+                        .keyId(keyId)
+                        .message(SdkBytes.fromByteArray(signingInput))
+                        .signingAlgorithm(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
+                        .build();
 
-            // Perform the signing operation using KMS
-            SignResponse signResult = kmsClient.sign(signRequest);
+        // Perform the signing operation using KMS
+        SignResponse signResult = kmsClient.sign(signRequest);
 
-            // Return the Base64URL-encoded signature
-            return Base64URL.encode(signResult.signature().asByteArray());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to sign data with AWS KMS", e);
-        }
+        // Return the Base64URL-encoded signature
+        return Base64URL.encode(signResult.signature().asByteArray());
     }
 
     public String getKeyId() {

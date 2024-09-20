@@ -156,7 +156,6 @@ class DvaThirdPartyDocumentGatewayTest {
 
         this.dvaThirdPartyDocumentGateway =
                 new DvaThirdPartyDocumentGateway(
-                        mockObjectMapper,
                         dvaCryptographyService,
                         requestHashValidator,
                         mockDrivingPermitConfigurationService,
@@ -166,8 +165,8 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void shouldInvokeThirdPartyAPI()
-            throws IOException, InterruptedException, GeneralSecurityException, ParseException,
-                    JOSEException, OAuthErrorResponseException, java.text.ParseException {
+            throws IOException, GeneralSecurityException, ParseException, JOSEException,
+                    OAuthErrorResponseException, java.text.ParseException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -248,7 +247,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP400Response()
-            throws IOException, InterruptedException, GeneralSecurityException, JOSEException {
+            throws IOException, GeneralSecurityException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
@@ -291,7 +290,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnHTTP500Response()
-            throws IOException, InterruptedException, GeneralSecurityException, JOSEException {
+            throws IOException, GeneralSecurityException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
         DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
@@ -334,7 +333,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void thirdPartyApiReturnsErrorOnUnhandledHTTPResponse()
-            throws IOException, InterruptedException, GeneralSecurityException, JOSEException {
+            throws IOException, GeneralSecurityException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
 
@@ -377,8 +376,8 @@ class DvaThirdPartyDocumentGatewayTest {
     @ParameterizedTest
     @MethodSource("getRetryStatusCodes") // Retry status codes
     void retryThirdPartyApiHTTPResponseForStatusCode(int initialStatusCodeResponse)
-            throws IOException, InterruptedException, GeneralSecurityException, ParseException,
-                    JOSEException, OAuthErrorResponseException, java.text.ParseException {
+            throws IOException, GeneralSecurityException, ParseException, JOSEException,
+                    OAuthErrorResponseException, java.text.ParseException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -473,7 +472,6 @@ class DvaThirdPartyDocumentGatewayTest {
         EventProbe eventProbe = new EventProbe();
         DocumentCheckResult actualDocumentCheckResult =
                 new DvaThirdPartyDocumentGateway(
-                                new ObjectMapper(),
                                 new DvaCryptographyService(
                                         dvaCryptographyServiceConfiguration,
                                         kmsSigner,
@@ -518,6 +516,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
             Files.write(path, strToBytes);
         }
+        assert (Files.exists(Paths.get("src/test/resources/utils/v2/certs/mykeystore-pass.txt")));
     }
 
     private static Stream<Integer> getRetryStatusCodes() {

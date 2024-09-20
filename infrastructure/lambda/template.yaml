@@ -101,6 +101,11 @@ Conditions:
       - !Equals [!Ref Environment, "dev"]
       - !Equals [ !Ref CreateMockTxmaResourcesOverride, "true" ]
 
+  IsCAEnvironment:
+    Fn::Or:
+      - !Equals [!Ref Environment, "production"]
+      - !Equals [!Ref Environment, "staging"]
+
 Globals:
   Function:
     CodeSigningConfigArn: !If
@@ -277,7 +282,7 @@ Mappings:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "true"
-      hasCA: "false"
+      hasCA: "true"
     build:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
@@ -501,8 +506,14 @@ Resources:
           DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [DevEnvironmentOnlyEnhancedDebugMappingEnvVar, Environment, !Ref Environment ]
           HAS_CA: !FindInMap [ FeatureFlagMapping, !Ref Environment, hasCA ]
-          SIGNING_CERTIFICATE_ARN: !ImportValue acm-infra-DLCRISigningCertificateArn
-          TLS_CERTIFICATE_ARN: !ImportValue acm-infra-DLCRIMtlsCertificateArn
+          SIGNING_CERTIFICATE_ARN: !If
+            - IsCAEnvironment
+            - Fn::ImportValue: acm-infra-DLCRISigningCertificateArn
+            - !Ref "AWS::NoValue"
+          TLS_CERTIFICATE_ARN:  !If
+            - IsCAEnvironment
+            - Fn::ImportValue: acm-infra-DLCRIMtlsCertificateArn
+            - !Ref "AWS::NoValue"
           SIGNING_KEY_ID: !GetAtt DvaSigningKey.KeyId
           ENCRYPTION_KEY_ID: !GetAtt DvaEncryptionKey.KeyId
       Policies:
@@ -613,14 +624,25 @@ Resources:
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
         - Statement:
             - Effect: Allow
-              Action:
+              Action: !If
+                - IsCAEnvironment
                 - acm:ExportCertificate
-              Resource: !ImportValue acm-infra-DLCRISigningCertificateArn
+                - ssm:GetParameter
+              Resource: !If
+                - IsCAEnvironment
+                - !ImportValue acm-infra-DLCRISigningCertificateArn
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
         - Statement:
             - Effect: Allow
-              Action:
+              Action: !If
+                - IsCAEnvironment
                 - acm:ExportCertificate
-              Resource: !ImportValue acm-infra-DLCRIMtlsCertificateArn
+                - ssm:GetParameter
+              Resource: !If
+                - IsCAEnvironment
+                - !ImportValue acm-infra-DLCRIMtlsCertificateArn
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+
         - SQSSendMessagePolicy:
             QueueName: !If [CreateMockTxmaResources, !GetAtt MockAuditEventQueue.QueueName, !ImportValue AuditEventQueueName]
       ProvisionedConcurrencyConfig:

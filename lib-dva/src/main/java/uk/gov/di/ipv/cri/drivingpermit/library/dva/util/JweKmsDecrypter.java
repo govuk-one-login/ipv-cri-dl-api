@@ -18,6 +18,7 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @ExcludeFromGeneratedCoverageReport
@@ -56,27 +57,25 @@ public class JweKmsDecrypter implements JWEDecrypter {
         SecretKey cek = new SecretKeySpec(decryptedBytes, "AES");
 
         JWEJCAContext jwejcaContext = new JWEJCAContext();
-        byte[] bytes =
-                AESCBC.decryptAuthenticated(
-                        cek,
-                        iv.decode(),
-                        cipherText.decode(),
-                        aad,
-                        authTag.decode(),
-                        jwejcaContext.getProvider(),
-                        jwejcaContext.getMACProvider());
 
-        return bytes;
+        return AESCBC.decryptAuthenticated(
+                cek,
+                iv.decode(),
+                cipherText.decode(),
+                aad,
+                authTag.decode(),
+                jwejcaContext.getProvider(),
+                jwejcaContext.getMACProvider());
     }
 
     @Override
     public Set<JWEAlgorithm> supportedJWEAlgorithms() {
-        return null;
+        return new HashSet<>();
     }
 
     @Override
     public Set<EncryptionMethod> supportedEncryptionMethods() {
-        return null;
+        return new HashSet<>();
     }
 
     @Override

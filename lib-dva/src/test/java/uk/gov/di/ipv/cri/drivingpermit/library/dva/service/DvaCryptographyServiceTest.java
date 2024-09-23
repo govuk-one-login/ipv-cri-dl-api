@@ -98,7 +98,7 @@ class DvaCryptographyServiceTest {
 
         assertEquals(
                 SHA_1_THUMBPRINT + "-encryption",
-                innerJwtHeader.getX509CertThumbprint().toString()); //NOSONAR
+                innerJwtHeader.getX509CertThumbprint().toString()); // NOSONAR
         assertEquals(
                 SHA_256_THUMBPRINT + "-encryption",
                 innerJwtHeader.getX509CertSHA256Thumbprint().toString());
@@ -157,7 +157,7 @@ class DvaCryptographyServiceTest {
 
         assertEquals(
                 SHA_1_THUMBPRINT + "-encryption",
-                innerJwtHeader.getX509CertThumbprint().toString()); //NOSONAR
+                innerJwtHeader.getX509CertThumbprint().toString()); // NOSONAR
         assertEquals(
                 SHA_256_THUMBPRINT + "-encryption",
                 innerJwtHeader.getX509CertSHA256Thumbprint().toString());

@@ -81,7 +81,7 @@ class DVACloseableHttpClientFactoryTest {
                 new DVACloseableHttpClientFactory();
 
         //  pragma: allowlist nextline secret
-        AcmCertificateService.RANDOM_RUN_TIME_PASSWORD = "password"; //NOSONAR
+        AcmCertificateService.RANDOM_RUN_TIME_PASSWORD = "password"; // NOSONAR
         ApacheHTTPClientFactoryService apacheHTTPClientFactoryService =
                 new ApacheHTTPClientFactoryService();
 

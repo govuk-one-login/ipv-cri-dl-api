@@ -4,6 +4,7 @@ Feature: DVA Driving Licence Test
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     And I search for Driving Licence user number 5 in the Experian table
+    And I add a cookie to change the language to English
     Then I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
     And I should see DVA as an option
     And I click on DVA radio button and Continue
@@ -282,7 +283,7 @@ Feature: DVA Driving Licence Test
     Then I see the DVA privacy notice link the DVA privacy notice (opens in a new tab)
     And The test is complete and I close the driver
 
-  @build @stub @Language-regression
+   @stub @Language-regression
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK

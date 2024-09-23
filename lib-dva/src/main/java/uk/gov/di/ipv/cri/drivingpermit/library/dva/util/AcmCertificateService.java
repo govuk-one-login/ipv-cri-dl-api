@@ -24,7 +24,7 @@ import java.util.UUID;
 @ExcludeFromGeneratedCoverageReport
 public class AcmCertificateService {
 
-    public static String RANDOM_RUN_TIME_PASSWORD = UUID.randomUUID().toString(); //NOSONAR
+    public static String RANDOM_RUN_TIME_PASSWORD = UUID.randomUUID().toString(); // NOSONAR
 
     private AcmClient acmClient;
 

@@ -81,6 +81,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -516,7 +517,8 @@ class DvaThirdPartyDocumentGatewayTest {
 
             Files.write(path, strToBytes);
         }
-        assert (Files.exists(Paths.get("src/test/resources/utils/v2/certs/mykeystore-pass.txt")));
+        assertTrue(
+                Files.exists(Paths.get("src/test/resources/utils/v2/certs/mykeystore-pass.txt")));
     }
 
     private static Stream<Integer> getRetryStatusCodes() {

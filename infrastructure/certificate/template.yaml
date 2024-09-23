@@ -24,11 +24,11 @@ Conditions:
 Mappings:
   domain:
     Environment:
-      dev: "https://review-d.dev.account.gov.uk"
-      build: "https://review-d.build.account.gov.uk"
-      staging: "https://review-d.staging.account.gov.uk"
-      integration: "https://review-d.integration.account.gov.uk"
-      production: "https://review-d.account.gov.uk"
+      dev: "review-d.dev.account.gov.uk"
+      build: "review-d.build.account.gov.uk"
+      staging: "review-d.staging.account.gov.uk"
+      integration: "review-d.integration.account.gov.uk"
+      production: "review-d.account.gov.uk"
 
 Resources:
   DLPrivateCA:

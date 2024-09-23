@@ -75,14 +75,21 @@ public class ThirdPartyAPIServiceFactory {
                 new DvaCryptographyServiceConfiguration(parameterStoreService);
         String signingKeyId = dvaCryptographyServiceConfiguration.getKmsSigningKeyId();
         String encryptionKeyId = dvaCryptographyServiceConfiguration.getKmsEncryptionKeyId();
-        String dlSigningCertificateString = acmCertificateService.exportAcmSigningCertificate();
-        dlSigningCertificateString =
-                dlSigningCertificateString
-                        .replace("\n", "")
-                        .replace(BEGIN_CERT, "")
-                        .replace(END_CERT, "");
+
         X509Certificate dlSigningCertificate =
-                KeyCertHelper.getDecodedX509Certificate(dlSigningCertificateString);
+                (X509Certificate) dvaCryptographyServiceConfiguration.getSigningThumbprintCert();
+        boolean hasCA = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getHasCA());
+
+        if (hasCA) {
+            String dlSigningCertificateString = acmCertificateService.exportAcmSigningCertificate();
+            dlSigningCertificateString =
+                    dlSigningCertificateString
+                            .replace("\n", "")
+                            .replace(BEGIN_CERT, "")
+                            .replace(END_CERT, "");
+            dlSigningCertificate =
+                    KeyCertHelper.getDecodedX509Certificate(dlSigningCertificateString);
+        }
 
         KmsClient kmsClient = serviceFactory.getClientProviderFactory().getKMSClient();
         DvaCryptographyService dvaCryptographyService =

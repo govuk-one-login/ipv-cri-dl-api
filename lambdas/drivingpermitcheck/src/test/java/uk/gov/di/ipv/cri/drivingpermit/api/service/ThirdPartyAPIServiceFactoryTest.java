@@ -66,9 +66,13 @@ class ThirdPartyAPIServiceFactoryTest {
     void setUp() throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
         Security.addProvider(new BouncyCastleProvider());
 
+        //  pragma: allowlist nextline secret
+        AcmCertificateService.RANDOM_RUN_TIME_PASSWORD = "password"; // NOSONAR
+
         environmentVariables.set("AWS_REGION", "eu-west-2");
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
         environmentVariables.set("SELF_SIGNED_ROOT_CERT", CertAndKeyTestFixtures.TEST_ROOT_CRT);
+        environmentVariables.set("HAS_CA", "true");
 
         when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
         when(mockServiceFactory.getApacheHTTPClientFactoryService())

@@ -425,6 +425,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void navigateToDrivingLicenceCRIOnTestEnv() {
         visitCredentialIssuers.click();
+        assertPageTitle(IPV_CORE_STUB, true);
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
         LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
         if (dlCRITestEnvironment.equalsIgnoreCase("dev")

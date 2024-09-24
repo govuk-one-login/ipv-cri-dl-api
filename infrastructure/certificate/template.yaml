@@ -31,7 +31,7 @@ Mappings:
       production: "review-d.account.gov.uk"
 
 Resources:
-  acm-infra-DLPrivateCA:
+  DLPrivateCA:
     Type: AWS::ACMPCA::CertificateAuthority
     Condition: IsCAEnvironment
     Properties:

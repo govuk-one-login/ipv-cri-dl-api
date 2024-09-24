@@ -2,7 +2,7 @@ name: Deploy ACM to dev
 on:
   push:
     branches:
-      - LIME-1154-3
+      - main
     paths:
       - "infrastructure/certificate/template.yaml"
       - ".github/workflows/post-merge-deploy-acm-to-dev.yml"

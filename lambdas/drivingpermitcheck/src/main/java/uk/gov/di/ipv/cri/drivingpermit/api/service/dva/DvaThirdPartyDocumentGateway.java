@@ -219,7 +219,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.BAD_REQUEST, ErrorResponse.DVA_D_HASH_VALIDATION_ERROR);
             } else {
-                LOGGER.info("Successfully validated DVA Direct response hash");
+                LOGGER.info("Successfully validatedspo DVA Direct response hash");
             }
         } else {
             LOGGER.error("DVA returned an incomplete response");

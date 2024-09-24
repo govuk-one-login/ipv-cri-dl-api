@@ -48,6 +48,6 @@ sam deploy --stack-name "$stack_name" \
   CommonStackName=driving-permit-common-cri-api-local \
   CriIdentifier=$cri_identifier \
   CreateMockTxmaResourcesOverride=true \
-  ParameterPrefix="none" \
+  ParameterPrefix="dl-cri-api-v1" \
   UseApiKey="' '" \
   DeploymentType="not-pipeline"

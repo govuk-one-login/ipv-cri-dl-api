@@ -8,7 +8,7 @@ openssl pkcs8 -topk8 -inform PEM -outform DER -in ./kmsEncryption/decrypted_key.
 mv ./kmsEncryption/PlaintextKeyMaterial.der ./kmsEncryption/PlaintextKeyMaterial.bin
 
 
-kmsEncryptionKeyId=$ENCRYPTION_KEY_ID
+kmsEncryptionKeyId=$ENC_KEY_ID
 echo "KMS Encryption key Id $kmsEncryptionKeyId"
 importData=$(aws-vault exec $ACCOUNT_ID -- aws kms get-parameters-for-import --key-id $kmsEncryptionKeyId --wrapping-algorithm RSA_AES_KEY_WRAP_SHA_256 --wrapping-key-spec RSA_2048 | jq .)
 publicKey=$(echo $importData | jq .PublicKey | tr -d '"')

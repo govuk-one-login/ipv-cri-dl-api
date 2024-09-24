@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
+import java.util.Base64;
 import java.util.Map;
 
 public class DvaCryptographyService {

@@ -418,6 +418,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     @Tag("FullE2ECertTest")
+    @Tag("Crypto-regression")
     void shouldInvokeRealThirdPartyAPIWithAws() throws Exception {
         environmentVariables.set("SQS_AUDIT_EVENT_PREFIX", "PREFIX_CRI");
         environmentVariables.set(
@@ -502,6 +503,7 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     @Tag("FullE2ECertTest")
+    @Tag("Crypto-regression")
     void shouldCreateTrustStoreFromAcm() throws Exception {
         Certificate tlsRootCert = KeyCertHelper.getDecodedX509Certificate(ACM_ROOT_CERT);
 

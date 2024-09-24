@@ -10,6 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.core.SdkBytes;
@@ -64,6 +66,7 @@ class CertificateAlternativesTest {
 
     @Test
     @Tag("TestKmsEncryption")
+    @Tag("Crypto-regression")
     void encryptDecryptTest() throws Exception {
         // The source of randomness
         String certificatePath = "encryptionCert-acm.cer";
@@ -86,6 +89,7 @@ class CertificateAlternativesTest {
 
     @Test
     @Tag("TestKmsVerification")
+    @Tag("Crypto-regression")
     void signAndVerifyTest() throws Exception {
         // Step 1: Load certificate created by ACM
         String certificatePath = "signingCert-acm.cer";
@@ -108,9 +112,24 @@ class CertificateAlternativesTest {
         assert (isSignatureValid);
     }
 
-    @Test
+    @ParameterizedTest
     @Tag("TestToCreateDvaResponseForE2ETest")
-    void createDVAResponse() throws Exception {
+    @Tag("Crypto-regression")
+    @CsvSource({"a06d209caf647292dd8a3b7ef174485633899a470b7164707ec4aa0235072758, true",
+            "36f775f0c8601c34491d81025848ddec12e07007004046656233e46844c386ef, true",
+            "82f28bae8adc86450b9591f7a445b4f16d2599567b41824b64babab5198db01e, false",
+            "2c5a775c9289f5cb8793b9603b661c92a6f92508c67125d2649bbc74b2b5e389, false",
+            "cda3b619bde5cec58a5f83bd0de6226d59f21c1e400edd1ee411764b824a3321, false",
+            "0e1be782c192f52229a18beec11f4515edb1ec68dbec9ef26fc6268f2a38f74c, false",
+            "4e69497f79fe8353e32c1dd194e8e83a8868ea3557a79359452e13f5411891f5, false",
+            "518550a4d8629a849669d6cb4d7cdd0a8731d6bec14e57633a38442f5393cc3d, false",
+            "62c3c2aa3e9fba134d3e80957ac9d5dbf93a320bbdff3974fb3d4dae07694ee2, false",
+            "7550a1b10b2cae1ee3a14d201ec87a74e6a63a81337c9ea7fcf12c38cce442e7, false",
+            "33708c0884704e1fb54c76123a2ceb79b6e33a5bef5d73a0ace96e42c14b31d3, false",
+            "ba0c83f9111e1ba03fd33abe5d418101c34dbad2b6ccf8e03278d6c82090966f, false",
+            "ad3115f790703283bcd6ceffff246bb7f8d19a5cadb75c6a37944ac5c0b4ab4e, false"
+    })
+    void createDVAResponse(String requestHash, String validDoc) throws Exception {
         BouncyCastleProvider provider = new BouncyCastleProvider();
         Security.addProvider(provider);
 
@@ -137,9 +156,11 @@ class CertificateAlternativesTest {
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(
                         dvaCryptographyServiceConfiguration, kmsSigner, jweKmsDecrypter);
-        JWSObject jwsObject = dvaCryptographyService.preparePayload(createSuccessDvaResponse());
+        JWSObject jwsObject = dvaCryptographyService.preparePayload(createSuccessDvaResponse(requestHash, Boolean.parseBoolean(validDoc)));
 
+        System.out.println("RequestHash: " + requestHash);
         System.out.println(jwsObject.serialize());
+        System.out.println("__________________________________");
         assertNotNull(jwsObject);
     }
 
@@ -185,12 +206,11 @@ class CertificateAlternativesTest {
         return new JWSObject(header, claimsSet.toPayload());
     }
 
-    private static DvaResponse createSuccessDvaResponse() {
+    private static DvaResponse createSuccessDvaResponse(String requestHash, boolean validDocument) {
         DvaResponse dvaResponse = new DvaResponse();
         // below is request hash for a test response
-        dvaResponse.setRequestHash(
-                "5d9ecf62b4a0f2782bfa9353f578d62f6ed9c10d3fd10a6f0a408d49702bde06");
-        dvaResponse.setValidDocument(true);
+        dvaResponse.setRequestHash(requestHash);
+        dvaResponse.setValidDocument(validDocument);
         return dvaResponse;
     }
 }

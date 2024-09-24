@@ -74,6 +74,7 @@ test {
 	useJUnitPlatform {
 		excludeTags 'Pact', 'TestKmsEncryption', 'TestKmsVerification','TestToCreateDvaResponseForE2ETest', 'FullE2ECertTest'
 	}
+	testLogging.showStandardStreams = true
 	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
 
@@ -81,6 +82,12 @@ jacocoTestReport {
 	dependsOn test
 	reports {
 		xml.required.set(true)
+	}
+}
+
+tasks.register("cryptoRegressionTest", Test) {
+	useJUnitPlatform {
+		includeTags 'Crypto-regression'
 	}
 }
 

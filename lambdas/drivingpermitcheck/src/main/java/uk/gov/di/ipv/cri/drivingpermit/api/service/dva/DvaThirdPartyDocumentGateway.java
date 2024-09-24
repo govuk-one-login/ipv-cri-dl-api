@@ -146,6 +146,8 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                                 .getHash(
                                         dvaPayload,
                                         drivingPermitConfigurationService.isDvaPerformanceStub()));
+                boolean hasCa = Boolean.parseBoolean(System.getenv("HAS_CA"));
+                request.addHeader("has-ca", String.valueOf(hasCa));
             } catch (NoSuchAlgorithmException e) {
                 LOGGER.error("failed to hash payload successfully for testing");
                 throw new OAuthErrorResponseException(

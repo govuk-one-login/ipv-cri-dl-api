@@ -31,6 +31,12 @@ Mappings:
       production: "review-d.account.gov.uk"
 
 Resources:
+####################################################################
+#                                                                  #
+# DVA CA & Certs                                                  #
+#                                                                  #
+####################################################################
+
   DLPrivateCA:
     Type: AWS::ACMPCA::CertificateAuthority
     Condition: IsCAEnvironment
@@ -134,6 +140,46 @@ Resources:
         - Key: CreatedBy
           Value: InfraAsCode
 
+####################################################################
+#                                                                  #
+# DVA Crypto Keys                                                  #
+#                                                                  #
+####################################################################
+
+  DvaEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms encryption key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      Origin: EXTERNAL
+
+  DvaEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/acm-encryption-key
+      TargetKeyId: !Ref DvaEncryptionKey
+
+  DvaSigningKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms signing key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      Origin: EXTERNAL
+
+  DvaSigningKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/acm-signing-key
+      TargetKeyId: !Ref DvaSigningKey
+
+####################################################################
+#                                                                  #
+# Outputs                                                  #
+#                                                                  #
+####################################################################
+
 Outputs:
   RootCACertificateArn:
     Condition: IsCAEnvironment
@@ -166,3 +212,31 @@ Outputs:
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-DLCRIMtlsCertificateArn
+
+  DvaSigningKeyIdOutput:
+    Description: DVA signing jey ID
+    Value: !GetAtt DvaSigningKey.KeyId
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DvaSigningKeyId
+
+  DvaEncryptionKeyIdOutput:
+    Description: DVA encryption key ID
+    Value: !GetAtt DvaEncryptionKey.KeyId
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DvaEncryptionKeyId
+
+  DvaSigningKeyArnOutput:
+    Description: DVA signing jey ID
+    Value: !GetAtt DvaSigningKey.Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DvaSigningKeyArn
+
+  DvaEncryptionKeyArnOutput:
+    Description: DVA encryption key ID
+    Value: !GetAtt DvaEncryptionKey.Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DvaEncryptionKeyArn

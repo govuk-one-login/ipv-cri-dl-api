@@ -38,7 +38,7 @@ public class DvaCryptographyServiceConfiguration {
     private final PrivateKey signingKey;
 
     // JWS (Reply Signature)
-    private final Certificate signingCert;
+    private Certificate signingCert;
 
     // DVA JWE (Private Key Reply Decrypt)
     private final PrivateKey encryptionKey;
@@ -49,8 +49,11 @@ public class DvaCryptographyServiceConfiguration {
     // JWE encryptionCertThumbprints
     private final Thumbprints encryptionCertThumbprints;
 
+    private final String kmsSigningKeyId;
+    private final String kmsEncryptionKeyId;
     // cert used in thumbprint generation
     private final Certificate signingThumbprintCert;
+    private final String hasCA;
 
     public DvaCryptographyServiceConfiguration(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -100,14 +103,10 @@ public class DvaCryptographyServiceConfiguration {
         encryptionKey =
                 KeyCertHelper.getDecodedPrivateRSAKey(
                         dvaJWEmap.get(MAP_KEY_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT));
-    }
 
-    public Thumbprints getSigningCertThumbprints() {
-        return signingCertThumbprints;
-    }
-
-    public PrivateKey getSigningKey() {
-        return signingKey;
+        kmsSigningKeyId = System.getenv("SIGNING_KEY_ID");
+        kmsEncryptionKeyId = System.getenv("ENCRYPTION_KEY_ID");
+        hasCA = System.getenv("HAS_CA");
     }
 
     public Certificate getEncryptionCert() {
@@ -118,15 +117,40 @@ public class DvaCryptographyServiceConfiguration {
         return signingCert;
     }
 
-    public Certificate getSigningThumbprintCert() {
-        return signingThumbprintCert;
+    public Thumbprints getEncryptionCertThumbprints() {
+        return encryptionCertThumbprints;
+    }
+
+    // Should be used exclusively for testing
+    public void setSigningCert(Certificate signingCert) {
+        this.signingCert = signingCert;
+    }
+
+    public String getKmsSigningKeyId() {
+        return kmsSigningKeyId;
+    }
+
+    public String getKmsEncryptionKeyId() {
+        return kmsEncryptionKeyId;
+    }
+
+    public Thumbprints getSigningCertThumbprints() {
+        return signingCertThumbprints;
+    }
+
+    public PrivateKey getSigningKey() {
+        return signingKey;
     }
 
     public PrivateKey getEncryptionKey() {
         return encryptionKey;
     }
 
-    public Thumbprints getEncryptionCertThumbprints() {
-        return encryptionCertThumbprints;
+    public Certificate getSigningThumbprintCert() {
+        return signingThumbprintCert;
+    }
+
+    public String getHasCA() {
+        return hasCA;
     }
 }

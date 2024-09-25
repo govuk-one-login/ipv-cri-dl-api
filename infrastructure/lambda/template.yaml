@@ -117,6 +117,12 @@ Conditions:
     Fn::And:
       - !Equals [!Ref Environment, "dev"]
       - !Equals [ !Ref CreateMockTxmaResourcesOverride, "true" ]
+
+  IsCAEnvironment:
+    Fn::Or:
+      - !Equals [!Ref Environment, "production"]
+      - !Equals [!Ref Environment, "staging"]
+
 Globals:
   Function:
     CodeSigningConfigArn: !If
@@ -293,22 +299,27 @@ Mappings:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "true"
+      hasCA: "false"
     build:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      hasCA: "false"
     staging:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      hasCA: "false"
     integration:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      hasCA: "false"
     production:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
+      hasCA: "false"
 
 Resources:
 
@@ -511,6 +522,17 @@ Resources:
           LOG_DVA_RESPONSE: !FindInMap [LogDVAResponseEnvVar, Environment, !Ref 'Environment']
           DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [DevEnvironmentOnlyEnhancedDebugMappingEnvVar, Environment, !Ref Environment ]
+          HAS_CA: !FindInMap [ FeatureFlagMapping, !Ref Environment, hasCA ]
+          SIGNING_CERTIFICATE_ARN: !If
+            - IsCAEnvironment
+            - Fn::ImportValue: acm-infra-DLCRISigningCertificateArn
+            - !Ref "AWS::NoValue"
+          TLS_CERTIFICATE_ARN:  !If
+            - IsCAEnvironment
+            - Fn::ImportValue: acm-infra-DLCRIMtlsCertificateArn
+            - !Ref "AWS::NoValue"
+          SIGNING_KEY_ID: !ImportValue acm-infra-DvaSigningKeyId
+          ENCRYPTION_KEY_ID: !ImportValue acm-infra-DvaEncryptionKeyId
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -536,12 +558,23 @@ Resources:
         - Statement:
             Effect: Allow
             Action:
+              - "kms:Sign"
+            Resource: !ImportValue acm-infra-DvaSigningKeyArn
+        - Statement:
+            Effect: Allow
+            Action:
               - kms:Decrypt
               - kms:GenerateDataKey
             Resource: !If
               - CreateMockTxmaResources
               - !GetAtt MockAuditEventQueueEncryptionKey.Arn
               - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !ImportValue acm-infra-DvaEncryptionKeyArn
         - Statement:
             - Effect: Allow
               Action:
@@ -606,6 +639,27 @@ Resources:
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DVLA"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action: !If
+                - IsCAEnvironment
+                - acm:ExportCertificate
+                - ssm:GetParameter
+              Resource: !If
+                - IsCAEnvironment
+                - !ImportValue acm-infra-DLCRISigningCertificateArn
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+        - Statement:
+            - Effect: Allow
+              Action: !If
+                - IsCAEnvironment
+                - acm:ExportCertificate
+                - ssm:GetParameter
+              Resource: !If
+                - IsCAEnvironment
+                - !ImportValue acm-infra-DLCRIMtlsCertificateArn
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+
         - SQSSendMessagePolicy:
             QueueName: !If [CreateMockTxmaResources, !GetAtt MockAuditEventQueue.QueueName, !ImportValue AuditEventQueueName]
       ProvisionedConcurrencyConfig:

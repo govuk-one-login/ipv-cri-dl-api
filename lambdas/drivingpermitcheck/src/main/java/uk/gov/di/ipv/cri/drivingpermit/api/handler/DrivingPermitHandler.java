@@ -39,6 +39,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
+import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
@@ -104,9 +105,14 @@ public class DrivingPermitHandler
         DrivingPermitConfigurationService drivingPermitConfigurationServiceNotYetAssigned =
                 createDrivingPermitConfigurationService(serviceFactory);
 
+        AcmCertificateService acmCertificateService =
+                new AcmCertificateService(serviceFactory.getAcmClient());
+
         ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactoryNotAssignedYet =
                 new ThirdPartyAPIServiceFactory(
-                        serviceFactory, drivingPermitConfigurationServiceNotYetAssigned);
+                        serviceFactory,
+                        drivingPermitConfigurationServiceNotYetAssigned,
+                        acmCertificateService);
 
         IdentityVerificationService identityVerificationServiceNotAssignedYet =
                 createIdentityVerificationService(serviceFactory);

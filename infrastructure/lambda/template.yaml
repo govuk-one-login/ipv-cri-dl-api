@@ -105,6 +105,7 @@ Conditions:
     Fn::Or:
       - !Equals [!Ref Environment, "production"]
       - !Equals [!Ref Environment, "staging"]
+      - !Equals [!Ref Environment, "dev"]
 
 Globals:
   Function:
@@ -282,7 +283,7 @@ Mappings:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "true"
-      hasCA: "false"
+      hasCA: "dev"
     build:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"

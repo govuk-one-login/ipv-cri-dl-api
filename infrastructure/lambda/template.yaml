@@ -292,7 +292,7 @@ Mappings:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
-      hasCA: "false"
+      hasCA: "true"
     integration:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
@@ -302,7 +302,7 @@ Mappings:
       VcExpiryRemoved: "true"
       VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
-      hasCA: "false"
+      hasCA: "true"
 
 Resources:
 

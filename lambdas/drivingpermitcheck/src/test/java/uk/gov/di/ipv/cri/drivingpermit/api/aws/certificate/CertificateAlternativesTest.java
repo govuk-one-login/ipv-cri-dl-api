@@ -114,7 +114,7 @@ class CertificateAlternativesTest {
 
     @ParameterizedTest
     @Tag("TestToCreateDvaResponseForE2ETest")
-    @Tag("Crypto-regression")
+    @Tag("Crypto-regression1")
     @CsvSource({
         "a06d209caf647292dd8a3b7ef174485633899a470b7164707ec4aa0235072758, true",
         "36f775f0c8601c34491d81025848ddec12e07007004046656233e46844c386ef, true",
@@ -144,7 +144,6 @@ class CertificateAlternativesTest {
         when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
                 .thenReturn(new Thumbprints("sha1-encryption", "sha256-encryption"));
         when(dvaCryptographyServiceConfiguration.getEncryptionCert()).thenReturn(certificate);
-        when(dvaCryptographyServiceConfiguration.getHasCA()).thenReturn("true");
 
         // Step 1: Sign data using private key
         KmsClient kmsClient = new ServiceFactory().getClientProviderFactory().getKMSClient();

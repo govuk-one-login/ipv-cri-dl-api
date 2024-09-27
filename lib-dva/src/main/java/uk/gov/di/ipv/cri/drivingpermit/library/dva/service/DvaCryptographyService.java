@@ -14,9 +14,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.RSADecrypter;
 import com.nimbusds.jose.crypto.RSAEncrypter;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
@@ -86,12 +84,7 @@ public class DvaCryptographyService {
 
     private JWSObject createJWS(String stringToSign)
             throws JOSEException, IOException, GeneralSecurityException {
-        boolean hasCA = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getHasCA());
-        Thumbprints thumbprints = dvaCryptographyServiceConfiguration.getSigningCertThumbprints();
-
-        if (hasCA) {
-            thumbprints = KeyCertHelper.makeThumbprint(kmsSigner.getDlSigningCertificate());
-        }
+        Thumbprints thumbprints = KeyCertHelper.makeThumbprint(kmsSigner.getDlSigningCertificate());
 
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
@@ -111,11 +104,7 @@ public class DvaCryptographyService {
                                 .build(),
                         new Payload(stringToSign));
 
-        if (hasCA) {
-            jwsObject.sign(kmsSigner);
-        } else {
-            jwsObject.sign(new RSASSASigner(dvaCryptographyServiceConfiguration.getSigningKey()));
-        }
+        jwsObject.sign(kmsSigner);
 
         return jwsObject;
     }
@@ -169,15 +158,7 @@ public class DvaCryptographyService {
 
     public JWSObject decrypt(JWEObject encrypted) {
         try {
-            boolean hasCA = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getHasCA());
-
-            if (hasCA) {
-                encrypted.decrypt(jweKmsDecrypter);
-            } else {
-                RSADecrypter rsaDecrypter =
-                        new RSADecrypter(dvaCryptographyServiceConfiguration.getEncryptionKey());
-                encrypted.decrypt(rsaDecrypter);
-            }
+            encrypted.decrypt(jweKmsDecrypter);
 
             return JWSObject.parse(encrypted.getPayload().toString());
         } catch (ParseException | JOSEException exception) {

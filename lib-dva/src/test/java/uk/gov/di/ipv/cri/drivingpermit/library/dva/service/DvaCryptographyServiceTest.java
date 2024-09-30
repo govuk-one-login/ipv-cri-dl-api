@@ -24,11 +24,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Base64;
@@ -174,11 +169,5 @@ class DvaCryptographyServiceTest {
         dvaPayload.setExpiryDate(LocalDate.of(2042, 10, 1));
         dvaPayload.setIssuerId("DVA");
         return dvaPayload;
-    }
-
-    private PrivateKey getPrivateKey(String privateKey)
-            throws InvalidKeySpecException, NoSuchAlgorithmException {
-        return KeyFactory.getInstance("RSA")
-                .generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)));
     }
 }

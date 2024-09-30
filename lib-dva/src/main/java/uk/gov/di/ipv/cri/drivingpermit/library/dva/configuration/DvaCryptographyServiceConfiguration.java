@@ -9,7 +9,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 public class DvaCryptographyServiceConfiguration {
@@ -46,7 +45,7 @@ public class DvaCryptographyServiceConfiguration {
     private final String hasCA;
 
     public DvaCryptographyServiceConfiguration(ParameterStoreService parameterStoreService)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+            throws CertificateException, NoSuchAlgorithmException {
         /////////////////
         //// JWS Map ////
         /////////////////

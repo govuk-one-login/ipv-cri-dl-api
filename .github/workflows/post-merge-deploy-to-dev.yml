@@ -2,7 +2,7 @@ name: Deploy to dev
 on:
   push:
     branches:
-      - LIME-1154-3
+      - main
   workflow_dispatch: # deploy manually
 
 jobs:

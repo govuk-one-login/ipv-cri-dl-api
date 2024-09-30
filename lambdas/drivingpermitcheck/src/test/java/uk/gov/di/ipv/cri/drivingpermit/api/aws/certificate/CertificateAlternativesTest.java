@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-// @Disabled
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
 class CertificateAlternativesTest {
@@ -60,8 +59,10 @@ class CertificateAlternativesTest {
         environmentVariables.set("SQS_AUDIT_EVENT_PREFIX", "PREFIX_CRI");
         environmentVariables.set(
                 "COMMON_PARAMETER_NAME_PREFIX", "driving-permit-common-cri-api-local");
+
         environmentVariables.set("SQS_AUDIT_EVENT_QUEUE_URL", "arn-for-sqs");
         environmentVariables.set("HAS_CA", true);
+        environmentVariables.set("AWS_REGION", "eu-west-2");
     }
 
     @Test
@@ -114,7 +115,7 @@ class CertificateAlternativesTest {
 
     @ParameterizedTest
     @Tag("TestToCreateDvaResponseForE2ETest")
-    @Tag("Crypto-regression1")
+    @Tag("Crypto-regression")
     @CsvSource({
         "a06d209caf647292dd8a3b7ef174485633899a470b7164707ec4aa0235072758, true",
         "36f775f0c8601c34491d81025848ddec12e07007004046656233e46844c386ef, true",

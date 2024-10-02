@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-// @Disabled
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
 class CertificateAlternativesTest {
@@ -60,8 +59,10 @@ class CertificateAlternativesTest {
         environmentVariables.set("SQS_AUDIT_EVENT_PREFIX", "PREFIX_CRI");
         environmentVariables.set(
                 "COMMON_PARAMETER_NAME_PREFIX", "driving-permit-common-cri-api-local");
+
         environmentVariables.set("SQS_AUDIT_EVENT_QUEUE_URL", "arn-for-sqs");
         environmentVariables.set("HAS_CA", true);
+        environmentVariables.set("AWS_REGION", "eu-west-2");
     }
 
     @Test
@@ -144,7 +145,6 @@ class CertificateAlternativesTest {
         when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
                 .thenReturn(new Thumbprints("sha1-encryption", "sha256-encryption"));
         when(dvaCryptographyServiceConfiguration.getEncryptionCert()).thenReturn(certificate);
-        when(dvaCryptographyServiceConfiguration.getHasCA()).thenReturn("true");
 
         // Step 1: Sign data using private key
         KmsClient kmsClient = new ServiceFactory().getClientProviderFactory().getKMSClient();

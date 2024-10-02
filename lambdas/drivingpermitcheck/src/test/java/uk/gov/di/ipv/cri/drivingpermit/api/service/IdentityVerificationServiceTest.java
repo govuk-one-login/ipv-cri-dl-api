@@ -119,4 +119,30 @@ class IdentityVerificationServiceTest {
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
         verify(mockEventProbe).counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
     }
+
+    @Test
+    void verifyIdentityShouldReturnErrorWhenThirdPartyNotSuccessful()
+            throws OAuthErrorResponseException {
+        DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
+        testDocumentCheckResult.setExecutedSuccessfully(false);
+        testDocumentCheckResult.setValid(false);
+
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
+        when(mockFormDataValidator.validate(drivingPermitForm))
+                .thenReturn(ValidationResult.createValidResult());
+        when(mockThirdPartyAPIService.performDocumentCheck(drivingPermitForm, Strategy.NO_CHANGE))
+                .thenReturn(testDocumentCheckResult);
+
+        DocumentCheckVerificationResult result =
+                this.identityVerificationService.verifyIdentity(
+                        drivingPermitForm, mockThirdPartyAPIService, Strategy.NO_CHANGE);
+
+        assertNotNull(result);
+        assertFalse(result.isExecutedSuccessfully());
+        assertFalse(result.isVerified());
+        assertEquals("DrivingPermitCheckResult had no error message.", result.getError());
+
+        verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
+        verify(mockEventProbe).counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
+    }
 }

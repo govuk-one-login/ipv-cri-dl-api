@@ -32,12 +32,9 @@ class DvaCryptographyServiceConfigurationTest {
 
         assertNotNull(dvaCryptographyServiceConfiguration);
         assertNotNull(dvaCryptographyServiceConfiguration.getEncryptionCert());
-        assertNotNull(dvaCryptographyServiceConfiguration.getSigningCertThumbprints());
-        assertNotNull(dvaCryptographyServiceConfiguration.getSigningKey());
         assertNotNull(dvaCryptographyServiceConfiguration.getSigningCert());
         assertNotNull(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints());
         assertNotNull(dvaCryptographyServiceConfiguration.getSigningThumbprintCert());
-        assertNotNull(dvaCryptographyServiceConfiguration.getEncryptionKey());
     }
 
     private void mockReadDVACryptoCerts() {

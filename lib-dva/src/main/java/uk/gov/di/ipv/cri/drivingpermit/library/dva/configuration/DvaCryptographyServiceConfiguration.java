@@ -6,11 +6,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 public class DvaCryptographyServiceConfiguration {
@@ -31,17 +29,8 @@ public class DvaCryptographyServiceConfiguration {
     public static final String MAP_KEY_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT =
             "encryptionKeyForDrivingPermitToDecrypt-03-07-2024";
 
-    // JWS SHA-1 Certificate Thumbprint (Header)
-    private final Thumbprints signingCertThumbprints;
-
-    // JWS RSA Signing Key
-    private final PrivateKey signingKey;
-
     // JWS (Reply Signature)
     private Certificate signingCert;
-
-    // DVA JWE (Private Key Reply Decrypt)
-    private final PrivateKey encryptionKey;
 
     // JWE (Public Key)
     private final Certificate encryptionCert;
@@ -56,7 +45,7 @@ public class DvaCryptographyServiceConfiguration {
     private final String hasCA;
 
     public DvaCryptographyServiceConfiguration(ParameterStoreService parameterStoreService)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+            throws CertificateException, NoSuchAlgorithmException {
         /////////////////
         //// JWS Map ////
         /////////////////
@@ -68,13 +57,6 @@ public class DvaCryptographyServiceConfiguration {
         signingThumbprintCert =
                 KeyCertHelper.getDecodedX509Certificate(
                         dvaJWSmap.get(MAP_KEY_SIGNING_CERT_FOR_DVA_TO_VERIFY));
-        signingCertThumbprints =
-                KeyCertHelper.makeThumbprint((X509Certificate) signingThumbprintCert);
-
-        // JWS RSA Signing Key
-        signingKey =
-                KeyCertHelper.getDecodedPrivateRSAKey(
-                        dvaJWSmap.get(MAP_KEY_SIGNING_KEY_FOR_DRIVING_PERMIT_TO_SIGN));
 
         /////////////////
         //// JWE Map ////
@@ -83,26 +65,18 @@ public class DvaCryptographyServiceConfiguration {
                 parameterStoreService.getAllParametersFromPathWithDecryption(
                         ParameterPrefix.OVERRIDE, DVA_JWE_PARAMETER_PATH);
 
-        // JWE encryptionCertThumbprints
-        X509Certificate encryptionX509Cert =
-                KeyCertHelper.getDecodedX509Certificate(
-                        dvaJWEmap.get(MAP_KEY_ENCRYPTION_CERT_FOR_DRIVING_PERMIT_TO_ENCRYPT));
-        encryptionCertThumbprints = KeyCertHelper.makeThumbprint(encryptionX509Cert);
-
         // JWE (Public Key)
         encryptionCert =
                 KeyCertHelper.getDecodedX509Certificate(
                         dvaJWEmap.get(MAP_KEY_ENCRYPTION_CERT_FOR_DRIVING_PERMIT_TO_ENCRYPT));
 
+        // JWE encryptionCertThumbprints
+        encryptionCertThumbprints = KeyCertHelper.makeThumbprint((X509Certificate) encryptionCert);
+
         // JWS (Reply Signature)
         signingCert =
                 KeyCertHelper.getDecodedX509Certificate(
                         dvaJWEmap.get(MAP_KEY_SIGNING_CERT_FOR_DRIVING_PERMIT_TO_VERIFY));
-
-        // JWE (Private Key Reply Decrypt)
-        encryptionKey =
-                KeyCertHelper.getDecodedPrivateRSAKey(
-                        dvaJWEmap.get(MAP_KEY_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT));
 
         kmsSigningKeyId = System.getenv("SIGNING_KEY_ID");
         kmsEncryptionKeyId = System.getenv("ENCRYPTION_KEY_ID");
@@ -132,18 +106,6 @@ public class DvaCryptographyServiceConfiguration {
 
     public String getKmsEncryptionKeyId() {
         return kmsEncryptionKeyId;
-    }
-
-    public Thumbprints getSigningCertThumbprints() {
-        return signingCertThumbprints;
-    }
-
-    public PrivateKey getSigningKey() {
-        return signingKey;
-    }
-
-    public PrivateKey getEncryptionKey() {
-        return encryptionKey;
     }
 
     public Certificate getSigningThumbprintCert() {

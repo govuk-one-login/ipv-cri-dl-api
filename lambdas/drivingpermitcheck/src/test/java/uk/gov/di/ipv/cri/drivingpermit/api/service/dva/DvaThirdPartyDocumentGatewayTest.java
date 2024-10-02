@@ -12,6 +12,7 @@ import com.nimbusds.jose.Payload;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -244,6 +245,32 @@ class DvaThirdPartyDocumentGatewayTest {
         assertEquals(
                 "application/jose",
                 httpRequestCaptor.getValue().getFirstHeader("Content-Type").getValue());
+    }
+
+    @Test
+    void thirdPartyApiReturnsErrorOnIOException()
+            throws IOException, GeneralSecurityException, JOSEException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenThrow(new IOException());
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        final String EXPECTED_ERROR = "Error when contacting DVA for document check";
+        assertEquals(EXPECTED_ERROR, e.getErrorResponse().getMessage());
     }
 
     @Test

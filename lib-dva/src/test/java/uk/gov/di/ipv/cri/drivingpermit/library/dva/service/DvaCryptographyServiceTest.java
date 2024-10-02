@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
-import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
@@ -25,25 +24,18 @@ import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
+import static com.nimbusds.jose.JWSAlgorithm.RS256;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.BASE64_DCS_SIGNING_CERT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.BASE64_DCS_SIGNING_KEY;
-import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.BASE64_ENCRYPTION_PRIVATE_KEY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.BASE64_ENCRYPTION_PUBLIC_CERT;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.SHA_1_THUMBPRINT;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.SHA_256_THUMBPRINT;
@@ -61,59 +53,10 @@ class DvaCryptographyServiceTest {
     void preparePayload()
             throws GeneralSecurityException, JOSEException, IOException, ParseException,
                     java.text.ParseException {
+        when(kmsSigner.supportedJWSAlgorithms()).thenReturn(Set.of(RS256));
+        when(kmsSigner.sign(any(JWSHeader.class), any(byte[].class)))
+                .thenReturn(new Base64URL("123456789"));
 
-        when(dvaCryptographyServiceConfiguration.getSigningKey())
-                .thenReturn(getPrivateKey(BASE64_DCS_SIGNING_KEY));
-        when(dvaCryptographyServiceConfiguration.getSigningCertThumbprints())
-                .thenReturn(new Thumbprints(SHA_1_THUMBPRINT, SHA_256_THUMBPRINT));
-
-        DvaCryptographyService dvaCryptographyService =
-                new DvaCryptographyService(
-                        dvaCryptographyServiceConfiguration, kmsSigner, jweKmsDecrypter);
-        DvaPayload dvaPayload = createSuccessDvaPayload();
-        when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
-                .thenReturn(
-                        new Thumbprints(
-                                SHA_1_THUMBPRINT + "-encryption",
-                                SHA_256_THUMBPRINT + "-encryption"));
-        when(dvaCryptographyServiceConfiguration.getEncryptionCert())
-                .thenReturn(KeyCertHelper.getDecodedX509Certificate(BASE64_ENCRYPTION_PUBLIC_CERT));
-
-        JWSObject jwsObject = dvaCryptographyService.preparePayload(dvaPayload);
-
-        JWSHeader jwtHeader = jwsObject.getHeader();
-        Payload payload = jwsObject.getPayload();
-
-        String[] innerJwt = payload.toString().split("\\.");
-
-        Base64.Decoder decoder = Base64.getUrlDecoder();
-
-        String innerJwtHeaderString = new String(decoder.decode(innerJwt[0]));
-        JWEHeader innerJwtHeader = JWEHeader.parse(innerJwtHeaderString);
-
-        String innerPayload = new String(decoder.decode(innerJwt[1]));
-
-        Assertions.assertEquals(SHA_1_THUMBPRINT, jwtHeader.getCustomParam("x5t"));
-        Assertions.assertEquals(SHA_256_THUMBPRINT, jwtHeader.getCustomParam("x5t#S256"));
-
-        assertEquals(
-                SHA_1_THUMBPRINT + "-encryption",
-                innerJwtHeader.getX509CertThumbprint().toString()); // NOSONAR
-        assertEquals(
-                SHA_256_THUMBPRINT + "-encryption",
-                innerJwtHeader.getX509CertSHA256Thumbprint().toString());
-
-        assertNotNull(innerPayload);
-    }
-
-    @Test
-    void preparePayloadWithCa_Acm()
-            throws GeneralSecurityException, JOSEException, IOException, ParseException,
-                    java.text.ParseException {
-
-        when(dvaCryptographyServiceConfiguration.getSigningCertThumbprints())
-                .thenReturn(new Thumbprints(SHA_1_THUMBPRINT, SHA_256_THUMBPRINT));
-        when(dvaCryptographyServiceConfiguration.getHasCA()).thenReturn("true");
         when(kmsSigner.getDlSigningCertificate())
                 .thenReturn(
                         KeyCertHelper.getDecodedX509Certificate(
@@ -123,11 +66,6 @@ class DvaCryptographyServiceTest {
                 new DvaCryptographyService(
                         dvaCryptographyServiceConfiguration, kmsSigner, jweKmsDecrypter);
         DvaPayload dvaPayload = createSuccessDvaPayload();
-
-        when(kmsSigner.supportedJWSAlgorithms())
-                .thenReturn(Collections.singleton(JWSAlgorithm.RS256));
-        when(kmsSigner.sign(any(JWSHeader.class), any(byte[].class)))
-                .thenReturn(new Base64URL("123456789"));
         when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
                 .thenReturn(
                         new Thumbprints(
@@ -167,43 +105,6 @@ class DvaCryptographyServiceTest {
 
     @Test
     void unwrapDvaResponse() throws Exception {
-        when(dvaCryptographyServiceConfiguration.getSigningKey())
-                .thenReturn(getPrivateKey(BASE64_DCS_SIGNING_KEY));
-        when(dvaCryptographyServiceConfiguration.getSigningCertThumbprints())
-                .thenReturn(new Thumbprints(SHA_1_THUMBPRINT, SHA_256_THUMBPRINT));
-
-        DvaCryptographyService dvaCryptographyService =
-                new DvaCryptographyService(
-                        dvaCryptographyServiceConfiguration, kmsSigner, jweKmsDecrypter);
-        when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
-                .thenReturn(
-                        new Thumbprints(
-                                SHA_1_THUMBPRINT + "-encryption",
-                                SHA_256_THUMBPRINT + "-encryption"));
-        when(dvaCryptographyServiceConfiguration.getEncryptionCert())
-                .thenReturn(KeyCertHelper.getDecodedX509Certificate(BASE64_ENCRYPTION_PUBLIC_CERT));
-
-        JWSObject jwsResponseObject =
-                dvaCryptographyService.preparePayload(createSuccessDvaResponse());
-
-        when(dvaCryptographyServiceConfiguration.getSigningCert())
-                .thenReturn(KeyCertHelper.getDecodedX509Certificate(BASE64_DCS_SIGNING_CERT));
-        when(dvaCryptographyServiceConfiguration.getEncryptionKey())
-                .thenReturn(getPrivateKey(BASE64_ENCRYPTION_PRIVATE_KEY));
-
-        DvaResponse dvaResponse =
-                dvaCryptographyService.unwrapDvaResponse(jwsResponseObject.serialize());
-
-        assertNotNull(dvaResponse);
-        assertEquals(
-                objectMapper.writeValueAsString(createSuccessDvaResponse()),
-                objectMapper.writeValueAsString(dvaResponse));
-    }
-
-    @Test
-    void unwrapDvaResponseWithCa_Acm() throws Exception {
-
-        when(dvaCryptographyServiceConfiguration.getHasCA()).thenReturn("true");
 
         String dlSigningCert =
                 "MIIDsTCCApmgAwIBAgIRAOm99Of9G+2I5NNHOiOpF7UwDQYJKoZIhvcNAQELBQAwWjELMAkGA1UEBhMCR0IxGDAWBgNVBAoMD0dPVlVLIE9uZSBMb2dpbjEMMAoGA1UECwwDR0RTMSMwIQYDVQQDDBpHRFMgREwgRFZBIFRlc3QgUm9vdCBDQSBHMzAeFw0yNDA5MTIwOTE5MjdaFw0yNTEwMTIxMDE5MjdaMCYxJDAiBgNVBAMMG3Jldmlldy1kLmRldi5hY2NvdW50Lmdvdi51azCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOnCPzQoSUHJkcEdLKiRy36Y1bFxVPs+XODQ2btTP2ebMB7tOtDwjS6KZU7dWhdufjpJS8KYRXbvZDlKhAQKGSg+qO8404bzEqIafeUSs7RToE2wmFVYYZBwjQM8JBuoMyD/e8N1rUe0k10mEMGjDct9eTyGsx/hS1EUNF52Oa7kfFyYIF7aG1Q96Mq3xaSbVZOxJuXnNu3gB/tSNuCGowqECHCdEJ84BtxOVhy8Z7ywxHlrqlrtcYi1e6y5lSZq6/xTQPYETi0ir6lwv+0hgOnRHtnA8bOGmYrEqpG4PbPmi+AEpbUkIvw1kSnLYnvi4C6qgwdaLopvoj2axhH9QWMCAwEAAaOBpTCBojAmBgNVHREEHzAdghtyZXZpZXctZC5kZXYuYWNjb3VudC5nb3YudWswCQYDVR0TBAIwADAfBgNVHSMEGDAWgBT7nltAzxz+KhiyMnW4P3eWaLs+hDAdBgNVHQ4EFgQU5xNvBOue5Rt6EOtrv0HQkaHfm1QwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjANBgkqhkiG9w0BAQsFAAOCAQEA1z+I7oK8GubAJ5EtKQLRuvHadYWXbYUgxw1LVIHU0ggbIXpQMn6Bx6aJh/yJEH8N1PWS44yvIT5GDO+dC+GM9iSJZA7JbNMbw/dtaIO79VSGLK6P7EMUPn/7ztGDPZwNk0oTC7MJrGph7X6NJu3B+eYx0FXkV7H52ZMjF441t0MWYJcI/z6mzquhQykINWKlaJ5TX7HAtG/BCgCz9lDpmVy3JMxtwEMNtJy37UwBhZlmBHUdSO6W0XGVbTojB4K63NCnIri6XLXq8miChx/tQA+b6wWzLu3IzkfoZFQkOxE2qQKNoKvboG+PXurWLZvMt4cUEgQr1AWu3W7bw/Cv5w==";
@@ -247,6 +148,14 @@ class DvaCryptographyServiceTest {
                 objectMapper.writeValueAsString(dvaResponse));
     }
 
+    private DvaResponse createSuccessDvaResponse() {
+        DvaResponse dvaResponse = new DvaResponse();
+        dvaResponse.setRequestHash(
+                "5d9ecf62b4a0f2782bfa9353f578d62f6ed9c10d3fd10a6f0a408d49702bde06");
+        dvaResponse.setValidDocument(true);
+        return dvaResponse;
+    }
+
     private DvaPayload createSuccessDvaPayload() {
         DvaPayload dvaPayload = new DvaPayload();
         dvaPayload.setRequestId(
@@ -260,19 +169,5 @@ class DvaCryptographyServiceTest {
         dvaPayload.setExpiryDate(LocalDate.of(2042, 10, 1));
         dvaPayload.setIssuerId("DVA");
         return dvaPayload;
-    }
-
-    private DvaResponse createSuccessDvaResponse() {
-        DvaResponse dvaResponse = new DvaResponse();
-        dvaResponse.setRequestHash(
-                "5d9ecf62b4a0f2782bfa9353f578d62f6ed9c10d3fd10a6f0a408d49702bde06");
-        dvaResponse.setValidDocument(true);
-        return dvaResponse;
-    }
-
-    private PrivateKey getPrivateKey(String privateKey)
-            throws InvalidKeySpecException, NoSuchAlgorithmException {
-        return KeyFactory.getInstance("RSA")
-                .generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)));
     }
 }

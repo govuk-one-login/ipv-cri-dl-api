@@ -68,3 +68,26 @@ Feature: DVA CRI API
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain ci D02, validityScore 0 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in failed checkDetails
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario Outline: DVA Driving Licence Un-Happy path with invalid sessionId on Driving Licence Endpoint
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint with a invalid <invalidHeaderValue> value using jsonRequest DVAInvalidJsonPayload
+    Examples:
+      |invalidHeaderValue              |
+      | invalidSessionId               |
+      | malformedSessionId             |
+      | missingSessionId               |
+      | noSessionHeader                |
+
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario: DVA Driving Licence Un-Happy path with invalid authCode on Credential Issuer Endpoint
+    Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVAValidKennethJsonPayload
+    And Driving Licence user gets authorisation code
+    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
+    Then User requests Driving Licence CRI VC from the Credential Issuer Endpoint with a invalid Bearer Token value

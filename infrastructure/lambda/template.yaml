@@ -67,6 +67,10 @@ Parameters:
     Description: "Mock TXMA SQS Queue"
     Type: String
     Default: "false"
+  LogGroupRetentionInDays:
+    Description: "Retention for all log groups"
+    Type: Number
+    Default: "30"
 
 Conditions:
   IsDeployedFromPipeline: !Equals
@@ -415,7 +419,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PublicDrivingPermitApi}-public-AccessLogs
-      RetentionInDays: 365
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   PublicDrivingPermitApiAccessLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter
@@ -494,7 +498,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PrivateDrivingPermitApi}-private-AccessLogs
-      RetentionInDays: 365
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   PrivateDrivingPermitApiAccessLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -672,7 +676,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
-      RetentionInDays: 30
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   DrivingPermitCheckingFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -766,7 +770,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
-      RetentionInDays: 30
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   IssueCredentialFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -846,7 +850,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${PasswordRenewalFunction}"
-      RetentionInDays: 30
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   PasswordRenewalFunctionLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter
@@ -945,7 +949,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${CertExpiryReminderFunction}"
-      RetentionInDays: 30
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   CertExpiryReminderFunctionLogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
@@ -1013,7 +1017,7 @@ Resources:
       AliasName: !Sub alias/${AWS::StackName}/auditEventQueueEncryptionKey
       TargetKeyId: !Ref MockAuditEventQueueEncryptionKey
 
-  ####################################################################
+####################################################################
 #                                                                  #
 # Database Tables                                                  #
 #                                                                  #
@@ -2019,7 +2023,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-AuthorizationFunction
-      RetentionInDays: 30
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   AuthorizationFunctionLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter
@@ -2284,7 +2288,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-AccessTokenFunction
-      RetentionInDays: 30
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   AccessTokenFunctionLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter
@@ -2547,7 +2551,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-SessionFunction
-      RetentionInDays: 30
+      RetentionInDays: !Ref LogGroupRetentionInDays
 
   SessionFunctionLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter

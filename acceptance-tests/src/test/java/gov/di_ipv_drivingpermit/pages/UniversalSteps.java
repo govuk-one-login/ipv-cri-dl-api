@@ -4,6 +4,7 @@ import gov.di_ipv_drivingpermit.utilities.Driver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
+import org.openqa.selenium.By;
 import org.openqa.selenium.support.PageFactory;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.waitForPageToLoad;
@@ -23,13 +24,26 @@ public class UniversalSteps {
         waitForPageToLoad(MAX_WAIT_SEC);
 
         String title = Driver.get().getTitle();
+        if (title == null) {
+            title = "Driver had no page title";
+        }
 
-        boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
+        final boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
 
         LOGGER.info(
-                String.format(
-                        "%s match - Page title: %s, Expected %s",
-                        fuzzy ? "Fuzzy" : "Match", title, expTitle));
+                "{} match - Page title: {}, Expected {}",
+                fuzzy ? "Fuzzy" : "Match",
+                title,
+                expTitle);
+
+        if (!match) {
+            // Log the entire page content if title match fails
+            // Body logged as there are several error pages
+            LOGGER.error(
+                    "Error page content - : {}",
+                    Driver.get().findElement(By.tagName("body")).getText());
+        }
+
         Assert.assertTrue(match);
     }
 

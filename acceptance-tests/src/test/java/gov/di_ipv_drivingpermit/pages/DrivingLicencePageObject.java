@@ -297,7 +297,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#consentCheckbox')]")
-    public WebElement DVLAConsentErrorInSummary;
+    public WebElement dvlaConsentErrorInSummary;
 
     // -------------------------
 
@@ -331,10 +331,10 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public WebElement InvalidPostcodeFieldError;
 
     @FindBy(id = "consentCheckbox-error")
-    public WebElement DVLAConsentCheckboxError;
+    public WebElement dvlaConsentCheckboxError;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/form/h2")
-    public WebElement DVLAConsentSection;
+    public WebElement dvlaConsentSection;
 
     @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/ul/li[1]/a")
     public WebElement oneLoginLink;
@@ -427,7 +427,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
         visitCredentialIssuers.click();
         assertPageTitle(IPV_CORE_STUB, true);
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
-        LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
+        LOGGER.info("dlCRITestEnvironment = {}", dlCRITestEnvironment);
         if (dlCRITestEnvironment.equalsIgnoreCase("dev")
                 || dlCRITestEnvironment.equalsIgnoreCase("local")) {
             drivingLicenceCRIDev.click();
@@ -476,7 +476,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void betaBannerSentence(String expectedText) {
         assertEquals(expectedText, betaBannerText.getText());
-        LOGGER.info("actualText = " + betaBannerText.getText());
+        LOGGER.info("actualText = {}", betaBannerText.getText());
     }
 
     public void rejectAnalysisCookie(String rejectAnalysis) {
@@ -586,28 +586,28 @@ public class DrivingLicencePageObject extends UniversalSteps {
                 coreStubUrl
                         + "callback?error=access_denied&error_description=Authorization+permission+denied";
         String actUrl = Driver.get().getCurrentUrl();
-        LOGGER.info("expectedUrl = " + expUrl);
-        LOGGER.info("actualUrl = " + actUrl);
+        LOGGER.info("expectedUrl = {}", expUrl);
+        LOGGER.info("actualUrl = {}", actUrl);
         assertEquals(actUrl, expUrl);
     }
 
     public void jsonErrorResponse(String expectedErrorDescription, String expectedErrorStatusCode)
             throws JsonProcessingException {
         String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
 
         JsonNode insideError = getJsonNode(result, "errorObject");
-        LOGGER.info("insideError = " + insideError);
+        LOGGER.info("insideError = {}", insideError);
 
         JsonNode errorDescription = insideError.get("description");
         JsonNode statusCode = insideError.get("httpstatusCode");
         String ActualErrorDescription = insideError.get("description").asText();
         String ActualStatusCode = insideError.get("httpstatusCode").asText();
 
-        LOGGER.info("errorDescription = " + errorDescription);
-        LOGGER.info("statusCode = " + statusCode);
-        LOGGER.info("testErrorDescription = " + expectedErrorDescription);
-        LOGGER.info("testStatusCode = " + expectedErrorStatusCode);
+        LOGGER.info("errorDescription = {}", errorDescription);
+        LOGGER.info("statusCode = {}", statusCode);
+        LOGGER.info("testErrorDescription = {}", expectedErrorDescription);
+        LOGGER.info("testStatusCode = {}", expectedErrorStatusCode);
 
         assertEquals(expectedErrorDescription, ActualErrorDescription);
         assertEquals(expectedErrorStatusCode, ActualStatusCode);
@@ -622,7 +622,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
             String expectedValidityScore, String expectedStrengthScore, String jsonPayloadText)
             throws IOException {
         String result = jsonPayloadText;
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         JsonNode vcNode = getJsonNode(result, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
 
@@ -640,7 +640,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
             String jsonPayloadText)
             throws IOException {
         String result = jsonPayloadText;
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         JsonNode vcNode = getJsonNode(result, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
 
@@ -663,18 +663,18 @@ public class DrivingLicencePageObject extends UniversalSteps {
         JsonNode vcNode = getJsonNode(drivingLicenceCRIVC, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
         JsonNode firstItemInEvidenceArray = evidence.get(0);
-        LOGGER.info("firstItemInEvidenceArray = " + firstItemInEvidenceArray);
+        LOGGER.info("firstItemInEvidenceArray = {}", firstItemInEvidenceArray);
         if (checkDetailsType.equals("success")) {
             JsonNode checkDetailsNode = firstItemInEvidenceArray.get("checkDetails");
             JsonNode checkMethodNode = checkDetailsNode.get(0).get("checkMethod");
             String actualCheckMethod = checkMethodNode.asText();
-            LOGGER.info("actualCheckMethod = " + actualCheckMethod);
+            LOGGER.info("actualCheckMethod = {}", actualCheckMethod);
             JsonNode identityCheckPolicyNode = checkDetailsNode.get(0).get("identityCheckPolicy");
             String actualidentityCheckPolicy = identityCheckPolicyNode.asText();
-            LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
+            LOGGER.info("actualidentityCheckPolicy = {}", actualidentityCheckPolicy);
             JsonNode activityFromNode = checkDetailsNode.get(0).get("activityFrom");
             String actualactivityFrom = activityFromNode.asText();
-            LOGGER.info("actualactivityFrom = " + actualactivityFrom);
+            LOGGER.info("actualactivityFrom = {}", actualactivityFrom);
             Assert.assertEquals(checkMethod, actualCheckMethod);
             Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
             if (!StringUtils.isEmpty(activityFromNode.toString())) {
@@ -694,11 +694,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
             JsonNode failedCheckDetailsNode = firstItemInEvidenceArray.get("failedCheckDetails");
             JsonNode checkMethodNode = failedCheckDetailsNode.get(0).get("checkMethod");
             String actualCheckMethod = checkMethodNode.asText();
-            LOGGER.info("actualCheckMethod = " + actualCheckMethod);
+            LOGGER.info("actualCheckMethod = {}", actualCheckMethod);
             JsonNode identityCheckPolicyNode =
                     failedCheckDetailsNode.get(0).get("identityCheckPolicy");
             String actualidentityCheckPolicy = identityCheckPolicyNode.asText();
-            LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
+            LOGGER.info("actualidentityCheckPolicy = {}", actualidentityCheckPolicy);
             Assert.assertEquals(checkMethod, actualCheckMethod);
             Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
             assertEquals(
@@ -1067,7 +1067,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void ciInVC(String ci) throws IOException {
         String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         JsonNode vcNode = getJsonNode(result, "vc");
         JsonNode evidenceNode = vcNode.get("evidence");
 
@@ -1084,7 +1084,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertPersonalNumberInVc(String personalNumber) throws IOException {
         String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         JsonNode vcNode = getJsonNode(result, "vc");
         String licenceNumber = getPersonalNumberFromVc(vcNode);
         assertEquals(personalNumber, licenceNumber);
@@ -1092,7 +1092,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertJtiPresent() throws IOException {
         String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         JsonNode jtiNode = getJsonNode(result, "jti");
         String jti = jtiNode.asText();
         assertNotNull(jti);
@@ -1280,11 +1280,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertDVLAConsentErrorInErrorSummary(String expectedText) {
-        assertEquals(expectedText, DVLAConsentErrorInSummary.getText());
+        assertEquals(expectedText, dvlaConsentErrorInSummary.getText());
     }
 
     public void assertDVLAConsentErrorOnCheckbox(String expectedText) {
-        assertEquals(expectedText, DVLAConsentCheckboxError.getText().trim().replace("\n", ""));
+        assertEquals(expectedText, dvlaConsentCheckboxError.getText().trim().replace("\n", ""));
     }
 
     public void goToPage(String page) {
@@ -1292,7 +1292,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertConsentSection(String consentSection) {
-        assertEquals(consentSection, DVLAConsentSection.getText());
+        assertEquals(consentSection, dvlaConsentSection.getText());
     }
 
     public void assertOneLoginPrivacyLink(String oneLoginPrivacyLink) {
@@ -1320,7 +1320,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     private JsonNode getVCFromJson(String vc) throws JsonProcessingException {
         String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(result);
         return jsonNode.get(vc);
@@ -1332,14 +1332,14 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     private void assertNbfIsRecentAndExpiryIsNull() throws JsonProcessingException {
         String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(result);
         JsonNode nbfNode = jsonNode.get("nbf");
         JsonNode expNode = jsonNode.get("exp");
         String nbf = jsonNode.get("nbf").asText();
-        LOGGER.info("nbf = " + nbfNode);
-        LOGGER.info("exp = " + expNode);
+        LOGGER.info("nbf = {}", nbfNode);
+        LOGGER.info("exp = {}", expNode);
         LocalDateTime nbfDateTime =
                 LocalDateTime.ofEpochSecond(Long.parseLong(nbf), 0, ZoneOffset.UTC);
 
@@ -1350,9 +1350,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     boolean isWithinRange(LocalDateTime testDate) {
         LocalDateTime nbfMin = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(30);
         LocalDateTime nbfMax = LocalDateTime.now(ZoneOffset.UTC).plusSeconds(30);
-        LOGGER.info("nbfMin " + nbfMin);
-        LOGGER.info("nbfMax " + nbfMax);
-        LOGGER.info("nbf " + testDate);
+        LOGGER.info("nbfMin {}", nbfMin);
+        LOGGER.info("nbfMax {}", nbfMax);
+        LOGGER.info("nbf {}", testDate);
 
         return testDate.isBefore(nbfMax) && testDate.isAfter(nbfMin);
     }

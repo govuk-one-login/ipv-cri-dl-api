@@ -2896,8 +2896,9 @@ Resources:
 
   DrivingPermitCheckingFunctionCanary5xxErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -2924,8 +2925,9 @@ Resources:
 
   DrivingPermitCheckingFunctionCanaryErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -3197,8 +3199,9 @@ Resources:
 
   IssueCredentialFunctionCanary5xxErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -3225,8 +3228,9 @@ Resources:
 
   IssueCredentialFunctionCanaryErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -3288,8 +3292,9 @@ Resources:
 
   PasswordRenewalFunctionCanaryErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:
@@ -3351,8 +3356,9 @@ Resources:
 
   CertExpiryReminderFunctionCanaryErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !ImportValue platform-alarm-warning-alert-topic
       OKActions:

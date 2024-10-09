@@ -70,7 +70,13 @@ Parameters:
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. This value is picked up from the LambdaCanaryDeployment on the pipeline "
     Type: String
-    Default: AllAtOnce
+    Default: "AllAtOnce"
+    AllowedValues:
+      - AllAtOnce
+      - Canary10Percent5Minutes
+      - Canary10Percent10Minutes
+      - Canary10Percent15Minutes
+      - Canary10Percent30Minutes
 
 Conditions:
   IsDeployedFromPipeline: !Equals
@@ -126,6 +132,8 @@ Conditions:
     Fn::Or:
       - !Equals [!Ref Environment, "production"]
       - !Equals [!Ref Environment, "staging"]
+
+  UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
 
 Globals:
   Function:
@@ -541,10 +549,10 @@ Resources:
           SIGNING_KEY_ID: !ImportValue acm-infra-DvaSigningKeyId
           ENCRYPTION_KEY_ID: !ImportValue acm-infra-DvaEncryptionKeyId
       DeploymentPreference:
-        Alarms:
-          - !Ref DrivingPermitCheckingFunctionFatalErrorAlarm
-          - !Ref DrivingPermitCheckingFunctionCanaryErrors
-          - !Ref DrivingPermitCheckingFunctionCanary5xxErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref DrivingPermitCheckingFunctionFatalErrorAlarm, !Ref DrivingPermitCheckingFunctionCanaryErrors, !Ref DrivingPermitCheckingFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -719,10 +727,10 @@ Resources:
           ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
       DeploymentPreference:
-        Alarms:
-          - !Ref IssueCredentialFunctionFatalErrorAlarm
-          - !Ref IssueCredentialFunctionCanaryErrors
-          - !Ref IssueCredentialFunctionCanary5xxErrors
+        Alarms: !If
+        - UseCanaryDeploymentAlarms
+        - [!Ref IssueCredentialFunctionFatalErrorAlarm, !Ref IssueCredentialFunctionCanaryErrors, !Ref IssueCredentialFunctionCanary5xxErrors]
+        - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -816,9 +824,10 @@ Resources:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-passwordRenewal"
           DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
       DeploymentPreference:
-        Alarms:
-          - !Ref PasswordRenewalFunctionFatalErrorAlarm
-          - !Ref PasswordRenewalFunctionCanaryErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref PasswordRenewalFunctionFatalErrorAlarm, !Ref PasswordRenewalFunctionCanaryErrors]
+          - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -911,9 +920,10 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-CertExpiryReminder"
       DeploymentPreference:
-        Alarms:
-          - !Ref CertExpiryReminderFunctionFatalErrorAlarm
-          - !Ref CertExpiryReminderFunctionCanaryErrors
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref CertExpiryReminderFunctionFatalErrorAlarm, !Ref CertExpiryReminderFunctionCanaryErrors]
+          - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -2851,7 +2861,6 @@ Resources:
 
   DrivingPermitCheckingFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    # Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref DrivingPermitCheckingFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2865,7 +2874,6 @@ Resources:
     DependsOn:
       - "DrivingPermitCheckingFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    # Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3154,7 +3162,6 @@ Resources:
 
   IssueCredentialFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    # Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref IssueCredentialFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3168,7 +3175,6 @@ Resources:
     DependsOn:
       - "IssueCredentialFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    # Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3247,7 +3253,6 @@ Resources:
 
   PasswordRenewalFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    # Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref PasswordRenewalFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3261,7 +3266,6 @@ Resources:
     DependsOn:
       - "PasswordRenewalFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    # Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PasswordRenewalFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3312,7 +3316,6 @@ Resources:
 
   CertExpiryReminderFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    # Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref CertExpiryReminderFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3326,7 +3329,6 @@ Resources:
     DependsOn:
       - "CertExpiryReminderFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    # Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-CertExpiryReminderFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"

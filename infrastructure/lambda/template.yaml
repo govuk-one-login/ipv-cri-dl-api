@@ -3255,7 +3255,7 @@ Resources:
 
 ################################# PasswordRenewalFunction Alarms ##############################
 
-  PasswordRenewalFunctionFatalErorMetricFilter:
+  PasswordRenewalFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref PasswordRenewalFunctionLogGroup
@@ -3268,12 +3268,12 @@ Resources:
 
   PasswordRenewalFunctionFatalErrorAlarm:
     DependsOn:
-      - "PasswordRenewalFunctionFatalErorMetricFilter"
+      - "PasswordRenewalFunctionFatalErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PasswordRenewalFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:
@@ -3319,7 +3319,7 @@ Resources:
 
 ################################# CertExpiryReminderFunction Alarms ##############################
 
-  CertExpiryReminderFunctionFatalErorMetricFilter:
+  CertExpiryReminderFunctionFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
       LogGroupName: !Ref CertExpiryReminderFunctionLogGroup
@@ -3332,12 +3332,12 @@ Resources:
 
   CertExpiryReminderFunctionFatalErrorAlarm:
     DependsOn:
-      - "CertExpiryReminderFunctionFatalErorMetricFilter"
+      - "CertExpiryReminderFunctionFatalErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub "${AWS::StackName}-CertExpiryReminderFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
-      ActionsEnabled: true
+      ActionsEnabled: false
       OKActions:
         - !ImportValue platform-alarm-warning-alert-topic
       AlarmActions:

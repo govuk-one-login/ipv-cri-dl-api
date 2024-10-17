@@ -11,7 +11,7 @@ For auto-switching between JDK versions, edit your `~/.sdkman/etc/config` and se
 Then use sdkman to install Java JDK listed in this projects `.sdkmanrc`
 e.g `sdk install java x.y.z-amzn`
 
-Restart your terminal
+
 
 ## Gradle
 

@@ -52,7 +52,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     private static String vcHeader;
     private static String vcBody;
-    private static final String KID_PREFIX = "did:web:review-d.dev.account.gov.uk:";
+    private static final String KID_PREFIX = "did:web:review-d.dev.account.gov.uk#";
 
     private static Boolean RETRY;
     private static String DRIVING_LICENCE_CHECK_RESPONSE;

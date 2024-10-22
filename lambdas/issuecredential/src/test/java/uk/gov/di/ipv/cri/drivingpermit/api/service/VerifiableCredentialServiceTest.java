@@ -154,7 +154,9 @@ class VerifiableCredentialServiceTest implements TestFixtures {
 
             assertEquals("did", jwsHeaderParts[0]);
             assertEquals("web", jwsHeaderParts[1]);
-            assertEquals("UNIT_TEST_VC_ISSUER", jwsHeaderParts[2]);
+            assertEquals(
+                    "UNIT_TEST_VC_ISSUER#d07b2524c284cf6b41ebabd5206d9f8aac73dd0d80ec9f36de2f0e08ee9637dd",
+                    jwsHeaderParts[2]);
         }
 
         JsonNode claimsSet = realObjectMapper.readTree(generatedClaims.toString());

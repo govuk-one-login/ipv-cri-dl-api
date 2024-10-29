@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.acm.model.ExportCertificateResponse;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -59,6 +60,7 @@ class ThirdPartyAPIServiceFactoryTest {
     @Mock ObjectMapper mockObjectMapper;
     @Mock EventProbe mockEventProbe;
     @Mock AcmCertificateService acmCertificateService;
+    @Mock DynamoDbEnhancedClient mockDynamoDbEnhancedClient;
 
     private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
 
@@ -87,6 +89,8 @@ class ThirdPartyAPIServiceFactoryTest {
 
         // DVLA
         when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(clientProviderFactory.getDynamoDbEnhancedClient())
+                .thenReturn(mockDynamoDbEnhancedClient);
 
         when(mockDrivingPermitConfigurationService.getDvlaConfiguration())
                 .thenReturn(mockDvlaConfiguration);

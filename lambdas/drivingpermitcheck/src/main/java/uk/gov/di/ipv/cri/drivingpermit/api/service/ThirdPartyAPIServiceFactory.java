@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.impl.client.CloseableHttpClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.kms.KmsClient;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
@@ -129,6 +130,8 @@ public class ThirdPartyAPIServiceFactory {
                 drivingPermitConfigurationService.getDvlaConfiguration();
         ObjectMapper objectMapper = serviceFactory.getObjectMapper();
         EventProbe eventProbe = serviceFactory.getEventProbe();
+        DynamoDbEnhancedClient dynamoDbEnhancedClient =
+                serviceFactory.getClientProviderFactory().getDynamoDbEnhancedClient();
         ApacheHTTPClientFactoryService apacheHTTPClientFactoryService =
                 serviceFactory.getApacheHTTPClientFactoryService();
 
@@ -140,7 +143,12 @@ public class ThirdPartyAPIServiceFactory {
                         dvlaCloseableHttpClientFactory.getClient(), eventProbe, MAX_HTTP_RETRIES);
 
         DvlaEndpointFactory dvlaEndpointFactory =
-                new DvlaEndpointFactory(dvlaConfiguration, objectMapper, eventProbe, httpRetryer);
+                new DvlaEndpointFactory(
+                        dvlaConfiguration,
+                        objectMapper,
+                        eventProbe,
+                        httpRetryer,
+                        dynamoDbEnhancedClient);
 
         return new DvlaThirdPartyDocumentGateway(dvlaEndpointFactory);
     }

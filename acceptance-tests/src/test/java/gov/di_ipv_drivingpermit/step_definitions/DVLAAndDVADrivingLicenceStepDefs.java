@@ -17,6 +17,11 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         Continue.click();
     }
 
+    @Then("User clicks selects the Radio Button")
+    public void user_clicks_on_radio_button_yes() {
+        radioButton.click();
+    }
+
     @Then("Proper error message for Could not find your details is displayed")
     public void properErrorMessageForCouldNotFindDVLADetailsIsDisplayed() {
         userNotFoundInThirdPartyErrorIsDisplayed();

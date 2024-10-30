@@ -130,9 +130,25 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         navigateToIPVCoreStub();
     }
 
+    @Given("I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment")
+    public void navigateToStubAndDrivingLicenceCRIOnTestEnv() {
+        navigateToIPVCoreStub();
+        navigateToDrivingLicenceCRIOnTestEnv();
+    }
+
     @Then("^I search for Driving Licence user number (.*) in the Experian table$")
     public void i_search_for_DL_user_number(String number) {
         searchForUATUser(number);
+    }
+
+    @Then("^I enter the context value (.*) in the Input context value as a string$")
+    public void i_enter_a_context_value(String contextValue) {
+        enterContextValue(contextValue);
+    }
+
+    @Then("^I enter the shared claims raw JSON (.*) in the Input shared claims raw JSON$")
+    public void i_enter_shared_claims_raw_json_data(String jsonFileName) {
+        enterSharedClaimsRawJSONValue(jsonFileName);
     }
 
     @And("I assert the url path contains (.*)$")

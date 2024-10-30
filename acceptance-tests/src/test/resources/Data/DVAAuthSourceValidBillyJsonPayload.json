@@ -1,0 +1,34 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://vocab.london.cloudapps.digital/contexts/identity-v1.jsonld"
+  ],
+  "name": [
+    {
+      "nameParts": [
+        {
+          "type": "GivenName",
+          "value": "BILLY"
+        },
+        {
+          "type": "FamilyName",
+          "value": "BATSON"
+        }
+      ]
+    }
+  ],
+  "birthDate": [
+    {
+      "value": "1981-07-26"
+    }
+  ],
+  "drivingPermit": [
+    {
+      "personalNumber": "55667788",
+      "expiryDate": "2042-10-01",
+      "issueDate": "2018-04-19",
+      "issuedBy": "DVA",
+      "fullAddress": "70 OLD BAKERS COURT BELFAST NW3 5RG"
+    }
+  ]
+}

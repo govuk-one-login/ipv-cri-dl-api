@@ -126,6 +126,45 @@ paths:
           Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${CommonStackName}-AuthorizationFunction/invocations
         passthroughBehavior: "when_no_match"
 
+  /person-info:
+    get:
+      parameters:
+        - in: header
+          name: "session_id"
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - $ref: '#/components/parameters/AuditHeader'
+      responses:
+        200:
+          description: "Person Info request Complete."
+        204:
+          description: "Person Info request ith no content returned"
+        "400":
+          description: "400 response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "500 response."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      x-amazon-apigateway-request-validator: "Validate both"
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PersonInfoFunction.Arn}/invocations
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+
 components:
   schemas:
     Authorization:
@@ -165,6 +204,13 @@ components:
         message:
           type: "string"
     Session:
+      required:
+        - "session_id"
+      type: "object"
+      properties:
+        session_id:
+          type: "string"
+    PersonInfo:
       required:
         - "session_id"
       type: "object"

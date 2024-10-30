@@ -18,11 +18,18 @@ public class Definitions {
     public static final String LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR =
             "lambda_issue_credential_completed_error";
 
+    public static final String LAMBDA_PERSON_INFO_CHECK_COMPLETED_OK =
+            "lambda_person_info_check_completed_ok";
+    public static final String LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR =
+            "lambda_person_info_check_completed_error";
+
     // Runtime Capture of colds starts as custom metric for monitoring
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION =
             "lambda_driving_permit_check_function_init_duration";
     public static final String LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION =
             "lambda_issue_credential_function_init_duration";
+    public static final String LAMBDA_PERSON_INFO_FUNCTION_INIT_DURATION =
+            "lambda_person_info_function_init_duration";
 
     // Document Status after an attempt
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX =

@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.api.util;
+package uk.gov.di.ipv.cri.drivingpermit.util;
 
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;

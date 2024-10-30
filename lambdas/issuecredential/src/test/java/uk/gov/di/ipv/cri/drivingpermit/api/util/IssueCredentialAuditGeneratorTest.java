@@ -11,6 +11,7 @@ import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDeta
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.audit.VCISSDocumentCheckAuditExtension;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.testdata.DocumentCheckTestDataGenerator;
+import uk.gov.di.ipv.cri.drivingpermit.util.PersonIdentityDetailedTestDataGenerator;
 
 import java.util.List;
 import java.util.UUID;

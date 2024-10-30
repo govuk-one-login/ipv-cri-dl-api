@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
     - id: check-json
     - id: end-of-file-fixer
@@ -16,13 +16,13 @@ repos:
         )$
 
   - repo: https://github.com/awslabs/cfn-python-lint
-    rev: v1.15.2 # The version of cfn-lint to use
+    rev: v1.18.1 # The version of cfn-lint to use
     hooks:
     - id: cfn-python-lint
       files: .template\.yaml$
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.2.256'
+    rev: '3.2.270'
     hooks:
     - id: checkov
       verbose: true

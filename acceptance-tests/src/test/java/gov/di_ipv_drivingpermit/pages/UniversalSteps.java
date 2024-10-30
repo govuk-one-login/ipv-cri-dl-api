@@ -3,9 +3,13 @@ package gov.di_ipv_drivingpermit.pages;
 import gov.di_ipv_drivingpermit.utilities.Driver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.PageFactory;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.waitForPageToLoad;
 import static org.junit.Assert.assertTrue;
@@ -58,5 +62,18 @@ public class UniversalSteps {
 
         LOGGER.info("Page url: " + url);
         assertTrue(url.contains(expected));
+    }
+
+    // Method to read the JSON from a file
+    public static String getJsonPayload(String fileName) {
+        String filePath = "src/test/resources/Data/" + fileName + ".json";
+        try {
+            String content = new String(Files.readAllBytes(Paths.get(filePath)));
+            JSONObject jsonObject = new JSONObject(content);
+            return jsonObject.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

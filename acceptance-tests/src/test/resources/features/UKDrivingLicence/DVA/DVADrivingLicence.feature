@@ -50,28 +50,10 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
-
-#@build @staging @integration @stub @uat
-#Scenario Outline: DVA - User enters invalid date of birth and returns could not find your details error message
-#  Given User enters DVA data as a <DVADrivingLicenceSubject>
-#  And User re-enters DVA birth day as <InvalidBirthDay>
-#  And User re-enters DVA birth month as <InvalidBirthMonth>
-#  And User re-enters DVA birth year as <InvalidBirthYear>
-#  When User clicks on continue
-#  Then Proper error message for Could not find your details is displayed
-#  When User clicks on continue
-#  Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
-#  And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-#  And The test is complete and I close the driver
-#  Examples:
-#    | DVADrivingLicenceSubject           | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
-#    | DVADrivingLicenceSubjectHappyBilly | 12              | 08                | 1985             |
-
   @build @staging @integration @stub @uat
   Scenario Outline: DVA - User enters invalid first name and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters first name as <InvalidFirstName>
-
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue

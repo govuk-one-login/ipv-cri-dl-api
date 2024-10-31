@@ -21,14 +21,5 @@
     {
       "value": "1965-07-08"
     }
-  ],
-  "address": [
-    {
-      "buildingNumber": "8",
-      "streetName": "HADLEY ROAD",
-      "addressLocality": "BATH",
-      "postalCode": "BA2 5AA",
-      "validFrom": "2021-01-01"
-    }
   ]
 }

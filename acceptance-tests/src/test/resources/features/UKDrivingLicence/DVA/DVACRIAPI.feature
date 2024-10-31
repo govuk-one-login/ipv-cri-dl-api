@@ -1,7 +1,7 @@
 @drivinglicence_CRI_API
 Feature: DVA CRI API
 
-  @drivingLicenceCRI_API @pre-merge @dev @test
+  @drivingLicenceCRI_API @pre-merge @dev @test123
   Scenario Outline: DVA Driving Licence - Auth Source Happy path
     Given Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 6
     And Driving Licence user sends a POST request to session endpoint
@@ -18,7 +18,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
     Examples:
       | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                            |
-      | check_details | 12345678       | 2022-02-02 | 2012-02-02 | DVA      | 70000 OLD BAKERS COURT BELFAST BA2 5AA |
+      | check_details | 12345678       | 2022-02-02 | 2012-02-02 | DVA      | 70000 OLD BAKERS COURT BELFAST BT2 5AA |
 #      | 12345678       | 2022-02-02 | 2012-02-02 | DVA      | 70000 OLD BAKERS COURT BELFAST BA2 5AA |
 
   @drivingLicenceCRI_API @pre-merge @dev

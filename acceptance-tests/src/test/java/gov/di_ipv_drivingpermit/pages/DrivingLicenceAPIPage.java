@@ -207,13 +207,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         rowNumber);
         LOGGER.info("jsonStringDrivingPermitAuthSource = {}", jsonString);
 
-        String authjsonString = getAuthorisationJwtFromStub(criId, rowNumber);
-        LOGGER.info("jsonString = {}", jsonString);
-
-
         String coreStubUrl = configurationService.getCoreStubUrl(false);
-
-
 
         SESSION_REQUEST_BODY = createRequest(coreStubUrl, criId, jsonString);
         LOGGER.info("SESSION_REQUEST_BODY FOR AUTH SOURCE = {}", SESSION_REQUEST_BODY);
@@ -614,14 +608,18 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         return getClaimsForUser( baseUrl, criId, userDataRowNumber, null);
     }
 
-    private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber, String context)
+    private String getClaimsForUser(String baseUrl, String criId, Integer userDataRowNumber, String context)
             throws URISyntaxException, IOException, InterruptedException {
 
             String uriInput= baseUrl
                     + "/backend/generateInitialClaimsSet?cri="
-                    + criId
-                    + "&rowNumber="
-                    + userDataRowNumber;
+                    + criId;
+
+            if(userDataRowNumber!=null){
+                uriInput+= "&rowNumber="
+                        + userDataRowNumber;
+            }
+
             if (context != null){
                 uriInput+="&context=" + context;
             }

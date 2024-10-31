@@ -3,8 +3,8 @@ package uk.gov.di.ipv.cri.drivingpermit.library.dvla.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.http.client.config.RequestConfig;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
-import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
@@ -23,7 +23,8 @@ public class DvlaEndpointFactory {
             DvlaConfiguration dvlaConfiguration,
             ObjectMapper objectMapper,
             EventProbe eventProbe,
-            HttpRetryer httpRetryer) {
+            HttpRetryer httpRetryer,
+            DynamoDbEnhancedClient dynamoDbEnhancedClient) {
 
         // Same on all endpoints
         RequestConfig defaultRequestConfig = new HttpRequestConfig().getDefaultRequestConfig();
@@ -31,7 +32,7 @@ public class DvlaEndpointFactory {
         tokenRequestService =
                 new TokenRequestService(
                         dvlaConfiguration,
-                        DataStore.getClient(),
+                        dynamoDbEnhancedClient,
                         httpRetryer,
                         defaultRequestConfig,
                         objectMapper,

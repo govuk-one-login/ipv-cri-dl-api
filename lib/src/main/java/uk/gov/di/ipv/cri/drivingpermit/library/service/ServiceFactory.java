@@ -74,7 +74,8 @@ public class ServiceFactory {
                         ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TABLE_NAME);
 
         this.documentCheckResultStorageService =
-                new DocumentCheckResultStorageService(documentCheckTableName);
+                new DocumentCheckResultStorageService(
+                        documentCheckTableName, clientProviderFactory.getDynamoDbEnhancedClient());
 
         this.personIdentityService =
                 new PersonIdentityService(

@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.service;
 
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 
@@ -13,13 +14,14 @@ public class DocumentCheckResultStorageService {
         this.dataStore = dataStore;
     }
 
-    public DocumentCheckResultStorageService(String documentCheckTableName) {
+    public DocumentCheckResultStorageService(
+            String documentCheckTableName, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
 
         this.dataStore =
                 new DataStore<>(
                         documentCheckTableName,
                         DocumentCheckResultItem.class,
-                        DataStore.getClient());
+                        dynamoDbEnhancedClient);
     }
 
     public DocumentCheckResultItem getDocumentCheckResult(UUID sessionId) {

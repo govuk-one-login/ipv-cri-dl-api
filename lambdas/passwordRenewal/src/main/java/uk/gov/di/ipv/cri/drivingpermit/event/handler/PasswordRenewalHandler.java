@@ -24,7 +24,6 @@ import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
-import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangePasswordService;
@@ -84,7 +83,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
         tokenRequestService =
                 new TokenRequestService(
                         dvlaConfiguration,
-                        DataStore.getClient(),
+                        clientProviderFactory.getDynamoDbEnhancedClient(),
                         httpRetryer,
                         defaultRequestConfig,
                         objectMapper,

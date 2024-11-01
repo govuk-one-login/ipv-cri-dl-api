@@ -83,15 +83,6 @@ if [[ "${BACKEND}" =~ "yes" ]]; then
   API_GATEWAY_ID_PUBLIC=$([ -z "$API_GATEWAY_ID_PUBLIC_NEW" ] && echo "$API_GATEWAY_ID_PUBLIC" || echo "$API_GATEWAY_ID_PUBLIC_NEW")
   export API_GATEWAY_ID_PUBLIC=$API_GATEWAY_ID_PUBLIC
 
-#  read -p "Enter the AWS Region [previous=$AWS_REGION] " AWS_REGION_NEW
-#
-#  API_GATEWAY_ID_PUBLIC=$([ -z "$AWS_REGION_NEW" ] && echo "$AWS_REGION" || echo "$AWS_REGION_NEW")
-#  export AWS_REGION=$AWS_REGION
-#
-#  read -p "Enter the AWS Profile [previous=$AWS_PROFILE] " AWS_PROFILE_NEW
-#
-#  API_GATEWAY_ID_PUBLIC=$([ -z "$AWS_PROFILE_NEW" ] && echo "$AWS_PROFILE" || echo "$AWS_PROFILE_NEW")
-#  export AWS_PROFILE=$AWS_PROFILE
 fi
 
 ###### Remove previous config and set with new values

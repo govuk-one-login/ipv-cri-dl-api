@@ -19,7 +19,16 @@
   ],
   "birthDate": [
     {
-      "value": "1965-07-08"
+      "value": "1981-07-26"
+    }
+  ],
+  "drivingPermit": [
+    {
+      "personalNumber": "55667788",
+      "expiryDate": "2042-10-01",
+      "issueDate": "2018-04-19",
+      "issuedBy": "DVA",
+      "fullAddress": "70 OLD BAKERS COURT BELFAST NW3 5RG"
     }
   ]
 }

@@ -1,25 +1,22 @@
 @drivinglicence_CRI_API
 Feature: DVA CRI API
 
-  @drivingLicenceCRI_API @pre-merge @dev @test123
+  @drivingLicenceCRI_API @pre-merge @dev
   Scenario Outline: DVA Driving Licence - Auth Source Happy path
-    Given Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 6
+    Given DVA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
     And Driving Licence user sends a POST request to session endpoint
     And Driving Licence user gets a session-id
     And Driving Licence user sends a GET request to the personInfo endpoint
-    When Driving Licence user sends a POST request to Driving Licence endpoint using updated jsonRequest returned from the personInfo Table DVAValidKennethJsonPayload
-#    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest DVAValidKennethJsonPayload
-#    And The Dynamo DB Table is queried for the user and validated
-#    And The Driving licence details match
+    When Driving Licence user sends a POST request to Driving Licence endpoint using updated jsonRequest returned from the personInfo Table DVAAuthValidBillyJsonPayload
     And Driving Licence user gets authorisation code
     And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
+    And Driving Licence VC should contain JTI field
     Examples:
-      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                            |
-      | check_details | 12345678       | 2022-02-02 | 2012-02-02 | DVA      | 70000 OLD BAKERS COURT BELFAST BT2 5AA |
-#      | 12345678       | 2022-02-02 | 2012-02-02 | DVA      | 70000 OLD BAKERS COURT BELFAST BA2 5AA |
+      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                |
+      | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA |
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVA Driving Licence Happy path

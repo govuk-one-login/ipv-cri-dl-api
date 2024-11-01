@@ -239,6 +239,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//button[@class='govuk-button button']")
     public WebElement Continue;
 
+    @FindBy(xpath = "//*[@id=\"confirmDetails\"]")
+    public WebElement RadioButton;
+
     @FindBy(id = "header")
     public WebElement pageHeader;
 

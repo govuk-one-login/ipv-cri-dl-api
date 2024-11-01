@@ -2,8 +2,8 @@ package gov.di_ipv_drivingpermit.pages;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import gov.di_ipv_drivingpermit.model.AuthorisationResponse;
@@ -117,7 +117,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         return getClaimsForUser(coreStubUrl, criId, rowNumber);
     }
 
-    public String getAuthorisationJwtFromStubWithDrivingPermit(
+    public String getAuthorisationJwtFromStubWithDVADrivingPermit(
             String context,
             String drivingPermitPersonalNumber,
             String drivingPermitExpiryDate,
@@ -132,7 +132,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
             throw new IllegalArgumentException("Environment variable IPV_CORE_STUB_URL is not set");
         }
         String claimsJson = getClaimsForUser(coreStubUrl, criId, rowNumber, context);
-        return insertDrivingPermit(
+        return insertDrivingPermitDVA(
                 claimsJson,
                 drivingPermitPersonalNumber,
                 drivingPermitExpiryDate,
@@ -141,7 +141,33 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                 drivingPermitFullAddress);
     }
 
-    private String insertDrivingPermit(
+    public String getAuthorisationJwtFromStubWithDVLADrivingPermit(
+            String context,
+            String drivingPermitPersonalNumber,
+            String drivingPermitExpiryDate,
+            String drivingPermitIssueDate,
+            String drivingPermitIssueNumber,
+            String drivingPermitIssuedBy,
+            String drivingPermitFullAddress,
+            String criId,
+            Integer rowNumber)
+            throws URISyntaxException, IOException, InterruptedException {
+        String coreStubUrl = configurationService.getCoreStubUrl(false);
+        if (coreStubUrl == null) {
+            throw new IllegalArgumentException("Environment variable IPV_CORE_STUB_URL is not set");
+        }
+        String claimsJson = getClaimsForUser(coreStubUrl, criId, rowNumber, context);
+        return insertDrivingPermitDVLA(
+                claimsJson,
+                drivingPermitPersonalNumber,
+                drivingPermitExpiryDate,
+                drivingPermitIssueDate,
+                drivingPermitIssueNumber,
+                drivingPermitIssuedBy,
+                drivingPermitFullAddress);
+    }
+
+    private String insertDrivingPermitDVA(
             String claimsJson,
             String drivingPermitPersonalNumber,
             String drivingPermitExpiryDate,
@@ -154,6 +180,37 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         drivingPermitEntry.put("personalNumber", drivingPermitPersonalNumber);
         drivingPermitEntry.put("expiryDate", drivingPermitExpiryDate);
         drivingPermitEntry.put("issueDate", drivingPermitIssueDate);
+        drivingPermitEntry.put("issuedBy", drivingPermitIssuedBy);
+        drivingPermitEntry.put("fullAddress", drivingPermitFullAddress);
+
+        JSONArray drivingPermitArray = new JSONArray();
+        drivingPermitArray.put(drivingPermitEntry);
+
+        JSONObject sharedClaims = jsonObject.getJSONObject("shared_claims");
+
+        sharedClaims.remove("address");
+
+        sharedClaims.put("drivingPermit", drivingPermitArray);
+        jsonObject.put("context", "check_details");
+
+        return jsonObject.toString();
+    }
+
+    private String insertDrivingPermitDVLA(
+            String claimsJson,
+            String drivingPermitPersonalNumber,
+            String drivingPermitExpiryDate,
+            String drivingPermitIssueDate,
+            String drivingPermitIssueNumber,
+            String drivingPermitIssuedBy,
+            String drivingPermitFullAddress) {
+        JSONObject jsonObject = new JSONObject(claimsJson);
+        JSONObject drivingPermitEntry = new JSONObject();
+
+        drivingPermitEntry.put("personalNumber", drivingPermitPersonalNumber);
+        drivingPermitEntry.put("expiryDate", drivingPermitExpiryDate);
+        drivingPermitEntry.put("issueDate", drivingPermitIssueDate);
+        drivingPermitEntry.put("issueNumber", drivingPermitIssueNumber);
         drivingPermitEntry.put("issuedBy", drivingPermitIssuedBy);
         drivingPermitEntry.put("fullAddress", drivingPermitFullAddress);
 
@@ -185,7 +242,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         LOGGER.info("CLIENT_ID = {}", CLIENT_ID);
     }
 
-    public void dlUserIdentityWithDrivingPermitAsJwtString(
+    public void dlUserIdentityDVAWithDrivingPermitAsJwtString(
             String context,
             String drivingPermitPersonalNumber,
             String drivingPermitExpiryDate,
@@ -196,11 +253,47 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
             Integer rowNumber)
             throws URISyntaxException, IOException, InterruptedException {
         String jsonString =
-                getAuthorisationJwtFromStubWithDrivingPermit(
+                getAuthorisationJwtFromStubWithDVADrivingPermit(
                         context,
                         drivingPermitPersonalNumber,
                         drivingPermitExpiryDate,
                         drivingPermitIssueDate,
+                        drivingPermitIssuedBy,
+                        drivingPermitFullAddress,
+                        criId,
+                        rowNumber);
+        LOGGER.info("jsonStringDrivingPermitAuthSource = {}", jsonString);
+
+        String coreStubUrl = configurationService.getCoreStubUrl(false);
+
+        SESSION_REQUEST_BODY = createRequest(coreStubUrl, criId, jsonString);
+        LOGGER.info("SESSION_REQUEST_BODY FOR AUTH SOURCE = {}", SESSION_REQUEST_BODY);
+
+        // Capture client id for using later in the auth request
+        Map<String, String> deserialisedSessionResponse =
+                objectMapper.readValue(SESSION_REQUEST_BODY, new TypeReference<>() {});
+        CLIENT_ID = deserialisedSessionResponse.get("client_id");
+        LOGGER.info("CLIENT_ID FOR AUTH SOURCE = {}", CLIENT_ID);
+    }
+
+    public void dlUserIdentityDVLAWithDrivingPermitAsJwtString(
+            String context,
+            String drivingPermitPersonalNumber,
+            String drivingPermitExpiryDate,
+            String drivingPermitIssueDate,
+            String drivingPermitIssueNumber,
+            String drivingPermitIssuedBy,
+            String drivingPermitFullAddress,
+            String criId,
+            Integer rowNumber)
+            throws URISyntaxException, IOException, InterruptedException {
+        String jsonString =
+                getAuthorisationJwtFromStubWithDVLADrivingPermit(
+                        context,
+                        drivingPermitPersonalNumber,
+                        drivingPermitExpiryDate,
+                        drivingPermitIssueDate,
+                        drivingPermitIssueNumber,
                         drivingPermitIssuedBy,
                         drivingPermitFullAddress,
                         criId,
@@ -248,7 +341,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
-
     public void dlGetRequestToPersonInfoEndpoint() throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         LOGGER.info("getPrivateAPIEndpoint() ==> {}", privateApiGatewayUrl);
@@ -291,7 +383,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         DrivingPermitForm.class);
         LOGGER.info("sdfsdf = {}", drivingPermitFormJson);
 
-
         for (Map.Entry<String, String> entry : jsonEdits.entrySet()) {
             Field field = drivingPermitFormJson.getClass().getDeclaredField(entry.getKey());
             field.setAccessible(true);
@@ -324,8 +415,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         postRequestToDrivingLicenceEndpoint(drivingPermitJsonRequestBody, "");
     }
 
-
-
     public void postRequestToDrivingLicenceEndpointWithPersonInfoDetails(
             String dlJsonRequestBody, String jsonEditsString)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
@@ -333,8 +422,9 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
 
         // Load the JSON file and parse it into a JsonNode
-        JsonNode dlJsonNode = objectMapper.readTree(
-                new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"));
+        JsonNode dlJsonNode =
+                objectMapper.readTree(
+                        new File("src/test/resources/Data/" + dlJsonRequestBody + ".json"));
 
         // Parse jsonEditsString into a Map
         Map<String, String> jsonEdits = new HashMap<>();
@@ -346,41 +436,37 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         if (EXTRACTED_POSTCODE != null) {
             ((ObjectNode) dlJsonNode).put("postcode", EXTRACTED_POSTCODE);
             jsonEdits.put("postcode", EXTRACTED_POSTCODE);
-
-            // Replace 'addresses[0].postalCode' field with EXTRACTED_POSTCODE if available
-//            JsonNode addressArray = dlJsonNode.path("addresses");
-//            if (addressArray.isArray() && addressArray.size() > 0) {
-//                ((ObjectNode) addressArray.get(0)).put("postalCode", EXTRACTED_POSTCODE);
-//            }
         }
 
         // Apply remaining jsonEdits to the JSON
-        DrivingPermitForm drivingPermitFormJson = objectMapper.treeToValue(dlJsonNode, DrivingPermitForm.class);
-//        drivingPermitFormJson.setAddresses(new ArrayList<>());
+        DrivingPermitForm drivingPermitFormJson =
+                objectMapper.treeToValue(dlJsonNode, DrivingPermitForm.class);
         for (Map.Entry<String, String> entry : jsonEdits.entrySet()) {
             Field field = drivingPermitFormJson.getClass().getDeclaredField(entry.getKey());
             field.setAccessible(true);
             field.set(drivingPermitFormJson, entry.getValue());
         }
-        LOGGER.info("Drivinbg Permit Form and Driving PErmit Edits = {}", drivingPermitFormJson);
-        LOGGER.info("Driving PErmit Edits = {}", jsonEdits);
+        LOGGER.info("Driving Permit Form = {}", drivingPermitFormJson);
+        LOGGER.info("Driving Permit Edits = {}", jsonEdits);
 
-
-
-        String drivingPermitInputJsonString = objectMapper.writeValueAsString(drivingPermitFormJson);
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
-                .setHeader("Accept", "application/json")
-                .setHeader("Content-Type", "application/json")
-                .setHeader("session_id", SESSION_ID)
-                .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
+        String drivingPermitInputJsonString =
+                objectMapper.writeValueAsString(drivingPermitFormJson);
+        HttpRequest.Builder builder =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(privateApiGatewayUrl + "/check-driving-licence"))
+                        .setHeader("Accept", "application/json")
+                        .setHeader("Content-Type", "application/json")
+                        .setHeader("session_id", SESSION_ID)
+                        .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
 
         HttpRequest request = builder.build();
         LOGGER.info("drivingLicenceRequestBodyForAuthSource = {}", drivingPermitInputJsonString);
         DRIVING_LICENCE_CHECK_RESPONSE = sendHttpRequest(request).body();
-        LOGGER.info("drivingLicenceCheckResponseForAuthSource = {}", DRIVING_LICENCE_CHECK_RESPONSE);
+        LOGGER.info(
+                "drivingLicenceCheckResponseForAuthSource = {}", DRIVING_LICENCE_CHECK_RESPONSE);
 
-        DocumentCheckResponse documentCheckResponse = objectMapper.readValue(DRIVING_LICENCE_CHECK_RESPONSE, DocumentCheckResponse.class);
+        DocumentCheckResponse documentCheckResponse =
+                objectMapper.readValue(DRIVING_LICENCE_CHECK_RESPONSE, DocumentCheckResponse.class);
         RETRY = documentCheckResponse.getRetry();
         LOGGER.info("RETRY = {}", RETRY);
     }
@@ -602,29 +688,25 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         assertNotNull(jtiNode.asText());
     }
 
-
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
-        return getClaimsForUser( baseUrl, criId, userDataRowNumber, null);
+        return getClaimsForUser(baseUrl, criId, userDataRowNumber, null);
     }
 
-    private String getClaimsForUser(String baseUrl, String criId, Integer userDataRowNumber, String context)
+    private String getClaimsForUser(
+            String baseUrl, String criId, Integer userDataRowNumber, String context)
             throws URISyntaxException, IOException, InterruptedException {
 
-            String uriInput= baseUrl
-                    + "/backend/generateInitialClaimsSet?cri="
-                    + criId;
+        String uriInput = baseUrl + "/backend/generateInitialClaimsSet?cri=" + criId;
 
-            if(userDataRowNumber!=null){
-                uriInput+= "&rowNumber="
-                        + userDataRowNumber;
-            }
+        if (userDataRowNumber != null) {
+            uriInput += "&rowNumber=" + userDataRowNumber;
+        }
 
-            if (context != null){
-                uriInput+="&context=" + context;
-            }
-        var url =
-                new URI(uriInput);
+        if (context != null) {
+            uriInput += "&context=" + context;
+        }
+        var url = new URI(uriInput);
 
         LOGGER.info("URL =>> {}", url);
 

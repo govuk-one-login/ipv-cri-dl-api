@@ -21,9 +21,9 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     }
 
     @Given(
-            "Driving Licence with a signed JWT string with (.*), (.*), (.*), (.*), (.*) and (.*) for CRI Id (.*) and JSON Shared Claims (.*)$")
+            "DVA Driving Licence with a signed JWT string with (.*), (.*), (.*), (.*), (.*) and (.*) for CRI Id (.*) and JSON Shared Claims (.*)$")
     public void
-            DL_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string_with_check_details_flag(
+            DVA_DL_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string_with_check_details_flag(
                     String context,
                     String drivingPermitPersonalNumber,
                     String drivingPermitExpiryDate,
@@ -33,11 +33,37 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
                     String criId,
                     Integer rowNumber)
                     throws URISyntaxException, IOException, InterruptedException {
-        dlUserIdentityWithDrivingPermitAsJwtString(
+        dlUserIdentityDVAWithDrivingPermitAsJwtString(
                 context,
                 drivingPermitPersonalNumber,
                 drivingPermitExpiryDate,
                 drivingPermitIssueDate,
+                drivingPermitIssuedBy,
+                drivingPermitFullAddress,
+                criId,
+                rowNumber);
+    }
+
+    @Given(
+            "DVLA Driving Licence with a signed JWT string with (.*), (.*), (.*), (.*), (.*), (.*) and (.*) for CRI Id (.*) and JSON Shared Claims (.*)$")
+    public void
+            DVLA_DL_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string_with_check_details_flag(
+                    String context,
+                    String drivingPermitPersonalNumber,
+                    String drivingPermitExpiryDate,
+                    String drivingPermitIssueDate,
+                    String drivingPermitIssueNumber,
+                    String drivingPermitIssuedBy,
+                    String drivingPermitFullAddress,
+                    String criId,
+                    Integer rowNumber)
+                    throws URISyntaxException, IOException, InterruptedException {
+        dlUserIdentityDVLAWithDrivingPermitAsJwtString(
+                context,
+                drivingPermitPersonalNumber,
+                drivingPermitExpiryDate,
+                drivingPermitIssueDate,
+                drivingPermitIssueNumber,
                 drivingPermitIssuedBy,
                 drivingPermitFullAddress,
                 criId,
@@ -61,11 +87,11 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         dlGetRequestToPersonInfoEndpoint();
     }
 
-//    @And("The Dynamo DB Table is queried for the user and validated")
-//    public void DL_user_sends_a_request_to_dynamodb_for_user()
-//            throws IOException, InterruptedException {
-//        dynamoDBRequestToPersonInfoTable();
-//    }
+    //    @And("The Dynamo DB Table is queried for the user and validated")
+    //    public void DL_user_sends_a_request_to_dynamodb_for_user()
+    //            throws IOException, InterruptedException {
+    //        dynamoDBRequestToPersonInfoTable();
+    //    }
 
     @When(
             "Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest (.*)$")

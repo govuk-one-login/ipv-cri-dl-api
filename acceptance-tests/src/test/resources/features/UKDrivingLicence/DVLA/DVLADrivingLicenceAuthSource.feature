@@ -1,6 +1,7 @@
 Feature: DVLA Auth Source Driving Licence Test
 
-  @build @staging @integration @smoke @stub @uat
+#  @staging @integration
+  @build @smoke @stub @uat
   Scenario Outline: DVLA Auth Source - Happy path
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value check_details in the Input context value as a string

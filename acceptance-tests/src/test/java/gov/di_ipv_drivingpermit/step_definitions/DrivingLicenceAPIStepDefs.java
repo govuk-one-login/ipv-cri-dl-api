@@ -15,9 +15,59 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     @Given(
             "Driving Licence user has the user identity in the form of a signed JWT string for CRI Id (.*) and row number (.*)$")
     public void DL_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string(
-            String criId, Integer LindaDuffExperianRowNumber)
+            String criId, Integer rowNumber)
             throws URISyntaxException, IOException, InterruptedException {
-        dlUserIdentityAsJwtString(criId, LindaDuffExperianRowNumber);
+        dlUserIdentityAsJwtString(criId, rowNumber);
+    }
+
+    @Given(
+            "DVA Driving Licence with a signed JWT string with (.*), (.*), (.*), (.*), (.*) and (.*) for CRI Id (.*) and JSON Shared Claims (.*)$")
+    public void
+            DVA_DL_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string_with_check_details_flag(
+                    String context,
+                    String drivingPermitPersonalNumber,
+                    String drivingPermitExpiryDate,
+                    String drivingPermitIssueDate,
+                    String drivingPermitIssuedBy,
+                    String drivingPermitFullAddress,
+                    String criId,
+                    Integer rowNumber)
+                    throws URISyntaxException, IOException, InterruptedException {
+        dlUserIdentityDVAWithDrivingPermitAsJwtString(
+                context,
+                drivingPermitPersonalNumber,
+                drivingPermitExpiryDate,
+                drivingPermitIssueDate,
+                drivingPermitIssuedBy,
+                drivingPermitFullAddress,
+                criId,
+                rowNumber);
+    }
+
+    @Given(
+            "DVLA Driving Licence with a signed JWT string with (.*), (.*), (.*), (.*), (.*), (.*) and (.*) for CRI Id (.*) and JSON Shared Claims (.*)$")
+    public void
+            DVLA_DL_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string_with_check_details_flag(
+                    String context,
+                    String drivingPermitPersonalNumber,
+                    String drivingPermitExpiryDate,
+                    String drivingPermitIssueDate,
+                    String drivingPermitIssueNumber,
+                    String drivingPermitIssuedBy,
+                    String drivingPermitFullAddress,
+                    String criId,
+                    Integer rowNumber)
+                    throws URISyntaxException, IOException, InterruptedException {
+        dlUserIdentityDVLAWithDrivingPermitAsJwtString(
+                context,
+                drivingPermitPersonalNumber,
+                drivingPermitExpiryDate,
+                drivingPermitIssueDate,
+                drivingPermitIssueNumber,
+                drivingPermitIssuedBy,
+                drivingPermitFullAddress,
+                criId,
+                rowNumber);
     }
 
     @And("Driving Licence user sends a POST request to session endpoint")
@@ -31,11 +81,25 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
         getSessionIdForDL();
     }
 
+    @And("Driving Licence user sends a GET request to the personInfo endpoint")
+    public void DL_user_sends_a_get_request_to_person_info_end_point()
+            throws IOException, InterruptedException {
+        dlGetRequestToPersonInfoEndpoint();
+    }
+
     @When(
             "Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest (.*)$")
     public void DL_user_sends_a_post_request_to_driving_licence_end_point(String dlJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         postRequestToDrivingLicenceEndpoint(dlJsonRequestBody);
+    }
+
+    @When(
+            "Driving Licence user sends a POST request to Driving Licence endpoint using updated jsonRequest returned from the personInfo Table (.*)$")
+    public void DL_user_sends_a_post_request_to_driving_licence_end_point_with_person_info_details(
+            String dlJsonRequestBody)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToDrivingLicenceEndpointWithPersonInfoDetails(dlJsonRequestBody, "");
     }
 
     @When(

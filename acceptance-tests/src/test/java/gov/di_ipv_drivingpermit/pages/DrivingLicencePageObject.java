@@ -62,6 +62,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "rowNumber")
     public WebElement selectRow;
 
+    @FindBy(xpath = "//*[@id=\"context\"]")
+    public WebElement selectInputContextValue;
+
+    @FindBy(id = "claimsText")
+    public WebElement selectInputSharedClaimsValue;
+
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/details/div/pre")
     public WebElement JSONPayload;
 
@@ -73,6 +79,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/form[2]/div/button")
     public WebElement searchButton;
+
+    @FindBy(xpath = "//*[@id=\"main-content\"]/form[3]/div/button")
+    public WebElement searchButtonRawJson;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/form[2]/div/button")
     public WebElement goToDLCRIButton;
@@ -229,6 +238,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(xpath = "//button[@class='govuk-button button']")
     public WebElement Continue;
+
+    @FindBy(xpath = "//*[@id=\"confirmDetails\"]")
+    public WebElement radioButton;
 
     @FindBy(id = "header")
     public WebElement pageHeader;
@@ -446,6 +458,21 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertURLContains("credential-issuer?cri=driving-licence");
         selectRow.sendKeys(number);
         searchButton.click();
+    }
+
+    public void enterContextValue(String contextValue) {
+        assertURLContains("credential-issuer?cri=driving-licence");
+        selectInputContextValue.sendKeys(contextValue);
+    }
+
+    public void enterSharedClaimsRawJSONValue(String jsonFileName) {
+        String sharedClaimsRawJson = getJsonPayload(jsonFileName);
+        if (sharedClaimsRawJson != null) {
+            selectInputSharedClaimsValue.sendKeys(sharedClaimsRawJson);
+            searchButtonRawJson.click();
+        } else {
+            throw new RuntimeException("Failed to load JSON from file: " + jsonFileName);
+        }
     }
 
     public void navigateToDrivingLicenceResponse(String validOrInvalid) {

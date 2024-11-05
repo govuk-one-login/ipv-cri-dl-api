@@ -2,12 +2,14 @@ package gov.di_ipv_drivingpermit.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DrivingPermitForm {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
@@ -23,9 +25,6 @@ public class DrivingPermitForm {
 
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     private List<String> forenames;
-
-    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-    private List<Address> addresses;
 
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIME_ZONE)
     private LocalDate dateOfBirth;
@@ -55,9 +54,6 @@ public class DrivingPermitForm {
         this.licenceIssuer = licenceIssuer;
         this.drivingLicenceNumber = drivingLicenceNumber;
         this.postcode = postcode;
-        Address address = new Address();
-        address.setPostalCode(postcode);
-        this.addresses = List.of(address);
     }
 
     public String getDrivingLicenceNumber() {
@@ -98,14 +94,6 @@ public class DrivingPermitForm {
 
     public void setExpiryDate(LocalDate expiryDate) {
         this.expiryDate = expiryDate;
-    }
-
-    public List<Address> getAddresses() {
-        return addresses;
-    }
-
-    public void setAddresses(List<Address> addresses) {
-        this.addresses = addresses;
     }
 
     public String getPostcode() {
@@ -151,7 +139,6 @@ public class DrivingPermitForm {
                 && Objects.equals(licenceIssuer, that.licenceIssuer)
                 && Objects.equals(surname, that.surname)
                 && Objects.equals(forenames, that.forenames)
-                && Objects.equals(addresses, that.addresses)
                 && Objects.equals(dateOfBirth, that.dateOfBirth)
                 && Objects.equals(issueDate, that.issueDate)
                 && Objects.equals(expiryDate, that.expiryDate);
@@ -166,7 +153,6 @@ public class DrivingPermitForm {
                 licenceIssuer,
                 surname,
                 forenames,
-                addresses,
                 dateOfBirth,
                 issueDate,
                 expiryDate);
@@ -189,8 +175,6 @@ public class DrivingPermitForm {
                 + '\''
                 + ", forenames="
                 + forenames
-                + ", addresses="
-                + addresses
                 + ", dateOfBirth="
                 + dateOfBirth
                 + ", expiryDate="

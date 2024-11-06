@@ -240,7 +240,10 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public WebElement Continue;
 
     @FindBy(xpath = "//*[@id=\"confirmDetails\"]")
-    public WebElement radioButton;
+    public WebElement correctDetailsRadioButton;
+
+    @FindBy(xpath = "//*[@id=\"confirmDetails-detailsNotConfirmed\"]")
+    public WebElement incorrectDetailsRadioButton;
 
     @FindBy(id = "header")
     public WebElement pageHeader;
@@ -253,6 +256,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     @FindBy(className = "govuk-details__text")
     public WebElement whyWePara;
+
+    @FindBy(id = "consentDVACheckbox")
+    public WebElement consentDVACheckbox;
 
     // Error summary items
 
@@ -1090,6 +1096,10 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertInvalidMiddleNameOnField(String expectedText) {
         assertEquals(expectedText, InvalidMiddleNamesFieldError.getText().trim().replace("\n", ""));
+    }
+
+    public void assertNoConsentGivenInErrorSummary(String expectedText) {
+        assertEquals(expectedText, DVLAConsentCheckboxError.getText());
     }
 
     public void ciInVC(String ci) throws IOException {

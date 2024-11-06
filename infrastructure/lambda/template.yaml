@@ -67,6 +67,16 @@ Parameters:
     Description: "Mock TXMA SQS Queue"
     Type: String
     Default: "false"
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments. This value is picked up from the LambdaCanaryDeployment on the pipeline "
+    Type: String
+    Default: "AllAtOnce"
+    AllowedValues:
+      - AllAtOnce
+      - Canary10Percent5Minutes
+      - Canary10Percent10Minutes
+      - Canary10Percent15Minutes
+      - Canary10Percent30Minutes
 
 Conditions:
   IsDeployedFromPipeline: !Equals
@@ -122,6 +132,8 @@ Conditions:
     Fn::Or:
       - !Equals [!Ref Environment, "production"]
       - !Equals [!Ref Environment, "staging"]
+
+  UseCanaryDeploymentAlarms: !Not [ !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]]
 
 Globals:
   Function:
@@ -179,6 +191,9 @@ Globals:
       - !Sub
         - '{{resolve:secretsmanager:${SecretArn}:SecretString:JAVA_LAYER}}' # or NODEJS_LAYER or PYTHON_LAYER
         - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+    DeploymentPreference:
+      Type: !Ref LambdaDeploymentPreference
+      Role: !GetAtt CodeDeployServiceRole.Arn
 
 Mappings:
   EnvironmentConfiguration:
@@ -533,6 +548,11 @@ Resources:
             - !Ref "AWS::NoValue"
           SIGNING_KEY_ID: !ImportValue acm-infra-DvaSigningKeyId
           ENCRYPTION_KEY_ID: !ImportValue acm-infra-DvaEncryptionKeyId
+      DeploymentPreference:
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref DrivingPermitCheckingFunctionFatalErrorAlarm, !Ref DrivingPermitCheckingFunctionCanaryErrors, !Ref DrivingPermitCheckingFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -667,6 +687,13 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
+      Events:
+        DrivingPermitChecking:
+          Type: Api
+          Properties:
+            Path: /check-driving-licence
+            Method: post
+            RestApiId: !Ref PrivateDrivingPermitApi
 
   DrivingPermitCheckingFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -686,7 +713,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt DrivingPermitCheckingFunction.Arn
+      FunctionName: !Ref DrivingPermitCheckingFunction
       Principal: apigateway.amazonaws.com
 
 ####################################################################
@@ -706,6 +733,11 @@ Resources:
           ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
           ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
+      DeploymentPreference:
+        Alarms: !If
+        - UseCanaryDeploymentAlarms
+        - [!Ref IssueCredentialFunctionFatalErrorAlarm, !Ref IssueCredentialFunctionCanaryErrors, !Ref IssueCredentialFunctionCanary5xxErrors]
+        - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -756,11 +788,20 @@ Resources:
               - CreateMockTxmaResources
               - !GetAtt MockAuditEventQueueEncryptionKey.Arn
               - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
+
       ProvisionedConcurrencyConfig:
         !If
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
+
+      Events:
+        IssueCredential:
+          Type: Api
+          Properties:
+            Path: /credential/issue
+            Method: post
+            RestApiId: !Ref PublicDrivingPermitApi
 
   IssueCredentialFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -780,7 +821,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt IssueCredentialFunction.Arn
+      FunctionName: !Ref IssueCredentialFunction
       Principal: apigateway.amazonaws.com
 
   ####################################################################
@@ -974,6 +1015,24 @@ Resources:
           RetryPolicy:
             MaximumRetryAttempts: 0
 
+  #############################
+  # code deploy role for lambda canary deployments
+  #############################
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary,!Ref AWS::NoValue]
 
   #############################
   # New consumer queue for testing TxMA header
@@ -2808,7 +2867,6 @@ Resources:
 
   DrivingPermitCheckingFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref DrivingPermitCheckingFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2822,7 +2880,6 @@ Resources:
     DependsOn:
       - "DrivingPermitCheckingFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2842,6 +2899,63 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  DrivingPermitCheckingFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "DrivingPermitCheckingFunction Lambda returning 5xx response."
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName}-PrivateDLApi"
+        - Name: Method
+          Value: POST
+        - Name: Resource
+          Value: /check-driving-licence
+        - Name: Stage
+          Value: !Ref Environment
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DrivingPermitCheckingFunctionCanaryErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "DrivingPermitChecking Lambda error."
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction:live"
+        - Name: FunctionName
+          Value: !Ref DrivingPermitCheckingFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt DrivingPermitCheckingFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
 ################################# IssueCredential Alarms ##############################
   IssueCredential5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -3056,7 +3170,6 @@ Resources:
 
   IssueCredentialFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
     Properties:
       LogGroupName: !Ref IssueCredentialFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -3070,7 +3183,6 @@ Resources:
     DependsOn:
       - "IssueCredentialFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3087,6 +3199,62 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  IssueCredentialFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "IssueCredentialFunction Lambda returning 5xx response."
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName}-PublicDLApi"
+        - Name: Method
+          Value: POST
+        - Name: Resource
+          Value: /credential/issue
+        - Name: Stage
+          Value: !Ref Environment
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  IssueCredentialFunctionCanaryErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "IssueCredential Lambda error."
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-IssueCredentialFunction:live"
+        - Name: FunctionName
+          Value: !Ref IssueCredentialFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt IssueCredentialFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching

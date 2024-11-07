@@ -1,0 +1,34 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://vocab.london.cloudapps.digital/contexts/identity-v1.jsonld"
+  ],
+  "name": [
+    {
+      "nameParts": [
+        {
+          "type": "GivenName",
+          "value": "KENNETH"
+        },
+        {
+          "type": "FamilyName",
+          "value": "DECERQUEIRA"
+        }
+      ]
+    }
+  ],
+  "birthDate": [
+    {
+      "value": "1965-07-08"
+    }
+  ],
+  "drivingPermit": [
+    {
+      "personalNumber": "12345678",
+      "expiryDate": "2042-10-01",
+      "issueDate": "2018-04-19",
+      "issuedBy": "DVA",
+      "fullAddress": ""
+    }
+  ]
+}

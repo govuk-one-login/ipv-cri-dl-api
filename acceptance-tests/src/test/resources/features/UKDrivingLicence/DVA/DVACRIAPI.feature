@@ -19,6 +19,19 @@ Feature: DVA CRI API
       | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA          | DVAAuthValidKennethJsonPayload |
       | check_details | 55667788       | 2042-10-01 | 2018-04-19 | DVA      | 70 OLD BAKERS COURT BELFAST NW3 5RG | DVAAuthValidBillyJsonPayload   |
 
+#  @drivingLicenceCRI_API @pre-merge @dev
+#  Scenario Outline: DVA Driving Licence - Auth Source Retry Journey Happy Path
+#    Given DVA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
+#    And Driving Licence user sends a POST request to session endpoint
+#    And Driving Licence user gets a session-id
+#    And Driving Licence user sends a GET request to the personInfo endpoint
+#    When Driving Licence user sends a POST request to Driving Licence endpoint using updated jsonRequest returned from the personInfo Table <JSONPayloadRequest>
+#    Then Driving Licence check response should contain Retry value as false
+#    Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+#    Examples:
+#      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                | JSONPayloadRequest    | cri_internal_error_code | cri_internal_error_message    |
+#      | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA | DVAInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
+
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVA Driving Licence Happy path
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6

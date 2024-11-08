@@ -66,6 +66,10 @@ public class Definitions {
     public static final String LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_ERROR =
             "lambda_password_renewal_check_completed_error";
 
+    // Context Value Tracking
+    public static final String CONTEXT_VALUE = "context_value_";
+    public static final String CONTEXT_VALUE_NULL = "context_value_null";
+
     private Definitions() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

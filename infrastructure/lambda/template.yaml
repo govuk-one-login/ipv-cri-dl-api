@@ -191,9 +191,6 @@ Globals:
       - !Sub
         - '{{resolve:secretsmanager:${SecretArn}:SecretString:JAVA_LAYER}}' # or NODEJS_LAYER or PYTHON_LAYER
         - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
-    DeploymentPreference:
-      Type: !Ref LambdaDeploymentPreference
-      Role: !GetAtt CodeDeployServiceRole.Arn
 
 Mappings:
   EnvironmentConfiguration:
@@ -549,6 +546,8 @@ Resources:
           SIGNING_KEY_ID: !ImportValue acm-infra-DvaSigningKeyId
           ENCRYPTION_KEY_ID: !ImportValue acm-infra-DvaEncryptionKeyId
       DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
         Alarms: !If
           - UseCanaryDeploymentAlarms
           - [!Ref DrivingPermitCheckingFunctionFatalErrorAlarm, !Ref DrivingPermitCheckingFunctionCanaryErrors, !Ref DrivingPermitCheckingFunctionCanary5xxErrors]
@@ -734,6 +733,8 @@ Resources:
           ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
       DeploymentPreference:
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
         Alarms: !If
         - UseCanaryDeploymentAlarms
         - [!Ref IssueCredentialFunctionFatalErrorAlarm, !Ref IssueCredentialFunctionCanaryErrors, !Ref IssueCredentialFunctionCanary5xxErrors]

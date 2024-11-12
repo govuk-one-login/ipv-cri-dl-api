@@ -17,9 +17,14 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         Continue.click();
     }
 
-    @When("User click the consent checkbox")
-    public void user_clicks_on_consent_box() {
+    @When("User clicks the DVA consent checkbox")
+    public void user_clicks_on_DVA_consent_box() {
         consentDVACheckbox.click();
+    }
+
+    @When("User clicks the DVLA consent checkbox")
+    public void user_clicks_on_DVLA_consent_box() {
+        consentDVLACheckbox.click();
     }
 
     @Then("User clicks selects the Yes Radio Button")
@@ -75,6 +80,11 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @Then("^I see the give your consent error in the summary as (.*)$")
     public void noConsentGivenErrorMessageIsDisplayed(String expectedText) {
         assertNoConsentGivenInErrorSummary(expectedText);
+    }
+
+    @Then("^I see the DVA give your consent error in the summary as (.*)$")
+    public void noConsentGivenDVAErrorMessageIsDisplayed(String expectedText) {
+        assertNoConsentGivenInDVAErrorSummary(expectedText);
     }
 
     @Then("^I can see the licence number error in the field as (.*)$")

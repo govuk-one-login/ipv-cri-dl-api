@@ -351,6 +351,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "consentCheckbox-error")
     public WebElement DVLAConsentCheckboxError;
 
+    @FindBy(id = "consentDVACheckbox-error")
+    public WebElement dvaConsentCheckboxError;
+
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/form/h2")
     public WebElement DVLAConsentSection;
 
@@ -1099,7 +1102,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertNoConsentGivenInErrorSummary(String expectedText) {
-        assertEquals(expectedText, DVLAConsentCheckboxError.getText());
+        String formattedErrorText = DVLAConsentCheckboxError.getText().replaceAll("\\s+", " ");
+        assertEquals(expectedText, formattedErrorText);
+    }
+
+    public void assertNoConsentGivenInDVAErrorSummary(String expectedText) {
+        String formattedErrorText = dvaConsentCheckboxError.getText().replaceAll("\\s+", " ");
+        assertEquals(expectedText, formattedErrorText);
     }
 
     public void ciInVC(String ci) throws IOException {

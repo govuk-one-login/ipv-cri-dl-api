@@ -19,24 +19,22 @@ Feature: DrivingLicence CRI API
       | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     | 8 HADLEY ROAD BATH TB2 5AA | DVLAValidKennethJsonPayload |
       | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     | 8 HADLEY ROAD BATH BA2 5AA | DVLAValidKennethJsonPayload |
 
-#  @drivingLicenceCRI_API @pre-merge @dev
-#  Scenario Outline: DVLA Driving Licence - Auth Source Retry Journey Happy Path
-#    Given DVLA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issueNumber>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
-#    And Driving Licence user sends a POST request to session endpoint
-#    And Driving Licence user gets a session-id
-#    And Driving Licence user sends a GET request to the personInfo endpoint
-#    When Driving Licence user sends a POST request to Driving Licence endpoint using updated jsonRequest returned from the personInfo Table <JSONPayloadRequest>
-#    Then Driving Licence check response should contain Retry value as true
-#    And Driving Licence user gets authorisation code
-#    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
-#    Then User requests Driving Licence CRI VC
-#    And Driving Licence VC should contain validityScore 2 and strengthScore 3
-#    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
-#    And Driving Licence VC should contain JTI field
-##    Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
-#    Examples:
-#      | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress                | JSONPayloadRequest     | cri_internal_error_code | cri_internal_error_message    |
-#      | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     | 8 HADLEY ROAD BATH TB2 5AA | DVLAInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario Outline: DVLA Driving Licence - Auth Source Retry Journey Happy Path
+    Given DVLA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issueNumber>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using updated jsonRequest returned from the personInfo Table <JSONPayloadRequest>
+    Then Driving Licence check response should contain Retry value as true
+    And Driving Licence user gets authorisation code
+    And Driving Licence user sends a POST request to Access Token endpoint driving-licence-cri-dev
+    Then User requests Driving Licence CRI VC
+    And Driving Licence VC should contain validityScore 0 and strengthScore 3
+    And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in failedCheckDetails checkDetails
+    And Driving Licence VC should contain JTI field
+    Examples:
+      | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress                | JSONPayloadRequest     |
+      | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     | 8 HADLEY ROAD BATH TB2 5AA | DVLAInvalidJsonPayload |
 
 
   @drivingLicenceCRI_API @pre-merge @dev

@@ -67,6 +67,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.CONTEXT_VALUE_NULL;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX;
@@ -192,6 +193,7 @@ class DrivingPermitHandlerTest {
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
                 .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(CONTEXT_VALUE_NULL);
         inOrder.verify(mockEventProbe)
                 .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
@@ -282,6 +284,7 @@ class DrivingPermitHandlerTest {
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
                 .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(CONTEXT_VALUE_NULL);
 
         if (documentVerified) {
             inOrder.verify(mockEventProbe)
@@ -381,6 +384,7 @@ class DrivingPermitHandlerTest {
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
                 .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(CONTEXT_VALUE_NULL);
 
         if (documentVerified) {
             inOrder.verify(mockEventProbe)
@@ -445,6 +449,7 @@ class DrivingPermitHandlerTest {
         verify(mockEventProbe)
                 .counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_USER_REDIRECTED_ATTEMPTS_OVER_MAX);
         verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);
+        verify(mockEventProbe).counterMetric(CONTEXT_VALUE_NULL);
         verifyNoMoreInteractions(mockEventProbe);
 
         assertNotNull(responseEvent);
@@ -495,6 +500,7 @@ class DrivingPermitHandlerTest {
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
                 .counterMetric(eq(LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(CONTEXT_VALUE_NULL);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
         verifyNoMoreInteractions(mockEventProbe);
 

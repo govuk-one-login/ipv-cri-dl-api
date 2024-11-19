@@ -223,6 +223,13 @@ public class DrivingPermitHandler
             LOGGER.info("Extracting session from header ID {}", sessionId);
             var sessionItem = sessionService.validateSessionId(sessionId);
 
+            if (null != sessionItem.getContext()) {
+                eventProbe.counterMetric(Definitions.CONTEXT_VALUE + sessionItem.getContext());
+                LOGGER.info("context value={}", sessionItem.getContext());
+            } else {
+                eventProbe.counterMetric(Definitions.CONTEXT_VALUE_NULL);
+            }
+
             // Attempt Start
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());

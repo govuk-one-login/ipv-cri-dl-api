@@ -84,7 +84,7 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
                 eventProbe
                         .counterMetric(Definitions.CERTIFICATE_EXPIRYS)
                         .addDimensions(certExpiryMap);
-
+                // number of dimensions will go out of range if ALL certs expire
             } else {
                 LOGGER.info(
                         "cert path - {}, expires - {}",

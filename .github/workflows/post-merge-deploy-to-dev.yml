@@ -44,21 +44,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DL_DEV_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: SAM Validate
-        run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/lambda/template.yaml --lint
-
-      - name: SAM build
-        run: |
-          mkdir out
-          sam build -t infrastructure/lambda/template.yaml -b out
-
-      - name: Deploy SAM app
-        uses: govuk-one-login/devplatform-upload-action@v3.9
-        with:
-          artifact-bucket-name: "${{ secrets.DEV_ARTIFACT_SOURCE_BUCKET_NAME }}"
-          signing-profile-name: "${{ secrets.DEV_SIGNING_PROFILE_NAME }}"
-          working-directory: ./out
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -79,3 +64,21 @@ jobs:
           working-directory: acceptance-tests
           build-and-push-image-only: true
           push-latest-tag: true
+
+      - name: reset to working directory
+        run: cd ${GITHUB_WORKSPACE}
+
+      - name: SAM Validate
+        run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/lambda/template.yaml --lint
+
+      - name: SAM build
+        run: |
+          mkdir out
+          sam build -t infrastructure/lambda/template.yaml -b out
+
+      - name: Deploy SAM app
+        uses: govuk-one-login/devplatform-upload-action@v3.9
+        with:
+          artifact-bucket-name: "${{ secrets.DEV_ARTIFACT_SOURCE_BUCKET_NAME }}"
+          signing-profile-name: "${{ secrets.DEV_SIGNING_PROFILE_NAME }}"
+          working-directory: ./out

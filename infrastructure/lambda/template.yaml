@@ -693,6 +693,13 @@ Resources:
       FunctionName: !GetAtt DrivingPermitCheckingFunction.Arn
       Principal: apigateway.amazonaws.com
 
+  DrivingPermitCheckingFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DrivingPermitCheckingFunction.Alias
+      Principal: apigateway.amazonaws.com
+
 ####################################################################
 #                                                                  #
 # Issue Credential Function                                        #
@@ -787,6 +794,13 @@ Resources:
       FunctionName: !GetAtt IssueCredentialFunction.Arn
       Principal: apigateway.amazonaws.com
 
+  IssueCredentialFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref IssueCredentialFunction.Alias
+      Principal: apigateway.amazonaws.com
+
   ####################################################################
   #                                                                  #
   # Person Info Function                                        #
@@ -843,6 +857,13 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt PersonInfoFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  PersonInfoFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PersonInfoFunction.Alias
       Principal: apigateway.amazonaws.com
 
   ####################################################################

@@ -44,6 +44,30 @@ jobs:
           role-to-assume: ${{ secrets.AWS_DL_DEV_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+        with:
+          cosign-release: 'v1.9.0'
+
+      - name: Build, push traffic test image to ECR
+        uses: govuk-one-login/devplatform-upload-action-ecr@5431bcea6158b6c12776a96e067b1e02bf91b13d # pin@1.3.0
+        with:
+          artifact-bucket-name: ""
+          container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY_TEST }}
+          role-to-assume-arn: ${{ secrets.AWS_DL_DEV_ROLE_ARN }}
+          ecr-repo-name: ${{ secrets.ECR_REPOSITORY_TRAFFIC_DEV }}
+          dockerfile: Dockerfile-traffictest
+          working-directory: acceptance-tests
+          build-and-push-image-only: true
+          push-latest-tag: true
+
+      - name: reset to working directory
+        run: cd ${GITHUB_WORKSPACE}
+
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/lambda/template.yaml --lint
 

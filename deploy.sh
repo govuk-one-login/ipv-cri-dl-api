@@ -50,4 +50,5 @@ sam deploy --stack-name "$stack_name" \
   CreateMockTxmaResourcesOverride=true \
   ParameterPrefix="dl-cri-api-v1" \
   UseApiKey="' '" \
-  DeploymentType="not-pipeline"
+  DeploymentType="not-pipeline" \
+  LambdaDeploymentPreference="AllAtOnce"

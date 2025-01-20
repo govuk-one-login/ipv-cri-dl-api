@@ -146,6 +146,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/p")
     public WebElement pageDescriptionHeading;
 
+    @FindBy(xpath = "//*[@id=\"cookies-banner-main\"]")
+    public WebElement cookieBanner;
+
     @FindBy(xpath = "/html/body/div[2]/div/p/strong")
     public WebElement betaBanner;
 
@@ -506,6 +509,10 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     // Should be seperate page
 
+    public void cookieBannerIsDisplayed() {
+        BrowserUtils.waitForVisibility(cookieBanner, 10);
+    }
+
     public void betaBanner() {
         betaBanner.isDisplayed();
     }
@@ -516,6 +523,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void rejectAnalysisCookie(String rejectAnalysis) {
+        BrowserUtils.waitForVisibility(rejectAnalysisButton, 10);
         rejectAnalysisButton.click();
     }
 

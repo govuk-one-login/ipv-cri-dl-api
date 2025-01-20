@@ -298,6 +298,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @And("^I select (.*) cookie$")
     public void selectRejectAnalysisCookie(String rejectAnalysis) {
+        cookieBannerIsDisplayed();
         rejectAnalysisCookie(rejectAnalysis);
     }
 

@@ -19,7 +19,6 @@ Feature: DVA Auth Source Driving Licence Test
     And The test is complete and I close the driver
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject   | personalNumber |
-      | check_details | DVAAuthSourceValidBillyJsonPayload   | 55667788       |
       | check_details | DVAAuthSourceValidKennethJsonPayload | 12345678       |
 
   @build @smoke @stub @staging @integration @uat
@@ -54,8 +53,8 @@ Feature: DVA Auth Source Driving Licence Test
     And JSON response should contain JTI field
     And The test is complete and I close the driver
     Examples:
-      | contextValue | DVADrivingLicenceAuthSourceSubject | personalNumber | DVADrivingLicenceSubject           |
-      |              | DVAAuthSourceValidBillyJsonPayload | 55667788       | DVADrivingLicenceSubjectHappyBilly |
+      | contextValue | DVADrivingLicenceAuthSourceSubject   | personalNumber | DVADrivingLicenceSubject             |
+      |              | DVAAuthSourceValidKennethJsonPayload | 12345678       | DVADrivingLicenceSubjectHappyKenneth |
 
   @build @smoke @stub @staging @integration @uat
   Scenario Outline: DVA Auth Source - Raw JSON Object Validation Tests - Missing Address field in Claimset

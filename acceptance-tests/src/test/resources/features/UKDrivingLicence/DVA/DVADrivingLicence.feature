@@ -17,12 +17,12 @@ Feature: DVA Driving Licence Test
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
-    And JSON response should contain personal number 55667788 same as given Driving Licence
+    And JSON response should contain personal number 12345678 same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
     Examples:
       | DVADrivingLicenceSubject           |
-      | DVADrivingLicenceSubjectHappyBilly |
+      | DVADrivingLicenceSubjectHappyKenneth |
 
   @DVADrivingLicence_test
   Scenario Outline: DVA - User attempts journey with invalid details and returns authorisation error
@@ -35,7 +35,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject              |
       | DVADrivingLicenceSubjectUnhappySelina |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub
   Scenario Outline: DVA - User enters invalid driving licence number
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA license number as <InvalidLicenceNumber>
@@ -78,7 +78,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLastName |
       | DVADrivingLicenceSubjectHappyBilly | KYLE            |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub
   Scenario Outline: DVA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA issue day as <InvalidLicenceIssueDay>
@@ -94,7 +94,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DVADrivingLicenceSubjectHappyBilly | 14                     | 09                       | 2019                    |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub
   Scenario Outline: DVA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters valid to day as <InvalidValidToDay>
@@ -110,7 +110,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
       | DVADrivingLicenceSubjectHappyBilly | 04                | 08                  | 2032               |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub
   Scenario Outline: DVA - User enters invalid postcode and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     Given User re-enters postcode as <InvalidPostcode>
@@ -124,8 +124,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidPostcode |
       | DVADrivingLicenceSubjectHappyBilly | E20 2AQ         |
 
-
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @smoke @stub
   Scenario Outline: DVA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -139,7 +138,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           |
       | DVADrivingLicenceSubjectHappyBilly |
 
-  @build @staging @integration @stub @uat @smoke
+  @build @staging @integration @stub @smoke
   Scenario Outline: DVA - User attempts invalid journey and retries with invalid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -273,9 +272,9 @@ Feature: DVA Driving Licence Test
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
-    And JSON response should contain personal number 55667788 same as given Driving Licence
+    And JSON response should contain personal number 12345678 same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
     Examples:
-      | DVADrivingLicenceSubject           |
-      | DVADrivingLicenceSubjectHappyBilly |
+      | DVADrivingLicenceSubject             |
+      | DVADrivingLicenceSubjectHappyKenneth |

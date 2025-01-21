@@ -198,7 +198,7 @@ public class PersonInfoHandler
             LOGGER.debug(e.getMessage(), e);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR, e.getMessage()));
+                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         }
     }
 }

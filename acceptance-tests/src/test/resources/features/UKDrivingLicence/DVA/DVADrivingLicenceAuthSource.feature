@@ -1,6 +1,6 @@
 Feature: DVA Auth Source Driving Licence Test
 
-  @build @smoke @stub @staging @integration @uat
+  @build @smoke @stub @staging @integration @uat @traffic
   Scenario Outline: DVA Auth Source - Happy path
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -34,7 +34,7 @@ Feature: DVA Auth Source Driving Licence Test
       | check_detail  | DVAAuthSourceValidBillyJsonPayload |
       | invalid_value | DVAAuthSourceValidBillyJsonPayload |
 
-  @build @smoke @stub @staging @integration @uat
+  @build @smoke @stub @staging @integration @uat @traffic
   Scenario Outline: DVA Auth Source - Validation Test - Missing context field directs to default DVA journey
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string

@@ -11,7 +11,7 @@ Feature: DVA Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And I see a form requesting DVA LicenceNumber
 
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @smoke @stub @uat @traffic
   Scenario Outline: DVA - Happy path
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -35,7 +35,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject              |
       | DVADrivingLicenceSubjectUnhappySelina |
 
-  @build @staging @integration @stub
+  @build @staging @integration @stub @traffic
   Scenario Outline: DVA - User enters invalid driving licence number
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA license number as <InvalidLicenceNumber>
@@ -50,7 +50,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVA - User enters invalid first name and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters first name as <InvalidFirstName>
@@ -64,7 +64,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidFirstName |
       | DVADrivingLicenceSubjectHappyBilly | SELINA           |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVA - User enters invalid last name and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters last name as <InvalidLastName>
@@ -78,7 +78,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLastName |
       | DVADrivingLicenceSubjectHappyBilly | KYLE            |
 
-  @build @staging @integration @stub
+  @build @staging @integration @stub @traffic
   Scenario Outline: DVA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA issue day as <InvalidLicenceIssueDay>
@@ -94,7 +94,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DVADrivingLicenceSubjectHappyBilly | 14                     | 09                       | 2019                    |
 
-  @build @staging @integration @stub
+  @build @staging @integration @stub @traffic
   Scenario Outline: DVA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters valid to day as <InvalidValidToDay>
@@ -110,7 +110,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
       | DVADrivingLicenceSubjectHappyBilly | 04                | 08                  | 2032               |
 
-  @build @staging @integration @stub
+  @build @staging @integration @stub @traffic
   Scenario Outline: DVA - User enters invalid postcode and returns could not find your details error message
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     Given User re-enters postcode as <InvalidPostcode>
@@ -124,7 +124,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidPostcode |
       | DVADrivingLicenceSubjectHappyBilly | E20 2AQ         |
 
-  @build @staging @integration @smoke @stub
+  @build @staging @integration @smoke @stub @traffic
   Scenario Outline: DVA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -138,7 +138,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           |
       | DVADrivingLicenceSubjectHappyBilly |
 
-  @build @staging @integration @stub @smoke
+  @build @staging @integration @stub @smoke @traffic
   Scenario Outline: DVA - User attempts invalid journey and retries with invalid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -153,7 +153,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
-  @build @staging @integration @stub @uat @smoke
+  @build @staging @integration @stub @uat @smoke @traffic
   Scenario: DVA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -230,7 +230,7 @@ Feature: DVA Driving Licence Test
     And The test is complete and I close the driver
 
     #not existing in front end repo
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @smoke @stub @uat @traffic
   Scenario Outline: DVA - User attempts journey with invalid details and clicks on prove another way and generates a VC
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA license number as <InvalidLicenceNumber>
@@ -264,7 +264,7 @@ Feature: DVA Driving Licence Test
     Then I see the DVA privacy notice link the DVA privacy notice (opens in a new tab)
     And The test is complete and I close the driver
 
-  @build @stub @Language-regression
+  @build @stub @Language-regression @traffic
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK

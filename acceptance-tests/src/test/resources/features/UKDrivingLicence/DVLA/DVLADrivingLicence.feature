@@ -11,7 +11,7 @@ Feature: Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
     And I see a form requesting DVLA LicenceNumber
 
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @smoke @stub @uat @traffic
   Scenario Outline: DVLA - Happy path
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -23,7 +23,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVLA - User enters invalid driving licence number
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters license number as <InvalidLicenceNumber>
@@ -64,7 +64,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
       | DrivingLicenceSubjectHappyKenneth | 12              | 08                | 1985             |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVLA - User enters invalid last name and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters last name as <InvalidLastName>
@@ -78,7 +78,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             | InvalidLastName |
       | DrivingLicenceSubjectHappyKenneth | KYLE            |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVLA - User enters invalid issue date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters issue day as <InvalidLicenceIssueDay>
@@ -94,7 +94,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVLA - User enters invalid valid-to date and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters valid to day as <InvalidValidToDay>
@@ -110,7 +110,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
       | DrivingLicenceSubjectHappyKenneth | 04                | 08                  | 2032               |
 
-  @build @staging @integration @stub @uat
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVLA - User enters invalid issue number and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters issue day as <InvalidLicenceIssueDay>
@@ -126,7 +126,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
 
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @smoke @stub @uat @traffic
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -140,7 +140,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
 
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @smoke @stub @uat @traffic
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -155,7 +155,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject           | InvalidLicenceNumber |
       | DrivingLicenceSubjectHappyPeter | PARKE610112PBFGI     |
 
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @smoke @stub @uat @traffic
   Scenario: DVLA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -197,7 +197,7 @@ Feature: Driving Licence Test
     Then I see the DVLA privacy notice link the DVLA privacy notice (opens in a new tab)
     And The test is complete and I close the driver
 
-  @build @stub @Language-regression
+  @build @stub @Language-regression @traffic
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK

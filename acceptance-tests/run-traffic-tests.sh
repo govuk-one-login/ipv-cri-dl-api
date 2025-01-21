@@ -34,7 +34,7 @@ echo "ENVIRONMENT ${ENVIRONMENT}"
 echo "STACK_NAME ${STACK_NAME}"
 
 if [ "${STACK_NAME}" != "local" ]; then
-  export JOURNEY_TAG=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/TestTag" | jq -r ".Parameter.Value")
+  export JOURNEY_TAG=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/TrafficTestTag" | jq -r ".Parameter.Value")
 
   PARAMETERS_NAMES=(coreStubPassword coreStubUrl coreStubUsername passportCriUrl apiBaseUrl orchestratorStubUrl)
   tLen=${#PARAMETERS_NAMES[@]}
@@ -51,20 +51,13 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
+for i in $(seq 1 4);
+do
+  pushd /home/gradle
+  gradle cucumber -P tags=${JOURNEY_TAG}
+  popd
 
-sleep 2
-
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
-
-sleep 2
-
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
+  sleep 2
+done
 
 cp -r /home/gradle/build/test-results "$REPORT_DIR"

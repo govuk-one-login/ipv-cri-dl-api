@@ -40,7 +40,7 @@ Feature: DVLA Auth Source Driving Licence Test
     And I enter the context value <contextValue> in the Input context value as a string
     And I enter the shared claims raw JSON <DVLADrivingLicenceAuthSourceSubject> in the Input shared claims raw JSON
     And I add a cookie to change the language to English
-    Then I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
+    Then I check the page title is Was your UK photocard driving licence issued by DVLA or DVA? – Prove your identity – GOV.UK
     And I should see DVLA as an option
     And I click on DVLA radio button and Continue
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK

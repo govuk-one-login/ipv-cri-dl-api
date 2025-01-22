@@ -62,7 +62,7 @@ Feature: DVA Auth Source Driving Licence Test
     And I enter the context value <contextValue> in the Input context value as a string
     And I enter the shared claims raw JSON <DVADrivingLicenceAuthSourceSubject> in the Input shared claims raw JSON
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
-    And JSON response should contain error description Internal server error and status code as 302
+    And JSON response should contain error description Unexpected server error and status code as 302
     And The test is complete and I close the driver
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject     |

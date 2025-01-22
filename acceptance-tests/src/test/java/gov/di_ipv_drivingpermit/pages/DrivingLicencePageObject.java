@@ -488,6 +488,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void navigateToDrivingLicenceResponse(String validOrInvalid) {
+        assertURLContains("callback");
+
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
             assertPageTitle(STUB_ERROR_PAGE_TITLE, false);
             assertURLContains("callback");

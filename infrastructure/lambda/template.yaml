@@ -2921,9 +2921,9 @@ Resources:
       AlarmActions:
         - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: [ ]
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
+      EvaluationPeriods: 1440
+      DatapointsToAlarm: 2
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       Metrics:
@@ -2939,7 +2939,7 @@ Resources:
               MetricName: dva_third_party_api_dva_endpoint_api_response_type_unexpected_http_status
               Dimensions:
                 - Name: Service
-                  Value: "di-ipv-cri-dl-api-drivingpermitcheck"
+                  Value: !Sub "${CriIdentifier}-drivingpermitcheck"
             Period: 60
             Stat: Sum
         - Id: errorResponse
@@ -2950,7 +2950,7 @@ Resources:
               MetricName: dva_third_party_api_dva_endpoint_api_response_type_error
               Dimensions:
                 - Name: Service
-                  Value: "di-ipv-cri-dl-api-drivingpermitcheck"
+                  Value: !Sub "${CriIdentifier}-drivingpermitcheck"
             Period: 60
             Stat: Sum
 

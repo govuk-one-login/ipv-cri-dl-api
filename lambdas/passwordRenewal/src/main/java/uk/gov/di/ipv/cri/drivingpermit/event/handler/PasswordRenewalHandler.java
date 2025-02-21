@@ -57,7 +57,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
     @ExcludeFromGeneratedCoverageReport
     public PasswordRenewalHandler() throws JsonProcessingException {
 
-        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory(true, true);
 
         ParameterStoreService parameterStoreService =
                 new ParameterStoreService(clientProviderFactory.getSSMProvider());

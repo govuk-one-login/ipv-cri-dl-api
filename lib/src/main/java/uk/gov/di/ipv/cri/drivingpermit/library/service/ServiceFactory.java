@@ -2,11 +2,6 @@ package uk.gov.di.ipv.cri.drivingpermit.library.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.acm.AcmClient;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
@@ -39,14 +34,12 @@ public class ServiceFactory {
     // Common-Lib
     private final ConfigurationService commonLibConfigurationService;
 
-    private AcmClient acmClient;
-
     @ExcludeFromGeneratedCoverageReport
     public ServiceFactory() {
         this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         this.eventProbe = new EventProbe();
 
-        this.clientProviderFactory = new ClientProviderFactory();
+        this.clientProviderFactory = new ClientProviderFactory(true, true);
         this.apacheHTTPClientFactoryService = new ApacheHTTPClientFactoryService();
         this.parameterStoreService =
                 new ParameterStoreService(clientProviderFactory.getSSMProvider());
@@ -81,19 +74,6 @@ public class ServiceFactory {
                 new PersonIdentityService(
                         commonLibConfigurationService,
                         clientProviderFactory.getDynamoDbEnhancedClient());
-
-        Region awsRegion = Region.of(System.getenv("AWS_REGION"));
-        // AWS SDK CRT Client (SYNC) - connection defaults are in SdkHttpConfigurationOption
-        SdkHttpClient sdkHttpClient = AwsCrtHttpClient.builder().maxConcurrency(100).build();
-        EnvironmentVariableCredentialsProvider environmentVariableCredentialsProvider =
-                EnvironmentVariableCredentialsProvider.create();
-
-        this.acmClient =
-                AcmClient.builder()
-                        .region(awsRegion)
-                        .httpClient(sdkHttpClient)
-                        .credentialsProvider(environmentVariableCredentialsProvider)
-                        .build();
     }
 
     // Service factory used to avoid passing all these parameters elsewhere
@@ -160,9 +140,5 @@ public class ServiceFactory {
     public ConfigurationService getCommonLibConfigurationService() {
         // Note SSM parameter gets via this service use a 5min cache time
         return commonLibConfigurationService;
-    }
-
-    public AcmClient getAcmClient() {
-        return acmClient;
     }
 }

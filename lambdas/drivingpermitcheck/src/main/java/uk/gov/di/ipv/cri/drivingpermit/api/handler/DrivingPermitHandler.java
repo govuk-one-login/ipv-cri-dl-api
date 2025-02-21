@@ -107,7 +107,7 @@ public class DrivingPermitHandler
                 createDrivingPermitConfigurationService(serviceFactory);
 
         AcmCertificateService acmCertificateService =
-                new AcmCertificateService(serviceFactory.getAcmClient());
+                new AcmCertificateService(serviceFactory.getClientProviderFactory().getAcmClient());
 
         ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactoryNotAssignedYet =
                 new ThirdPartyAPIServiceFactory(

@@ -34,7 +34,7 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
     @ExcludeFromGeneratedCoverageReport
     public CertExpiryReminderHandler()
             throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
-        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory(true, true);
 
         ParameterStoreService parameterStoreService =
                 new ParameterStoreService(clientProviderFactory.getSSMProvider());

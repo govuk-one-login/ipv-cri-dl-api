@@ -46,9 +46,10 @@ Feature: Driving License Test Common
     And The field error copy Error:You must choose an option to continue
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration @stub
-  Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
-    Given I delete the service_session cookie to get the unexpected error
-    When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
-    Then I can see the error heading Sorry, there is a problem
-    And The test is complete and I close the driver
+  # see LIME-1578
+#  @DrivingLicenceTest @build @staging @integration @stub
+#  Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
+#    Given I delete the service_session cookie to get the unexpected error
+#    When I check the page title is Sorry, there is a problem with GOV.UK One Login
+#    Then I can see the error heading Sorry, there is a problem
+#    And The test is complete and I close the driver

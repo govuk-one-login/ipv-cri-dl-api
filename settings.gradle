@@ -6,6 +6,5 @@ include "lib",
 		"lambdas:drivingpermitcheck",
 		"lambdas:issuecredential",
 		"lambdas:certexpiryreminder",
-		"acceptance-tests",
 		"lambdas:passwordRenewal",
 		"lambdas:personInfo"

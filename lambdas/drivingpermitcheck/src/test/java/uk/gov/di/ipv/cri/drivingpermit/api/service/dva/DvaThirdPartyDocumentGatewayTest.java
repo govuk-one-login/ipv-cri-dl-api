@@ -518,7 +518,9 @@ class DvaThirdPartyDocumentGatewayTest {
                                                 parameterStoreService,
                                                 serviceFactory.getApacheHTTPClientFactoryService(),
                                                 new AcmCertificateService(
-                                                        serviceFactory.getAcmClient()),
+                                                        serviceFactory
+                                                                .getClientProviderFactory()
+                                                                .getAcmClient()),
                                                 true),
                                         eventProbe,
                                         1),

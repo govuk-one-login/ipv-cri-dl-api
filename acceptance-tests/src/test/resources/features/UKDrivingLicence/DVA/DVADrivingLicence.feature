@@ -5,10 +5,10 @@ Feature: DVA Driving Licence Test
     And I click the Driving Licence CRI for the testEnvironment
     And I search for Driving Licence user number 5 in the Experian table
     And I add a cookie to change the language to English
-    Then I check the page title is Was your UK photocard driving licence issued by DVLA or DVA? – Prove your identity – GOV.UK
+    Then I check the page title is Was your UK photocard driving licence issued by DVLA or DVA? – GOV.UK One Login
     And I should see DVA as an option
     And I click on DVA radio button and Continue
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVA LicenceNumber
 
   @build @staging @integration @smoke @stub @uat @traffic
@@ -195,7 +195,7 @@ Feature: DVA Driving Licence Test
     And User re-enters DVA license number as <InvalidLicenceNumber>
     And User re-enters postcode as <InvalidPostCode>
     When User clicks on continue
-    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And The test is complete and I close the driver
     Examples:
       | DVADrivingLicenceSubject           | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidIssueDay | InvalidIssueMonth | InvalidIssueYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | InvalidLicenceNumber | InvalidPostCode | Scenario                              |
@@ -267,7 +267,7 @@ Feature: DVA Driving Licence Test
   @build @stub @Language-regression @traffic
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – GOV.UK One Login
     Then User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response

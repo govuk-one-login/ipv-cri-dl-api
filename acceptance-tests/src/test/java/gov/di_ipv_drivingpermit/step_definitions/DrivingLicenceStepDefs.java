@@ -188,7 +188,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @Then(
-            "^I should on the page DVLA Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK$")
+            "^I should on the page DVLA Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login$")
     public void i_should_be_on_the_DVLA_page() {
         pageTitleDVLAValidation();
     }

@@ -16,10 +16,10 @@ Feature: Driving License Language Test
   @Language-regression
   Scenario Outline: DVLA Error tab title validation
     Given I click on DVLA radio button and Parhau
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – GOV.UK One Login
     Then User enters DVLA data as a <DrivingLicenceSubject>
     And User clicks on continue
-    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
+    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – GOV.UK One Login
     And The test is complete and I close the driver
     Examples:
       |DrivingLicenceSubject |
@@ -29,10 +29,10 @@ Feature: Driving License Language Test
   @Language-regression
   Scenario: DVAError tab title validation
     Given I click on DVA radio button and Parhau
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – GOV.UK One Login
     When I enter the invalid Postcode
     And User clicks on continue
-    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – Profi pwy ydych chi – GOV.UK
+    Then I check the page title is Gwall: Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – GOV.UK One Login
     And The test is complete and I close the driver
 
   #not existing in front end repo
@@ -61,7 +61,7 @@ Feature: Driving License Language Test
   Scenario Outline: Language Title validation Welsh DVLA
     Given I click on DVLA radio button and Parhau
     Then User clicks language toggle and switches to English
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     Then User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
@@ -76,7 +76,7 @@ Feature: Driving License Language Test
   Scenario Outline: Language Title validation Welsh DVA
     Given I click on DVA radio button and Parhau
     Then User clicks language toggle and switches to English
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     Then User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response

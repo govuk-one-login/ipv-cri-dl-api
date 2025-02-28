@@ -163,9 +163,9 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @And(
-            "I should be on `Enter your details exactly as they appear on your UK driving licence - Prove your identity - GOV.UK` page")
+            "I should be on `Enter your details exactly as they appear on your UK driving licence - GOV.UK One Login` page")
     public void
-            i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_prove_your_identity_gov_uk_page() {
+            i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_driving_licence_gov_uk_page() {
         Assert.assertTrue(new DrivingLicencePageObject().LicenceNumber.isDisplayed());
     }
 

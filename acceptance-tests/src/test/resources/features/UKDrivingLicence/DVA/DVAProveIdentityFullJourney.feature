@@ -10,16 +10,16 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVA Driving Licence Prove Your Identity Full Journey Route Happy Path (STUB)
     And I select the radio option UK driving licence and click on Continue
-    And I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
+    And I check the page title is Who was your UK driving licence issued by? – GOV.UK One Login
     And I click on DVA radio button and Continue
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     When User enters DVA data as a <DVADrivingLicenceSubject>
     And User clicks on continue
     And I enter BA2 5AA in the Postcode field and find address
     And the user chooses their address 8 HADLEY ROAD, BATH, BA2 5AA from dropdown and click `Choose address`
     And the user enters the date 2014 they moved into their current address
     And the user clicks `I confirm my details are correct`
-    Then I navigate to the page We need to check your details – Prove your identity – GOV.UK
+    Then I navigate to the page We need to check your details – GOV.UK One Login
     And User clicks on continue
     And the user clicks `Answer security questions`
     And kenneth answers the first question correctly
@@ -35,9 +35,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVA Prove Your Identity Full Journey Route - Retry Test Happy Path
     Given I select the radio option UK driving licence and click on Continue
-    And I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
+    And I check the page title is Who was your UK driving licence issued by? – GOV.UK One Login
     And I click on DVA radio button and Continue
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     When User enters invalid Driving Licence DVA details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
@@ -47,7 +47,7 @@ Feature: Prove Your Identity Full Journey
     And the user chooses their address 8 HADLEY ROAD, BATH, BA2 5AA from dropdown and click `Choose address`
     And the user enters the date 2014 they moved into their current address
     And the user clicks `I confirm my details are correct`
-    Then I navigate to the page We need to check your details – Prove your identity – GOV.UK
+    Then I navigate to the page We need to check your details – GOV.UK One Login
     And User clicks on continue
     And the user clicks `Answer security questions`
     And kenneth answers the first question correctly
@@ -63,15 +63,15 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario Outline: DVA Prove Your Identity Full Journey Route Unhappy Path - User Failed Second Attempt
     Given I select the radio option UK driving licence and click on Continue
-    And I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
+    And I check the page title is Who was your UK driving licence issued by? – GOV.UK One Login
     And I click on DVA radio button and Continue
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     When User enters invalid Driving Licence DVA details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User Re-enters DVA data as a <DVADrivingLicenceSubject>
     And User clicks on continue
-    Then I check the page title is Sorry, you’ll need to prove your identity another way – GOV.UK
+    Then I check the page title is Sorry, you’ll need to prove your identity another way – GOV.UK One Login
     And I can see the error heading Sorry, you’ll need to prove your identity another way
     And The test is complete and I close the driver
     Examples:
@@ -81,9 +81,9 @@ Feature: Prove Your Identity Full Journey
   @dlProveYourIdentityFullJourney
   Scenario: DVA Prove Your Identity Full Journey Route - Back Button From DVA Details Entry Screen To Licence Issuer Page
     Given I select the radio option UK driving licence and click on Continue
-    And I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
+    And I check the page title is Who was your UK driving licence issued by? – GOV.UK One Login
     And I click on DVA radio button and Continue
-    And I check the page title is Enter your details exactly as they appear on your UK driving licence – Prove your identity – GOV.UK
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     When User click on ‘Back' Link
-    And I check the page title is Who was your UK driving licence issued by? – Prove your identity – GOV.UK
+    And I check the page title is Who was your UK driving licence issued by? – GOV.UK One Login
     And The test is complete and I close the driver

@@ -213,7 +213,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
         kennethFirstQuestion.trim();
         System.out.println("kennethFirstQuestion = " + kennethFirstQuestion);
         switch (kennethFirstQuestion) {
-            case "Which provider did you take out a loan with? – Prove your identity – GOV.UK":
+            case "Which provider did you take out a loan with? – GOV.UK One Login":
                 try {
                     if (loanTSBBANKPLC.isDisplayed()) {
                         loanTSBBANKPLC.click();
@@ -226,7 +226,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "What is the outstanding balance of your current mortgage? – Prove your identity – GOV.UK":
+            case "What is the outstanding balance of your current mortgage? – GOV.UK One Login":
                 try {
                     if (OVER35000UPTO60000.isDisplayed()) {
                         OVER35000UPTO60000.click();
@@ -239,7 +239,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "How much is your monthly mortgage payment? – Prove your identity – GOV.UK":
+            case "How much is your monthly mortgage payment? – GOV.UK One Login":
                 try {
                     if (OVER500UPTO600.isDisplayed()) {
                         OVER500UPTO600.click();
@@ -252,7 +252,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "Which lender did you borrow your mortgage from? – Prove your identity – GOV.UK":
+            case "Which lender did you borrow your mortgage from? – GOV.UK One Login":
                 try {
                     if (SANTANDERANMFMORTGAGE.isDisplayed()) {
                         SANTANDERANMFMORTGAGE.click();
@@ -267,7 +267,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "In which year did you move to your current address? – Prove your identity – GOV.UK":
+            case "In which year did you move to your current address? – GOV.UK One Login":
                 try {
                     if (Year2002.isDisplayed()) {
                         Year2002.click();
@@ -280,7 +280,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "How long do you have to pay back your loan? – Prove your identity – GOV.UK":
+            case "How long do you have to pay back your loan? – GOV.UK One Login":
                 BrowserUtils.waitFor(2);
                 try {
                     if (OVER36MONTHSUPTO48MONTHS.isDisplayed()) {
@@ -294,7 +294,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "How much of your loan do you pay back every month? – Prove your identity – GOV.UK":
+            case "How much of your loan do you pay back every month? – GOV.UK One Login":
                 try {
                     if (OVER550UPTO600.isDisplayed()) {
                         OVER550UPTO600.click();
@@ -307,7 +307,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "How much do you have left to pay on your mortgage? – Prove your identity – GOV.UK":
+            case "How much do you have left to pay on your mortgage? – GOV.UK One Login":
                 try {
                     if (UPTO60000.isDisplayed()) {
                         UPTO60000.click();
@@ -320,7 +320,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "How much of your loan do you have left to pay back? – Prove your identity – GOV.UK":
+            case "How much of your loan do you have left to pay back? – GOV.UK One Login":
                 try {
                     if (UPTO6750.isDisplayed()) {
                         UPTO6750.click();
@@ -333,11 +333,11 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "What are the first 2 letters of the first name of the other person on your mortgage? – Prove your identity – GOV.UK":
+            case "What are the first 2 letters of the first name of the other person on your mortgage? – GOV.UK One Login":
                 KA.click();
                 continueButton.click();
                 break;
-            case "Who have you opened a current account with? – Prove your identity – GOV.UK":
+            case "Who have you opened a current account with? – GOV.UK One Login":
                 try {
                     if (TSBBANKPLC.isDisplayed()) {
                         TSBBANKPLC.click();
@@ -350,7 +350,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     }
                 }
                 break;
-            case "When was the other person on your mortgage born? – Prove your identity – GOV.UK":
+            case "When was the other person on your mortgage born? – GOV.UK One Login":
                 try {
                     if (February1963.isDisplayed()) {
                         February1963.click();

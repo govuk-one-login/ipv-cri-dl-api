@@ -4,7 +4,7 @@ Feature: Driving License Test Common
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     Then I search for Driving Licence user number 5 in the Experian table
-    Then I check the page title is Was your UK photocard driving licence issued by DVLA or DVA? – Prove your identity – GOV.UK
+    Then I check the page title is Was your UK photocard driving licence issued by DVLA or DVA? – GOV.UK One Login
     And I see ‘Why we need to know this’ component is present
     When I click the drop-down on the component
     Then I see the message begins with We need to make sure is shown

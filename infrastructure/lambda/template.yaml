@@ -1365,9 +1365,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API Session Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1388,9 +1388,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API Authorization Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1411,9 +1411,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API AccessToken Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1436,9 +1436,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - DrivingPermitCheck Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1459,9 +1459,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - IssueCredential Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1482,9 +1482,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} lambda errors
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
       InsufficientDataActions: [ ]
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -1503,9 +1503,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} API Gateway 5XX errors
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       DatapointsToAlarm: 3
@@ -1548,9 +1548,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} DVLA Token endpoint returned a 400/401 response to a token request (failure to authenticate)
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       MetricName: dvla_third_party_api_token_endpoint_status_code_alert_metric
       Namespace: !Sub "${CriIdentifier}"
@@ -1572,9 +1572,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} DVA certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !Ref AlarmTopicDL
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       MetricName: dva_cert_expiry_metric
       Namespace: !Sub "${CriIdentifier}"
@@ -1721,10 +1721,10 @@ Resources:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+      OKActions:
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2007,10 +2007,10 @@ Resources:
       AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+      OKActions:
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2130,9 +2130,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${CommonStackName}-AuthorizationFunction lambda throttles. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-throttles"
@@ -2272,10 +2272,10 @@ Resources:
       AlarmName: !Sub "${AWS::StackName}-AccessToken5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+      OKActions:
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2395,9 +2395,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${CommonStackName}-AccessTokenFunction lambda throttles. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-AccessTokenFunction-throttles"
@@ -2535,10 +2535,10 @@ Resources:
       AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+      OKActions:
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2658,9 +2658,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${CommonStackName}-SessionFunction lambda throttles. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-throttles"
@@ -2798,10 +2798,10 @@ Resources:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+      OKActions:
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2965,9 +2965,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${DrivingPermitCheckingFunction} lambda throttles. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction-throttles"
@@ -3146,10 +3146,10 @@ Resources:
       AlarmName: !Sub "${AWS::StackName}-IssueCredential5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the IssueCredential endpoint. ${SupportManualURL}"
       ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+      OKActions:
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3269,9 +3269,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
       InsufficientDataActions: []
       AlarmDescription: !Sub "Trigger if the ${IssueCredentialFunction} lambda throttles. ${SupportManualURL}"
       AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunction-throttles"

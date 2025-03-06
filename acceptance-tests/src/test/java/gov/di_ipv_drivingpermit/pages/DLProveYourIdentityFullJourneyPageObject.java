@@ -164,7 +164,7 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
 
         String orchestratorStubUrl = configurationService.getOrchestratorStubUrl();
         Driver.get().get(orchestratorStubUrl);
-        assertPageTitle(ORCHESTRATOR_STUB, true);
+        assertExpectedPage(ORCHESTRATOR_STUB, false);
     }
 
     public void clickOnFullJourneyRouteButton() {
@@ -195,7 +195,6 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
     public void enterAddressExpiry(String expiryDate) {
         EnterTheYearYouStartedLivingAtThisAddress.sendKeys(expiryDate);
         continueButton.click();
-        BrowserUtils.waitForPageToLoad(100);
     }
 
     public void selectNoFor3MonthsInAddress(Integer int1) {
@@ -257,13 +256,11 @@ public class DLProveYourIdentityFullJourneyPageObject extends UniversalSteps {
                     if (SANTANDERANMFMORTGAGE.isDisplayed()) {
                         SANTANDERANMFMORTGAGE.click();
                         continueButton.click();
-                        BrowserUtils.waitForPageToLoad(100);
                     }
                 } catch (Exception e) {
                     if (mortgageCompanyNONEOFTHEABOVEDOESNOTAPPLY.isDisplayed()) {
                         mortgageCompanyNONEOFTHEABOVEDOESNOTAPPLY.click();
                         continueButton.click();
-                        BrowserUtils.waitForPageToLoad(100);
                     }
                 }
                 break;

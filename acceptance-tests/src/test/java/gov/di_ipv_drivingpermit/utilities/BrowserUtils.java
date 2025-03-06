@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static gov.di_ipv_drivingpermit.pages.UniversalSteps.MAX_WAIT_SEC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -166,6 +167,126 @@ public class BrowserUtils {
         } catch (Throwable error) {
             error.printStackTrace();
         }
+    }
+
+    /**
+     * Waits for a page with the provided title to fully load. Optionally can be an exact or fuzzy
+     * title match.
+     *
+     * @param timeOutInSeconds
+     */
+    public static boolean waitForSpecificPageWithTitleToFullyLoad(
+            String expectedTitle, boolean exactTitleMatchRequired, long timeOutInSeconds) {
+
+        ExpectedCondition<Boolean> expectation1 =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        String title = driver.getTitle();
+
+                        if (title == null || expectedTitle == null) {
+                            return false;
+                        }
+
+                        System.out.println(
+                                "title: "
+                                        + title
+                                        + " "
+                                        + expectedTitle
+                                        + " "
+                                        + title.contains(expectedTitle));
+
+                        return exactTitleMatchRequired
+                                ? title.equals(expectedTitle)
+                                : title.contains(expectedTitle);
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(expectation1);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        ExpectedCondition<Boolean> expectation2 =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        return ((JavascriptExecutor) driver)
+                                .executeScript("return document.readyState")
+                                .equals("complete");
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(expectation2);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Waits for a page with the provided title to fully load. Optionally can be an exact or fuzzy
+     * title match.
+     *
+     * @param timeOutInSeconds
+     */
+    public static boolean waitForUrlToContain(String expectedText, long timeOutInSeconds) {
+        ExpectedCondition<Boolean> expectation1 =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        String url = driver.getCurrentUrl();
+
+                        if (url == null) {
+                            return false;
+                        }
+
+                        System.out.println(
+                                "URL: "
+                                        + url
+                                        + " "
+                                        + expectedText
+                                        + " "
+                                        + url.contains(expectedText));
+
+                        return url.contains(expectedText);
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(expectation1);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        ExpectedCondition<Boolean> expectation2 =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        return ((JavascriptExecutor) driver)
+                                .executeScript("return document.readyState")
+                                .equals("complete");
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(expectation2);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -415,7 +536,11 @@ public class BrowserUtils {
         Driver.get().navigate().refresh();
     }
 
-    public static void changeLanguageTo(final String language) {
+    public static String changeLanguageTo(final String language) {
+
+        String currentURL = Driver.get().getCurrentUrl();
+        waitForUrlToContain(currentURL, MAX_WAIT_SEC);
+
         String languageCode = "eng";
         switch (language) {
             case "Welsh":
@@ -424,9 +549,13 @@ public class BrowserUtils {
                 }
         }
 
-        String currentURL = Driver.get().getCurrentUrl();
+        currentURL = Driver.get().getCurrentUrl();
         String newURL = currentURL + "/?lng=" + languageCode;
         Driver.get().get(newURL);
+
+        waitForUrlToContain(currentURL, MAX_WAIT_SEC);
+
+        return languageCode;
     }
 
     public static void setFeatureSet(final String featureSet) {

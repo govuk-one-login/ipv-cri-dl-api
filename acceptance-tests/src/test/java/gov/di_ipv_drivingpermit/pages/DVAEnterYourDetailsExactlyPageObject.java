@@ -11,6 +11,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+import java.util.Arrays;
+
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
 
 public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObject {
@@ -370,6 +372,14 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
         checkOkHttpResponseOnLink(oneLoginDVALinkUrl);
         oneLoginDVALink.click();
+
+        Object[] windowHandles = Driver.get().getWindowHandles().toArray();
+
+        System.out.println("Window handles: " + Arrays.toString(windowHandles));
+
+        Driver.get().switchTo().window((String) windowHandles[1]);
+        Driver.get().close();
+        Driver.get().switchTo().window((String) windowHandles[0]);
     }
 
     public void assertDVAPrivacyLink(String dvaPrivacyLink) {

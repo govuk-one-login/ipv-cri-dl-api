@@ -428,9 +428,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
     // Should be in stub page
 
     public void navigateToIPVCoreStub() {
+        Driver.get().manage().deleteAllCookies();
+
         String coreStubUrl = configurationService.getCoreStubUrl(true);
         Driver.get().get(coreStubUrl);
-        assertPageTitle(IPV_CORE_STUB, true);
+        assertExpectedPage(IPV_CORE_STUB, false);
     }
 
     public void whyWeNeedToKnowThis() {
@@ -449,7 +451,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void navigateToDrivingLicenceCRIOnTestEnv() {
         visitCredentialIssuers.click();
-        assertPageTitle(IPV_CORE_STUB, true);
+        assertExpectedPage(IPV_CORE_STUB, false);
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
         LOGGER.info("dlCRITestEnvironment = " + dlCRITestEnvironment);
         if (dlCRITestEnvironment.equalsIgnoreCase("dev")
@@ -464,10 +466,11 @@ public class DrivingLicencePageObject extends UniversalSteps {
         } else {
             LOGGER.info("No test environment is set");
         }
+
+        assertURLContains("credential-issuer?cri=driving-licence-cri");
     }
 
     public void searchForUATUser(String number) {
-        assertURLContains("credential-issuer?cri=driving-licence");
         selectRow.sendKeys(number);
         searchButton.click();
     }
@@ -491,12 +494,12 @@ public class DrivingLicencePageObject extends UniversalSteps {
         assertURLContains("callback");
 
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
-            assertPageTitle(STUB_ERROR_PAGE_TITLE, false);
+            assertExpectedPage(STUB_ERROR_PAGE_TITLE, true);
             assertURLContains("callback");
             BrowserUtils.waitForVisibility(errorResponse, 10);
             errorResponse.click();
         } else {
-            assertPageTitle(STUB_VC_PAGE_TITLE, false);
+            assertExpectedPage(STUB_VC_PAGE_TITLE, true);
             assertURLContains("callback");
             BrowserUtils.waitForVisibility(viewResponse, 10);
             viewResponse.click();
@@ -623,7 +626,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertUserRoutedToIpvCore() {
-        assertPageTitle("IPV Core Stub - GOV.UK", false);
+        assertExpectedPage(IPV_CORE_STUB, true);
     }
 
     public void assertUserRoutedToIpvCoreErrorPage() {
@@ -1344,7 +1347,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void goToPage(String page) {
-        assertPageTitle(page, false);
+        assertExpectedPage(page, false);
     }
 
     public void assertConsentSection(String consentSection) {

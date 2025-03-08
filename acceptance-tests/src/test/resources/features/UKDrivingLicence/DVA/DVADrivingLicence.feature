@@ -4,6 +4,7 @@ Feature: DVA Driving Licence Test
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     And I search for Driving Licence user number 5 in the Experian table
+    And I assert the url path contains licence-issuer
     And I add a cookie to change the language to English
     Then I check the page title is Was your UK photocard driving licence issued by DVLA or DVA? – GOV.UK One Login
     And I should see DVA as an option

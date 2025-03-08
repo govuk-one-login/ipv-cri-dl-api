@@ -22,6 +22,7 @@ import org.openqa.selenium.support.PageFactory;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -1360,6 +1361,14 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
         checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
         oneLoginLink.click();
+
+        Object[] windowHandles = Driver.get().getWindowHandles().toArray();
+
+        System.out.println("Window handles: " + Arrays.toString(windowHandles));
+
+        Driver.get().switchTo().window((String) windowHandles[1]);
+        Driver.get().close();
+        Driver.get().switchTo().window((String) windowHandles[0]);
     }
 
     public void assertDVLAPrivacyLink(String dvlaPrivacyLink) {

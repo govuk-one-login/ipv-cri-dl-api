@@ -5,6 +5,7 @@ Feature: DVA Auth Source Driving Licence Test
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
     And I enter the shared claims raw JSON <DVADrivingLicenceAuthSourceSubject> in the Input shared claims raw JSON
+    And I assert the url path contains check-your-details
     And I add a cookie to change the language to English
     And I check the page title is Check your UK photocard driving licence details – GOV.UK One Login
     And User clicks selects the Yes Radio Button

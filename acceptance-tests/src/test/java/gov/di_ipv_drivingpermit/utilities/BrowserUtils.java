@@ -178,7 +178,25 @@ public class BrowserUtils {
     public static boolean waitForSpecificPageWithTitleToFullyLoad(
             String expectedTitle, boolean exactTitleMatchRequired, long timeOutInSeconds) {
 
-        ExpectedCondition<Boolean> expectation1 =
+        ExpectedCondition<Boolean> pageLoadedExpectation =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        return ((JavascriptExecutor) driver)
+                                .executeScript("return document.readyState")
+                                .equals("complete");
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(pageLoadedExpectation);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        ExpectedCondition<Boolean> titleExpectation =
                 new ExpectedCondition<Boolean>() {
                     public Boolean apply(WebDriver driver) {
                         String title = driver.getTitle();
@@ -204,25 +222,7 @@ public class BrowserUtils {
         try {
             WebDriverWait wait =
                     new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(expectation1);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
-
-        ExpectedCondition<Boolean> expectation2 =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor) driver)
-                                .executeScript("return document.readyState")
-                                .equals("complete");
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(expectation2);
+            wait.until(titleExpectation);
         } catch (Throwable error) {
             error.printStackTrace();
             return false;
@@ -238,7 +238,26 @@ public class BrowserUtils {
      * @param timeOutInSeconds
      */
     public static boolean waitForUrlToContain(String expectedText, long timeOutInSeconds) {
-        ExpectedCondition<Boolean> expectation1 =
+
+        ExpectedCondition<Boolean> pageLoadedExpectation =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        return ((JavascriptExecutor) driver)
+                                .executeScript("return document.readyState")
+                                .equals("complete");
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(pageLoadedExpectation);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        ExpectedCondition<Boolean> urlCheckExpectation =
                 new ExpectedCondition<Boolean>() {
                     public Boolean apply(WebDriver driver) {
                         String url = driver.getCurrentUrl();
@@ -262,25 +281,7 @@ public class BrowserUtils {
         try {
             WebDriverWait wait =
                     new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(expectation1);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
-
-        ExpectedCondition<Boolean> expectation2 =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor) driver)
-                                .executeScript("return document.readyState")
-                                .equals("complete");
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(expectation2);
+            wait.until(urlCheckExpectation);
         } catch (Throwable error) {
             error.printStackTrace();
             return false;
@@ -538,10 +539,7 @@ public class BrowserUtils {
 
     public static String changeLanguageTo(final String language) {
 
-        String currentURL = Driver.get().getCurrentUrl();
-        waitForUrlToContain(currentURL, MAX_WAIT_SEC);
-
-        String languageCode = "eng";
+        String languageCode = "en";
         switch (language) {
             case "Welsh":
                 {
@@ -549,11 +547,11 @@ public class BrowserUtils {
                 }
         }
 
-        currentURL = Driver.get().getCurrentUrl();
+        String currentURL = Driver.get().getCurrentUrl();
         String newURL = currentURL + "/?lng=" + languageCode;
         Driver.get().get(newURL);
 
-        waitForUrlToContain(currentURL, MAX_WAIT_SEC);
+        waitForPageToLoad(MAX_WAIT_SEC);
 
         return languageCode;
     }

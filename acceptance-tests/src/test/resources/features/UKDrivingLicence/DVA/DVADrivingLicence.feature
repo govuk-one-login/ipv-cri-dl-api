@@ -236,6 +236,7 @@ Feature: DVA Driving Licence Test
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA license number as <InvalidLicenceNumber>
     When User clicks on continue
+    And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON response should contain personal number 88776655 same as given Driving Licence

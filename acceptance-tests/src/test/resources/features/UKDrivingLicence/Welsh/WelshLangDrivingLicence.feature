@@ -4,6 +4,7 @@ Feature: Driving License Language Test
     Given I navigate to the IPV Core Stub
     And I click the Driving Licence CRI for the testEnvironment
     Then I search for Driving Licence user number 5 in the Experian table
+    And I assert the url path contains licence-issuer
     And I add a cookie to change the language to Welsh
     And I assert the URL is valid in Welsh
 

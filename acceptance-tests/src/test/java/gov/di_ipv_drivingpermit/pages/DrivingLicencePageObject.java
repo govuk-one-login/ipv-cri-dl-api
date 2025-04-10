@@ -763,11 +763,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
+        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBanner, 10);
         assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }
 
     public void userNotFoundInThirdPartyErrorIsDisplayedDva() {
+        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBannerDva, 10);
         assertTrue(userNotFoundInThirdPartyBannerDva.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBannerDva.getText());
     }
@@ -1044,83 +1046,103 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertInvalidDoBInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidDOBErrorInSummary, 10);
         assertEquals(expectedText, InvalidDOBErrorInSummary.getText());
     }
 
     public void assertInvalidDoBOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidDateOfBirthFieldError, 10);
         assertEquals(expectedText, InvalidDateOfBirthFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidIssueDateInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidIssueDateErrorInSummary, 10);
         assertEquals(expectedText, InvalidIssueDateErrorInSummary.getText());
     }
 
     public void assertInvalidIssueDateOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidIssueDateFieldError, 10);
         assertEquals(expectedText, InvalidIssueDateFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidValidToDateInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidValidToDateErrorInSummary, 10);
         assertEquals(expectedText, InvalidValidToDateErrorInSummary.getText());
     }
 
     public void assertInvalidValidToDateOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidValidToDateFieldError, 10);
         assertEquals(expectedText, InvalidValidToDateFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidLicenceNumberInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidDrivingLicenceErrorInSummary, 10);
         assertEquals(expectedText, InvalidDrivingLicenceErrorInSummary.getText());
     }
 
     public void assertInvalidLicenceNumberOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(DrivingLicenceFieldError, 10);
         assertEquals(expectedText, DrivingLicenceFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidIssueNumberInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidIssueNumberErrorInSummary, 10);
         assertEquals(expectedText, InvalidIssueNumberErrorInSummary.getText());
     }
 
     public void assertInvalidIssueNumberOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidIssueNumberFieldError, 10);
         assertEquals(expectedText, InvalidIssueNumberFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidPostcodeInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidPostcodeErrorInSummary, 10);
         assertEquals(expectedText, InvalidPostcodeErrorInSummary.getText());
     }
 
     public void assertInvalidPostcodeOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidPostcodeFieldError, 10);
         assertEquals(expectedText, InvalidPostcodeFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidLastNameInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidLastNameErrorInSummary, 10);
         assertEquals(expectedText, InvalidLastNameErrorInSummary.getText());
     }
 
     public void assertInvalidLastNameOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidLastNameFieldError, 10);
         assertEquals(expectedText, InvalidLastNameFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidFirstNameInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidFirstNameErrorInSummary, 10);
         assertEquals(expectedText, InvalidFirstNameErrorInSummary.getText());
     }
 
     public void assertInvalidFirstNameOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidFirstNameFieldError, 10);
         assertEquals(expectedText, InvalidFirstNameFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidMiddleNameInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidMiddleNamesErrorInSummary, 10);
         assertEquals(expectedText, InvalidMiddleNamesErrorInSummary.getText());
     }
 
     public void assertInvalidMiddleNameOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidMiddleNamesFieldError, 10);
         assertEquals(expectedText, InvalidMiddleNamesFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertNoConsentGivenInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(DVLAConsentCheckboxError, 10);
         String formattedErrorText = DVLAConsentCheckboxError.getText().replaceAll("\\s+", " ");
         assertEquals(expectedText, formattedErrorText);
     }
 
     public void assertNoConsentGivenInDVAErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(dvaConsentCheckboxError, 10);
         String formattedErrorText = dvaConsentCheckboxError.getText().replaceAll("\\s+", " ");
         assertEquals(expectedText, formattedErrorText);
     }

@@ -152,6 +152,8 @@ Globals:
     Timeout: 30 # seconds
     Runtime: java17
     AutoPublishAlias: live
+    AutoPublishAliasAllProperties: true
+
     Tracing: Active
     MemorySize: !FindInMap [MemorySizeMapping, Environment, !Ref 'Environment']
     Architectures:
@@ -293,6 +295,7 @@ Mappings:
       integration: "cron(0 10 ? 1/2 TUE#1 *)"
       production: "cron(0 10 ? 1/2 TUE#1 *)"
 
+# CANNOT be enabled (1) with SnapStart
   ProvisionedConcurrency:
     Environment:
       dev: 0
@@ -300,6 +303,15 @@ Mappings:
       staging: 0
       integration: 1
       production: 1
+
+# CANNOT be used with ProvisionedConcurrency
+  SnapStartMapping:
+    Environment:
+      dev: PublishedVersions
+      build: PublishedVersions
+      staging: PublishedVersions
+      integration: None
+      production: None
 
   DrivingPermitCriAudienceMapping:
     Environment:
@@ -689,6 +701,8 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
 
   DrivingPermitCheckingFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -797,6 +811,8 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
 
   IssueCredentialFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -869,6 +885,8 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
 
   PersonInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup

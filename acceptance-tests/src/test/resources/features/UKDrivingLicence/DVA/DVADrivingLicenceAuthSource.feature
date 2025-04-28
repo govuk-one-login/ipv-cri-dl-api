@@ -58,18 +58,6 @@ Feature: DVA Auth Source Driving Licence Test
       | contextValue | DVADrivingLicenceAuthSourceSubject   | personalNumber | DVADrivingLicenceSubject             |
       |              | DVAAuthSourceValidKennethJsonPayload | 12345678       | DVADrivingLicenceSubjectHappyKenneth |
 
-  @build @smoke @stub @staging @integration @uat
-  Scenario Outline: DVA Auth Source - Raw JSON Object Validation Tests - Missing Address field in Claimset
-    Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
-    And I enter the context value <contextValue> in the Input context value as a string
-    And I enter the shared claims raw JSON <DVADrivingLicenceAuthSourceSubject> in the Input shared claims raw JSON
-    Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
-    And JSON response should contain error description Unexpected server error and status code as 302
-    And The test is complete and I close the driver
-    Examples:
-      | contextValue  | DVADrivingLicenceAuthSourceSubject     |
-      | check_details | DVAAuthSourceInvalidKennethJsonPayload |
-
   @build @smoke @stub
   Scenario Outline: DVA Auth Source - Negative Scenario - Postcode does not match the DVA Stub expected value
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment

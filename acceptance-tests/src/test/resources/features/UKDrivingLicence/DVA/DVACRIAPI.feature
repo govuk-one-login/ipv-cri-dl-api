@@ -28,10 +28,10 @@ Feature: DVA CRI API
     Then Driving Licence check response should contain Retry value as false
     Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
     Examples:
-      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                | JSONPayloadRequest              | cri_internal_error_code | cri_internal_error_message    |
-      | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA | DVAAuthSourceInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
-      | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH NW3 5RG | DVAAuthSourceInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
-
+      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                | JSONPayloadRequest                     | cri_internal_error_code | cri_internal_error_message    |
+      | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA | DVAAuthSourceInvalidJsonPayload        | 1229                    | Failed to unwrap DVA response |
+      | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH NW3 5RG | DVAAuthSourceInvalidJsonPayload        | 1229                    | Failed to unwrap DVA response |
+      | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      |                            | DVAAuthSourceInvalidAddressJsonPayload | 1001                    | Form Data failed validation   |
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVA Driving Licence Happy path

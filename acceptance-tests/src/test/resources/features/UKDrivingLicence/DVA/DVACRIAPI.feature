@@ -32,6 +32,16 @@ Feature: DVA CRI API
       | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA | DVAAuthSourceInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
       | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH NW3 5RG | DVAAuthSourceInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
 
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario Outline: DVA Driving Licence - Auth Source Negative Scenario - Missing Address field in payload
+    Given DVA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest <JSONPayloadRequest>
+    Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+    Examples:
+      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                | JSONPayloadRequest                     | cri_internal_error_code | cri_internal_error_message  |
+      | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      |                            | DVAAuthSourceInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVA Driving Licence Happy path

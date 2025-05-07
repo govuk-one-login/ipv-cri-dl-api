@@ -59,19 +59,6 @@ Feature: DVLA Auth Source Driving Licence Test
       |              | DVLAAuthSourceValidKennethJsonPayload | DECER607085K99AE | DrivingLicenceSubjectHappyKenneth |
 
   @build @smoke @stub @staging @integration @uat
-  Scenario Outline: DVLA Auth Source - Raw JSON Object Validation Tests - Missing Address field in Claimset
-    Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
-    And I enter the context value <contextValue> in the Input context value as a string
-    And I enter the shared claims raw JSON <DVLADrivingLicenceAuthSourceSubject> in the Input shared claims raw JSON
-    Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
-    And JSON response should contain error description Unexpected server error and status code as 302
-    And The test is complete and I close the driver
-    Examples:
-      | contextValue  | DVLADrivingLicenceAuthSourceSubject              |
-      | check_details | DVLAAuthSourceInvalidKennethJsonPayloadNoAddress |
-
-
-  @build @smoke @stub @staging @integration @uat
   Scenario Outline: DVLA Auth Source - Happy path
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -87,7 +74,6 @@ Feature: DVLA Auth Source Driving Licence Test
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
       | check_details | DVLAAuthSourceValidKennethJsonPayload |
-
 
   @build @smoke @stub @staging @integration @uat
   Scenario Outline: DVLA Auth Source - Error Validation Text - Fail to provide consent

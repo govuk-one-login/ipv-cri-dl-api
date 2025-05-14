@@ -36,6 +36,17 @@ Feature: DrivingLicence CRI API
       | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress                | JSONPayloadRequest     |
       | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     | 8 HADLEY ROAD BATH TB2 5AA | DVLAInvalidJsonPayload |
 
+  @drivingLicenceCRI_API @pre-merge @dev
+  Scenario Outline: DVLA Driving Licence - Auth Source Negative Scenario - Missing Address field in payload
+    Given DVLA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issueNumber>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
+    And Driving Licence user sends a POST request to session endpoint
+    And Driving Licence user gets a session-id
+    When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest <JSONPayloadRequest>
+    Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+    Examples:
+      | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress | JSONPayloadRequest            | cri_internal_error_code | cri_internal_error_message  |
+      | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     |             | DVLAInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
+
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVLA Driving Licence Happy path

@@ -106,10 +106,6 @@ public class CertExpiryReminderConfig {
                 KeyCertHelper.getDecodedX509Certificate(dvaHeldCertMap.get("tlsRootCert"));
         certMap.put("dvaHeldTlsRootCert", dvaHeldTlsRootCertExpiry);
 
-        X509Certificate dvaHeldTlsIntermediateCertExpiry =
-                KeyCertHelper.getDecodedX509Certificate(dvaHeldCertMap.get("tlsIntermediateCert"));
-        certMap.put("dvaHeldTlsIntermediateCert", dvaHeldTlsIntermediateCertExpiry);
-
         X509Certificate dvaHeldSigningCertExpiry =
                 KeyCertHelper.getDecodedX509Certificate(dvaHeldCertMap.get("dvaSigningCert"));
         certMap.put("dvaHeldSigningCert", dvaHeldSigningCertExpiry);

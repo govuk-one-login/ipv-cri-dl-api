@@ -86,8 +86,6 @@ class CertExpiryReminderConfigTest {
                 Map.of(
                         "tlsRootCert",
                         CertAndKeyTestFixtures.TEST_TLS_CRT,
-                        "tlsIntermediateCert",
-                        CertAndKeyTestFixtures.TEST_TLS_CRT,
                         "dvaSigningCert",
                         CertAndKeyTestFixtures.TEST_TLS_CRT,
                         "dvaEncryptionCert",

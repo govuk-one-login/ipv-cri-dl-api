@@ -59,7 +59,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
-import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.DRIVING_PERMIT_CI_PREFIX;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
@@ -271,7 +270,7 @@ class IssueCredentialHandlerTest {
                         any(VCISSDocumentCheckAuditExtension.class));
         assertEquals(
                 ContentType.APPLICATION_JSON.getType(), response.getHeaders().get("Content-Type"));
-        assertEquals(HttpStatusCode.BAD_REQUEST, response.getStatusCode());
+        assertEquals(HttpStatusCode.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
@@ -372,6 +371,129 @@ class IssueCredentialHandlerTest {
     }
 
     @Test
+    void
+            shouldReturnAServerErrorWhenPersonIdentityDetailedNotFoundExceptionOccursDuringRetrievingPersonIdentityWithSessionId()
+                    throws JsonProcessingException, SqsException {
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        AccessToken accessToken = new BearerAccessToken();
+        event.withHeaders(
+                Map.of(
+                        IssueCredentialHandler.AUTHORIZATION_HEADER_KEY,
+                        accessToken.toAuthorizationHeader()));
+
+        setRequestBodyAsPlainJWT(event);
+
+        SessionItem sessionItem = new SessionItem();
+        when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
+        when(mockPersonIdentityService.getPersonIdentityDetailed(sessionItem.getSessionId()))
+                .thenReturn(null);
+
+        APIGatewayProxyResponseEvent responseEvent = handler.handleRequest(event, context);
+
+        verify(mockSessionService).getSessionByAccessToken(accessToken);
+        verify(mockPersonIdentityService).getPersonIdentityDetailed(sessionItem.getSessionId());
+        verify(mockAuditService, never())
+                .sendAuditEvent(
+                        eq(AuditEventType.VC_ISSUED),
+                        any(AuditEventContext.class),
+                        any(VCISSDocumentCheckAuditExtension.class));
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+        verifyNoMoreInteractions(mockAuditService);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR);
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(OAuth2Error.SERVER_ERROR.getHTTPStatusCode(), responseEvent.getStatusCode());
+
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
+    }
+
+    @Test
+    void
+            shouldReturnAServerErrorWhenDocumentCheckResultItemNotFoundExceptionOccursDuringRetrievingPersonIdentityWithSessionId()
+                    throws JsonProcessingException, SqsException {
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        AccessToken accessToken = new BearerAccessToken();
+        event.withHeaders(
+                Map.of(
+                        IssueCredentialHandler.AUTHORIZATION_HEADER_KEY,
+                        accessToken.toAuthorizationHeader()));
+
+        setRequestBodyAsPlainJWT(event);
+
+        SessionItem sessionItem = new SessionItem();
+        when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
+
+        PersonIdentityDetailed savedPersonIdentityDetailed =
+                PersonIdentityDetailedTestDataGenerator.generate("DVLA");
+
+        DocumentCheckResultItem savedDocumentCheckResultItem =
+                DocumentCheckTestDataGenerator.generateValidResultItem(
+                        UUID.randomUUID(), savedPersonIdentityDetailed);
+
+        PersonIdentityDetailed auditEventPersonIdentityDetailed =
+                VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                        savedPersonIdentityDetailed, savedDocumentCheckResultItem);
+
+        when(mockPersonIdentityService.getPersonIdentityDetailed(sessionItem.getSessionId()))
+                .thenReturn(auditEventPersonIdentityDetailed);
+        when(mockDocumentCheckResultStorageService.getDocumentCheckResult(
+                        sessionItem.getSessionId()))
+                .thenReturn(null);
+
+        APIGatewayProxyResponseEvent responseEvent = handler.handleRequest(event, context);
+
+        verify(mockSessionService).getSessionByAccessToken(accessToken);
+
+        verify(mockAuditService, never())
+                .sendAuditEvent(
+                        eq(AuditEventType.VC_ISSUED),
+                        any(AuditEventContext.class),
+                        any(VCISSDocumentCheckAuditExtension.class));
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+        verifyNoMoreInteractions(mockEventProbe);
+        verifyNoMoreInteractions(mockAuditService);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR);
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(OAuth2Error.SERVER_ERROR.getHTTPStatusCode(), responseEvent.getStatusCode());
+
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
+    }
+
+    @Test
     void handleResponseShouldThrowExceptionWhenSessionIdMissing() throws JsonProcessingException {
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
@@ -388,17 +510,14 @@ class IssueCredentialHandlerTest {
         JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
 
         CommonExpressOAuthError expectedObject =
-                new CommonExpressOAuthError(
-                        OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage());
+                new CommonExpressOAuthError(OAuth2Error.ACCESS_DENIED);
 
         assertNotNull(responseEvent);
         assertNotNull(responseTreeRootNode);
         assertNotNull(oauthErrorNode);
         assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
 
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error

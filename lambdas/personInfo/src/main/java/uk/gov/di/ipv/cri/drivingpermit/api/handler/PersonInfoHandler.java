@@ -13,6 +13,8 @@ import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
+import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
 import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
@@ -20,6 +22,7 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
+import uk.gov.di.ipv.cri.drivingpermit.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 
@@ -27,6 +30,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 
@@ -74,10 +78,13 @@ public class PersonInfoHandler
     @Metrics(captureColdStart = true)
     @Logging(correlationIdPath = CorrelationIdPathConstants.EVENT_BRIDGE)
     public APIGatewayProxyResponseEvent handleRequest(
-            APIGatewayProxyRequestEvent input,
-            Context context) { // need something that returns a custom response
+            APIGatewayProxyRequestEvent input, Context context) {
 
         try {
+            // There is logging before the session read which attaches journey keys
+            // We clear these persistent ones now so these not attributed to any previous journey
+            LoggingSupport.clearPersistentJourneyKeys();
+
             LOGGER.info(
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),
@@ -108,16 +115,14 @@ public class PersonInfoHandler
                     runTimeDuration);
 
             LOGGER.info("Handling Person Info request");
-            Map<String, String> headers = input.getHeaders();
-            final String sessionId = headers.get("session_id");
+            final String sessionId = retrieveSessionIdFromHeaders(input.getHeaders());
 
             // QuerySessionTable to get sessionItem
-            SessionItem sessionItem = sessionService.getSession(sessionId);
-
-            // throw error if session is not found
-            if (sessionItem == null || sessionItem.getSessionId() == null) {
-                throw new SessionNotFoundException("Session is not found");
-            }
+            LOGGER.info("Extracting session from header sessionId {}", sessionId);
+            SessionItem sessionItem = sessionService.validateSessionId(sessionId);
+            LOGGER.info(
+                    "Persistent Logging keys now attached to sessionId {}",
+                    sessionItem.getSessionId());
 
             // Get context from sessionItem
             String coreContext = sessionItem.getContext();
@@ -128,7 +133,7 @@ public class PersonInfoHandler
 
                     LOGGER.info("Querying PersonIdentity table with sessionId...");
                     LOGGER.debug("SessionID = {}", sessionId);
-                    var personIdentityDetailed =
+                    PersonIdentityDetailed personIdentityDetailed =
                             personIdentityService.getPersonIdentityDetailed(
                                     UUID.fromString(sessionId));
                     if (null == personIdentityDetailed) {
@@ -153,7 +158,7 @@ public class PersonInfoHandler
                     return ApiGatewayResponseGenerator.proxyJsonResponse(
                             HttpStatusCode.OK, personIdentityDetailed);
                 } else {
-                    LOGGER.info("Invalid Context field value, returning to core with error");
+                    LOGGER.error("Invalid Context field value - {}", coreContext);
                     eventProbe.counterMetric(Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR);
                     return ApiGatewayResponseGenerator.proxyJsonResponse(
                             HttpStatusCode.BAD_REQUEST,
@@ -167,6 +172,20 @@ public class PersonInfoHandler
             LOGGER.info("Context value null, returning empty response");
             eventProbe.counterMetric(Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_OK);
             return emptyResponse;
+        } catch (SessionNotFoundException | SessionExpiredException e) {
+            LOGGER.error(e.getMessage(), e);
+            eventProbe.counterMetric(Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR);
+            return ApiGatewayResponseGenerator.proxyJsonResponse(
+                    HttpStatusCode.FORBIDDEN,
+                    new CommonExpressOAuthError(
+                            OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage()));
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e.getMessage(), e);
+            eventProbe.counterMetric(Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR);
+            // Oauth compliant response
+            return ApiGatewayResponseGenerator.proxyJsonResponse(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         } catch (AwsServiceException ex) {
             LOGGER.error(
                     "Exception While handling Lambda {} {}",
@@ -179,18 +198,6 @@ public class PersonInfoHandler
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
-
-        } catch (SessionNotFoundException e) {
-            String customOAuth2ErrorDescription = SESSION_NOT_FOUND.getMessage();
-            LOGGER.error(customOAuth2ErrorDescription);
-            eventProbe.counterMetric(Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR);
-
-            LOGGER.debug(e.getMessage(), e);
-
-            return ApiGatewayResponseGenerator.proxyJsonResponse(
-                    HttpStatusCode.FORBIDDEN,
-                    new CommonExpressOAuthError(
-                            OAuth2Error.ACCESS_DENIED, customOAuth2ErrorDescription));
         } catch (Exception e) {
             LOGGER.error("Exception while handling lambda {}", e.getClass());
             eventProbe.counterMetric(Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR);
@@ -200,5 +207,31 @@ public class PersonInfoHandler
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         }
+    }
+
+    private String retrieveSessionIdFromHeaders(Map<String, String> headers) {
+
+        if (headers == null) {
+            throw new SessionNotFoundException("Request had no headers");
+        }
+
+        String sessionId = headers.get("session_id");
+
+        if (sessionId == null) {
+            throw new SessionNotFoundException("Header session_id not found");
+        }
+
+        if (sessionIdIsNotUUID(sessionId)) {
+            throw new SessionNotFoundException("Header session_id value not a UUID");
+        }
+
+        return sessionId;
+    }
+
+    public boolean sessionIdIsNotUUID(String sessionId) {
+        Pattern uuidRegex =
+                Pattern.compile(
+                        "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+        return !uuidRegex.matcher(sessionId).matches();
     }
 }

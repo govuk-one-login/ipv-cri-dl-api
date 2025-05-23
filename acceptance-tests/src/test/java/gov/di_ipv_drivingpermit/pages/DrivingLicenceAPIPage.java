@@ -642,7 +642,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         String requestDrivingLicenceVCResponse = sendHttpRequest(request).body();
         LOGGER.info("requestDrivingLicenceVCResponse = {}", requestDrivingLicenceVCResponse);
         String expectedResponseForInvalidAuthCode =
-                "{\"oauth_error\":{\"error_description\":\"Session not found\",\"error\":\"access_denied\"}}";
+                "{\"oauth_error\":{\"error_description\":\"Access denied by resource owner or authorization server\",\"error\":\"access_denied\"}}";
         assertEquals(expectedResponseForInvalidAuthCode, requestDrivingLicenceVCResponse);
     }
 

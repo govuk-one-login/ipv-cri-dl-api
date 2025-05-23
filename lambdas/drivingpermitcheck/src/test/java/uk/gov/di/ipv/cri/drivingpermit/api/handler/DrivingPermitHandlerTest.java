@@ -515,9 +515,7 @@ class DrivingPermitHandlerTest {
                         OAuth2Error.SERVER_ERROR, OAuth2Error.SERVER_ERROR.getDescription());
 
         // Assert CommonExpress OAuth error format
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -605,7 +603,8 @@ class DrivingPermitHandlerTest {
     }
 
     @Test
-    void handleResponseShouldThrowExceptionWhenSessionIdMissing() throws JsonProcessingException {
+    void handleResponseShouldReturnForbiddenResponseSessionIdMissing()
+            throws JsonProcessingException {
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
@@ -628,9 +627,7 @@ class DrivingPermitHandlerTest {
         assertNotNull(oauthErrorNode);
         assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
 
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -640,7 +637,42 @@ class DrivingPermitHandlerTest {
     }
 
     @Test
-    void handleResponseShouldThrowExceptionWhenSessionIdIsInvalid() throws JsonProcessingException {
+    void handleResponseShouldReturnForbiddenResponseInputHeadersAreMissing()
+            throws JsonProcessingException {
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        Map<String, String> headers = null;
+
+        when(mockRequestEvent.getHeaders()).thenReturn(headers);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                drivingPermitHandler.handleRequest(mockRequestEvent, context);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(
+                        OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage());
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
+
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
+    }
+
+    @Test
+    void handleResponseShouldReturnForbiddenResponseWhenSessionIdIsInvalid()
+            throws JsonProcessingException {
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
@@ -664,9 +696,7 @@ class DrivingPermitHandlerTest {
         assertNotNull(oauthErrorNode);
         assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
 
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error

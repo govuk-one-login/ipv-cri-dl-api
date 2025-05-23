@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
@@ -27,6 +28,7 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,6 +41,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_PERSON_INFO_CHECK_COMPLETED_OK;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_PERSON_INFO_FUNCTION_INIT_DURATION;
@@ -80,13 +83,13 @@ class PersonInfoHandlerTest {
         SessionItem sessionItem = new SessionItem();
         sessionItem.setContext("check_details");
 
-        when(mockSessionService.getSession(sessionId)).thenReturn(sessionItem);
+        when(mockSessionService.validateSessionId(sessionId)).thenReturn(sessionItem);
         when(mockPersonIdentityService.getPersonIdentityDetailed(any()))
                 .thenReturn(savedPersonIdentityDetailed);
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
-        verify(mockSessionService).getSession(sessionId);
+        verify(mockSessionService).validateSessionId(sessionId);
         verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
 
         InOrder inOrder = inOrder(mockEventProbe);
@@ -116,11 +119,11 @@ class PersonInfoHandlerTest {
         SessionItem sessionItem = new SessionItem();
         sessionItem.setContext("international_address");
 
-        when(mockSessionService.getSession(sessionId)).thenReturn(sessionItem);
+        when(mockSessionService.validateSessionId(sessionId)).thenReturn(sessionItem);
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
-        verify(mockSessionService).getSession(sessionId);
+        verify(mockSessionService).validateSessionId(sessionId);
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
@@ -140,9 +143,7 @@ class PersonInfoHandlerTest {
         assertNotNull(oauthErrorNode);
         assertEquals(HttpStatusCode.BAD_REQUEST, response.getStatusCode());
 
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -158,11 +159,11 @@ class PersonInfoHandlerTest {
         event.withHeaders(Map.of("session_id", sessionId));
 
         SessionItem sessionItem = new SessionItem();
-        when(mockSessionService.getSession(sessionId)).thenReturn(sessionItem);
+        when(mockSessionService.validateSessionId(sessionId)).thenReturn(sessionItem);
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
-        verify(mockSessionService).getSession(sessionId);
+        verify(mockSessionService).validateSessionId(sessionId);
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
@@ -171,6 +172,75 @@ class PersonInfoHandlerTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(HttpStatusCode.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void handleResponseShouldReturnForbiddenResponseSessionIdIsInvalid()
+            throws JsonProcessingException {
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("session_id", "invalid");
+
+        when(mockRequestEvent.getHeaders()).thenReturn(headers);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                handler.handleRequest(mockRequestEvent, context);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(
+                        OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage());
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
+
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
+    }
+
+    @Test
+    void handleResponseShouldReturnForbiddenResponseInputHeadersAreMissing()
+            throws JsonProcessingException {
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        Map<String, String> headers = null;
+
+        when(mockRequestEvent.getHeaders()).thenReturn(headers);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                handler.handleRequest(mockRequestEvent, context);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(
+                        OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage());
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
+
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
     }
 
     private void mockServiceFactoryBehaviour() {

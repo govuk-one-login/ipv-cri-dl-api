@@ -18,6 +18,7 @@ import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.SharedClaims;
+import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
 import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
@@ -43,6 +44,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
+import uk.gov.di.ipv.cri.drivingpermit.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
@@ -184,6 +186,10 @@ public class DrivingPermitHandler
             APIGatewayProxyRequestEvent input, Context context) {
 
         try {
+            // There is logging before the session read which attaches journey keys
+            // We clear these persistent ones now so these not attributed to any previous journey
+            LoggingSupport.clearPersistentJourneyKeys();
+
             LOGGER.info(
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),
@@ -214,14 +220,11 @@ public class DrivingPermitHandler
                     runTimeDuration);
 
             Map<String, String> headers = input.getHeaders();
-            final String sessionId = headers.get("session_id");
-
-            if (sessionId == null || sessionIdIsNotUUID(sessionId)) {
-                throw new SessionNotFoundException("Session ID not found");
-            }
+            final String sessionId = retrieveSessionIdFromHeaders(headers);
 
             LOGGER.info("Extracting session from header ID {}", sessionId);
-            var sessionItem = sessionService.validateSessionId(sessionId);
+            SessionItem sessionItem = sessionService.validateSessionId(sessionId);
+            LOGGER.info("Persistent Logging keys now attached to sessionId {}", sessionId);
 
             if (null != sessionItem.getContext()) {
                 eventProbe.counterMetric(Definitions.CONTEXT_VALUE + sessionItem.getContext());
@@ -326,15 +329,20 @@ public class DrivingPermitHandler
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     e.getStatusCode(), // Status Code determined by throw location
                     commonExpressOAuthError);
-        } catch (SessionNotFoundException e) {
-            String customOAuth2ErrorDescription = SESSION_NOT_FOUND.getMessage();
-            LOGGER.error(customOAuth2ErrorDescription);
-            LOGGER.debug(e.getMessage(), e);
+        } catch (SessionNotFoundException | SessionExpiredException e) {
+            LOGGER.error(e.getMessage(), e);
             eventProbe.counterMetric(Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.FORBIDDEN,
                     new CommonExpressOAuthError(
-                            OAuth2Error.ACCESS_DENIED, customOAuth2ErrorDescription));
+                            OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage()));
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e.getMessage(), e);
+            eventProbe.counterMetric(Definitions.LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_ERROR);
+            // Oauth compliant response
+            return ApiGatewayResponseGenerator.proxyJsonResponse(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         } catch (Exception e) {
             // This is where unexpected exceptions will reach (null pointers etc)
             // Expected exceptions should be caught and thrown as
@@ -369,6 +377,7 @@ public class DrivingPermitHandler
 
         LOGGER.info("Generating authorization code...");
         sessionService.createAuthorizationCode(sessionItem);
+        LOGGER.info("Authorization code generated...");
 
         LOGGER.info("Saving person identity...");
         BirthDate birthDate = new BirthDate();
@@ -531,5 +540,24 @@ public class DrivingPermitHandler
         response.setRetry(canRetry);
 
         return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
+    }
+
+    private String retrieveSessionIdFromHeaders(Map<String, String> headers) {
+
+        if (headers == null) {
+            throw new SessionNotFoundException("Request had no headers");
+        }
+
+        String sessionId = headers.get("session_id");
+
+        if (sessionId == null) {
+            throw new SessionNotFoundException("Header session_id not found");
+        }
+
+        if (sessionIdIsNotUUID(sessionId)) {
+            throw new SessionNotFoundException("Header session_id value not a UUID");
+        }
+
+        return sessionId;
     }
 }

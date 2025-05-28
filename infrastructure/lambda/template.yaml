@@ -304,7 +304,7 @@ Mappings:
       integration: 0
       production: 0
 
-# CANNOT be used with ProvisionedConcurrency
+  # CANNOT be used with ProvisionedConcurrency
   SnapStartMapping:
     Environment:
       dev: PublishedVersions
@@ -753,9 +753,9 @@ Resources:
         Type: !Ref LambdaDeploymentPreference
         Role: !GetAtt CodeDeployServiceRole.Arn
         Alarms: !If
-        - UseCanaryDeploymentAlarms
-        - [!Ref IssueCredentialFunctionFatalErrorAlarm, !Ref IssueCredentialFunctionCanaryErrors, !Ref IssueCredentialFunctionCanary5xxErrors]
-        - [!Ref AWS::NoValue]
+          - UseCanaryDeploymentAlarms
+          - [!Ref IssueCredentialFunctionFatalErrorAlarm, !Ref IssueCredentialFunctionCanaryErrors, !Ref IssueCredentialFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -842,11 +842,11 @@ Resources:
       FunctionName: !Ref IssueCredentialFunction.Alias
       Principal: apigateway.amazonaws.com
 
-  ####################################################################
-  #                                                                  #
-  # Person Info Function                                        #
-  #                                                                  #
-  ####################################################################
+####################################################################
+#                                                                  #
+# Person Info Function                                             #
+#                                                                  #
+####################################################################
 
   PersonInfoFunction:
     Type: AWS::Serverless::Function
@@ -860,9 +860,9 @@ Resources:
         Type: !Ref LambdaDeploymentPreference
         Role: !GetAtt CodeDeployServiceRole.Arn
         Alarms: !If
-        - UseCanaryDeploymentAlarms
-        - [!Ref PersonInfoFunctionFatalErrorAlarm, !Ref PersonInfoFunctionCanaryErrors, !Ref PersonInfoFunctionCanary5xxErrors]
-        - [!Ref AWS::NoValue]
+          - UseCanaryDeploymentAlarms
+          - [!Ref PersonInfoFunctionFatalErrorAlarm, !Ref PersonInfoFunctionCanaryErrors, !Ref PersonInfoFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -1008,11 +1008,11 @@ Resources:
       FunctionName: !GetAtt PasswordRenewalFunction.Arn
       Principal: secretsmanager.amazonaws.com
 
-####################################################################
-#                                                                  #
-# Cert expiry reminder function                                    #
-#                                                                  #
-####################################################################
+  ####################################################################
+  #                                                                  #
+  # Cert expiry reminder function                                    #
+  #                                                                  #
+  ####################################################################
 
   CertExpiryReminderFunction:
     Type: AWS::Serverless::Function
@@ -1165,11 +1165,11 @@ Resources:
       AliasName: !Sub alias/${AWS::StackName}/auditEventQueueEncryptionKey
       TargetKeyId: !Ref MockAuditEventQueueEncryptionKey
 
-####################################################################
-#                                                                  #
-# Database Tables                                                  #
-#                                                                  #
-####################################################################
+  ####################################################################
+  #                                                                  #
+  # Database Tables                                                  #
+  #                                                                  #
+  ####################################################################
 
   DocumentCheckResultTable:
     Type: "AWS::DynamoDB::Table" # enable encryption with customer managed kms key. Will need new kms key
@@ -1204,11 +1204,11 @@ Resources:
         SSEEnabled: true
         SSEType: KMS
 
-####################################################################
-#                                                                  #
-# API config                                                       #
-#                                                                  #
-####################################################################
+  ####################################################################
+  #                                                                  #
+  # API config                                                       #
+  #                                                                  #
+  ####################################################################
 
   PublicDrivingPermitApiUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
@@ -1258,11 +1258,11 @@ Resources:
       KeyType: API_KEY
       UsagePlanId: !Ref PublicDrivingPermitApiUsagePlan
 
-####################################################################
-#                                                                  #
-# Parameters                                                       #
-#                                                                  #
-####################################################################
+  ####################################################################
+  #                                                                  #
+  # Parameters                                                       #
+  #                                                                  #
+  ####################################################################
 
   ParameterReleaseFlagsVcExpiryRemoved:
     Type: AWS::SSM::Parameter
@@ -1337,8 +1337,8 @@ Resources:
       Name: !Sub "/${AWS::StackName}/DVLA/password"
       SecretString:
         !Sub
-          - '{{resolve:ssm:/${PREFIX}/DVLA/password}}'
-          - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+        - '{{resolve:ssm:/${PREFIX}/DVLA/password}}'
+        - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
 
       Description: This is a temp password used before the rotation function is applied. Checking if update triggers rotation
 
@@ -1369,13 +1369,13 @@ Resources:
               ArnLike:
                 "kms:EncryptionContext:aws:logs:arn": !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
 
-####################################################################
-#                                                                  #
-# Alerts                                                           #
-#                                                                  #
-####################################################################
+  ####################################################################
+  #                                                                  #
+  # Alerts                                                           #
+  #                                                                  #
+  ####################################################################
 
-## Common API Alarms
+  ## Common API Alarms
 
   CommonAPISessionLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
@@ -1398,6 +1398,30 @@ Resources:
       DatapointsToAlarm: 12
       Threshold: 3
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPISessionLambdaFailedToVerifyJWTAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving Licence - Session lambda Error verifying JWT
+      AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the session lambda.
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+      OKActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+      InsufficientDataActions: [ ]
+      MetricName: jwt_verification_failed
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-session"
+      Period: 60
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 15
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
@@ -1444,6 +1468,30 @@ Resources:
       DatapointsToAlarm: 12
       Threshold: 3
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAccessTokenLambdaFailedToVerifyJWTAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving Licence - Access Token lambda Error verifying JWT
+      AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the token lambda.
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+      OKActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+      InsufficientDataActions: [ ]
+      MetricName: jwt_verification_failed
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-access-token"
+      Period: 60
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 15
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   ## Driving Permit Alarms
@@ -1607,11 +1655,11 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-####################################################################
-#                                                                  #
-# Alarm setup                                                      #
-#                                                                  #
-####################################################################
+  ####################################################################
+  #                                                                  #
+  # Alarm setup                                                      #
+  #                                                                  #
+  ####################################################################
 
   AlarmTopicDL:
     Type: AWS::SNS::Topic
@@ -1955,7 +2003,7 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
-################################# Common Lambda Authorization Alarms ##############################
+  ################################# Common Lambda Authorization Alarms ##############################
   Authorization5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -2218,7 +2266,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-################################# CommonLambda AccessTokenFunction Alarms ##############################
+  ################################# CommonLambda AccessTokenFunction Alarms ##############################
 
 
   AccessToken5XXApiGwErrorAlarm:
@@ -2483,7 +2531,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-################################# Common Lambda Session Alarms ##############################
+  ################################# Common Lambda Session Alarms ##############################
   Session5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -2746,7 +2794,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-################################# DrivingPermitChecking Alarms ##############################
+  ################################# DrivingPermitChecking Alarms ##############################
   DrivingPermitChecking5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -3094,7 +3142,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-################################# IssueCredential Alarms ##############################
+  ################################# IssueCredential Alarms ##############################
   IssueCredential5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: DeployAlarms
@@ -3398,7 +3446,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-################################# PersonInfoFunction Alarms ##############################
+  ################################# PersonInfoFunction Alarms ##############################
 
   PersonInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter

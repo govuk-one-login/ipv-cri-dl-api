@@ -82,6 +82,10 @@ Conditions:
   IsDeployedFromPipeline: !Equals
     - !Ref DeploymentType
     - "pipeline"
+  # Alarms only enabled in pipelines by default
+  AlarmsEnabled: !Equals
+    - !Ref DeploymentType
+    - "pipeline"
   # This is a special case fix to avoid setting this environment wide feature flag in dev.
   # As it becomes owned by the first stack using it. Remove once the feature flag is removed and feature is permanent.
   OverrideSettingOfEnvironmentWideFeatureFlag: !Equals
@@ -114,14 +118,6 @@ Conditions:
       - Fn::Equals:
           - !Ref ParameterPrefix
           - "none"
-  IsNotDevelopment: !Or
-    - !Equals [ !Ref Environment, build ]
-    - !Equals [ !Ref Environment, staging ]
-    - !Equals [ !Ref Environment, integration ]
-    - !Equals [ !Ref Environment, production ]
-  DeployAlarms: !Or
-    - Condition: IsNotDevelopment
-    - !Equals [!Ref DeployAlarmsInDev, true]
 
   CreateMockTxmaResources:
     Fn::And:
@@ -153,7 +149,6 @@ Globals:
     Runtime: java17
     AutoPublishAlias: live
     AutoPublishAliasAllProperties: true
-
     Tracing: Active
     MemorySize: !FindInMap [MemorySizeMapping, Environment, !Ref 'Environment']
     Architectures:
@@ -1379,6 +1374,7 @@ Resources:
 
   CommonAPISessionLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API Session Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1426,6 +1422,7 @@ Resources:
 
   CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API Authorization Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1449,6 +1446,7 @@ Resources:
 
   CommonAPIAccessTokenLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API AccessToken Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1498,6 +1496,7 @@ Resources:
 
   DLDrivingPermitCheckLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Driving Licence ${Environment} - DrivingPermitCheck Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1521,6 +1520,7 @@ Resources:
 
   DLIssueCredentialLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Driving Licence ${Environment} - IssueCredential Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1544,6 +1544,7 @@ Resources:
 
   DLLambdaErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Driving Licence ${Environment} lambda errors
       ActionsEnabled: true
@@ -1565,6 +1566,7 @@ Resources:
 
   DLAPIGW5XXErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Driving Licence ${Environment} API Gateway 5XX errors
       ActionsEnabled: true
@@ -1609,6 +1611,7 @@ Resources:
 
   DVLAAuthenticateTokenRequestDeniedAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Authenticate Token Request Denied Alarm"
       AlarmDescription: !Sub Driving Licence ${Environment} DVLA Token endpoint returned a 400/401 response to a token request (failure to authenticate)
@@ -1633,6 +1636,7 @@ Resources:
 
   CertificateExpiryAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - Certificate expiry Alarm"
       AlarmDescription: !Sub Driving Licence ${Environment} DVA certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
@@ -1704,7 +1708,7 @@ Resources:
 
   5XXErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
@@ -1782,7 +1786,7 @@ Resources:
 
   5XXErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-5XXErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
@@ -1860,7 +1864,7 @@ Resources:
 
   LatencyAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-apiGWLatencyAlarm"
       AlarmDescription: !Sub "There has been increased latency on backend api-gateway. ${SupportManualURL}"
@@ -1934,7 +1938,7 @@ Resources:
 
   PublicDrivingPermitApiAccessLogGroupFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       LogGroupName: !Ref PublicDrivingPermitApiAccessLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1947,7 +1951,7 @@ Resources:
     DependsOn:
       - "PublicDrivingPermitApiAccessLogGroupFatalErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PublicDrivingPermitApi-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs in Public Driving Permit API. ${SupportManualURL}"
@@ -1970,7 +1974,7 @@ Resources:
 
   PrivateDrivingPermitApiAccessLogGroupFatalErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       LogGroupName: !Ref PrivateDrivingPermitApiAccessLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -1983,7 +1987,7 @@ Resources:
     DependsOn:
       - "PrivateDrivingPermitApiAccessLogGroupFatalErrorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PrivateDrivingPermitApi-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs in Private Driving Permit API. ${SupportManualURL}"
@@ -2006,7 +2010,7 @@ Resources:
   ################################# Common Lambda Authorization Alarms ##############################
   Authorization5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
@@ -2068,7 +2072,7 @@ Resources:
 
   Authorization5XXApiGwErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
@@ -2130,7 +2134,7 @@ Resources:
 
   Authorization4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the Authorization endpoint. ${SupportManualURL}"
@@ -2192,7 +2196,7 @@ Resources:
 
   AuthorizationThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2231,7 +2235,7 @@ Resources:
 
   AuthorizationFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       LogGroupName: !Ref AuthorizationFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2245,7 +2249,7 @@ Resources:
     DependsOn:
       - "AuthorizationFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2271,7 +2275,7 @@ Resources:
 
   AccessToken5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessToken5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
@@ -2333,7 +2337,7 @@ Resources:
 
   AccessToken5XXApiGwErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessToken5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
@@ -2395,7 +2399,7 @@ Resources:
 
   AccessToken4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessToken4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the AccessToken endpoint. ${SupportManualURL}"
@@ -2457,7 +2461,7 @@ Resources:
 
   AccessTokenThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2496,7 +2500,7 @@ Resources:
 
   AccessTokenFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       LogGroupName: !Ref AccessTokenFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2510,7 +2514,7 @@ Resources:
     DependsOn:
       - "AccessTokenFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-AccessTokenFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2534,7 +2538,7 @@ Resources:
   ################################# Common Lambda Session Alarms ##############################
   Session5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
@@ -2596,7 +2600,7 @@ Resources:
 
   Session5XXApiGwErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
@@ -2658,7 +2662,7 @@ Resources:
 
   Session4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Session4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the Session endpoint. ${SupportManualURL}"
@@ -2720,7 +2724,7 @@ Resources:
 
   SessionThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -2759,7 +2763,7 @@ Resources:
 
   SessionFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       LogGroupName: !Ref SessionFunctionLogGroup
       FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
@@ -2773,7 +2777,7 @@ Resources:
     DependsOn:
       - "SessionFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-SessionFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -2797,7 +2801,7 @@ Resources:
   ################################# DrivingPermitChecking Alarms ##############################
   DrivingPermitChecking5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
@@ -2859,7 +2863,7 @@ Resources:
 
   DrivingPermitChecking5XXApiGwErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
@@ -2921,7 +2925,7 @@ Resources:
 
   DrivingPermitChecking4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
@@ -2983,6 +2987,7 @@ Resources:
 
   DVAThirdPartyApiErrorAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DVAThirdPartyApiErrorAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of errors on the DVA third party endpoint ${SupportManualURL}"
@@ -3027,7 +3032,7 @@ Resources:
 
   DrivingPermitCheckingThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -3065,6 +3070,7 @@ Resources:
     DependsOn:
       - "DrivingPermitCheckingFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3145,7 +3151,7 @@ Resources:
   ################################# IssueCredential Alarms ##############################
   IssueCredential5XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredential5XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the IssueCredential endpoint. ${SupportManualURL}"
@@ -3207,7 +3213,7 @@ Resources:
 
   IssueCredential5XXApiGwErrorCriticalAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredential5XXApiGwErrorCriticalAlarm"
       AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the IssueCredential endpoint. ${SupportManualURL}"
@@ -3269,7 +3275,7 @@ Resources:
 
   IssueCredential4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: DeployAlarms
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredential4XXApiGwErrorAlarm"
       AlarmDescription: !Sub "There has been a small proportion of 4XX errors on the IssueCredential endpoint. ${SupportManualURL}"
@@ -3331,7 +3337,7 @@ Resources:
 
   IssueCredentialThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: "DeployAlarms"
+    Condition: AlarmsEnabled
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -3369,6 +3375,7 @@ Resources:
     DependsOn:
       - "IssueCredentialFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
@@ -3463,6 +3470,7 @@ Resources:
     DependsOn:
       - "PersonInfoFunctionFatalErorMetricFilter"
     Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
     Properties:
       AlarmName: !Sub "${AWS::StackName}-PersonInfoFunction-FatalErrorAlarm"
       AlarmDescription: !Sub "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"

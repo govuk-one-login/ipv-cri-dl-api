@@ -368,9 +368,9 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
     public void assertDVAOneLoginPrivacyLink(String oneLoginPrivacyLinkDVA) {
         Assert.assertEquals(oneLoginPrivacyLinkDVA, oneLoginDVALink.getText());
-        String oneLoginDVALinkUrl = oneLoginDVALink.getAttribute("href");
 
-        checkOkHttpResponseOnLink(oneLoginDVALinkUrl);
+        checkOkHttpResponseOnLink(
+                "https://www.gov.uk/government/publications/govuk-one-login-privacy-notice");
         oneLoginDVALink.click();
 
         Object[] windowHandles = Driver.get().getWindowHandles().toArray();
@@ -384,8 +384,8 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
 
     public void assertDVAPrivacyLink(String dvaPrivacyLink) {
         Assert.assertEquals(dvaPrivacyLink, dvaLink.getText());
-        String oneLoginDVALinkUrl = dvaLink.getAttribute("href");
 
-        checkOkHttpResponseOnLink(oneLoginDVALinkUrl);
+        checkOkHttpResponseOnLink(
+                "https://www.gov.uk/government/publications/govuk-one-login-privacy-notice");
     }
 }

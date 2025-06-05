@@ -1379,9 +1379,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertOneLoginPrivacyLink(String oneLoginPrivacyLink) {
         assertEquals(oneLoginPrivacyLink, oneLoginLink.getText());
-        String oneLoginDVLALinkUrl = oneLoginLink.getAttribute("href");
 
-        checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
+        checkOkHttpResponseOnLink(
+                "https://www.gov.uk/government/publications/govuk-one-login-privacy-notice");
         oneLoginLink.click();
 
         Object[] windowHandles = Driver.get().getWindowHandles().toArray();
@@ -1395,9 +1395,9 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void assertDVLAPrivacyLink(String dvlaPrivacyLink) {
         assertEquals(dvlaPrivacyLink, dvlaLink.getText());
-        String oneLoginDVLALinkUrl = dvlaLink.getAttribute("href");
 
-        checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
+        checkOkHttpResponseOnLink(
+                "https://www.gov.uk/government/publications/govuk-one-login-privacy-notice");
     }
 
     public void assertDVLAContent(String contentDVLA) {

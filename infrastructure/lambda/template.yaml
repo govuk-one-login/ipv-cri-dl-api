@@ -1398,6 +1398,7 @@ Resources:
 
   CommonAPISessionLambdaFailedToVerifyJWTAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving Licence - Session lambda Error verifying JWT
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the session lambda.
@@ -1470,6 +1471,7 @@ Resources:
 
   CommonAPIAccessTokenLambdaFailedToVerifyJWTAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving Licence - Access Token lambda Error verifying JWT
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the token lambda.

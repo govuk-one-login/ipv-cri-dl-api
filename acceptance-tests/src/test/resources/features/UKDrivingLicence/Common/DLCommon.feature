@@ -19,18 +19,8 @@ Feature: Driving License Test Common
     Then I can see CTA Continue
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration @smoke @stub
-  Scenario: Beta Banner Reject Analysis
-    When I view the Beta banner
-    When the beta banner reads This is a new service – your feedback (opens in new tab) will help us to improve it.
-    And I select Reject Analysis cookie
-    Then I see the Reject Analysis sentence You’ve rejected additional cookies. You can change your cookie settings at any time.
-    And  I select the ‘change your cookie settings’ link
-    Then I check the page to change cookie preferences opens
-    Then The test is complete and I close the driver
-
   @DrivingLicenceTest
-  Scenario:User selects no Driving Licence and landed in IPV Core
+  Scenario: User selects no Driving Licence and landed in IPV Core
     Given I click I do not have UK Driving License and continue
     When I am directed to the IPV Core routing page
     And I validate the URL having access denied

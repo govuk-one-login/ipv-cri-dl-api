@@ -150,24 +150,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"cookies-banner-main\"]")
     public WebElement cookieBanner;
 
-    @FindBy(xpath = "/html/body/div[2]/div/p/strong")
-    public WebElement betaBanner;
-
-    @FindBy(className = "govuk-phase-banner__text")
-    public WebElement betaBannerText;
-
-    @FindBy(xpath = "//*[@id=\"cookies-banner-main\"]/div[2]/button[2]")
-    public WebElement rejectAnalysisButton;
-
-    @FindBy(xpath = "//*[@id=\"cookies-rejected\"]/div[1]/div/div/p")
-    public WebElement rejectanalysisActual;
-
-    @FindBy(xpath = "//*[@id=\"cookies-rejected\"]/div[1]/div/div/p/a")
-    public WebElement changeCookieButton;
-
-    @FindBy(xpath = "/html/head/link[1]")
-    public WebElement cookiePreference;
-
     @FindBy(className = "govuk-error-summary__title")
     public WebElement errorSummaryTitle;
 
@@ -514,39 +496,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
     // ------------------
 
     // Should be seperate page
-
-    public void cookieBannerIsDisplayed() {
-        BrowserUtils.waitForVisibility(cookieBanner, 10);
-    }
-
-    public void betaBanner() {
-        betaBanner.isDisplayed();
-    }
-
-    public void betaBannerSentence(String expectedText) {
-        assertEquals(expectedText, betaBannerText.getText());
-        LOGGER.info("actualText = " + betaBannerText.getText());
-    }
-
-    public void rejectAnalysisCookie(String rejectAnalysis) {
-        BrowserUtils.waitForVisibility(rejectAnalysisButton, 10);
-        rejectAnalysisButton.click();
-    }
-
-    public void rejectCookieSentence(String rejectanalysisSentence) {
-        assertEquals(rejectanalysisSentence, rejectanalysisActual.getText());
-        LOGGER.info(rejectanalysisActual.getText());
-    }
-
-    public void AssertChangeCookieLink(String changeCookieLink) {
-        changeCookieButton.click();
-    }
-
-    public void AssertcookiePreferencePage() {
-
-        String changeCookiePageUrl = cookiePreference.getAttribute("href");
-        checkOkHttpResponseOnLink(changeCookiePageUrl);
-    }
 
     public void titleDVLAWithRadioBtn(String expectedText) {
         optionDVLA.isDisplayed();

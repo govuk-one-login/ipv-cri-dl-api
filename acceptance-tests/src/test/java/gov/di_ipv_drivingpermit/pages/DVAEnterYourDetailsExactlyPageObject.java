@@ -282,10 +282,6 @@ public class DVAEnterYourDetailsExactlyPageObject extends DrivingLicencePageObje
         Assert.assertEquals(expectedText, dvaLicenceNumberHint.getText());
     }
 
-    public void enterInValidPostCode() {
-        enterPostcode("@@@$$$**");
-    }
-
     public void enterDvaLicenceNumber(String licenceNumber) {
         DVAEnterYourDetailsExactlyPageObject dvaEnterYourDetailsExactlyPage =
                 new DVAEnterYourDetailsExactlyPageObject();

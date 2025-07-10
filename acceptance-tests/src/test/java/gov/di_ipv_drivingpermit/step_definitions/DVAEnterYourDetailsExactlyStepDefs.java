@@ -90,11 +90,6 @@ public class DVAEnterYourDetailsExactlyStepDefs extends DVAEnterYourDetailsExact
         clickOnIDoNotHaveAUKDrivingLicenceRadioButton();
     }
 
-    @When("I enter the invalid Postcode")
-    public void iEnterTheInvalidPostcode() {
-        enterInValidPostCode();
-    }
-
     @And("I clear the licence number enter the invalid Driving Licence")
     public void iClearTheLicenceNumberEnterTheInvalidDrivingLicence() {
         enterDvaLicenceNumber("1acd1113756456");

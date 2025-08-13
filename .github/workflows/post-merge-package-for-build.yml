@@ -92,8 +92,9 @@ jobs:
 
       - name: SAM build
         run: |
-          mkdir build
-          sam build -t infrastructure/lambda/template.yaml -b out
+          mkdir out
+          chmod a+x gradlew
+          sam build -s "${GITHUB_WORKSPACE}" -t infrastructure/lambda/template.yaml -b out
 
       - name: Deploy SAM app
         uses: govuk-one-login/devplatform-upload-action@v3.9

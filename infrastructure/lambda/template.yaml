@@ -143,8 +143,6 @@ Globals:
       SubnetIds: !Split [ ",", !ImportValue cri-vpc-PrivateSubnets ]
     Timeout: 30 # seconds
     Runtime: java17
-    AutoPublishAlias: live
-    AutoPublishAliasAllProperties: true
     Tracing: Active
     MemorySize: !FindInMap [MemorySizeMapping, Environment, !Ref 'Environment']
     Architectures:
@@ -490,14 +488,14 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# Identity checking Function                                       #
+# Driving Permit checking Function                                 #
 #                                                                  #
 ####################################################################
 
   DrivingPermitCheckingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../../lambdas/drivingpermitcheck
+      CodeUri: lambdas/drivingpermitcheck
       Handler: uk.gov.di.ipv.cri.drivingpermit.api.handler.DrivingPermitHandler::handleRequest
       Environment:
         Variables:
@@ -517,6 +515,10 @@ Resources:
             - !Ref "AWS::NoValue"
           SIGNING_KEY_ID: !ImportValue acm-infra-DvaSigningKeyId
           ENCRYPTION_KEY_ID: !ImportValue acm-infra-DvaEncryptionKeyId
+      AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
         Role: !GetAtt CodeDeployServiceRole.Arn
@@ -658,8 +660,6 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
-      SnapStart:
-        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
 
   DrivingPermitCheckingFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -699,13 +699,17 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: uk.gov.di.ipv.cri.drivingpermit.api.handler.IssueCredentialHandler::handleRequest
-      CodeUri: ../../lambdas/issuecredential
+      CodeUri: lambdas/issuecredential
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
           ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
           ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
+      AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
         Role: !GetAtt CodeDeployServiceRole.Arn
@@ -768,8 +772,6 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
-      SnapStart:
-        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
 
   IssueCredentialFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -809,10 +811,14 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: uk.gov.di.ipv.cri.drivingpermit.api.handler.PersonInfoHandler::handleRequest
-      CodeUri: ../../lambdas/personInfo
+      CodeUri: lambdas/personInfo
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-personInfo"
+      AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       DeploymentPreference:
         Type: !Ref LambdaDeploymentPreference
         Role: !GetAtt CodeDeployServiceRole.Arn
@@ -842,8 +848,6 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
-      SnapStart:
-        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
 
   PersonInfoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -882,12 +886,15 @@ Resources:
   PasswordRenewalFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../../lambdas/passwordRenewal
+      CodeUri: lambdas/passwordRenewal
       Handler: uk.gov.di.ipv.cri.drivingpermit.event.handler.PasswordRenewalHandler::handleRequest
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-passwordRenewal"
           DVLA_PASSWORD_ROTATION_ENABLED: !FindInMap [ DVLAPasswordRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
+      AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
+      # SnapStart cannot be used on this function
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -975,10 +982,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: uk.gov.di.ipv.cri.drivingpermit.certreminder.handler.CertExpiryReminderHandler::handleRequest
-      CodeUri: ../../lambdas/certexpiryreminder
+      CodeUri: lambdas/certexpiryreminder
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-CertExpiryReminder"
+      AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
+      # SnapStart cannot be used on this function
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess

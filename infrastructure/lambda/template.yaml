@@ -1396,6 +1396,31 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  CommonAPISessionLambdaAliasBasedDecryptionFailure:
+    Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving licence - Session lambda alias-based decryption failure
+      AlarmDescription: !Sub Driving licence ${Environment} - Common API Session Lambda all aliases unavailable for decryption
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+      OKActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+      InsufficientDataActions: [ ]
+      MetricName: all_aliases_unavailable_for_decryption
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-session"
+      Period: 60
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   CommonAPISessionLambdaFailedToVerifyJWTAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled

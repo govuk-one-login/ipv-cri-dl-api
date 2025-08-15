@@ -182,9 +182,8 @@ Globals:
         ENVIRONMENT: !Ref Environment
         PARAMETER_PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
     Layers:
-      - !Sub
-        - '{{resolve:secretsmanager:${SecretArn}:SecretString:JAVA_LAYER}}' # or NODEJS_LAYER or PYTHON_LAYER
-        - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
+      # SEE https://github.com/govuk-one-login/observability-infrastructure/tree/main/lambdalayer
+      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_311_51_20250331-143707_with_collector_java:1
 
 Mappings:
   StaticVariables:
@@ -3212,8 +3211,6 @@ Resources:
       AlarmDescription: !Sub "DrivingPermitChecking Lambda error."
       MetricName: Errors
       Dimensions:
-        - Name: Resource
-          Value: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction:live"
         - Name: FunctionName
           Value: !Ref DrivingPermitCheckingFunction
         - Name: ExecutedVersion
@@ -3527,8 +3524,6 @@ Resources:
       AlarmDescription: !Sub "IssueCredential Lambda error."
       MetricName: Errors
       Dimensions:
-        - Name: Resource
-          Value: !Sub "${AWS::StackName}-IssueCredentialFunction:live"
         - Name: FunctionName
           Value: !Ref IssueCredentialFunction
         - Name: ExecutedVersion
@@ -3624,8 +3619,6 @@ Resources:
       AlarmDescription: !Sub "IssueCredential Lambda error."
       MetricName: Errors
       Dimensions:
-        - Name: Resource
-          Value: !Sub "${AWS::StackName}-PersonInfoFunction:live"
         - Name: FunctionName
           Value: !Ref PersonInfoFunction
         - Name: ExecutedVersion

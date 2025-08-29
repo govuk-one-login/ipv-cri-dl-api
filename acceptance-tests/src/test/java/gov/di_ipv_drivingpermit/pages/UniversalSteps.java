@@ -118,7 +118,7 @@ public class UniversalSteps {
             Assertions.assertTrue(keysNode.has("kid"), "kid field is missing");
             Assertions.assertTrue(keysNode.has("alg"), "alg field is missing");
             Assertions.assertEquals(
-                    "RSA_OAEP_256", keysNode.path("alg").asText(), "alg value is incorrect");
+                    "RSA-OAEP-256", keysNode.path("alg").asText(), "alg value is incorrect");
 
         } catch (IOException e) {
             LOGGER.error("Error parsing JSON response: {}", e.getMessage());

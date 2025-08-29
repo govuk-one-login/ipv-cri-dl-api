@@ -112,7 +112,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "licenceIssuer-noLicence")
     public WebElement noDLRadioBtn;
 
-    @FindBy(id = "submitButton")
+    @FindBy(id = "continue")
     public WebElement CTButton;
 
     @FindBy(id = "licenceIssuer-error")

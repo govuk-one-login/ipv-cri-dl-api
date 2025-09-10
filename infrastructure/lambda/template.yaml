@@ -1397,11 +1397,11 @@ Resources:
 
   CommonAPISessionLambdaAliasBasedDecryptionFailure:
     Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
+#    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving licence - Session lambda alias-based decryption failure
       AlarmDescription: !Sub Driving licence ${Environment} - Common API Session Lambda all aliases unavailable for decryption
-      ActionsEnabled: true
+      ActionsEnabled: false
       AlarmActions:
         - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
       OKActions:

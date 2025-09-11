@@ -1,4 +1,4 @@
-@drivinglicence_CRI_API
+@drivingLicence_CRI_API
 Feature: DVA CRI API
 
   @drivingLicenceCRI_API @pre-merge @dev

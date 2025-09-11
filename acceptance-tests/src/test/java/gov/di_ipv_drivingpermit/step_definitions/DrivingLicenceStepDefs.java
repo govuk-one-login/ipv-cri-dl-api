@@ -1,6 +1,5 @@
 package gov.di_ipv_drivingpermit.step_definitions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import gov.di_ipv_drivingpermit.pages.DrivingLicencePageObject;
 import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
 import io.cucumber.java.en.And;
@@ -16,48 +15,43 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @And("User re-enters last name as (.*)$")
-    public void userEntersLastName(String InvalidLastName) {
-        userReEntersLastName(InvalidLastName);
+    public void userEntersLastName(String invalidLastName) {
+        userReEntersLastName(invalidLastName);
     }
 
     @And("User re-enters first name as (.*)$")
-    public void userEntersFirstName(String InvalidFirstName) {
-        userReEntersFirstName(InvalidFirstName);
-    }
-
-    @And("User re-enters middle names as (.*)$")
-    public void userEntersMiddleNames(String InvalidMiddleNames) {
-        userReEntersMiddleNames(InvalidMiddleNames);
+    public void userEntersFirstName(String invalidFirstName) {
+        userReEntersFirstName(invalidFirstName);
     }
 
     @And("User re-enters birth day as (.*)$")
-    public void userEntersBirthDay(String InvalidBirthDay) {
-        userReEntersBirthDay(InvalidBirthDay);
+    public void userEntersBirthDay(String invalidBirthDay) {
+        userReEntersBirthDay(invalidBirthDay);
     }
 
     @And("User re-enters birth month as (.*)$")
-    public void userEntersBirthMonth(String InvalidBirthMonth) {
-        userReEntersBirthMonth(InvalidBirthMonth);
+    public void userEntersBirthMonth(String invalidBirthMonth) {
+        userReEntersBirthMonth(invalidBirthMonth);
     }
 
     @And("User re-enters birth year as (.*)$")
-    public void userEntersBirthYear(String InvalidBirthYear) {
-        userReEntersBirthYear(InvalidBirthYear);
+    public void userEntersBirthYear(String invalidBirthYear) {
+        userReEntersBirthYear(invalidBirthYear);
     }
 
     @And("User re-enters DVA birth day as (.*)$")
-    public void userEntersDvaBirthDay(String InvalidBirthDay) {
-        userReEntersDvaBirthDay(InvalidBirthDay);
+    public void userEntersDvaBirthDay(String invalidBirthDay) {
+        userReEntersDvaBirthDay(invalidBirthDay);
     }
 
     @And("User re-enters DVA birth month as (.*)$")
-    public void userEntersDvaBirthMonth(String InvalidBirthMonth) {
-        userReEntersDvaBirthMonth(InvalidBirthMonth);
+    public void userEntersDvaBirthMonth(String invalidBirthMonth) {
+        userReEntersDvaBirthMonth(invalidBirthMonth);
     }
 
     @And("User re-enters DVA birth year as (.*)$")
-    public void userEntersDvaBirthYear(String InvalidBirthYear) {
-        userReEntersDvaBirthYear(InvalidBirthYear);
+    public void userEntersDvaBirthYear(String invalidBirthYear) {
+        userReEntersDvaBirthYear(invalidBirthYear);
     }
 
     @And("User re-enters issue day as (.*)$")
@@ -66,13 +60,13 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @And("User re-enters issue month as (.*)$")
-    public void userEntersIssueMonth(String InvalidLicenceIssueMonth) {
-        userReEntersIssueMonth(InvalidLicenceIssueMonth);
+    public void userEntersIssueMonth(String invalidLicenceIssueMonth) {
+        userReEntersIssueMonth(invalidLicenceIssueMonth);
     }
 
     @And("User re-enters issue year as (.*)$")
-    public void userEntersIssueYear(String InvalidLicenceIssueYear) {
-        userReEntersIssueYear(InvalidLicenceIssueYear);
+    public void userEntersIssueYear(String invalidLicenceIssueYear) {
+        userReEntersIssueYear(invalidLicenceIssueYear);
     }
 
     @And("User re-enters DVA issue day as (.*)$")
@@ -91,13 +85,13 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @And("User re-enters license number as (.*)$")
-    public void userEntersLicenceNumber(String InvalidLicenceNumber) {
-        userReEntersLicenceNumber(InvalidLicenceNumber);
+    public void userEntersLicenceNumber(String invalidLicenceNumber) {
+        userReEntersLicenceNumber(invalidLicenceNumber);
     }
 
     @And("User re-enters DVA license number as (.*)$")
-    public void userEntersDVALicenceNumber(String InvalidLicenceNumber) {
-        userReEntersDvaLicenceNumber(InvalidLicenceNumber);
+    public void userEntersDVALicenceNumber(String invalidLicenceNumber) {
+        userReEntersDvaLicenceNumber(invalidLicenceNumber);
     }
 
     @And("User re-enters valid issue number as (.*)$")
@@ -106,59 +100,23 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @And("User re-enters valid to day as (.*)$")
-    public void userEntersValidToDay(String InvalidValidToDay) {
-        userReEntersValidToDay(InvalidValidToDay);
+    public void userEntersValidToDay(String invalidValidToDay) {
+        userReEntersValidToDay(invalidValidToDay);
     }
 
     @And("User re-enters valid to month as (.*)$")
-    public void userEntersValidToMonth(String InvalidValidToMonth) {
-        userReEntersValidToMonth(InvalidValidToMonth);
+    public void userEntersValidToMonth(String invalidValidToMonth) {
+        userReEntersValidToMonth(invalidValidToMonth);
     }
 
     @And("User re-enters valid to year as (.*)$")
-    public void userEntersValidToYear(String InvalidValidToYear) {
-        userReEntersValidToYear(InvalidValidToYear);
+    public void userEntersValidToYear(String invalidValidToYear) {
+        userReEntersValidToYear(invalidValidToYear);
     }
 
     @And("User re-enters postcode as (.*)$")
     public void userEntersPostcode(String invalidPostcode) {
         userReEntersPostcode(invalidPostcode);
-    }
-
-    @Given("I navigate to the IPV Core Stub")
-    public void navigateToStub() {
-        navigateToIPVCoreStub();
-    }
-
-    @Given("I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment")
-    public void navigateToStubAndDrivingLicenceCRIOnTestEnv() {
-        navigateToIPVCoreStub();
-        navigateToDrivingLicenceCRIOnTestEnv();
-    }
-
-    @Then("^I search for Driving Licence user number (.*) in the Experian table$")
-    public void i_search_for_DL_user_number(String number) {
-        searchForUATUser(number);
-    }
-
-    @Then("^I enter the context value (.*) in the Input context value as a string$")
-    public void i_enter_a_context_value(String contextValue) {
-        enterContextValue(contextValue);
-    }
-
-    @Then("^I enter the shared claims raw JSON (.*) in the Input shared claims raw JSON$")
-    public void i_enter_shared_claims_raw_json_data(String jsonFileName) {
-        enterSharedClaimsRawJSONValue(jsonFileName);
-    }
-
-    @And("I assert the url path contains (.*)$")
-    public void i_assert_the_url_path_contains(String path) {
-        drivingLicencePageURLValidation(path);
-    }
-
-    @Given("^I check the page title is (.*)$")
-    public void i_check_the_page_titled(String pageTitle) {
-        assertExpectedPage(pageTitle, false);
     }
 
     @Given("I can see a DVLA radio button titled (.*)$")
@@ -172,8 +130,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
     }
 
     @And("^I can see a I do not have a UK driving licence radio button titled (.*)$")
-    public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButtonTitledNidOesGennyfDrwyddedYrruYDU(
-            String expectedText) {
+    public void iCanSeeAIDoNotHaveAUKDrivingLicenceRadioButton(String expectedText) {
         noDrivingLicenceBtn(expectedText);
     }
 
@@ -182,19 +139,13 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         ContinueButton(expectedText);
     }
 
-    @Given("I click on DVLA radio button and Continue")
-    public void i_click_on_DVLA_radio_button_and_Continue() {
+    @Given("I click on DVLA radio button and continue")
+    public void i_click_on_DVLA_radio_button_and_continue() {
         clickOnDVLARadioButton();
     }
 
-    @Then(
-            "^I should on the page DVLA Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login$")
-    public void i_should_be_on_the_DVLA_page() {
-        pageTitleDVLAValidation();
-    }
-
-    @Given("I click on DVA radio button and Continue")
-    public void i_select_dva_radio_button_and_Continue() {
+    @Given("I click on DVA radio button and continue")
+    public void i_select_dva_radio_button_and_continue() {
         clickOnDVARadioButton();
     }
 
@@ -203,12 +154,7 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         clickOnIDoNotHaveAUKDrivingLicenceRadioButton();
     }
 
-    @When("I am directed to the IPV Core routing page")
-    public void i_am_directed_to_the_ipv_core_routing_page() {
-        assertUserRoutedToIpvCore();
-    }
-
-    @Given("I have not selected anything and Continue")
+    @Given("I have not selected anything and continue")
     public void i_have_not_selected_anything() {
         noSelectContinue();
     }
@@ -233,28 +179,6 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         validateErrorText(expectedText);
     }
 
-    @And("I validate the URL having access denied")
-    public void iValidateTheURLHavingAccessDenied() {
-        assertUserRoutedToIpvCoreErrorPage();
-    }
-
-    @Then("^I navigate to the Driving Licence verifiable issuer to check for a (.*) response$")
-    public void i_navigate_to_driving_licence_verifiable_issuer_for_valid_response(
-            String validOrInvalid) {
-        navigateToDrivingLicenceResponse(validOrInvalid);
-    }
-
-    @And("^JSON response should contain error description (.*) and status code as (.*)$")
-    public void errorInJsonResponse(String testErrorDescription, String testStatusCode)
-            throws JsonProcessingException {
-        jsonErrorResponse(testErrorDescription, testStatusCode);
-    }
-
-    @And("I click Go to Driving Licence CRI dev button")
-    public void i_click_go_to_driving_licence_cri_dev_button() {
-        navigateToDrivingLicenceCRI();
-    }
-
     @Then("^I can see the error heading (.*)$")
     public void i_can_see_the_error_heading_page(String errorHeading) {
         validateErrorPageHeading(errorHeading);
@@ -267,7 +191,6 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @Then("I see ‘Why we need to know this’ component is present")
     public void iSeeWhyWeNeedToKnowThisComponentIsPresent() {
-
         whyWeNeedToKnowThis();
     }
 
@@ -281,184 +204,9 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
         paragraphValidation();
     }
 
-    @And("^I click the Driving Licence CRI for the testEnvironment$")
-    public void navigateToDrivingLicenceOnTestEnv() {
-        navigateToDrivingLicenceCRIOnTestEnv();
-    }
-
-    @And("^I can see OR options as (.*)$")
-    public void ICanSeeTheOrDividerTextAs(String expectedText) {
-        assertOrLabelText(expectedText);
-    }
-
-    @And("^I see the licence Selection sentence starts with (.*)$")
-    public void ICanSeeThePageDescriptionAs(String expectedText) throws Throwable {
-        assertPageDescription(expectedText);
-    }
-
-    @And("^I see the heading (.*)$")
-    public void ICanSeeTheHeadingTextAs(String expectedText) {
-        assertPageHeading(expectedText);
-    }
-
-    @And("^I see We will check your details as (.*)$")
-    public void iSeeTheSentenceWeWillCheckYourDetails(String expectedText) {
-        assertPageSourceContains(expectedText);
-    }
-
-    @And("^I see sentence (.*)$")
-    public void ICanSeeProveAnotherWayLinkTextAs(String expectedText) {
-        assertProveAnotherWayLinkText(expectedText);
-    }
-
-    @And("^I can see Check your details as (.*)$")
-    public void ICanSeeTitleAs(String expectedText) {
-        assertPageHeading(expectedText);
-    }
-
-    @Given("^I can see the lastname as (.*)$")
-    public void ICanSeeLastNameLegendAs(String expectedText) {
-        assertLastNameLabelText(expectedText);
-    }
-
-    @And("^I can see the givenName as (.*)$")
-    public void ICanSeeGivenNameLegendAs(String expectedText) {
-        assertGivenNameLegendText(expectedText);
-    }
-
-    @And("^I can see the firstName as (.*)$")
-    public void ICanSeeFirstNameLabelAs(String expectedText) {
-        assertGivenNameDescription(expectedText);
-    }
-
-    @And("^I can see the middleName as (.*)$")
-    public void ICanSeeMiddleNameLabelAs(String expectedText) {
-        assertMiddleNameLabelText(expectedText);
-    }
-
-    @And("^I can see the first name sentence (.*)$")
-    public void ICanSeeTheFirstNameHintAs(String expectedText) {
-        assertGivenNameHint(expectedText);
-    }
-
-    @And("^I can see the sentence (.*)$")
-    public void ICanSeeMiddleNameHintAs(String expectedText) {
-        assertMiddleNameHint(expectedText);
-    }
-
-    @Given("^I can see the DoB fields titled (.*)$")
-    public void ICanSeeDateOfBirthLegendAs(String expectedText) {
-        assertDateOfBirthLegendText(expectedText);
-    }
-
-    @And("^I can see example as (.*)$")
-    public void ICanSeeDateOfBirthHintTextAs(String expectedText) {
-        assertDateOfBirthHintText(expectedText);
-    }
-
-    @And("^I can see date as (.*)$")
-    public void ICanSeeBirthDayAs(String expectedText) {
-        assertBirthDayLabelText(expectedText);
-    }
-
-    @And("^I can see month as (.*)$")
-    public void ICanSeeMonthAs(String expectedText) {
-        assertBirthMonthLabelText(expectedText);
-    }
-
-    @And("^I can see year as (.*)$")
-    public void ICanSeeIssueYearAs(String expectedText) {
-        assertBirthYearLabelText(expectedText);
-    }
-
-    @Given("^I can see the Issue date field titled (.*)$")
-    public void ICanSeeTheIssueDateFieldAs(String expectedText) {
-        assertIssueDateLegendText(expectedText);
-    }
-
-    @Then("^I can see date sentence as (.*)$")
-    public void iCanSeeDateSentenceAs(String expectedText) {
-        assertIssueDateHintText(expectedText);
-    }
-
-    @And("^I can see Valid to date sentence as (.*)$")
-    public void iCanSeeValidToDateSentence(String expectedText) {
-        assertValidToHintText(expectedText);
-    }
-
-    @Then("^I can see the Valid to date field titled (.*)$")
-    public void ICanSeeTheValidToDateFieldAs(String expectedText) {
-        assertValidToLegend(expectedText);
-    }
-
-    @Given("^I can see the licence number field titled (.*)$")
-    public void iSelectedDVLAOnThePreviousPage(String expectedText) {
-        assertLicenceNumberLabelText(expectedText);
-    }
-
-    @Then("^I see the Licence number sentence (.*)$")
-    public void ISeeTheLicenceNumberSentenceAs(String expectedText) {
-        assertLicenceNumberHintText(expectedText);
-    }
-
-    @Then("^I can see the issue number field titled (.*)$")
-    public void ICanSeeIssueNumberNumberFieldTitledAs(String expectedText) {
-        assertIssueNumberLabelText(expectedText);
-    }
-
-    @And("^I can see issue sentence as (.*)$")
-    public void ICanSeeIssueSentenceAs(String expectedText) {
-        assertIssueNumberHintText(expectedText);
-    }
-
-    @Then("^I can see the postcode field titled (.*)$")
-    public void iCanSeeThePostcodeFieldTitledCodPost(String expectedText) {
-        assertPostcodeLabelText(expectedText);
-    }
-
-    @Then("^I can see postcode sentence as (.*)$")
-    public void iCanSeePostcodeSentenceAs(String expectedText) {
-        assertPostcodeHintText(expectedText);
-    }
-
-    @When("I enter the invalid last name and first name")
-    public void iEnterTheInvalidLastNameAndFirstName() {
-        enterInvalidLastAndFirstName();
-    }
-
-    @Then("^the validation text reads (.*)$")
-    public void theValidationTextReadsMaeProblem(String expectedText) {
-        assertErrorSummaryText(expectedText);
-    }
-
-    @And("^I see Check your details as (.*)$")
-    public void ISeeCheckYourDetailsAs(String expectedText) {
-        youWillBeAbleToFindSentence(expectedText);
-    }
-
-    @And("^I see We could not find your details as (.*)$")
-    public void ISeeWeCouldNotFindYourDetailsAs(String expectedText) {
-        assertFirstLineOfUserNotFoundText(expectedText);
-    }
-
-    @And("^I see you will not be able to change your details as (.*)$")
-    public void ISeeYouWillNotBeAbleToChangeYourDetailsAs(String expectedText) {
-        assertPageSourceContains(expectedText);
-    }
-
-    @And("^I see error word as (.*)$")
-    public void iSeeErrorWordAsGwall(String expectedText) {
-        assertErrorPrefix(expectedText);
-    }
-
     @When("^User Re-enters DVLA data as a (.*)$")
     public void userReInputsDataAsADrivingLicenceSubject(String drivingLicenceSubject) {
         userReEntersDataAsADrivingLicenceSubject(drivingLicenceSubject);
-    }
-
-    @And("^I navigate to the page (.*)$")
-    public void navigateToPage(String page) {
-        goToPage(page);
     }
 
     @Given("User clicks on language toggle and switches to Welsh")

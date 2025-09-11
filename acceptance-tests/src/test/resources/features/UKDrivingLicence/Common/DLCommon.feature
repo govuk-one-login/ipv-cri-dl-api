@@ -30,17 +30,16 @@ Feature: Driving License Test Common
 
   @DrivingLicenceTest @build @staging @integration @stub
   Scenario: User continue with no selection and see the error displayed
-    Given I have not selected anything and Continue
+    Given I have not selected anything and continue
     When I can see an error box highlighted red
     And An error heading copy You must choose an option to continue
     Then I can select a link which directs to the problem field
     And The field error copy Error:You must choose an option to continue
     And The test is complete and I close the driver
 
-  # see LIME-1578
-#  @DrivingLicenceTest @build @staging @integration @stub
-#  Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
-#    Given I delete the service_session cookie to get the unexpected error
-#    When I check the page title is Sorry, there is a problem with GOV.UK One Login
-#    Then I can see the error heading Sorry, there is a problem
-#    And The test is complete and I close the driver
+  @DrivingLicenceTest @build @staging @integration @stub
+  Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
+    Given I delete the service_session cookie to get the unexpected error
+    When I check the page title is Sorry, there is a problem – GOV.UK One Login
+    Then I can see the error heading Sorry, there is a problem
+    And The test is complete and I close the driver

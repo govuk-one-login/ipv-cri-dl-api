@@ -1,5 +1,6 @@
 package gov.di_ipv_drivingpermit.pages;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -352,7 +353,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         JsonNode addressNode = rootNode.path("address").get(0);
         extractedPostcode = addressNode.path("postalCode").asText();
 
-        LOGGER.info("Extracted Postcode = {}", extractedPostcode);
+        LOGGER.info("Extracted postcode = {}", extractedPostcode);
     }
 
     public void postRequestToDrivingLicenceEndpoint(
@@ -651,6 +652,48 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         scoreIs(validityScore, strengthScore, vcBody);
     }
 
+    public JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        return jsonNode.get(vc);
+    }
+
+    public void scoreIs(
+            String expectedValidityScore, String expectedStrengthScore, String jsonPayloadText)
+            throws IOException {
+        String result = jsonPayloadText;
+        LOGGER.info("result = " + result);
+        JsonNode vcNode = getJsonNode(result, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+
+        String validityScore = evidence.get(0).get("validityScore").asText();
+        assertEquals(expectedValidityScore, validityScore);
+
+        String strengthScore = evidence.get(0).get("strengthScore").asText();
+        assertEquals(expectedStrengthScore, strengthScore);
+    }
+
+    public void scoreAndTypeIs(
+            String expectedValidityScore,
+            String expectedStrengthScore,
+            String expectedType,
+            String jsonPayloadText)
+            throws IOException {
+        String result = jsonPayloadText;
+        LOGGER.info("result = " + result);
+        JsonNode vcNode = getJsonNode(result, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+
+        String validityScore = evidence.get(0).get("validityScore").asText();
+        assertEquals(expectedValidityScore, validityScore);
+
+        String strengthScore = evidence.get(0).get("strengthScore").asText();
+        assertEquals(expectedStrengthScore, strengthScore);
+
+        String type = evidence.get(0).get("type").asText();
+        assertEquals(expectedType, type);
+    }
+
     public void ciInDrivingLicenceCriVc(String ci) throws IOException {
         JsonNode jsonNode = objectMapper.readTree(vcBody);
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
@@ -665,6 +708,64 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
             String checkMethod, String identityCheckPolicy, String checkDetailsType)
             throws IOException {
         assertCheckDetailsWithinVc(checkMethod, identityCheckPolicy, checkDetailsType, vcBody);
+    }
+
+    public void assertCheckDetailsWithinVc(
+            String checkMethod,
+            String identityCheckPolicy,
+            String checkDetailsType,
+            String drivingLicenceCRIVC)
+            throws IOException {
+        JsonNode vcNode = getJsonNode(drivingLicenceCRIVC, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+        JsonNode firstItemInEvidenceArray = evidence.get(0);
+        LOGGER.info("firstItemInEvidenceArray = " + firstItemInEvidenceArray);
+        if (checkDetailsType.equals("success")) {
+            JsonNode checkDetailsNode = firstItemInEvidenceArray.get("checkDetails");
+            JsonNode checkMethodNode = checkDetailsNode.get(0).get("checkMethod");
+            String actualCheckMethod = checkMethodNode.asText();
+            LOGGER.info("actualCheckMethod = " + actualCheckMethod);
+            JsonNode identityCheckPolicyNode = checkDetailsNode.get(0).get("identityCheckPolicy");
+            String actualidentityCheckPolicy = identityCheckPolicyNode.asText();
+            LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
+            JsonNode activityFromNode = checkDetailsNode.get(0).get("activityFrom");
+            String actualactivityFrom = activityFromNode.asText();
+            LOGGER.info("actualactivityFrom = " + actualactivityFrom);
+            Assert.assertEquals(checkMethod, actualCheckMethod);
+            Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
+            if (!StringUtils.isEmpty(activityFromNode.toString())) {
+                assertEquals(
+                        "[{\"checkMethod\":"
+                                + checkMethodNode.toString()
+                                + ","
+                                + "\"identityCheckPolicy\":"
+                                + identityCheckPolicyNode.toString()
+                                + ","
+                                + "\"activityFrom\":"
+                                + activityFromNode.toString()
+                                + "}]",
+                        checkDetailsNode.toString());
+            }
+        } else {
+            JsonNode failedCheckDetailsNode = firstItemInEvidenceArray.get("failedCheckDetails");
+            JsonNode checkMethodNode = failedCheckDetailsNode.get(0).get("checkMethod");
+            String actualCheckMethod = checkMethodNode.asText();
+            LOGGER.info("actualCheckMethod = " + actualCheckMethod);
+            JsonNode identityCheckPolicyNode =
+                    failedCheckDetailsNode.get(0).get("identityCheckPolicy");
+            String actualidentityCheckPolicy = identityCheckPolicyNode.asText();
+            LOGGER.info("actualidentityCheckPolicy = " + actualidentityCheckPolicy);
+            Assert.assertEquals(checkMethod, actualCheckMethod);
+            Assert.assertEquals(identityCheckPolicy, actualidentityCheckPolicy);
+            assertEquals(
+                    "[{\"checkMethod\":"
+                            + checkMethodNode.toString()
+                            + ","
+                            + "\"identityCheckPolicy\":"
+                            + identityCheckPolicyNode.toString()
+                            + "}]",
+                    failedCheckDetailsNode.toString());
+        }
     }
 
     public void assertJtiIsPresentAndNotNull() throws IOException {
@@ -715,7 +816,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void checkDebugDrivingPermitResponseContainsException(
-            String cri_internal_error_code, String cri_internal_error_message) {
+            String criInternalErrorCode, String criInternalErrorMessage) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -727,12 +828,12 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         + "\"error\":\"server_error\""
                         + "}");
 
-        if (cri_internal_error_code != null && cri_internal_error_message != null) {
+        if (criInternalErrorCode != null && criInternalErrorMessage != null) {
             // Asserting debug reply
             sb.append(",");
-            sb.append("\"cri_internal_error_code\":" + "\"" + cri_internal_error_code + "\"");
+            sb.append("\"cri_internal_error_code\":" + "\"" + criInternalErrorCode + "\"");
             sb.append(",");
-            sb.append("\"cri_internal_error_message\":" + "\"" + cri_internal_error_message + "\"");
+            sb.append("\"cri_internal_error_message\":" + "\"" + criInternalErrorMessage + "\"");
         }
 
         sb.append("}");
@@ -741,13 +842,13 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void getLastTestedTime() {
-        String PARAMETER_NAME_FORMAT = "/%s/%s";
+        String parameterNameFormat = "/%s/%s";
 
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
         if (stackParameterPrefix != null) {
 
             String secretId =
-                    String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, "DVLA/password");
+                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/password");
             LOGGER.info("{} {}", "getStackSecretValue", secretId);
 
             GetSecretValueRequest valueRequest =
@@ -767,13 +868,13 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void passwordHasRotatedSuccessfully() {
-        String PARAMETER_NAME_FORMAT = "/%s/%s";
+        String parameterNameFormat = "/%s/%s";
 
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
 
         if (stackParameterPrefix != null) {
             String secretId =
-                    String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, "DVLA/password");
+                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/password");
             LOGGER.info("{} {}", "getStackSecretValue", secretId);
 
             GetSecretValueRequest valueRequest =

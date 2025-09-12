@@ -59,7 +59,7 @@ public class PageObjectSupport {
      * Waits up to 1 minute for the page to load. This method should be updated as was created in
      * 2017 and catch block logis is useless
      */
-    public void waitForPageToLoad() throws InterruptedException {
+    public void waitForPageToLoad() {
         try {
             WebDriverWait wait = new WebDriverWait(getCurrentDriver(), Duration.ofSeconds(60));
             wait.until(
@@ -69,11 +69,7 @@ public class PageObjectSupport {
                                     .toString()
                                     .equals("complete"));
         } catch (TimeoutException e) {
-            // Swallow this and continue
-            // FIXME: Should raise an error when the page can not be loaded as it is confusing to
-            // have a separate later test fail!
-            // FIXME: Write to logger not standard out! (why this way?)
-            new RuntimeException("Wait for page to load returned Timeout exception");
+            throw new RuntimeException("Wait for page to load returned Timeout exception");
         }
     }
 

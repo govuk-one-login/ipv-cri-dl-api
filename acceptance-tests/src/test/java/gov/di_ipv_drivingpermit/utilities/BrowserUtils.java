@@ -5,9 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -343,28 +341,17 @@ public class BrowserUtils {
      *
      * @param element
      */
-    public static void waitForStaleElement(WebElement element) {
-        int y = 0;
-        while (y <= 15) {
-            if (y == 1)
-                try {
-                    element.isDisplayed();
-                    break;
-                } catch (StaleElementReferenceException st) {
-                    y++;
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        LOGGER.error(e);
-                    }
-                } catch (WebDriverException we) {
-                    y++;
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        LOGGER.error(e);
-                    }
-                }
+    public static void waitForStaleElement(WebDriver driver, WebElement element) {
+        Wait<WebDriver> wait =
+                new FluentWait<>(driver)
+                        .withTimeout(Duration.ofSeconds(15)) // Adjust timeout as needed
+                        .pollingEvery(Duration.ofMillis(300)) // Optional: Adjust polling frequency
+                        .ignoring(StaleElementReferenceException.class, WebDriverException.class);
+
+        try {
+            wait.until(ExpectedConditions.stalenessOf(element));
+        } catch (Exception e) {
+            LOGGER.error("Error waiting for element to become stale: ", e);
         }
     }
 
@@ -531,28 +518,28 @@ public class BrowserUtils {
         Set<Cookie> cookies = Driver.get().manage().getCookies();
 
         for (Cookie cookie : cookies) {
-            LOGGER.info(cookie.getName() + ":" + cookie.getValue());
+            LOGGER.info("{}: {}", cookie.getName(), cookie.getValue());
         }
         Driver.get().manage().deleteCookieNamed(cookieName);
         Driver.get().navigate().refresh();
     }
 
     public static String changeLanguageTo(final String language) {
+        String languageCode = "en"; // Default language code
 
-        String languageCode = "en";
         switch (language) {
             case "Welsh":
-                {
-                    languageCode = "cy";
-                }
+                languageCode = "cy";
+                break;
+            default:
+                System.out.println("Invalid language: " + language);
+                break;
         }
 
         String currentURL = Driver.get().getCurrentUrl();
         String newURL = currentURL + "/?lng=" + languageCode;
         Driver.get().get(newURL);
-
         waitForPageToLoad(MAX_WAIT_SEC);
-
         return languageCode;
     }
 
@@ -584,8 +571,7 @@ public class BrowserUtils {
     public static HttpResponse<String> sendHttpRequest(HttpRequest request)
             throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder().build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response;
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     public static void checkOkHttpResponseOnLink(String link) {
@@ -594,7 +580,7 @@ public class BrowserUtils {
         try {
             httpResponse = sendHttpRequest(request);
             int statusCode = httpResponse.statusCode();
-            assertEquals(statusCode, 200);
+            assertEquals(200, statusCode);
         } catch (IOException | InterruptedException e) {
             fail("Failed to get 200 back on request to url");
         }

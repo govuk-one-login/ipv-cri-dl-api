@@ -44,7 +44,7 @@ Feature: DVA Auth Source Driving Licence Test
     And I add a cookie to change the language to English
     Then I check the page title is Was your UK photocard driving licence issued by DVLA or DVA? – GOV.UK One Login
     And I should see DVA as an option
-    And I click on DVA radio button and Continue
+    And I click on DVA radio button and continue
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVA LicenceNumber
     Given User enters DVA data as a <DVADrivingLicenceSubject>

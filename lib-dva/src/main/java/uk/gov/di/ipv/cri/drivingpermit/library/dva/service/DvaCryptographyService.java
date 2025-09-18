@@ -16,6 +16,9 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.util.Base64URL;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.DvaInterface;
@@ -35,6 +38,7 @@ import java.util.Map;
 
 public class DvaCryptographyService {
 
+    private static final Logger LOGGER = LogManager.getLogger();
     private final DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration;
     private final KmsSigner kmsSigner;
     private final JweKmsDecrypter jweKmsDecrypter;
@@ -62,17 +66,24 @@ public class DvaCryptographyService {
             throws ParseException, JOSEException {
         DvaSignedEncryptedResponse dvaSignedEncryptedResponse =
                 new DvaSignedEncryptedResponse(dvaSignedEncryptedResponseString);
+        LOGGER.info("!!!!!!!!!!!! DVA RESPONSE String= " + dvaSignedEncryptedResponseString.toString());
+        LOGGER.info("!!!!!!!!!!!! DVA RESPONSE = " + dvaSignedEncryptedResponse.toString());
+        LOGGER.info("!!!!!!!!!!!! DVA RESPONSE PAYLOAD = " + dvaSignedEncryptedResponse.getPayload().toString());
         JWSObject outerSignedPayload = JWSObject.parse(dvaSignedEncryptedResponse.getPayload());
         if (isInvalidSignature(outerSignedPayload)) {
             throw new IpvCryptoException("Dva Response Outer Signature invalid.");
         }
+        LOGGER.info("!!!!!!!!!!!! DVA RESPONSE OUTER SIGNATURE CERT THUMBPRINT = " + outerSignedPayload.getHeader().getX509CertSHA256Thumbprint());
         JWEObject encryptedSignedPayload =
                 JWEObject.parse(outerSignedPayload.getPayload().toString());
         JWSObject decryptedSignedPayload = decrypt(encryptedSignedPayload);
+        LOGGER.info("!!!!!!!!!!!! INNER PAYLOAD CONTENTS = " + decryptedSignedPayload.toString());
+        LOGGER.info("!!!!!!!!!!!! INNER PAYLOAD SIGNATURE = " + decryptedSignedPayload.getSignature().toString());
         if (isInvalidSignature(decryptedSignedPayload)) {
             throw new IpvCryptoException("Dva Response Inner Signature invalid.");
         }
         try {
+            LOGGER.info("!!!!!!!!!!!! DVA RESPONSE INNER SIGNATURE CERT THUMBPRINT = " + decryptedSignedPayload.getHeader().getX509CertSHA256Thumbprint());
             return objectMapper.readValue(
                     decryptedSignedPayload.getPayload().toString(), DvaResponse.class);
         } catch (JsonProcessingException exception) {
@@ -93,6 +104,7 @@ public class DvaCryptographyService {
                         thumbprints.getSha256Thumbprint());
 
         String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
+        LOGGER.info("OUTGOING SIGNING THUMBPRINTS ARE = " + jsonHeaders.toString());
 
         JWSObject jwsObject =
                 new JWSObject(
@@ -122,6 +134,7 @@ public class DvaCryptographyService {
                                 .getSha256Thumbprint());
 
         String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
+        LOGGER.info("OUTGOING REQUEST HEADER WITH ENCRYPTION CERT THUMBPRINTS = " + jsonHeaders.toString());
 
         var header =
                 new JWEHeader.Builder(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A128CBC_HS256)
@@ -160,6 +173,8 @@ public class DvaCryptographyService {
         try {
             encrypted.decrypt(jweKmsDecrypter);
 
+
+            LOGGER.info("!!!!!!!!!!!! PAYLOAD FROM DVA in decrypt func = " + encrypted.getPayload().toString());
             return JWSObject.parse(encrypted.getPayload().toString());
         } catch (ParseException | JOSEException exception) {
             throw new IpvCryptoException(

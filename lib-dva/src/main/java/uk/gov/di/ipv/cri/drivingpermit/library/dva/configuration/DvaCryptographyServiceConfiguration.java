@@ -10,9 +10,12 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DvaCryptographyServiceConfiguration {
 
+    private static final Logger LOGGER = LogManager.getLogger();
     public static final String DVA_JWS_PARAMETER_PATH = "DVA/JWS";
 
     public static final String MAP_KEY_SIGNING_CERT_FOR_DVA_TO_VERIFY =
@@ -84,14 +87,17 @@ public class DvaCryptographyServiceConfiguration {
     }
 
     public Certificate getEncryptionCert() {
+        LOGGER.info("encryption cert is " + encryptionCert.toString());
         return encryptionCert;
     }
 
     public Certificate getSigningCert() {
+        LOGGER.info("signing cert is " + signingCert.toString());
         return signingCert;
     }
 
     public Thumbprints getEncryptionCertThumbprints() {
+        LOGGER.info("encryption cert thumbprints are {}", encryptionCertThumbprints.toString());
         return encryptionCertThumbprints;
     }
 

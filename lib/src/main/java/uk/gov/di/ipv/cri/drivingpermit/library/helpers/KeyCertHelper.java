@@ -15,8 +15,11 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class KeyCertHelper {
+    private static final Logger LOGGER = LogManager.getLogger();
 
     @ExcludeFromGeneratedCoverageReport
     private KeyCertHelper() {
@@ -41,6 +44,7 @@ public class KeyCertHelper {
 
     public static Thumbprints makeThumbprint(X509Certificate certificate)
             throws CertificateEncodingException, NoSuchAlgorithmException {
+        LOGGER.info("THUMBPRINT FROM OUTGOING CERT = " + getCertThumbprint(certificate, "SHA-1") + " and " + getCertThumbprint(certificate, "SHA-256"));
         return new Thumbprints(
                 getCertThumbprint(certificate, "SHA-1"), getCertThumbprint(certificate, "SHA-256"));
     }

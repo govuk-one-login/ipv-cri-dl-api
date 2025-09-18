@@ -1,5 +1,6 @@
 package gov.di_ipv_drivingpermit.pages;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -166,5 +167,11 @@ public class UniversalSteps {
                     "Error accessing JSON node: "
                             + e.getMessage()); // Fail the test if node is missing
         }
+    }
+
+    public JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        return jsonNode.get(vc);
     }
 }

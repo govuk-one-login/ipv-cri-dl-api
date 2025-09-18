@@ -18,7 +18,7 @@ public class UniversalStepDefs extends UniversalSteps {
     }
 
     @And("^I add a cookie to change the language to (.*)$")
-    public void iAddACookieToChangeTheLanguageTo(String language) {
+    public void updateCookieToChangeTheLanguageTo(String language) {
         String languageCode = changeLanguageTo(language);
         assertURLContains("?lng=" + languageCode);
     }

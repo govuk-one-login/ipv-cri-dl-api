@@ -122,9 +122,9 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     }
 
     @And("Driving Licence user sends a POST request to Access Token endpoint (.*)$")
-    public void DL_user_requests_access_token(String CRIId)
+    public void DL_user_requests_access_token(String criId)
             throws IOException, InterruptedException {
-        postRequestToAccessTokenEndpointForDL(CRIId);
+        postRequestToAccessTokenEndpointForDL(criId);
     }
 
     @Then("User requests Driving Licence CRI VC")
@@ -141,14 +141,12 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
 
     @And("Driving Licence VC should contain validityScore (.*) and strengthScore (.*)$")
     public void DL_vc_should_contain_validity_score_and_strength_score(
-            String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException {
+            String validityScore, String strengthScore) throws IOException {
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
 
     @And("^Driving Licence VC should contain JTI field$")
-    public void jsonPayloadShouldContainJtiField()
-            throws IOException, ParseException, InterruptedException {
+    public void jsonPayloadShouldContainJtiField() throws IOException {
         assertJtiIsPresentAndNotNull();
     }
 
@@ -163,15 +161,14 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     @Then(
             "Check response contains unexpected server error exception containing debug error code (.*) and debug error message (.*)$")
     public void dl_debug_check_fails_and_returns_unexpected_exception(
-            String cri_internal_error_code, String cri_internal_error_message) {
+            String criInternalErrorCode, String criInternalErrorMessage) {
         checkDebugDrivingPermitResponseContainsException(
-                cri_internal_error_code, cri_internal_error_message);
+                criInternalErrorCode, criInternalErrorMessage);
     }
 
     @And("Driving Licence VC should contain ci (.*), validityScore (.*) and strengthScore (.*)$")
     public void DL_vc_should_contain_ci_validity_score_and_strength_score(
-            String ci, String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException {
+            String ci, String validityScore, String strengthScore) throws IOException {
         ciInDrivingLicenceCriVc(ci);
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
@@ -180,7 +177,7 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
             "Driving Licence VC should contain checkMethod (.*) and identityCheckPolicy (.*) in (.*) checkDetails$")
     public void dl_vc_should_contain_check_details(
             String checkMethod, String identityCheckPolicy, String checkDetailsType)
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
+            throws IOException {
         assertCheckDetails(checkMethod, identityCheckPolicy, checkDetailsType);
     }
 

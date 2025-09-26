@@ -3475,6 +3475,7 @@ Resources:
       Unit: Count
       Period: 60
       EvaluationPeriods: 3
+      DatapointsToAlarm: 3
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -3788,6 +3789,7 @@ Resources:
       Unit: Count
       Period: 60
       EvaluationPeriods: 1
+      DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
@@ -3883,6 +3885,7 @@ Resources:
       Unit: Count
       Period: 60
       EvaluationPeriods: 1
+      DatapointsToAlarm: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching

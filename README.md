@@ -165,6 +165,14 @@ In a terminal, change into the acceptance test folder and execute
 
 Then follow the on-screen prompts.
 
+## Infrastructure Test
+
+In a terminal, change to the root directory
+
+`./gradlew :acceptance-tests:test`
+
+This will execute the TemplateTest to validate the CloudFormation Lambda template.yaml.
+
 ### Note
 
 To run API tests locally you need

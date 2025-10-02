@@ -61,7 +61,7 @@ ext {
 		// password renewal lambda
 		passay_version                     : "1.6.4",
 
-		bouncycastle_bcpkix_version        : "1.80",
+		bouncycastle_bcpkix_version        : "1.82",
 
 		// Test
 		junit_platform                     : "1.13.4",

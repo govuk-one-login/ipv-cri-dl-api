@@ -1677,9 +1677,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} DVA certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: [ ]
       MetricName: dva_cert_expiry_metric
       Namespace: !Sub "${CriIdentifier}"

@@ -2198,14 +2198,14 @@ Resources:
       Dimensions: [ ]
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
-      Threshold: 1
+      Threshold: 15
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       Metrics:
         - Id: errorThreshold
           Label: errorThreshold
           ReturnData: true
-          Expression: IF(invocations<2 || error<2,0,errorPercentage)
+          Expression: IF(invocations<10,0,errorPercentage)
         - Id: invocations
           ReturnData: false
           MetricStat:

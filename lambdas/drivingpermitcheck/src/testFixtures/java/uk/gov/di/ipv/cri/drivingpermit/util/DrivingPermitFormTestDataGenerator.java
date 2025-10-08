@@ -1,8 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.util;
 
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 
 import java.time.LocalDate;

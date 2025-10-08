@@ -25,6 +25,9 @@ public class ParameterStoreParameters {
 
     public static final String DVLA_TOKEN_TABLE_NAME = "DVLA/TokenTableName";
 
+    //  pragma: allowlist nextline secret
+    public static final String DVLA_API_KEY_SECRET = "DVLA/apiKey";
+
     // ************************ Issue Cred VC ************************
 
     public static final String MAX_JWT_TTL_UNIT = "JwtTtlUnit"; // Issue Cred VC TTL

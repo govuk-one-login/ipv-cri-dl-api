@@ -29,7 +29,6 @@ import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentVerificationResponse;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.FormDataValidator;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.IdentityVerificationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
@@ -38,6 +37,7 @@ import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitCo
 import uk.gov.di.ipv.cri.drivingpermit.api.util.RequestSentAuditHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;

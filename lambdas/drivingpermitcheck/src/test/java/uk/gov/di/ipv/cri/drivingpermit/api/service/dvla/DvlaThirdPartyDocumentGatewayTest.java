@@ -8,9 +8,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
@@ -35,6 +36,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_
 class DvlaThirdPartyDocumentGatewayTest {
 
     @Mock private DvlaEndpointFactory mockDvlaEndpointFactory;
+    @Mock private DvlaConfiguration mockDvlaConfiguration;
     @Mock private TokenRequestService mockTokenRequestService;
     @Mock private DriverMatchService mockDriverMatchService;
 
@@ -48,7 +50,10 @@ class DvlaThirdPartyDocumentGatewayTest {
 
         when(mockDvlaEndpointFactory.getDriverMatchService()).thenReturn(mockDriverMatchService);
 
-        dvlaThirdPartyAPIService = new DvlaThirdPartyDocumentGateway(mockDvlaEndpointFactory);
+        when(mockDvlaConfiguration.getApiKey()).thenReturn("apiKey");
+
+        dvlaThirdPartyAPIService =
+                new DvlaThirdPartyDocumentGateway(mockDvlaEndpointFactory, mockDvlaConfiguration);
     }
 
     @ParameterizedTest
@@ -73,7 +78,10 @@ class DvlaThirdPartyDocumentGatewayTest {
                 .thenReturn(testTokenValue);
 
         when(mockDriverMatchService.performMatch(
-                        drivingPermitForm, testTokenValue, Strategy.NO_CHANGE))
+                        drivingPermitForm,
+                        testTokenValue,
+                        mockDvlaConfiguration.getApiKey(),
+                        Strategy.NO_CHANGE))
                 .thenReturn(testDriverMatchServiceResult);
 
         DocumentCheckResult result =
@@ -126,7 +134,10 @@ class DvlaThirdPartyDocumentGatewayTest {
         if (recoverySucessful) {
             // Match issue resolved via new token
             when(mockDriverMatchService.performMatch(
-                            drivingPermitForm, testTokenValue, Strategy.NO_CHANGE))
+                            drivingPermitForm,
+                            testTokenValue,
+                            mockDvlaConfiguration.getApiKey(),
+                            Strategy.NO_CHANGE))
                     .thenThrow(exceptionCaught)
                     .thenReturn(testDriverMatchServiceResult);
 
@@ -141,7 +152,10 @@ class DvlaThirdPartyDocumentGatewayTest {
         } else {
             // Match issue remains
             when(mockDriverMatchService.performMatch(
-                            drivingPermitForm, testTokenValue, Strategy.NO_CHANGE))
+                            drivingPermitForm,
+                            testTokenValue,
+                            mockDvlaConfiguration.getApiKey(),
+                            Strategy.NO_CHANGE))
                     .thenThrow(exceptionCaught)
                     .thenThrow(exceptionCaught);
 

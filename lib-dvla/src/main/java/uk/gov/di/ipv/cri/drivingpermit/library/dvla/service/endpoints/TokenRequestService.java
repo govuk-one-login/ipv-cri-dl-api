@@ -195,6 +195,7 @@ public class TokenRequestService {
                             .build();
 
             requestBody = objectMapper.writeValueAsString(tokenRequestPayload);
+            LOGGER.info("response body: {}", requestBody);
         } catch (JsonProcessingException e) {
             LOGGER.error("JsonProcessingException creating request body");
             LOGGER.debug(e.getMessage());

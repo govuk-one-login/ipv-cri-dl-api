@@ -23,6 +23,12 @@ public class Definitions {
     public static final String LAMBDA_PERSON_INFO_CHECK_COMPLETED_ERROR =
             "lambda_person_info_check_completed_error";
 
+    public static final String LAMBDA_API_KEY_CHECK_COMPLETED_OK =
+            "lambda_api_key_check_completed_ok";
+    // New Api Key Metric
+    public static final String LAMBDA_API_KEY_CHECK_COMPLETED_ERROR =
+            "lambda_api_key_check_completed_error";
+
     // Runtime Capture of colds starts as custom metric for monitoring
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION =
             "lambda_driving_permit_check_function_init_duration";

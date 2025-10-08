@@ -4,10 +4,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
@@ -28,12 +29,14 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private final TokenRequestService tokenRequestService;
     private final DriverMatchService driverMatchService;
-
+    private final DvlaConfiguration dvlaConfiguration;
     private static final int MAX_UNAUTHORIZED_RECOVERY_ATTEMPTS = 1;
 
-    public DvlaThirdPartyDocumentGateway(DvlaEndpointFactory endpointFactory) {
+    public DvlaThirdPartyDocumentGateway(
+            DvlaEndpointFactory endpointFactory, DvlaConfiguration dvlaConfiguration) {
         tokenRequestService = endpointFactory.getTokenRequestService();
         driverMatchService = endpointFactory.getDriverMatchService();
+        this.dvlaConfiguration = dvlaConfiguration;
     }
 
     @Override
@@ -66,7 +69,11 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
             try {
                 driverMatchServiceResult =
-                        driverMatchService.performMatch(drivingPermitForm, tokenValue, strategy);
+                        driverMatchService.performMatch(
+                                drivingPermitForm,
+                                tokenValue,
+                                dvlaConfiguration.getApiKey(),
+                                strategy);
 
                 finished = true;
 

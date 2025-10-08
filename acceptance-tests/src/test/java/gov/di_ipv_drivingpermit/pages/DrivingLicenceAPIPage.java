@@ -26,6 +26,8 @@ import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
@@ -843,25 +845,42 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     public void getLastTestedTime() {
         String parameterNameFormat = "/%s/%s";
-
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
-        if (stackParameterPrefix != null) {
 
+        if (stackParameterPrefix != null) {
             String secretId =
                     String.format(parameterNameFormat, stackParameterPrefix, "DVLA/password");
-            LOGGER.info("{} {}", "getStackSecretValue", secretId);
+            LOGGER.info("Attempting to describe secret: {}", secretId);
 
-            GetSecretValueRequest valueRequest =
-                    GetSecretValueRequest.builder()
-                            .secretId(secretId)
-                            .versionStage("AWSCURRENT")
-                            .build();
+            try {
+                DescribeSecretRequest describeRequest =
+                        DescribeSecretRequest.builder().secretId(secretId).build();
 
-            GetSecretValueResponse valueResponse =
-                    secretsManagerClient.getSecretValue(valueRequest);
+                DescribeSecretResponse describeResponse =
+                        secretsManagerClient.describeSecret(describeRequest);
 
-            DATE_TIME_OF_ROTATION = valueResponse.createdDate().toString();
-            LOGGER.info("Date time of rotation {}", DATE_TIME_OF_ROTATION);
+                if (describeResponse.lastChangedDate() != null) {
+                    DATE_TIME_OF_ROTATION = describeResponse.lastChangedDate().toString();
+                    LOGGER.info(
+                            "Date time of rotation (last changed date) {}", DATE_TIME_OF_ROTATION);
+                } else {
+                    LOGGER.warn("Last changed date not available for secret {}", secretId);
+                }
+
+                LOGGER.info("Rotation Enabled: {}", describeResponse.rotationEnabled());
+                LOGGER.info("Next Rotation Date: {}", describeResponse.nextRotationDate());
+                if (describeResponse.lastRotatedDate() != null) {
+                    LOGGER.info("Last Rotated Date: {}", describeResponse.lastRotatedDate());
+                }
+                if (describeResponse.tags() != null && !describeResponse.tags().isEmpty()) {
+                    LOGGER.info("Tags: {}", describeResponse.tags());
+                }
+
+            } catch (Exception e) {
+                LOGGER.error(
+                        "Error retrieving secret details for {}: {}", secretId, e.getMessage());
+            }
+
         } else {
             LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
         }

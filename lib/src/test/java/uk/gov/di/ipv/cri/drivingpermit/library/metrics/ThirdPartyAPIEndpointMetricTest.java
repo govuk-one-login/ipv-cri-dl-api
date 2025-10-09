@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVA_THIRD_PARTY_API_DVA_ENDPOINT;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_KEY_ENDPOINT;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,6 +73,9 @@ class ThirdPartyAPIEndpointMetricTest {
         expectedMetricsCaptureList.remove(
                 "dvla_third_party_api_change_password_endpoint_api_response_type_error"); // not
         // used
+        expectedMetricsCaptureList.remove(
+                "dvla_third_party_api_key_endpoint_api_response_type_error"); // not
+        // used
 
         // Add special case DVA metrics
         expectedMetricsCaptureList.add(
@@ -105,6 +109,13 @@ class ThirdPartyAPIEndpointMetricTest {
                                 expectedFormat,
                                 DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT,
                                 "password_fail_alert_metric")
+                        .toLowerCase());
+
+        expectedMetricsCaptureList.add(
+                String.format(
+                                expectedFormat,
+                                DVLA_THIRD_PARTY_API_KEY_ENDPOINT,
+                                "api_key_fail_alert_metric")
                         .toLowerCase());
 
         // Sort the two lists so the orders are the same

@@ -274,8 +274,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
             LOGGER.info("Secrets Manager Request Sent");
 
         } catch (SecretsManagerException e) {
-            LOGGER.error(
-                    "Updatye value method returned Exception {}", e.getClass().getSimpleName());
+            LOGGER.error("Update value method returned Exception {}", e.getClass().getSimpleName());
             LOGGER.debug(e);
             throw e;
         }

@@ -20,9 +20,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
-import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.DriverMatchAPIResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.DriverMatchErrorResponse;
@@ -146,7 +146,7 @@ class DriverMatchServiceTest {
 
         DriverMatchServiceResult driverMatchServiceResult =
                 driverMatchService.performMatch(
-                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE);
+                        dvlaFormFields, TEST_TOKEN_VALUE, TEST_API_KEY, Strategy.NO_CHANGE);
 
         // (POST)
         InOrder inOrderMockCloseableHttpClient = inOrder(mockHttpRetryer);
@@ -235,7 +235,8 @@ class DriverMatchServiceTest {
         DvlaFormFields dvlaFormFields = getTestData();
 
         DriverMatchServiceResult driverMatchServiceResult =
-                driverMatchService.performMatch(dvlaFormFields, TEST_TOKEN_VALUE, strategy);
+                driverMatchService.performMatch(
+                        dvlaFormFields, TEST_TOKEN_VALUE, TEST_API_KEY, strategy);
 
         // (POST)
         InOrder inOrderMockCloseableHttpClient = inOrder(mockHttpRetryer);
@@ -306,7 +307,10 @@ class DriverMatchServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 thisTestOnlyDriverMatchService.performMatch(
-                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
+                                        dvlaFormFields,
+                                        TEST_TOKEN_VALUE,
+                                        TEST_API_KEY,
+                                        Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -336,7 +340,10 @@ class DriverMatchServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 driverMatchService.performMatch(
-                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
+                                        dvlaFormFields,
+                                        TEST_TOKEN_VALUE,
+                                        TEST_API_KEY,
+                                        Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post)
@@ -406,7 +413,10 @@ class DriverMatchServiceTest {
                         DVLAMatchUnauthorizedException.class,
                         () ->
                                 driverMatchService.performMatch(
-                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
+                                        dvlaFormFields,
+                                        TEST_TOKEN_VALUE,
+                                        TEST_API_KEY,
+                                        Strategy.NO_CHANGE),
                         "Expected DVLAMatchUnauthorizedException");
 
         // (Post) DriverMatch
@@ -478,7 +488,10 @@ class DriverMatchServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 driverMatchService.performMatch(
-                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
+                                        dvlaFormFields,
+                                        TEST_TOKEN_VALUE,
+                                        TEST_API_KEY,
+                                        Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) DriverMatch
@@ -540,7 +553,10 @@ class DriverMatchServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 driverMatchService.performMatch(
-                                        dvlaFormFields, TEST_TOKEN_VALUE, Strategy.NO_CHANGE),
+                                        dvlaFormFields,
+                                        TEST_TOKEN_VALUE,
+                                        TEST_API_KEY,
+                                        Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         // (Post) DriverMatch

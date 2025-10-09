@@ -87,7 +87,7 @@ public class ChangePasswordService {
     }
 
     public void sendPasswordChangeRequest(
-            String newPassword, String exisitingPassword, Strategy strategy)
+            String newPassword, String existingPassword, Strategy strategy)
             throws OAuthErrorResponseException, UnauthorisedException {
 
         final String requestId = UUID.randomUUID().toString();
@@ -114,7 +114,7 @@ public class ChangePasswordService {
         // Enforce connection timeout values
         request.setConfig(requestConfig);
 
-        String requestBody = createRequestBody(newPassword, exisitingPassword);
+        String requestBody = createRequestBody(newPassword, existingPassword);
 
         LOGGER.debug("{} request body : {}", REQUEST_NAME, requestBody);
 

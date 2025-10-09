@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request;
+package uk.gov.di.ipv.cri.drivingpermit.library.domain;
 
 import java.time.LocalDate;
 

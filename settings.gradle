@@ -7,7 +7,8 @@ include "lib",
 		"lambdas:issuecredential",
 		"lambdas:certexpiryreminder",
 		"lambdas:passwordRenewal",
-		"lambdas:personInfo"
+		"lambdas:personInfo",
+		'lambdas:apiKeyRenewal'
 
 // Workaround to ensure ide's enable the correct plugins
 // for the acceptance tests when repo is access at the root level.

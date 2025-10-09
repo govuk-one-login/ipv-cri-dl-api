@@ -150,7 +150,7 @@ public class ThirdPartyAPIServiceFactory {
                         httpRetryer,
                         dynamoDbEnhancedClient);
 
-        return new DvlaThirdPartyDocumentGateway(dvlaEndpointFactory);
+        return new DvlaThirdPartyDocumentGateway(dvlaEndpointFactory, dvlaConfiguration);
     }
 
     public ThirdPartyAPIService getDvaThirdPartyAPIService() {

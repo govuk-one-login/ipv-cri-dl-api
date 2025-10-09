@@ -1,8 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.testdata;
 
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
-import uk.gov.di.ipv.cri.drivingpermit.api.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 
 import java.util.List;
 

@@ -37,7 +37,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
-import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
@@ -56,7 +55,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
     private final SecretsManagerClient secretsManagerClient;
     private final ChangeApiKeyService changeApiKeyService;
     private final TokenRequestService tokenRequestService;
-    private final DriverMatchService driverMatchService;
+    //    private final DriverMatchService driverMatchService;
     private final EventProbe eventProbe;
     private final DvlaConfiguration dvlaConfiguration;
 
@@ -97,27 +96,27 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                         defaultRequestConfig,
                         objectMapper,
                         eventProbe);
-        driverMatchService =
-                new DriverMatchService(
-                        dvlaConfiguration,
-                        httpRetryer,
-                        defaultRequestConfig,
-                        objectMapper,
-                        eventProbe);
+//        driverMatchService =
+//                new DriverMatchService(
+//                        dvlaConfiguration,
+//                        httpRetryer,
+//                        defaultRequestConfig,
+//                        objectMapper,
+//                        eventProbe);
     }
 
     public ApiKeyRenewalHandler(
             SecretsManagerClient secretsManagerClient,
             ChangeApiKeyService changeApiKeyService,
             TokenRequestService tokenRequestService,
+//            DriverMatchService driverMatchService,
             EventProbe eventProbe,
-            DriverMatchService driverMatchService,
             DvlaConfiguration dvlaConfiguration) {
         this.secretsManagerClient = secretsManagerClient;
         this.changeApiKeyService = changeApiKeyService;
         this.tokenRequestService = tokenRequestService;
+//        this.driverMatchService = driverMatchService;
         this.eventProbe = eventProbe;
-        this.driverMatchService = driverMatchService;
         this.dvlaConfiguration = dvlaConfiguration;
     }
 
@@ -169,26 +168,35 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                     // CREATE SECRET END
 
                     // TEST SECRET START
-                    logStepCommenced(SecretsManagerRotationStep.TEST_SECRET);
-                    /*Next step is to verify that the secret has been set in DVLA
-                     * To do so, we request a token to ensure the new api key works, but this does not
-                     * replace the token in the DB, and does not invalidate the existing one.
-                     * Then we perform a driver match service request*/
+                    //
+                    // logStepCommenced(SecretsManagerRotationStep.TEST_SECRET);
+                    /*Next step is to verify that the secret has been set in
+                    DVLA
+                                        * To do so, we request a token to ensure the new api key
+                    works, but this does not
+                                        * replace the token in the DB, and does not invalidate
+                    the existing one.
+                                        * Then we perform a driver match service request*/
 
                     // Setting TestStrategy to default until approach
-                    Strategy strategy = Strategy.NO_CHANGE;
+                    //                                        Strategy strategy =
+                    // Strategy.NO_CHANGE;
 
                     if (dvlaConfiguration.isApiKeyRotationEnabled()) {
                         if (apiKeyFromPreviousRun != null) {
                             pendingNewApiKey = apiKeyFromPreviousRun;
                         }
-                        driverMatchService.performMatch(
-                                drivingPermitForm(),
-                                tokenRequestService.requestToken(true, strategy),
-                                pendingNewApiKey,
-                                strategy);
+                        //
+                        // driverMatchService.performMatch(
+                        //                                                    drivingPermitForm(),
+                        //
+                        // tokenRequestService.requestToken(true,
+                        //                     strategy),
+                        //                                                    pendingNewApiKey,
+                        //                                                    strategy);
                     }
-                    logStepCompleted(SecretsManagerRotationStep.TEST_SECRET);
+                    //
+                    // logStepCompleted(SecretsManagerRotationStep.TEST_SECRET);
                     // TEST SECRET END
 
                     // FINISH SECRET START
@@ -197,7 +205,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                     if (dvlaConfiguration.isApiKeyRotationEnabled()) {
                         updateSecret(input.getSecretId(), pendingNewApiKey);
                         LOGGER.info("Updating Secret in Secrets Manager");
-                        tokenRequestService.removeTokenItem(strategy);
+                        tokenRequestService.removeTokenItem(Strategy.NO_CHANGE);
                         tokenRequestService.removeTokenItem(Strategy.LIVE);
                         tokenRequestService.removeTokenItem(Strategy.UAT);
                     }

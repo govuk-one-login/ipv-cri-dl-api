@@ -99,7 +99,7 @@ public class ChangeApiKeyService {
 
             // throws OAuthErrorResponseException on error
             httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
-            LOGGER.info("response: {} httpReply: {}", response, httpReply);
+            LOGGER.debug("response: {} httpReply: {}", response, httpReply);
         } catch (IOException e) {
 
             LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
@@ -119,7 +119,7 @@ public class ChangeApiKeyService {
                     DVLA_CHANGE_API_KEY_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
             ApiKeyResponse apiKeyResponse =
                     objectMapper.readValue(httpReply.responseBody, ApiKeyResponse.class);
-
+            LOGGER.info("apiKey response message {}", apiKeyResponse.getMessage());
             return apiKeyResponse.getNewApiKey();
         } else {
             // The change API Key request responded but with an unexpected status code

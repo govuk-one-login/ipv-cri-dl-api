@@ -195,7 +195,7 @@ public class TokenRequestService {
                             .build();
 
             requestBody = objectMapper.writeValueAsString(tokenRequestPayload);
-            LOGGER.info("response body: {}", requestBody);
+            LOGGER.debug("response body: {}", requestBody);
         } catch (JsonProcessingException e) {
             LOGGER.error("JsonProcessingException creating request body");
             LOGGER.debug(e.getMessage());
@@ -323,6 +323,12 @@ public class TokenRequestService {
         LOGGER.info(
                 "Token cached - expires {} UTC",
                 Instant.ofEpochSecond(ttlSeconds).atZone(ZoneId.systemDefault()).toLocalDateTime());
+    }
+
+    public void removeTokenItem(Strategy strategy) {
+        String tokenId = strategy.name() + TOKEN_ITEM_ID;
+        dataStore.delete(tokenId);
+        LOGGER.info("Token removed from table {}", tokenTableName);
     }
 
     public boolean isTokenNearExpiration(TokenItem tokenItem, long expiryWindow) {

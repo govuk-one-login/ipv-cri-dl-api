@@ -302,9 +302,9 @@ Mappings:
     Environment:
       dev: "rate(4 hours)"
       build: "rate(4 hours)"
-      staging: "cron(0 10 ? * TUE#1 *)"
-      integration: "cron(0 10 ? * TUE#1 *)"
-      production: "cron(0 10 ? * TUE#1 *)"
+      staging: "cron(0 12 ? * TUE#1 *)"
+      integration: "cron(0 12 ? * TUE#1 *)"
+      production: "cron(0 12 ? * TUE#1 *)"
 
   # CANNOT be enabled (1) with SnapStart
   ProvisionedConcurrency:
@@ -1065,6 +1065,12 @@ Resources:
             TableName: !Ref DvlaTokenTable
         - DynamoDBWritePolicy:
             TableName: !Ref DvlaTokenTable
+        - Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:DeleteItem"
+                Resource:
+                  - !GetAtt DvlaTokenTable.Arn
 
   ApiKeyRenewalFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -1799,6 +1805,7 @@ Resources:
 
   DVLAApiKeyRotationFailureAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Api Key Rotation Failure Alarm"
       AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the API Key used to perform document matches.
@@ -1823,6 +1830,7 @@ Resources:
 
   DVLAPasswordRotationFailureAlarm:
       Type: AWS::CloudWatch::Alarm
+      Condition: AlarmsEnabled
       Properties:
         AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Password Rotation Failure Alarm"
         AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the Password used to perform document matches.

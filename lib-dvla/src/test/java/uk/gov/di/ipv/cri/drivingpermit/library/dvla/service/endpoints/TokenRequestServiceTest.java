@@ -179,7 +179,7 @@ class TokenRequestServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> tokenRequestService.requestToken(true, Strategy.NO_CHANGE),
+                        () -> tokenRequestService.requestToken(true, Strategy.STUB),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token

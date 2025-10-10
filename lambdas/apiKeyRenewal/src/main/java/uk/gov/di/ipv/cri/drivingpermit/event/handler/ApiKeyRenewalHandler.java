@@ -133,7 +133,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
             try {
                 if (step == SecretsManagerRotationStep.FINISH_SECRET) {
                     // CREATE SECRET START
-                    LOGGER.info("{} commenced", SecretsManagerRotationStep.CREATE_SECRET);
+                    logStepCommenced(SecretsManagerRotationStep.CREATE_SECRET);
 
                     String apiKeyFromPreviousRun = null;
                     String pendingNewApiKey = null;
@@ -165,11 +165,11 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                             }
                         }
                     }
-                    LOGGER.info("{} step is complete", SecretsManagerRotationStep.CREATE_SECRET);
+                    logStepCompleted(SecretsManagerRotationStep.CREATE_SECRET);
                     // CREATE SECRET END
 
                     // TEST SECRET START
-                    LOGGER.info("{} commenced", SecretsManagerRotationStep.TEST_SECRET);
+                    logStepCommenced(SecretsManagerRotationStep.TEST_SECRET);
                     /*Next step is to verify that the secret has been set in DVLA
                      * To do so, we request a token to ensure the new api key works, but this does not
                      * replace the token in the DB, and does not invalidate the existing one.
@@ -188,17 +188,20 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                                 pendingNewApiKey,
                                 strategy);
                     }
-                    LOGGER.info("{} step is complete", SecretsManagerRotationStep.TEST_SECRET);
+                    logStepCompleted(SecretsManagerRotationStep.TEST_SECRET);
                     // TEST SECRET END
 
                     // FINISH SECRET START
-                    LOGGER.info("{} commenced", SecretsManagerRotationStep.FINISH_SECRET);
+                    logStepCommenced(SecretsManagerRotationStep.FINISH_SECRET);
                     /*Final step updates Secrets Manager to set api-key as AWSCURRENT*/
                     if (dvlaConfiguration.isApiKeyRotationEnabled()) {
                         updateSecret(input.getSecretId(), pendingNewApiKey);
                         LOGGER.info("Updating Secret in Secrets Manager");
+                        tokenRequestService.removeTokenItem(strategy);
+                        tokenRequestService.removeTokenItem(Strategy.LIVE);
+                        tokenRequestService.removeTokenItem(Strategy.UAT);
                     }
-                    LOGGER.info("{} step is complete", SecretsManagerRotationStep.FINISH_SECRET);
+                    logStepCompleted(SecretsManagerRotationStep.FINISH_SECRET);
                     // FINISH SECRET END
                 }
                 eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_OK);
@@ -293,5 +296,13 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
         drivingPermit.setAddresses(List.of(address));
 
         return drivingPermit;
+    }
+
+    private void logStepCommenced(SecretsManagerRotationStep step) {
+        LOGGER.info("{} commenced", step);
+    }
+
+    private void logStepCompleted(SecretsManagerRotationStep step) {
+        LOGGER.info("{}  step is complete ", step);
     }
 }

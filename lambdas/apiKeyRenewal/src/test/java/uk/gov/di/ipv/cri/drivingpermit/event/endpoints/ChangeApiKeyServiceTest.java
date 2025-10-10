@@ -47,8 +47,6 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 class ChangeApiKeyServiceTest {
 
     private static final String TEST_END_POINT = "http://127.0.0.1";
-    //  pragma: allowlist nextline secret
-    private static final String TEST_API_KEY = "TESTAPIKEY";
 
     @Mock private DvlaConfiguration mockDvlaConfiguration;
     @Mock private HttpRetryer mockHttpRetryer;

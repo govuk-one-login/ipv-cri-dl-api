@@ -96,26 +96,26 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                         defaultRequestConfig,
                         objectMapper,
                         eventProbe);
-//        driverMatchService =
-//                new DriverMatchService(
-//                        dvlaConfiguration,
-//                        httpRetryer,
-//                        defaultRequestConfig,
-//                        objectMapper,
-//                        eventProbe);
+        //        driverMatchService =
+        //                new DriverMatchService(
+        //                        dvlaConfiguration,
+        //                        httpRetryer,
+        //                        defaultRequestConfig,
+        //                        objectMapper,
+        //                        eventProbe);
     }
 
     public ApiKeyRenewalHandler(
             SecretsManagerClient secretsManagerClient,
             ChangeApiKeyService changeApiKeyService,
             TokenRequestService tokenRequestService,
-//            DriverMatchService driverMatchService,
+            //            DriverMatchService driverMatchService,
             EventProbe eventProbe,
             DvlaConfiguration dvlaConfiguration) {
         this.secretsManagerClient = secretsManagerClient;
         this.changeApiKeyService = changeApiKeyService;
         this.tokenRequestService = tokenRequestService;
-//        this.driverMatchService = driverMatchService;
+        //        this.driverMatchService = driverMatchService;
         this.eventProbe = eventProbe;
         this.dvlaConfiguration = dvlaConfiguration;
     }

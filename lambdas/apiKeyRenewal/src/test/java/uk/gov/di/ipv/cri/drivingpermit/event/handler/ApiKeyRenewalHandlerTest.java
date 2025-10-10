@@ -125,7 +125,7 @@ class ApiKeyRenewalHandlerTest {
 
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
-        when(mockTokenRequestService.requestToken(false, Strategy.NO_CHANGE))
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
                 .thenReturn("token_value");
 
         apiKeyRenewalHandler.handleRequest(mockInput, mockContext);

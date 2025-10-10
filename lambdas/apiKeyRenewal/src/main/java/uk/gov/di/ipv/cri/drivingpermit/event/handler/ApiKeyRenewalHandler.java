@@ -184,7 +184,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                         }
                         driverMatchService.performMatch(
                                 drivingPermitForm(),
-                                tokenRequestService.requestToken(false, strategy),
+                                tokenRequestService.requestToken(true, strategy),
                                 pendingNewApiKey,
                                 strategy);
                     }

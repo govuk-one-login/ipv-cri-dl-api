@@ -32,6 +32,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Map;
@@ -118,17 +121,19 @@ public class DvaCryptographyService {
         return jwsObject;
     }
 
-    private JWEObject createJWE(String data) throws JOSEException, JsonProcessingException {
+    private JWEObject createJWE(String data)
+            throws JOSEException, JsonProcessingException, CertificateEncodingException,
+                    NoSuchAlgorithmException {
+
+        Thumbprints encryptionThumbprints =
+                KeyCertHelper.makeThumbprint(
+                        (X509Certificate) dvaCryptographyServiceConfiguration.getEncryptionCert());
 
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
                         JWSAlgorithm.RS256.toString(),
-                        dvaCryptographyServiceConfiguration
-                                .getEncryptionCertThumbprints()
-                                .getSha1Thumbprint(),
-                        dvaCryptographyServiceConfiguration
-                                .getEncryptionCertThumbprints()
-                                .getSha256Thumbprint());
+                        encryptionThumbprints.getSha1Thumbprint(),
+                        encryptionThumbprints.getSha256Thumbprint());
 
         String jsonHeaders = objectMapper.writeValueAsString(protectedHeader);
 

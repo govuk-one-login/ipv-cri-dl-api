@@ -83,59 +83,46 @@ public class ThirdPartyAPIServiceFactory {
         String secondaryEncryptionKeyId =
                 dvaCryptographyServiceConfiguration.getSecondaryKmsEncryptionKeyId();
 
-        X509Certificate primaryDlSigningCertificate =
-                (X509Certificate) dvaCryptographyServiceConfiguration.getSigningThumbprintCert();
-        X509Certificate secondaryDlSigningCertificate =
-                (X509Certificate)
-                        dvaCryptographyServiceConfiguration.getSecondarySigningThumbprintCert();
-
-        X509Certificate primaryDlDecryptionCertificate =
-                (X509Certificate) dvaCryptographyServiceConfiguration.getDecryptionThumbprintCert();
-        X509Certificate secondaryDlDecryptionCertificate =
-                (X509Certificate)
-                        dvaCryptographyServiceConfiguration.getSecondaryDecryptionThumbprintCert();
         boolean hasCA = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getHasCA());
 
-        if (hasCA) {
-            String dlSigningCertificateString = acmCertificateService.exportAcmSigningCertificate();
-            dlSigningCertificateString =
-                    dlSigningCertificateString
-                            .replace("\n", "")
-                            .replace(BEGIN_CERT, "")
-                            .replace(END_CERT, "");
-            primaryDlSigningCertificate =
-                    KeyCertHelper.getDecodedX509Certificate(dlSigningCertificateString);
+        String dlSigningCertificateString = acmCertificateService.exportAcmSigningCertificate();
+        dlSigningCertificateString =
+                dlSigningCertificateString
+                        .replace("\n", "")
+                        .replace(BEGIN_CERT, "")
+                        .replace(END_CERT, "");
+        X509Certificate primaryDlSigningCertificate =
+                KeyCertHelper.getDecodedX509Certificate(dlSigningCertificateString);
 
-            String secondaryDlSigningCertificateString =
-                    acmCertificateService.exportAcmSecondarySigningCertificate();
-            secondaryDlSigningCertificateString =
-                    secondaryDlSigningCertificateString
-                            .replace("\n", "")
-                            .replace(BEGIN_CERT, "")
-                            .replace(END_CERT, "");
-            secondaryDlSigningCertificate =
-                    KeyCertHelper.getDecodedX509Certificate(secondaryDlSigningCertificateString);
+        String secondaryDlSigningCertificateString =
+                acmCertificateService.exportAcmSecondarySigningCertificate();
+        secondaryDlSigningCertificateString =
+                secondaryDlSigningCertificateString
+                        .replace("\n", "")
+                        .replace(BEGIN_CERT, "")
+                        .replace(END_CERT, "");
+        X509Certificate secondaryDlSigningCertificate =
+                KeyCertHelper.getDecodedX509Certificate(secondaryDlSigningCertificateString);
 
-            String dlDecryptionCertificateString =
-                    acmCertificateService.exportAcmEncryptionCertificate();
-            dlDecryptionCertificateString =
-                    dlDecryptionCertificateString
-                            .replace("\n", "")
-                            .replace(BEGIN_CERT, "")
-                            .replace(END_CERT, "");
-            primaryDlDecryptionCertificate =
-                    KeyCertHelper.getDecodedX509Certificate(dlDecryptionCertificateString);
+        String dlDecryptionCertificateString =
+                acmCertificateService.exportAcmEncryptionCertificate();
+        dlDecryptionCertificateString =
+                dlDecryptionCertificateString
+                        .replace("\n", "")
+                        .replace(BEGIN_CERT, "")
+                        .replace(END_CERT, "");
+        X509Certificate primaryDlDecryptionCertificate =
+                KeyCertHelper.getDecodedX509Certificate(dlDecryptionCertificateString);
 
-            String secondaryDlDecryptionCertificateString =
-                    acmCertificateService.exportAcmSecondaryEncryptionCertificate();
-            secondaryDlDecryptionCertificateString =
-                    secondaryDlDecryptionCertificateString
-                            .replace("\n", "")
-                            .replace(BEGIN_CERT, "")
-                            .replace(END_CERT, "");
-            secondaryDlDecryptionCertificate =
-                    KeyCertHelper.getDecodedX509Certificate(secondaryDlDecryptionCertificateString);
-        }
+        String secondaryDlDecryptionCertificateString =
+                acmCertificateService.exportAcmSecondaryEncryptionCertificate();
+        secondaryDlDecryptionCertificateString =
+                secondaryDlDecryptionCertificateString
+                        .replace("\n", "")
+                        .replace(BEGIN_CERT, "")
+                        .replace(END_CERT, "");
+        X509Certificate secondaryDlDecryptionCertificate =
+                KeyCertHelper.getDecodedX509Certificate(secondaryDlDecryptionCertificateString);
 
         KmsClient kmsClient = serviceFactory.getClientProviderFactory().getKMSClient();
 

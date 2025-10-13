@@ -88,10 +88,6 @@ public class CertExpiryReminderConfig {
                 DvaCryptographyServiceConfiguration
                         .MAP_KEY_ENCRYPTION_CERT_FOR_DRIVING_PERMIT_TO_ENCRYPT,
                 encryptionCertExpiry);
-
-        X509Certificate signingThumbprintCertExpiry =
-                (X509Certificate) dvaCryptographyServiceConfiguration.getSigningThumbprintCert();
-        certMap.put("signingThumbprintCert", signingThumbprintCertExpiry);
     }
 
     private void readDvaHeldCerts(ParameterStoreService parameterStoreService)

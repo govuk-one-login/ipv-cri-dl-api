@@ -143,8 +143,6 @@ class CertificateAlternativesTest {
         String certificatePath = "encryptionCert-acm.cer";
         X509Certificate certificate = CryptoUtils.loadCertificate(certificatePath);
 
-        when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
-                .thenReturn(KeyCertHelper.makeThumbprint(certificate));
         when(dvaCryptographyServiceConfiguration.getEncryptionCert()).thenReturn(certificate);
 
         // Step 1: Sign data using private key

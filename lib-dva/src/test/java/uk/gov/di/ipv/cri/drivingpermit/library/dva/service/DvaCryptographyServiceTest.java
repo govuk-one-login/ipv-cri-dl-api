@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
@@ -41,8 +40,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.BASE64_ENCRYPTION_PUBLIC_CERT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.SHA_1_THUMBPRINT;
-import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.SHA_256_THUMBPRINT;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
@@ -79,11 +76,7 @@ class DvaCryptographyServiceTest {
                 new DvaCryptographyService(
                         dvaCryptographyServiceConfiguration, kmsSigners, jweKmsDecrypters);
         DvaPayload dvaPayload = createSuccessDvaPayload();
-        when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
-                .thenReturn(
-                        new Thumbprints(
-                                SHA_1_THUMBPRINT + "-encryption",
-                                SHA_256_THUMBPRINT + "-encryption"));
+
         when(dvaCryptographyServiceConfiguration.getEncryptionCert())
                 .thenReturn(KeyCertHelper.getDecodedX509Certificate(BASE64_ENCRYPTION_PUBLIC_CERT));
 
@@ -107,10 +100,10 @@ class DvaCryptographyServiceTest {
                 jwtHeader.getCustomParam("x5t#S256"));
 
         assertEquals(
-                SHA_1_THUMBPRINT + "-encryption",
+                "5raL6y3NlxvFIqrCa64HiYAYUiU",
                 innerJwtHeader.getX509CertThumbprint().toString()); // NOSONAR
         assertEquals(
-                SHA_256_THUMBPRINT + "-encryption",
+                "aUJzasL_WAwBGfSBl1zUHWb5HeGabx63Mk6Ho_-T-90",
                 innerJwtHeader.getX509CertSHA256Thumbprint().toString());
 
         assertNotNull(innerPayload);

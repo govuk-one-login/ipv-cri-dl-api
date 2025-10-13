@@ -228,40 +228,15 @@ class ThirdPartyAPIServiceFactoryTest {
 
     private void mockDvaCryptographyServiceConfigurationParameterPathReads() {
 
-        // Mock Parameter store fetches in DvaCryptographyServiceConfiguration
-        Map<String, String> testJWSParamMap =
-                Map.of(
-                        DvaCryptographyServiceConfiguration.MAP_KEY_SIGNING_CERT_FOR_DVA_TO_VERIFY,
-                        CertAndKeyTestFixtures.TEST_TLS_CRT,
-                        DvaCryptographyServiceConfiguration
-                                .MAP_KEY_SECONDARY_SIGNING_CERT_FOR_DVA_TO_VERIFY,
-                        CertAndKeyTestFixtures.TEST_TLS_CRT,
-                        DvaCryptographyServiceConfiguration
-                                .MAP_KEY_SIGNING_KEY_FOR_DRIVING_PERMIT_TO_SIGN,
-                        CertAndKeyTestFixtures.TEST_TLS_KEY);
-
         Map<String, String> testJWEParamMap =
                 Map.of(
                         DvaCryptographyServiceConfiguration
                                 .MAP_KEY_ENCRYPTION_CERT_FOR_DRIVING_PERMIT_TO_ENCRYPT,
                         CertAndKeyTestFixtures.TEST_TLS_CRT,
                         DvaCryptographyServiceConfiguration
-                                .MAP_KEY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT,
-                        CertAndKeyTestFixtures.TEST_TLS_CRT,
-                        DvaCryptographyServiceConfiguration
-                                .MAP_KEY_SECONDARY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT,
-                        CertAndKeyTestFixtures.TEST_TLS_CRT,
-                        DvaCryptographyServiceConfiguration
                                 .MAP_KEY_SIGNING_CERT_FOR_DRIVING_PERMIT_TO_VERIFY,
-                        CertAndKeyTestFixtures.TEST_TLS_CRT,
-                        DvaCryptographyServiceConfiguration
-                                .MAP_KEY_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT,
-                        CertAndKeyTestFixtures.TEST_TLS_KEY);
+                        CertAndKeyTestFixtures.TEST_TLS_CRT);
 
-        when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
-                        ParameterPrefix.OVERRIDE,
-                        DvaCryptographyServiceConfiguration.DVA_JWS_PARAMETER_PATH))
-                .thenReturn(testJWSParamMap);
         when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
                         ParameterPrefix.OVERRIDE,
                         DvaCryptographyServiceConfiguration.DVA_JWE_PARAMETER_PATH))

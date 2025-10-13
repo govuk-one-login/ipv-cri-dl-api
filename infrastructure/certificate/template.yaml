@@ -104,6 +104,27 @@ Resources:
       Tags:
         - Key: CreatedBy
           Value: InfraAsCode
+        - Key: certificateName
+          Value: primary-signing-certificate
+
+  SecondarySigningCertificatePrivate:
+    DependsOn:
+      - RootCAActivation
+    Type: "AWS::CertificateManager::Certificate"
+    Condition: IsCAEnvironment
+    Properties:
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+      DomainValidationOptions:
+        - DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+          ValidationDomain: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+      ValidationMethod: DNS
+      KeyAlgorithm: RSA_2048
+      Tags:
+        - Key: CreatedBy
+          Value: InfraAsCode
+        - Key: certificateName
+          Value: secondary-signing-certificate
 
   MtlsCertificatePrivate:
     DependsOn:
@@ -121,6 +142,8 @@ Resources:
       Tags:
         - Key: CreatedBy
           Value: InfraAsCode
+        - Key: certificateName
+          Value: mtls-certificate
 
   EncryptionCertificatePrivate:
     DependsOn:
@@ -138,6 +161,27 @@ Resources:
       Tags:
         - Key: CreatedBy
           Value: InfraAsCode
+        - Key: certificateName
+          Value: primary-encryption-certificate
+
+  SecondaryEncryptionCertificatePrivate:
+    DependsOn:
+      - RootCAActivation
+    Type: "AWS::CertificateManager::Certificate"
+    Condition: IsCAEnvironment
+    Properties:
+      CertificateAuthorityArn: !Ref DLPrivateCA
+      DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+      DomainValidationOptions:
+        - DomainName: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+          ValidationDomain: !FindInMap [ domain, Environment, !Ref 'Environment' ]
+      ValidationMethod: DNS
+      KeyAlgorithm: RSA_2048
+      Tags:
+        - Key: CreatedBy
+          Value: InfraAsCode
+        - Key: certificateName
+          Value: secondary-encryption-certificate
 
 ####################################################################
 #                                                                  #
@@ -153,13 +197,35 @@ Resources:
       KeyUsage: ENCRYPT_DECRYPT
       Origin: EXTERNAL
 
+  SecondaryDvaEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms encryption key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      Origin: EXTERNAL
+
   DvaEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
       AliasName: !Sub alias/${AWS::StackName}/acm-encryption-key
       TargetKeyId: !Ref DvaEncryptionKey
 
+  SecondaryDvaEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/acm-secondary-encryption-key
+      TargetKeyId: !Ref SecondaryDvaEncryptionKey
+
   DvaSigningKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms signing key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      Origin: EXTERNAL
+
+  SecondaryDvaSigningKey:
     Type: AWS::KMS::Key
     Properties:
       Description: acm kms signing key created with cli
@@ -172,6 +238,12 @@ Resources:
     Properties:
       AliasName: !Sub alias/${AWS::StackName}/acm-signing-key
       TargetKeyId: !Ref DvaSigningKey
+
+  SecondaryDvaSigningKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/secondary-acm-signing-key
+      TargetKeyId: !Ref SecondaryDvaSigningKey
 
 ####################################################################
 #                                                                  #
@@ -196,6 +268,14 @@ Outputs:
       Name:
         Fn::Sub: ${AWS::StackName}-DLCRISigningCertificateArn
 
+  SecondarySigningCertificateArnPrivate:
+    Condition: IsCAEnvironment
+    Description: Signing certificate Arn
+    Value: !Ref SecondarySigningCertificatePrivate
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DLCRISecondarySigningCertificateArn
+
   EncryptionCertificateArnPrivate:
     Condition: IsCAEnvironment
     Description: Encryption certificate Arn
@@ -203,6 +283,14 @@ Outputs:
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-DLCRIEncryptionCertificateArn
+
+  SecondaryEncryptionCertificateArnPrivate:
+    Condition: IsCAEnvironment
+    Description: Encryption certificate Arn
+    Value: !Ref SecondaryEncryptionCertificatePrivate
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DLCRISecondaryEncryptionCertificateArn
 
   MtlsCertificateArnPrivate:
     Condition: IsCAEnvironment
@@ -219,12 +307,26 @@ Outputs:
       Name:
         Fn::Sub: ${AWS::StackName}-DvaSigningKeyId
 
+  SecondaryDvaSigningKeyIdOutput:
+    Description: DVA signing jey ID
+    Value: !GetAtt SecondaryDvaSigningKey.KeyId
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-SecondaryDvaSigningKeyId
+
   DvaEncryptionKeyIdOutput:
     Description: DVA encryption key ID
     Value: !GetAtt DvaEncryptionKey.KeyId
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-DvaEncryptionKeyId
+
+  SecondaryDvaEncryptionKeyIdOutput:
+    Description: DVA encryption key ID
+    Value: !GetAtt SecondaryDvaEncryptionKey.KeyId
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-SecondaryDvaEncryptionKeyId
 
   DvaSigningKeyArnOutput:
     Description: DVA signing jey ID
@@ -233,9 +335,23 @@ Outputs:
       Name:
         Fn::Sub: ${AWS::StackName}-DvaSigningKeyArn
 
+  SecondaryDvaSigningKeyArnOutput:
+    Description: DVA signing jey ID
+    Value: !GetAtt SecondaryDvaSigningKey.Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-SecondaryDvaSigningKeyArn
+
   DvaEncryptionKeyArnOutput:
     Description: DVA encryption key ID
     Value: !GetAtt DvaEncryptionKey.Arn
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-DvaEncryptionKeyArn
+
+  SecondaryDvaEncryptionKeyArnOutput:
+    Description: DVA encryption key ID
+    Value: !GetAtt SecondaryDvaEncryptionKey.Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-SecondaryDvaEncryptionKeyArn

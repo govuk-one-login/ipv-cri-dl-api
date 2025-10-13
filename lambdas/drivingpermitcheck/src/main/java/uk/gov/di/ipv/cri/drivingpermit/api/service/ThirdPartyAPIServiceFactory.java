@@ -28,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Map;
 
 public class ThirdPartyAPIServiceFactory {
 
@@ -74,11 +75,25 @@ public class ThirdPartyAPIServiceFactory {
 
         DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration =
                 new DvaCryptographyServiceConfiguration(parameterStoreService);
-        String signingKeyId = dvaCryptographyServiceConfiguration.getKmsSigningKeyId();
-        String encryptionKeyId = dvaCryptographyServiceConfiguration.getKmsEncryptionKeyId();
+        String primarySigningKeyId = dvaCryptographyServiceConfiguration.getKmsSigningKeyId();
+        String secondarySigningKeyId =
+                dvaCryptographyServiceConfiguration.getSecondaryKmsSigningKeyId();
 
-        X509Certificate dlSigningCertificate =
+        String primaryEncryptionKeyId = dvaCryptographyServiceConfiguration.getKmsEncryptionKeyId();
+        String secondaryEncryptionKeyId =
+                dvaCryptographyServiceConfiguration.getSecondaryKmsEncryptionKeyId();
+
+        X509Certificate primaryDlSigningCertificate =
                 (X509Certificate) dvaCryptographyServiceConfiguration.getSigningThumbprintCert();
+        X509Certificate secondaryDlSigningCertificate =
+                (X509Certificate)
+                        dvaCryptographyServiceConfiguration.getSecondarySigningThumbprintCert();
+
+        X509Certificate primaryDlDecryptionCertificate =
+                (X509Certificate) dvaCryptographyServiceConfiguration.getDecryptionThumbprintCert();
+        X509Certificate secondaryDlDecryptionCertificate =
+                (X509Certificate)
+                        dvaCryptographyServiceConfiguration.getSecondaryDecryptionThumbprintCert();
         boolean hasCA = Boolean.parseBoolean(dvaCryptographyServiceConfiguration.getHasCA());
 
         if (hasCA) {
@@ -88,16 +103,78 @@ public class ThirdPartyAPIServiceFactory {
                             .replace("\n", "")
                             .replace(BEGIN_CERT, "")
                             .replace(END_CERT, "");
-            dlSigningCertificate =
+            primaryDlSigningCertificate =
                     KeyCertHelper.getDecodedX509Certificate(dlSigningCertificateString);
+
+            String secondaryDlSigningCertificateString =
+                    acmCertificateService.exportAcmSecondarySigningCertificate();
+            secondaryDlSigningCertificateString =
+                    secondaryDlSigningCertificateString
+                            .replace("\n", "")
+                            .replace(BEGIN_CERT, "")
+                            .replace(END_CERT, "");
+            secondaryDlSigningCertificate =
+                    KeyCertHelper.getDecodedX509Certificate(secondaryDlSigningCertificateString);
+
+            String dlDecryptionCertificateString =
+                    acmCertificateService.exportAcmEncryptionCertificate();
+            dlDecryptionCertificateString =
+                    dlDecryptionCertificateString
+                            .replace("\n", "")
+                            .replace(BEGIN_CERT, "")
+                            .replace(END_CERT, "");
+            primaryDlDecryptionCertificate =
+                    KeyCertHelper.getDecodedX509Certificate(dlDecryptionCertificateString);
+
+            String secondaryDlDecryptionCertificateString =
+                    acmCertificateService.exportAcmSecondaryEncryptionCertificate();
+            secondaryDlDecryptionCertificateString =
+                    secondaryDlDecryptionCertificateString
+                            .replace("\n", "")
+                            .replace(BEGIN_CERT, "")
+                            .replace(END_CERT, "");
+            secondaryDlDecryptionCertificate =
+                    KeyCertHelper.getDecodedX509Certificate(secondaryDlDecryptionCertificateString);
         }
 
         KmsClient kmsClient = serviceFactory.getClientProviderFactory().getKMSClient();
+
+        KmsSigner primaryKmsSigner =
+                new KmsSigner(primarySigningKeyId, primaryDlSigningCertificate, kmsClient);
+        KmsSigner secondaryKmsSigner =
+                new KmsSigner(secondarySigningKeyId, secondaryDlSigningCertificate, kmsClient);
+
+        JweKmsDecrypter primaryJweKmsDecrypter =
+                new JweKmsDecrypter(primaryEncryptionKeyId, kmsClient);
+        JweKmsDecrypter secondaryJweKmsDecrypter =
+                new JweKmsDecrypter(secondaryEncryptionKeyId, kmsClient);
+
+        String primarySigningSha256Thumbprint =
+                KeyCertHelper.makeThumbprint(primaryDlSigningCertificate).getSha256Thumbprint();
+        String secondarySigningSha256Thumbprint =
+                KeyCertHelper.makeThumbprint(secondaryDlSigningCertificate).getSha256Thumbprint();
+
+        String primaryEncryptionSha256Thumbprint =
+                KeyCertHelper.makeThumbprint(primaryDlDecryptionCertificate).getSha256Thumbprint();
+        String secondaryEncryptionSha256Thumbprint =
+                KeyCertHelper.makeThumbprint(secondaryDlDecryptionCertificate)
+                        .getSha256Thumbprint();
+
+        Map<String, KmsSigner> kmsSigners =
+                Map.of(
+                        primarySigningSha256Thumbprint,
+                        primaryKmsSigner,
+                        secondarySigningSha256Thumbprint,
+                        secondaryKmsSigner);
+        Map<String, JweKmsDecrypter> kmsDecrypters =
+                Map.of(
+                        primaryEncryptionSha256Thumbprint,
+                        primaryJweKmsDecrypter,
+                        secondaryEncryptionSha256Thumbprint,
+                        secondaryJweKmsDecrypter);
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(
-                        dvaCryptographyServiceConfiguration,
-                        new KmsSigner(signingKeyId, dlSigningCertificate, kmsClient),
-                        new JweKmsDecrypter(encryptionKeyId, kmsClient));
+                        dvaCryptographyServiceConfiguration, kmsSigners, kmsDecrypters);
 
         RequestHashValidator requestHashValidator = new RequestHashValidator();
 

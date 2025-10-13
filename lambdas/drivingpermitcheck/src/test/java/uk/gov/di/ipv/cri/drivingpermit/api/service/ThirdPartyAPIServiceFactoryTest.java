@@ -69,6 +69,57 @@ class ThirdPartyAPIServiceFactoryTest {
         Security.addProvider(new BouncyCastleProvider());
 
         //  pragma: allowlist nextline secret
+        String tempX509Certificate =
+                """
+                -----BEGIN CERTIFICATE-----
+                MIIDsDCCApigAwIBAgIRAN8vzgI+5JH/ENYddMs21eowDQYJKoZIhvcNAQELBQAw
+                WTELMAkGA1UEBhMCR0IxFzAVBgNVBAoMDkNhYmluZXQgT2ZmaWNlMQwwCgYDVQQL
+                DANHRFMxIzAhBgNVBAMMGkdEUyBETCBEVkEgVGVzdCBSb290IENBIEczMB4XDTI0
+                MDYxNDEwMTQwMVoXDTI1MDcxNDExMTQwMVowJjEkMCIGA1UEAwwbcmV2aWV3LWQu
+                ZGV2LmFjY291bnQuZ292LnVrMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+                AQEAm3NZqdAvs9QbdH00cUTEuufMPHebK6QYogpxKc/SM9Nj3pexOHHZ9rCRH3VA
+                Kpv/qgS2++ELBXvfAUP3V5lh3iwY+QzWq9QJmkZqm5NDEo7bc5u+rEjmpftZDi1E
+                VGAcyUDgRl10nif2iyFy6LzU/M8YNm26D6cug6cxZyNWzK+mbeXTk+38zLScnsTu
+                9EKMZ8oeqF9xg0Y6zvEHx5/pyGAc/Dnm88DJ20Nr4NoycVtWib4tcjA4rO3yVoYL
+                4X4T94NF1FYJj5P9DAamxuRLLWPQC6gcc4kazElTVUVTGn8tS9HhoeQz6qN0+R8u
+                lqipvuf20J0coYBlT+HNRjO4HQIDAQABo4GlMIGiMCYGA1UdEQQfMB2CG3Jldmll
+                dy1kLmRldi5hY2NvdW50Lmdvdi51azAJBgNVHRMEAjAAMB8GA1UdIwQYMBaAFPKA
+                A24tSXdEi82gTV3E0C2lbvV4MB0GA1UdDgQWBBQv6gc6W96+rySLP3EpAxZZM//w
+                JzAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
+                MA0GCSqGSIb3DQEBCwUAA4IBAQCoo/JBxEl5QKfu+rpSMAtHzwzScNLq6HP6Fy+Q
+                g+TbhWUIb5HANJf/VxDu20Oa3Hh0Ew3S/+28+4ZbEiE+38JXlnPmO93pMFmmMmyo
+                NHy0xHATmWlSaIDEtgagG0kaz+11negNJzXwwApYkgun5ig7Y8r16iZrmwE92LvW
+                70G9ln1cqF7ODt/8+WzdIs18PAZ/OxL7Pmo3hC5iNXn7go0h1tC0LpQzA0pdym54
+                li0b1qKxh+WoyIKCP4c42lr5bvtmBPZDPH11JUblfq126AmuVURXO4Cs3qHnqRej
+                bteNsvJYtttuyalLvQmepjYdGivN2y+pC7mYKCaFFFSPb2NE
+                -----END CERTIFICATE-----
+                """;
+
+        // Self signed cert and key
+        String tempSecondaryX509Cert =
+                """
+                -----BEGIN CERTIFICATE-----
+                MIIDBjCCAe4CCQCoDLTUC/sXtjANBgkqhkiG9w0BAQsFADBFMQswCQYDVQQGEwJH
+                QjEMMAoGA1UECgwDR0RTMQwwCgYDVQQLDANHRFMxGjAYBgNVBAMMEVdyb25nIENl
+                cnRpZmljYXRlMB4XDTIyMDMwODIxMjc0MFoXDTQ5MDcyNDIxMjc0MFowRTELMAkG
+                A1UEBhMCR0IxDDAKBgNVBAoMA0dEUzEMMAoGA1UECwwDR0RTMRowGAYDVQQDDBFX
+                cm9uZyBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+                AMwGuaoxNtqRIoGG1MFN1rFy6XtU1NkuFm0JKDs9Rc4Z1NqSUoY/brv2qVnJZm/F
+                03ZSN1Y6/GIY36NcekmAi7Npbs4COup+h+m3lg+Ort7OxM2+gGiNKUyyT0xs487o
+                LlkQ03CpWxuuMPBGNHRr4MxXXGwfpwV1DApBvgls/6P/gYPvqqnrIAC7R/yRt/LQ
+                hPSeMZp810B5hlBBM6MNkuGA1zZa/gviS0+O0+F2pNuYO47ROBcnuKFPRT92vfr7
+                7nUF1puY9hiBSRFoCocZiL8iy12Xpm11MFv8wWN75F2jUrpQYVFtnJDCvgsmaXVx
+                ARyReIPqhuzuMLQSwipLzRsCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAoqhK8s8m
+                KasJUamRbtmHp1lpOzGoRsUEuD6eOL8wV6rUL4/0URtln+kVlxKD3ONrrNaQeaj1
+                PwCR0rhNxsOC7jrWyP+hB8Q4WAVnG4FhcQ7O2nIezxXWYgFNyYjuQTI5S2I4H2VS
+                cIzNxG2eubLmSVWtS77z1vMUol8J7CIFt4Su8BfovMZGBacgxUmMByDgNwPnDSHN
+                GVrD2moc7I3uZ5HT5mFE9prs2fK/4+szfFataQ+QhKnLkzcGNZGxADmjNPY+h/HD
+                7jeSNtMfyzKrMNlfcNaoQ2IaMHv8AFeFUnWU01qo+yAqbgzMLzHLo8P0d6SAhV9F
+                PtTEPIUXQToN7A==
+                -----END CERTIFICATE-----
+                """;
+
+        //  pragma: allowlist nextline secret
         AcmCertificateService.RANDOM_RUN_TIME_PASSWORD = "password"; // NOSONAR
 
         environmentVariables.set("AWS_REGION", "eu-west-2");
@@ -99,64 +150,23 @@ class ThirdPartyAPIServiceFactoryTest {
         when(mockDvlaConfiguration.getMatchEndpoint()).thenReturn("DRIVER_MATCH_ENDPOINT");
 
         mockDvaCryptographyServiceConfigurationParameterPathReads();
-        when(acmCertificateService.exportAcmSigningCertificate())
-                .thenReturn(
-                        //  pragma: allowlist nextline secret
-                        """
-                                -----BEGIN CERTIFICATE-----
-                                MIIDsDCCApigAwIBAgIRAN8vzgI+5JH/ENYddMs21eowDQYJKoZIhvcNAQELBQAw
-                                WTELMAkGA1UEBhMCR0IxFzAVBgNVBAoMDkNhYmluZXQgT2ZmaWNlMQwwCgYDVQQL
-                                DANHRFMxIzAhBgNVBAMMGkdEUyBETCBEVkEgVGVzdCBSb290IENBIEczMB4XDTI0
-                                MDYxNDEwMTQwMVoXDTI1MDcxNDExMTQwMVowJjEkMCIGA1UEAwwbcmV2aWV3LWQu
-                                ZGV2LmFjY291bnQuZ292LnVrMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
-                                AQEAm3NZqdAvs9QbdH00cUTEuufMPHebK6QYogpxKc/SM9Nj3pexOHHZ9rCRH3VA
-                                Kpv/qgS2++ELBXvfAUP3V5lh3iwY+QzWq9QJmkZqm5NDEo7bc5u+rEjmpftZDi1E
-                                VGAcyUDgRl10nif2iyFy6LzU/M8YNm26D6cug6cxZyNWzK+mbeXTk+38zLScnsTu
-                                9EKMZ8oeqF9xg0Y6zvEHx5/pyGAc/Dnm88DJ20Nr4NoycVtWib4tcjA4rO3yVoYL
-                                4X4T94NF1FYJj5P9DAamxuRLLWPQC6gcc4kazElTVUVTGn8tS9HhoeQz6qN0+R8u
-                                lqipvuf20J0coYBlT+HNRjO4HQIDAQABo4GlMIGiMCYGA1UdEQQfMB2CG3Jldmll
-                                dy1kLmRldi5hY2NvdW50Lmdvdi51azAJBgNVHRMEAjAAMB8GA1UdIwQYMBaAFPKA
-                                A24tSXdEi82gTV3E0C2lbvV4MB0GA1UdDgQWBBQv6gc6W96+rySLP3EpAxZZM//w
-                                JzAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
-                                MA0GCSqGSIb3DQEBCwUAA4IBAQCoo/JBxEl5QKfu+rpSMAtHzwzScNLq6HP6Fy+Q
-                                g+TbhWUIb5HANJf/VxDu20Oa3Hh0Ew3S/+28+4ZbEiE+38JXlnPmO93pMFmmMmyo
-                                NHy0xHATmWlSaIDEtgagG0kaz+11negNJzXwwApYkgun5ig7Y8r16iZrmwE92LvW
-                                70G9ln1cqF7ODt/8+WzdIs18PAZ/OxL7Pmo3hC5iNXn7go0h1tC0LpQzA0pdym54
-                                li0b1qKxh+WoyIKCP4c42lr5bvtmBPZDPH11JUblfq126AmuVURXO4Cs3qHnqRej
-                                bteNsvJYtttuyalLvQmepjYdGivN2y+pC7mYKCaFFFSPb2NE
-                                -----END CERTIFICATE-----
-                                """);
+        when(acmCertificateService.exportAcmSigningCertificate()).thenReturn(tempX509Certificate);
 
-        // Self signed cert and key
+        when(acmCertificateService.exportAcmSecondarySigningCertificate())
+                .thenReturn(tempSecondaryX509Cert);
+
+        when(acmCertificateService.exportAcmEncryptionCertificate())
+                .thenReturn(tempX509Certificate);
+
+        when(acmCertificateService.exportAcmSecondaryEncryptionCertificate())
+                .thenReturn(tempSecondaryX509Cert);
+
         when(acmCertificateService.exportAcmTlsCertificates())
                 .thenReturn(
                         ExportCertificateResponse.builder()
                                 .certificate(
                                         //  pragma: allowlist nextline secret
-                                        """
-                                                -----BEGIN CERTIFICATE-----
-                                                MIIDsDCCApigAwIBAgIRAN8vzgI+5JH/ENYddMs21eowDQYJKoZIhvcNAQELBQAw
-                                                WTELMAkGA1UEBhMCR0IxFzAVBgNVBAoMDkNhYmluZXQgT2ZmaWNlMQwwCgYDVQQL
-                                                DANHRFMxIzAhBgNVBAMMGkdEUyBETCBEVkEgVGVzdCBSb290IENBIEczMB4XDTI0
-                                                MDYxNDEwMTQwMVoXDTI1MDcxNDExMTQwMVowJjEkMCIGA1UEAwwbcmV2aWV3LWQu
-                                                ZGV2LmFjY291bnQuZ292LnVrMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
-                                                AQEAm3NZqdAvs9QbdH00cUTEuufMPHebK6QYogpxKc/SM9Nj3pexOHHZ9rCRH3VA
-                                                Kpv/qgS2++ELBXvfAUP3V5lh3iwY+QzWq9QJmkZqm5NDEo7bc5u+rEjmpftZDi1E
-                                                VGAcyUDgRl10nif2iyFy6LzU/M8YNm26D6cug6cxZyNWzK+mbeXTk+38zLScnsTu
-                                                9EKMZ8oeqF9xg0Y6zvEHx5/pyGAc/Dnm88DJ20Nr4NoycVtWib4tcjA4rO3yVoYL
-                                                4X4T94NF1FYJj5P9DAamxuRLLWPQC6gcc4kazElTVUVTGn8tS9HhoeQz6qN0+R8u
-                                                lqipvuf20J0coYBlT+HNRjO4HQIDAQABo4GlMIGiMCYGA1UdEQQfMB2CG3Jldmll
-                                                dy1kLmRldi5hY2NvdW50Lmdvdi51azAJBgNVHRMEAjAAMB8GA1UdIwQYMBaAFPKA
-                                                A24tSXdEi82gTV3E0C2lbvV4MB0GA1UdDgQWBBQv6gc6W96+rySLP3EpAxZZM//w
-                                                JzAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
-                                                MA0GCSqGSIb3DQEBCwUAA4IBAQCoo/JBxEl5QKfu+rpSMAtHzwzScNLq6HP6Fy+Q
-                                                g+TbhWUIb5HANJf/VxDu20Oa3Hh0Ew3S/+28+4ZbEiE+38JXlnPmO93pMFmmMmyo
-                                                NHy0xHATmWlSaIDEtgagG0kaz+11negNJzXwwApYkgun5ig7Y8r16iZrmwE92LvW
-                                                70G9ln1cqF7ODt/8+WzdIs18PAZ/OxL7Pmo3hC5iNXn7go0h1tC0LpQzA0pdym54
-                                                li0b1qKxh+WoyIKCP4c42lr5bvtmBPZDPH11JUblfq126AmuVURXO4Cs3qHnqRej
-                                                bteNsvJYtttuyalLvQmepjYdGivN2y+pC7mYKCaFFFSPb2NE
-                                                -----END CERTIFICATE-----
-                                                """)
+                                        tempSecondaryX509Cert)
                                 .privateKey(
                                         //  pragma: allowlist nextline secret
                                         """
@@ -224,6 +234,9 @@ class ThirdPartyAPIServiceFactoryTest {
                         DvaCryptographyServiceConfiguration.MAP_KEY_SIGNING_CERT_FOR_DVA_TO_VERIFY,
                         CertAndKeyTestFixtures.TEST_TLS_CRT,
                         DvaCryptographyServiceConfiguration
+                                .MAP_KEY_SECONDARY_SIGNING_CERT_FOR_DVA_TO_VERIFY,
+                        CertAndKeyTestFixtures.TEST_TLS_CRT,
+                        DvaCryptographyServiceConfiguration
                                 .MAP_KEY_SIGNING_KEY_FOR_DRIVING_PERMIT_TO_SIGN,
                         CertAndKeyTestFixtures.TEST_TLS_KEY);
 
@@ -231,6 +244,12 @@ class ThirdPartyAPIServiceFactoryTest {
                 Map.of(
                         DvaCryptographyServiceConfiguration
                                 .MAP_KEY_ENCRYPTION_CERT_FOR_DRIVING_PERMIT_TO_ENCRYPT,
+                        CertAndKeyTestFixtures.TEST_TLS_CRT,
+                        DvaCryptographyServiceConfiguration
+                                .MAP_KEY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT,
+                        CertAndKeyTestFixtures.TEST_TLS_CRT,
+                        DvaCryptographyServiceConfiguration
+                                .MAP_KEY_SECONDARY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT,
                         CertAndKeyTestFixtures.TEST_TLS_CRT,
                         DvaCryptographyServiceConfiguration
                                 .MAP_KEY_SIGNING_CERT_FOR_DRIVING_PERMIT_TO_VERIFY,

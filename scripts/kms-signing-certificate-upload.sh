@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+rm -rf kmsSigning
 mkdir kmsSigning
 privateKey=$(aws-vault exec $ACCOUNT_FROM -- aws acm export-certificate --certificate-arn $SIGNING_CERT_ACM --passphrase fileb://passPhrase.txt | jq -r '"\(.PrivateKey)"')
 echo "$privateKey" > ./kmsSigning/encrypted_key.pem

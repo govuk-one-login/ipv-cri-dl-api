@@ -38,9 +38,30 @@ public class AcmCertificateService {
     }
 
     public String exportAcmSigningCertificate() {
-        String signingCertificateArn = System.getenv("SIGNING_CERTIFICATE_ARN");
+        String signingCertificateArn = System.getenv("PRIMARY_SIGNING_CERTIFICATE_ARN");
         ExportCertificateResponse getCertificateResponse =
                 exportAcmCertificate(signingCertificateArn);
+        return getCertificateResponse.certificate();
+    }
+
+    public String exportAcmEncryptionCertificate() {
+        String encryptionCertificateArn = System.getenv("PRIMARY_ENCRYPTION_CERTIFICATE_ARN");
+        ExportCertificateResponse getCertificateResponse =
+                exportAcmCertificate(encryptionCertificateArn);
+        return getCertificateResponse.certificate();
+    }
+
+    public String exportAcmSecondarySigningCertificate() {
+        String signingCertificateArn = System.getenv("SECONDARY_SIGNING_CERTIFICATE_ARN");
+        ExportCertificateResponse getCertificateResponse =
+                exportAcmCertificate(signingCertificateArn);
+        return getCertificateResponse.certificate();
+    }
+
+    public String exportAcmSecondaryEncryptionCertificate() {
+        String encryptionCertificateArn = System.getenv("SECONDARY_ENCRYPTION_CERTIFICATE_ARN");
+        ExportCertificateResponse getCertificateResponse =
+                exportAcmCertificate(encryptionCertificateArn);
         return getCertificateResponse.certificate();
     }
 

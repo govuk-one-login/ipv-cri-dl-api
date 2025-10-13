@@ -8,6 +8,7 @@ import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -36,18 +37,18 @@ import java.util.Map;
 public class DvaCryptographyService {
 
     private final DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration;
-    private final KmsSigner kmsSigner;
-    private final JweKmsDecrypter jweKmsDecrypter;
+    private final Map<String, KmsSigner> kmsSigners;
+    private final Map<String, JweKmsDecrypter> jweKmsDecrypters;
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
     public DvaCryptographyService(
             DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration,
-            KmsSigner kmsSigner,
-            JweKmsDecrypter jweKmsDecrypter) {
-        this.kmsSigner = kmsSigner;
+            Map<String, KmsSigner> kmsSigners,
+            Map<String, JweKmsDecrypter> jweKmsDecrypters) {
+        this.kmsSigners = kmsSigners;
         this.dvaCryptographyServiceConfiguration = dvaCryptographyServiceConfiguration;
-        this.jweKmsDecrypter = jweKmsDecrypter;
+        this.jweKmsDecrypters = jweKmsDecrypters;
     }
 
     public JWSObject preparePayload(DvaInterface documentDetails)
@@ -84,6 +85,11 @@ public class DvaCryptographyService {
 
     private JWSObject createJWS(String stringToSign)
             throws JOSEException, IOException, GeneralSecurityException {
+        String signingCertSha = System.getenv("SIGNING_CERT_SHA");
+        if (!kmsSigners.containsKey(signingCertSha)) {
+            throw new IOException("expected signing sha cannot be found");
+        }
+        KmsSigner kmsSigner = kmsSigners.get(signingCertSha);
         Thumbprints thumbprints = KeyCertHelper.makeThumbprint(kmsSigner.getDlSigningCertificate());
 
         ProtectedHeader protectedHeader =
@@ -158,7 +164,13 @@ public class DvaCryptographyService {
 
     public JWSObject decrypt(JWEObject encrypted) {
         try {
-            encrypted.decrypt(jweKmsDecrypter);
+            String sha256ForEncryptionCert =
+                    encrypted.getHeader().getX509CertSHA256Thumbprint().toString();
+            if (jweKmsDecrypters.containsKey(sha256ForEncryptionCert)) {
+                encrypted.decrypt(jweKmsDecrypters.get(sha256ForEncryptionCert));
+            } else {
+                encrypted.decrypt((JWEDecrypter) jweKmsDecrypters.values().toArray()[0]);
+            }
 
             return JWSObject.parse(encrypted.getPayload().toString());
         } catch (ParseException | JOSEException exception) {

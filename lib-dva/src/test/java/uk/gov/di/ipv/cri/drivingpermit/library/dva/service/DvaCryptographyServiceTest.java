@@ -21,12 +21,16 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.JweKmsDecrypter;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,11 +45,14 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.SHA_1_THU
 import static uk.gov.di.ipv.cri.drivingpermit.library.dva.KeyUtilities.SHA_256_THUMBPRINT;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class DvaCryptographyServiceTest {
 
     @Mock private DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration;
     @Mock private KmsSigner kmsSigner;
     @Mock private JweKmsDecrypter jweKmsDecrypter;
+
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -53,6 +60,7 @@ class DvaCryptographyServiceTest {
     void preparePayload()
             throws GeneralSecurityException, JOSEException, IOException, ParseException,
                     java.text.ParseException {
+        environmentVariables.set("SIGNING_CERT_SHA", "signsha256");
         when(kmsSigner.supportedJWSAlgorithms()).thenReturn(Set.of(RS256));
         when(kmsSigner.sign(any(JWSHeader.class), any(byte[].class)))
                 .thenReturn(new Base64URL("123456789"));
@@ -62,9 +70,14 @@ class DvaCryptographyServiceTest {
                         KeyCertHelper.getDecodedX509Certificate(
                                 "MIIDBzCCAe+gAwIBAgIGAZF1WmijMA0GCSqGSIb3DQEBCwUAMDoxODA2BgNVBAMML0RyaXZpbmcgTGljZW5jZSBDUkkgSlNPTiBTaWduaW5nIERldiAyNS0wNi0yMDI0MB4XDTI0MDgyMTE0MzIyNFoXDTI1MDgyMTE0MzIyNFowOjE4MDYGA1UEAwwvRHJpdmluZyBMaWNlbmNlIENSSSBKU09OIFNpZ25pbmcgRGV2IDI1LTA2LTIwMjQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCoUPIfrOrbuP3q4fSJgmNC4YbmukpNCjqK/yrTp+ykB+GpxvjcVWymdb7ywRlqC49Qfl18gHne261B82YKLDIRViz+q36ZlC1woTAIl/SLeXPdEFx26nLO4qqhBsfFPtALbZ/DIzMWIquThiTWxIg3JZS/ujYL2EwOBEJ18zQnc3NvFQ8tax5rz5mz0u3STTasn/xaFsnEO45GwaAIXW4ygnAa2sg5udI8RbyA25hEPfKDMypIAJgqsFLjyp1BGeQdqoHw2fJ6ECntKxiq9oLvJbYX+mgxxp9KIqxfg1yyjpg37MoY19U+iPytbMTLNkIZGXFXK3Zz5PE4iL1rVpqhAgMBAAGjEzARMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAAOjP27zad26Rs5b20XkqLAoNGgIu2gaNhzLE0Uw0gZDeYYOnAfaBwZ0oOFL1PSQ3/u4C9wBH8o0sRrnk+OGCL/HzSSb6BV1SClLwhdCONP37PLhjJf6LLG1D7MDMaZvfwy3hVW7JWAf1F/chUnOJXfwfwxNEaRqa5CKelTfOXCDdDxdCOj2mr1IH2WNzcWV5xuPXmbLjCsWyyJ4F/7Dpu6MhlAeUGq8jynhO6UfEYDUxcpMXGhuXgllEbkli2CDZQX3LaBaiSM8rWyUaImnjVD8ouQVJCZS/DeP0DDXNdY195RvVebb0RPfPj8pqRziPfam2rxin/ws3FvZnfEczZw="));
 
+        Map<String, uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner> kmsSigners =
+                Map.of("signsha256", kmsSigner);
+        Map<String, JweKmsDecrypter> jweKmsDecrypters =
+                Map.of("bx7aYu1FDHz_uhm7T70IbB1516aYfHKCyohtvk51bok", jweKmsDecrypter);
+
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(
-                        dvaCryptographyServiceConfiguration, kmsSigner, jweKmsDecrypter);
+                        dvaCryptographyServiceConfiguration, kmsSigners, jweKmsDecrypters);
         DvaPayload dvaPayload = createSuccessDvaPayload();
         when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
                 .thenReturn(
@@ -135,9 +148,14 @@ class DvaCryptographyServiceTest {
                         eq(aad)))
                 .thenReturn(decryptedValue.getBytes());
 
+        Map<String, uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner> kmsSigners =
+                Map.of("signsha256", kmsSigner);
+        Map<String, JweKmsDecrypter> jweKmsDecrypters =
+                Map.of("sha256-encryption", jweKmsDecrypter);
+
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(
-                        dvaCryptographyServiceConfiguration, kmsSigner, jweKmsDecrypter);
+                        dvaCryptographyServiceConfiguration, kmsSigners, jweKmsDecrypters);
 
         DvaResponse dvaResponse =
                 dvaCryptographyService.unwrapDvaResponse(jwsResponseObject.serialize());

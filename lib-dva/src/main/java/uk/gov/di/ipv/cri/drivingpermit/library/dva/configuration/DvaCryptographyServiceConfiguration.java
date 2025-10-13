@@ -17,6 +17,8 @@ public class DvaCryptographyServiceConfiguration {
 
     public static final String MAP_KEY_SIGNING_CERT_FOR_DVA_TO_VERIFY =
             "signingCertForDvaToVerify-03-07-2024";
+    public static final String MAP_KEY_SECONDARY_SIGNING_CERT_FOR_DVA_TO_VERIFY =
+            "secondarySigningCertForDvaToVerify-06-10-2025";
     public static final String MAP_KEY_SIGNING_KEY_FOR_DRIVING_PERMIT_TO_SIGN =
             "signingKeyForDrivingPermitToSign-03-07-2024";
 
@@ -29,6 +31,11 @@ public class DvaCryptographyServiceConfiguration {
     public static final String MAP_KEY_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT =
             "encryptionKeyForDrivingPermitToDecrypt-03-07-2024";
 
+    public static final String MAP_KEY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT =
+            "encryptionCertForDvaToEncrypt-06-10-2025";
+    public static final String MAP_KEY_SECONDARY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT =
+            "secondaryEncryptionCertForDvaToEncrypt-06-10-2025";
+
     // JWS (Reply Signature)
     private Certificate signingCert;
 
@@ -40,8 +47,18 @@ public class DvaCryptographyServiceConfiguration {
 
     private final String kmsSigningKeyId;
     private final String kmsEncryptionKeyId;
+
+    private final String secondaryKmsSigningKeyId;
+    private final String secondaryKmsEncryptionKeyId;
+
     // cert used in thumbprint generation
     private final Certificate signingThumbprintCert;
+    private final Certificate secondarySigningThumbprintCert;
+
+    // cert used in thumbprint generation
+    private final Certificate decryptionThumbprintCert;
+    private final Certificate secondaryDecryptionThumbprintCert;
+
     private final String hasCA;
 
     public DvaCryptographyServiceConfiguration(ParameterStoreService parameterStoreService)
@@ -57,6 +74,10 @@ public class DvaCryptographyServiceConfiguration {
         signingThumbprintCert =
                 KeyCertHelper.getDecodedX509Certificate(
                         dvaJWSmap.get(MAP_KEY_SIGNING_CERT_FOR_DVA_TO_VERIFY));
+
+        secondarySigningThumbprintCert =
+                KeyCertHelper.getDecodedX509Certificate(
+                        dvaJWSmap.get(MAP_KEY_SECONDARY_SIGNING_CERT_FOR_DVA_TO_VERIFY));
 
         /////////////////
         //// JWE Map ////
@@ -78,8 +99,20 @@ public class DvaCryptographyServiceConfiguration {
                 KeyCertHelper.getDecodedX509Certificate(
                         dvaJWEmap.get(MAP_KEY_SIGNING_CERT_FOR_DRIVING_PERMIT_TO_VERIFY));
 
-        kmsSigningKeyId = System.getenv("SIGNING_KEY_ID");
-        kmsEncryptionKeyId = System.getenv("ENCRYPTION_KEY_ID");
+        // JWS SHA-1 Certificate Thumbprint (Header)
+        decryptionThumbprintCert =
+                KeyCertHelper.getDecodedX509Certificate(
+                        dvaJWEmap.get(MAP_KEY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT));
+
+        secondaryDecryptionThumbprintCert =
+                KeyCertHelper.getDecodedX509Certificate(
+                        dvaJWEmap.get(MAP_KEY_SECONDARY_DECRYPTION_CERT_FOR_DVA_TO_ENCRYPT));
+
+        kmsSigningKeyId = System.getenv("PRIMARY_SIGNING_KEY_ID");
+        kmsEncryptionKeyId = System.getenv("PRIMARY_ENCRYPTION_KEY_ID");
+
+        secondaryKmsSigningKeyId = System.getenv("SECONDARY_SIGNING_KEY_ID");
+        secondaryKmsEncryptionKeyId = System.getenv("SECONDARY_ENCRYPTION_KEY_ID");
         hasCA = System.getenv("HAS_CA");
     }
 
@@ -108,8 +141,28 @@ public class DvaCryptographyServiceConfiguration {
         return kmsEncryptionKeyId;
     }
 
+    public String getSecondaryKmsSigningKeyId() {
+        return secondaryKmsSigningKeyId;
+    }
+
+    public String getSecondaryKmsEncryptionKeyId() {
+        return secondaryKmsEncryptionKeyId;
+    }
+
     public Certificate getSigningThumbprintCert() {
         return signingThumbprintCert;
+    }
+
+    public Certificate getSecondarySigningThumbprintCert() {
+        return secondarySigningThumbprintCert;
+    }
+
+    public Certificate getDecryptionThumbprintCert() {
+        return decryptionThumbprintCert;
+    }
+
+    public Certificate getSecondaryDecryptionThumbprintCert() {
+        return secondaryDecryptionThumbprintCert;
     }
 
     public String getHasCA() {

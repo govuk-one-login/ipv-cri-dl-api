@@ -499,12 +499,17 @@ class DvaThirdPartyDocumentGatewayTest {
         DVACloseableHttpClientFactory dvaCloseableHttpClientFactory =
                 new DVACloseableHttpClientFactory();
         EventProbe eventProbe = new EventProbe();
+
+        Map<String, uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner> kmsSigners =
+                Map.of("signsha256", kmsSigner);
+        Map<String, JweKmsDecrypter> jweKmsDecrypters = Map.of("decryptsha256", jweKmsDecrypter);
+
         DocumentCheckResult actualDocumentCheckResult =
                 new DvaThirdPartyDocumentGateway(
                                 new DvaCryptographyService(
                                         dvaCryptographyServiceConfiguration,
-                                        kmsSigner,
-                                        jweKmsDecrypter),
+                                        kmsSigners,
+                                        jweKmsDecrypters),
                                 new RequestHashValidator(),
                                 new DrivingPermitConfigurationService(
                                         parameterStoreService,

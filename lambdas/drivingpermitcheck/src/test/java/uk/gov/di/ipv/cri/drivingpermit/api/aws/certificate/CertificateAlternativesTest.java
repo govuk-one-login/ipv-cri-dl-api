@@ -20,12 +20,12 @@ import software.amazon.awssdk.services.kms.model.DecryptRequest;
 import software.amazon.awssdk.services.kms.model.DecryptResponse;
 import software.amazon.awssdk.services.kms.model.EncryptionAlgorithmSpec;
 import uk.gov.di.ipv.cri.drivingpermit.api.aws.certificate.utils.CryptoUtils;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DvaCryptographyService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.JweKmsDecrypter;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner;
+import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -38,6 +38,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -143,7 +144,7 @@ class CertificateAlternativesTest {
         X509Certificate certificate = CryptoUtils.loadCertificate(certificatePath);
 
         when(dvaCryptographyServiceConfiguration.getEncryptionCertThumbprints())
-                .thenReturn(new Thumbprints("sha1-encryption", "sha256-encryption"));
+                .thenReturn(KeyCertHelper.makeThumbprint(certificate));
         when(dvaCryptographyServiceConfiguration.getEncryptionCert()).thenReturn(certificate);
 
         // Step 1: Sign data using private key
@@ -154,9 +155,16 @@ class CertificateAlternativesTest {
 
         JweKmsDecrypter jweKmsDecrypter = new JweKmsDecrypter(ENC_KEY_ID, kmsClient);
 
+        Map<String, uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner> kmsSigners =
+                Map.of(environmentVariables.getVariables().get("SIGNING_CERT_SHA"), kmsSigner);
+        Map<String, JweKmsDecrypter> jweKmsDecrypters =
+                Map.of(
+                        KeyCertHelper.makeThumbprint(certificate).getSha256Thumbprint(),
+                        jweKmsDecrypter);
+
         DvaCryptographyService dvaCryptographyService =
                 new DvaCryptographyService(
-                        dvaCryptographyServiceConfiguration, kmsSigner, jweKmsDecrypter);
+                        dvaCryptographyServiceConfiguration, kmsSigners, jweKmsDecrypters);
         JWSObject jwsObject =
                 dvaCryptographyService.preparePayload(
                         createSuccessDvaResponse(requestHash, Boolean.parseBoolean(validDoc)));

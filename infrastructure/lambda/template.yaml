@@ -265,6 +265,14 @@ Mappings:
       integration: "false"
       production: "false"
 
+  signingCertSha256:
+    Environment:
+      dev: "R6LBd5ZMZkqOptUzzX4ltCe6NsQApMYVnYlMimkKJY8"
+      build: "R6LBd5ZMZkqOptUzzX4ltCe6NsQApMYVnYlMimkKJY8"
+      staging: "R6LBd5ZMZkqOptUzzX4ltCe6NsQApMYVnYlMimkKJY8"
+      integration: "R6LBd5ZMZkqOptUzzX4ltCe6NsQApMYVnYlMimkKJY8"
+      production: "bbffnKvtWHNVujCwK_weHd84HiVVrP4qZLAPcWaCSAc"
+
   LogDVAResponseEnvVar:
     Environment:
       dev: "false"
@@ -530,16 +538,31 @@ Resources:
           DVLA_API_KEY_ROTATION_ENABLED: !FindInMap [ DVLAApiKeyRotationEnabledEnvVar, Environment, !Ref 'Environment' ]
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [DevEnvironmentOnlyEnhancedDebugMappingEnvVar, Environment, !Ref Environment ]
           HAS_CA: !FindInMap [ FeatureFlagMapping, !Ref Environment, hasCA ]
-          SIGNING_CERTIFICATE_ARN: !If
+          PRIMARY_SIGNING_CERTIFICATE_ARN: !If
             - IsCAEnvironment
             - Fn::ImportValue: acm-infra-DLCRISigningCertificateArn
+            - !Ref "AWS::NoValue"
+          PRIMARY_ENCRYPTION_CERTIFICATE_ARN: !If
+            - IsCAEnvironment
+            - Fn::ImportValue: acm-infra-DLCRIEncryptionCertificateArn
+            - !Ref "AWS::NoValue"
+          SECONDARY_SIGNING_CERTIFICATE_ARN: !If
+            - IsCAEnvironment
+            - Fn::ImportValue: acm-infra-DLCRISecondarySigningCertificateArn
+            - !Ref "AWS::NoValue"
+          SECONDARY_ENCRYPTION_CERTIFICATE_ARN: !If
+            - IsCAEnvironment
+            - Fn::ImportValue: acm-infra-DLCRISecondaryEncryptionCertificateArn
             - !Ref "AWS::NoValue"
           TLS_CERTIFICATE_ARN:  !If
             - IsCAEnvironment
             - Fn::ImportValue: acm-infra-DLCRIMtlsCertificateArn
             - !Ref "AWS::NoValue"
-          SIGNING_KEY_ID: !ImportValue acm-infra-DvaSigningKeyId
-          ENCRYPTION_KEY_ID: !ImportValue acm-infra-DvaEncryptionKeyId
+          PRIMARY_SIGNING_KEY_ID: !ImportValue acm-infra-DvaSigningKeyId
+          PRIMARY_ENCRYPTION_KEY_ID: !ImportValue acm-infra-DvaEncryptionKeyId
+          SECONDARY_SIGNING_KEY_ID: !ImportValue acm-infra-SecondaryDvaSigningKeyId
+          SECONDARY_ENCRYPTION_KEY_ID: !ImportValue acm-infra-SecondaryDvaEncryptionKeyId
+          SIGNING_CERT_SHA: !FindInMap [signingCertSha256, Environment, !Ref 'Environment']
       AutoPublishAlias: live
       AutoPublishAliasAllProperties: true
       SnapStart:
@@ -581,6 +604,11 @@ Resources:
         - Statement:
             Effect: Allow
             Action:
+              - "kms:Sign"
+            Resource: !ImportValue acm-infra-SecondaryDvaSigningKeyArn
+        - Statement:
+            Effect: Allow
+            Action:
               - kms:Decrypt
               - kms:GenerateDataKey
             Resource: !If
@@ -593,6 +621,12 @@ Resources:
               - kms:Decrypt
               - kms:GenerateDataKey
             Resource: !ImportValue acm-infra-DvaEncryptionKeyArn
+        - Statement:
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !ImportValue acm-infra-SecondaryDvaEncryptionKeyArn
         - Statement:
             - Effect: Allow
               Action:
@@ -676,9 +710,38 @@ Resources:
                 - ssm:GetParameter
               Resource: !If
                 - IsCAEnvironment
+                - !ImportValue acm-infra-DLCRISecondarySigningCertificateArn
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+        - Statement:
+            - Effect: Allow
+              Action: !If
+                - IsCAEnvironment
+                - acm:ExportCertificate
+                - ssm:GetParameter
+              Resource: !If
+                - IsCAEnvironment
+                - !ImportValue acm-infra-DLCRIEncryptionCertificateArn
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+        - Statement:
+            - Effect: Allow
+              Action: !If
+                - IsCAEnvironment
+                - acm:ExportCertificate
+                - ssm:GetParameter
+              Resource: !If
+                - IsCAEnvironment
+                - !ImportValue acm-infra-DLCRISecondaryEncryptionCertificateArn
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+        - Statement:
+            - Effect: Allow
+              Action: !If
+                - IsCAEnvironment
+                - acm:ExportCertificate
+                - ssm:GetParameter
+              Resource: !If
+                - IsCAEnvironment
                 - !ImportValue acm-infra-DLCRIMtlsCertificateArn
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
-
         - SQSSendMessagePolicy:
             QueueName: !If [CreateMockTxmaResources, !GetAtt MockAuditEventQueue.QueueName, !ImportValue AuditEventQueueName]
       ProvisionedConcurrencyConfig:

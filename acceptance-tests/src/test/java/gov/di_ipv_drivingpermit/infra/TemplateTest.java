@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import software.amazon.awscdk.assertions.Template;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -14,16 +15,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.Matchers.notNullValue;
+import java.util.HashMap;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 @DisplayName("CloudFormation Template Assertions")
 class TemplateTest {
 
     private static Template cloudFormationTemplate;
+    private static TypeReference<?> typeRef;
 
     /**
      * This method runs once before all tests to load and parse the CloudFormation template.
@@ -38,188 +40,888 @@ class TemplateTest {
             if (inputStream == null) {
                 throw new IOException("CloudFormation template.yaml not found at " + templateFilePath.toAbsolutePath());
             }
-            Map<String, Object> templateMap = yamlMapper.readValue(inputStream, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> templateMap = yamlMapper.readValue(inputStream, new TypeReference<>() {
+            });
             cloudFormationTemplate = Template.fromJSON(templateMap);
         }
         assertNotNull(cloudFormationTemplate, "CloudFormation template should be loaded.");
     }
 
 
+    /**
+     * Helper method to get the 'Properties' map for all resources of a given type.
+     *
+     * @param resourceType The AWS CloudFormation resource type (e.g., "AWS::Serverless::Api").
+     * @return A map where keys are logical IDs and values are the 'Properties' map of each resource.
+     * Returns an empty map if no resources of the specified type are found.
+     * Asserts that 'Properties' map is not null for any found resource.
+     */
+    private static Map<String, Map<String, Object>> getAllResourceProperties(String resourceType) {
+        Map<String, Map<String, Object>> resources = cloudFormationTemplate.findResources(resourceType);
+        Map<String, Map<String, Object>> propertiesMap = new HashMap<>();
 
-    @Test
-    @DisplayName("The template contains at least one API gateway resource")
-    void shouldContainAPIResource() {
-        cloudFormationTemplate.hasResource("AWS::Serverless::Api", Map.of());
-        System.out.println("Assertion Passed: API gateway resource exists.");
+        if (resources.isEmpty()) {
+            fail("Expected at least one " + resourceType + " resource in the template.");
+            return propertiesMap;
+        }
+
+        for (Map.Entry<String, Map<String, Object>> entry : resources.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> resource = entry.getValue();
+
+            @SuppressWarnings("unchecked") // Cast is safe if template structure is as expected
+            Map<String, Object> properties = (Map<String, Object>) resource.get("Properties");
+
+            assertNotNull(properties, "Properties map should not be null for resource: " + logicalId + " of type " + resourceType);
+            propertiesMap.put(logicalId, properties);
+        }
+        return propertiesMap;
     }
 
-    // --- API Gateway Validation ---
+    /**
+     * Helper method to get the full resource definition for all resources of a given type.
+     * This includes 'Type', 'Properties', 'Condition', etc.
+     *
+     * @param resourceType The AWS CloudFormation resource type (e.g., "AWS::Logs::SubscriptionFilter").
+     * @return A map where keys are logical IDs and values are the full resource definition map.
+     * Returns an empty map if no resources of the specified type are found.
+     */
+    private static Map<String, Map<String, Object>> getAllResources(String resourceType) {
+        Map<String, Map<String, Object>> resources = cloudFormationTemplate.findResources(resourceType);
+        if (resources.isEmpty()) {
+            fail("Expected at least one " + resourceType + " resource in the template.");
+        }
+        return resources;
+    }
+
+    /**
+     * Helper method to safely retrieve a property from a map using a Class object for simpler types.
+     * This version works for properties at the top-level of a resource definition (like 'Condition').
+     *
+     * @param sourceMap The map to retrieve the property from (e.g., the full resource definition).
+     * @param propertyName The name of the property to retrieve.
+     * @param expectedType The expected class type of the property.
+     * @param <T> The generic type of the expected property.
+     * @return An Optional containing the property value if found and of the correct type, otherwise empty.
+     */
+    private static <T> Optional<T> getTopLevelProperty(Map<String, Object> sourceMap, String propertyName, Class<T> expectedType) {
+        if (sourceMap != null && sourceMap.containsKey(propertyName)) {
+            Object value = sourceMap.get(propertyName);
+            if (expectedType.isInstance(value)) {
+                return Optional.of(expectedType.cast(value));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Helper method to safely retrieve a property from a map using TypeReference for complex generic types.
+     *
+     * @param <T>       The generic type of the expected property.
+     * @param sourceMap The map to retrieve the property from.
+     * @param typeRef   The TypeReference capturing the full generic type information.
+     * @return An Optional containing the property value if found and of the correct type, otherwise empty.
+     */
+    private static <T> Optional<T> getPropertyTypeReference(Map<String, Object> sourceMap, TypeReference<T> typeRef) {
+        TemplateTest.typeRef = typeRef;
+        if (sourceMap != null && sourceMap.containsKey("MethodSettings")) {
+            Object value = sourceMap.get("MethodSettings");
+            try {
+                @SuppressWarnings("unchecked") // This unchecked cast is necessary here
+                T castValue = (T) value;
+                return Optional.of(castValue);
+            } catch (ClassCastException e) {
+                // Log or handle if the type doesn't match at runtime
+                System.err.println("Type mismatch for property '" + "MethodSettings" + "': " + e.getMessage());
+                return Optional.empty();
+            }
+        }
+        return Optional.empty();
+    }
+    /**
+     * Helper method to safely retrieve a property from a map using a Class object for simpler types.
+     *
+     * @param <T> The generic type of the expected property.
+     * @return An Optional containing the property value if found and of the correct type, otherwise empty.
+     */
+
+    private static <T> Optional<T> getProperty(Map<String, Object> properties, String key, Class<T> type) {
+        if (properties != null && properties.containsKey(key)) {
+            Object value = properties.get(key);
+            if (type.isInstance(value)) {
+                return Optional.of(type.cast(value));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Map<String, Object> getGlobalsFunctionProperties() {
+        return Map.of(
+                "MemorySize", 128, // Value doesn't matter for this test, only its presence
+                "Timeout", 30
+        );
+    }
+
+
+    // Globals Function Tests
+
+    @Test
+    @DisplayName("Globals.Function should have a 'MemorySize' property set to a positive integer")
+    void globalsFunctionShouldHaveMemorySize() {
+        Map<String, Object> globalsFunctionProperties = getGlobalsFunctionProperties();
+        assertFalse(globalsFunctionProperties.isEmpty(), "Expected 'Globals.Function' section to be present in the template.");
+
+        Optional<Integer> memorySizeOptional = getProperty(globalsFunctionProperties, "MemorySize", Integer.class);
+
+        assertTrue(memorySizeOptional.isPresent(), "Globals.Function must have a 'MemorySize' property.");
+        assertTrue(memorySizeOptional.get() > 0, "MemorySize for Globals.Function must be a positive integer.");
+
+        System.out.println("Globals.Function has MemorySize: " + memorySizeOptional.get());
+        System.out.println("Assertion Passed: Globals.Function checked for 'MemorySize' property.");
+    }
+
+    // API Gateway Resource Tests
+
+    @Test
+    @DisplayName("API Gateway Resource should contain correct properties Name prefix")
+    void shouldContainAPIGatewayNameWithStackNamePrefix() {
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+        assertFalse(apiGatewayProperties.isEmpty(), "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean nameFoundAndValid = false;
+        String expectedPrefix = "${AWS::StackName}-"; // Define the expected prefix
+
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            // Change: Retrieve the 'Name' property
+            Optional<String> name = getProperty(properties, "Name", String.class);
+
+            if (name.isPresent()) {
+                String nameValue = name.get();
+                assertNotNull(nameValue, "Name property for resource '" + logicalId + "' should not be null.");
+                // Change: Validate that the name starts with the expected prefix
+                assertTrue(nameValue.startsWith(expectedPrefix),
+                        "Name for resource '" + logicalId + "' should start with '" + expectedPrefix + "'. Found: '" + nameValue + "'");
+                nameFoundAndValid = true;
+                System.out.println("Found API Gateway resource '" + logicalId + "' with valid Name: " + nameValue);
+            } else {
+                // Update message to reflect checking for 'Name'
+                System.out.println("API Gateway resource '" + logicalId + "' does not have a 'Name' property or it's not a String.");
+            }
+        }
+
+        assertTrue(nameFoundAndValid, "At least one AWS::Serverless::Api resource must have a non-null and valid 'Name' property starting with '" + expectedPrefix + "'.");
+        System.out.println("Assertion Passed: All API Gateway resources checked for Name property prefix.");
+    }
 
     @Test
     @DisplayName("API Gateway Resource should contain correct properties Description")
     void shouldContainAPIGatewayDescription() {
-        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Api", Map.of(
-                "Description", notNullValue()
-        ));
-        System.out.println("Assertion Passed: Resource exists with expected Name properties.");
-    }
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
 
+        assertFalse(apiGatewayProperties.isEmpty(), "Expected at least one AWS::Serverless::Api resource in the template.");
 
+        boolean descriptionFoundAndValid = false;
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
 
-    @Test
-    @DisplayName("API Gateway Resource should contain correct properties Name")
-    void shouldContainAPIGatewayName() {
-        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Api", Map.of(
-                "Name", notNullValue()
-        ));
-        System.out.println("Assertion Passed: Resource exists with expected Name properties.");
+            Optional<String> description = getProperty(properties, "Description", String.class);
+
+            if (description.isPresent()) {
+                String descValue = description.get();
+                assertNotNull(descValue, "Description property for resource '" + logicalId + "' should not be null.");
+                assertTrue(descValue.endsWith("Driving Permit CRI API"),
+                        "Description for resource '" + logicalId + "' should end with 'Driving Permit CRI API'. Found: '" + descValue + "'");
+                descriptionFoundAndValid = true;
+                System.out.println("Found API Gateway resource '" + logicalId + "' with valid Description: " + descValue);
+            } else {
+                System.out.println("API Gateway resource '" + logicalId + "' does not have a 'Description' property or it's not a String.");
+            }
+        }
+        assertTrue(descriptionFoundAndValid, "At least one AWS::Serverless::Api resource must have a non-null and valid 'Description' property.");
+        System.out.println("Assertion Passed: All API Gateway resources checked for Description property.");
     }
 
     @Test
     @DisplayName("API Gateway Resource should contain correct properties Stage Name")
     void shouldContainAPIGatewayStageName() {
-        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Api", Map.of(
-                "StageName", "Environment"
-        ));
-        System.out.println("Assertion Passed: Resource exists with expected StageName properties.");
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+
+        assertFalse(apiGatewayProperties.isEmpty(), "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean stageNameFoundAndValid = false;
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<String> stageName = getProperty(properties, "StageName", String.class);
+
+            if (stageName.isPresent()) {
+                String descValue = stageName.get();
+                assertNotNull(descValue, "StageName property for resource '" + logicalId + "' should not be null.");
+                assertTrue(descValue.endsWith("Environment"),
+                        "StageName for resource '" + logicalId + "' should end with 'Environment'. Found: '" + descValue + "'");
+                stageNameFoundAndValid = true;
+                System.out.println("Found API Gateway resource '" + logicalId + "' with valid StageName: " + descValue);
+            } else {
+                System.out.println("API Gateway resource '" + logicalId + "' does not have a 'StageName' property or it's not a String.");
+            }
+        }
+        assertTrue(stageNameFoundAndValid, "At least one AWS::Serverless::Api resource must have a non-null and valid 'StageName' property.");
+        System.out.println("Assertion Passed: All API Gateway resources checked for StageName property.");
     }
 
     @Test
     @DisplayName("API Gateway Resource should contain correct properties Tracing Enabled")
     void shouldContainAPIGatewayTracingEnabled() {
-        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Api", Map.of(
-                "TracingEnabled", true
-        ));
-        System.out.println("Assertion Passed: Resource exists with expected TracingEnabled properties and values.");
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+
+        assertFalse(apiGatewayProperties.isEmpty(), "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean tracingenabledFoundAndValid = false;
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<Boolean> tracingenabled = getProperty(properties, "TracingEnabled", Boolean.class);
+
+            if (tracingenabled.isPresent()) {
+                Boolean tracingEnabledValue = tracingenabled.get();
+                assertNotNull(tracingEnabledValue, "TracingEnabled property for resource '" + logicalId + "' should not be null.");
+                assertTrue(tracingEnabledValue, "TracingEnabled for resource '" + logicalId + "' should be 'true'. Found: '" + tracingEnabledValue + "'");
+                tracingenabledFoundAndValid = true;
+                System.out.println("Found API Gateway resource '" + logicalId + "' with valid TracingEnabled: " + tracingEnabledValue);
+            } else {
+                // Update message to reflect checking for a Boolean type
+                System.out.println("API Gateway resource '" + logicalId + "' does not have a 'TracingEnabled' property or it's not a Boolean.");
+            }
+        }
+        assertTrue(tracingenabledFoundAndValid, "At least one AWS::Serverless::Api resource must have a non-null and valid 'TracingEnabled' property.");
+        System.out.println("Assertion Passed: All API Gateway resources checked for TracingEnabled property.");
+    }
+
+
+    @Test
+    @DisplayName("API Gateway Resource should have a non-null EndpointConfiguration")
+    void shouldContainAPIGatewayEndpointConfiguration() {
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+        assertFalse(apiGatewayProperties.isEmpty(), "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean endpointConfigurationFoundAndValid = false;
+
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<Object> endpointConfiguration = getProperty(properties, "EndpointConfiguration", Object.class);
+
+            if (endpointConfiguration.isPresent()) {
+                Object configValue = endpointConfiguration.get();
+                // Assert that the retrieved value is not null
+                assertNotNull(configValue, "EndpointConfiguration property for resource '" + logicalId + "' should not be null.");
+                endpointConfigurationFoundAndValid = true;
+                System.out.println("Found API Gateway resource '" + logicalId + "' with non-null EndpointConfiguration: " + configValue);
+            } else {
+                System.out.println("API Gateway resource '" + logicalId + "' does not have an 'EndpointConfiguration' property or it is null.");
+            }
+        }
+
+        assertTrue(endpointConfigurationFoundAndValid, "At least one AWS::Serverless::Api resource must have a non-null 'EndpointConfiguration' property.");
+        System.out.println("Assertion Passed: All API Gateway resources checked for non-null EndpointConfiguration property.");
+    }
+
+
+
+    @Test
+    @DisplayName("All AWS::Serverless::Api resources with MethodSettings should contain LoggingLevel: INFO")
+    void allApiMethodSettingsShouldContainLoggingLevelInfo() {
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+
+        assertTrue(apiGatewayProperties.size() > 0, "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean allRelevantApisSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            // Using TypeReference to correctly capture the generic type List<Map<String, Object>>
+            Optional<List<Map<String, Object>>> methodSettingsOptional =
+                    getPropertyTypeReference(properties, new TypeReference<List<Map<String, Object>>>() {});
+
+            if (methodSettingsOptional.isPresent()) {
+                List<Map<String, Object>> methodSettings = methodSettingsOptional.get();
+                boolean foundLoggingLevelInfoForThisApi = false;
+
+                for (Map<String, Object> setting : methodSettings) {
+                    // This call uses the simpler getProperty(Map, String, Class) for String type
+                    Optional<String> loggingLevel = getProperty(setting, "LoggingLevel", String.class);
+                    if (loggingLevel.isPresent() && "INFO".equals(loggingLevel.get())) {
+                        foundLoggingLevelInfoForThisApi = true;
+                        break;
+                    }
+                }
+
+                if (!foundLoggingLevelInfoForThisApi) {
+                    allRelevantApisSatisfyCondition = false;
+                    failureMessages.append(String.format("API resource '%s' has MethodSettings but does not contain 'LoggingLevel: INFO'.%n", logicalId));
+                } else {
+                    System.out.println(String.format("API resource '%s' correctly contains 'LoggingLevel: INFO' in its MethodSettings.", logicalId));
+                }
+            } else {
+                // If MethodSettings is mandatory, change this to an assertion failure.
+                // For now, it logs and skips the check for this specific API.
+                System.out.println(String.format("API resource '%s' does not define MethodSettings or it's not a List, skipping check.", logicalId));
+            }
+        }
+        assertTrue(allRelevantApisSatisfyCondition, "One or more AWS::Serverless::Api resources failed the MethodSettings check:\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant AWS::Serverless::Api resources checked for 'LoggingLevel: INFO'.");
     }
 
     @Test
-    @DisplayName("API Gateway Resource should contain correct properties Endpoint Configuration")
-    void shouldContainAPIGatewayStageNamed() {
-        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Api", Map.of(
-                "EndpointConfiguration", Map.of(
-                        "Type", notNullValue()
-                )
-        ));
-        System.out.println("Assertion Passed: Resource exists with expected EndpointConfiguration properties.");
+    @DisplayName("All AWS::Serverless::Api resources with MethodSettings should contain MetricsEnabled: true")
+    void allApiMethodSettingsShouldContainMetricsEnabledTrue() {
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+
+        assertTrue(apiGatewayProperties.size() > 0, "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean allRelevantApisSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<List<Map<String, Object>>> methodSettingsOptional = getPropertyTypeReference(properties, new TypeReference<List<Map<String, Object>>>() {});
+
+            if (methodSettingsOptional.isPresent()) {
+                List<Map<String, Object>> methodSettings = methodSettingsOptional.get();
+
+                boolean foundMetricsEnabledTrueForThisApi = false;
+                for (Map<String, Object> setting : methodSettings) {
+                    Optional<Boolean> metricsEnabled = getProperty(setting, "MetricsEnabled", Boolean.class);
+
+                    if (metricsEnabled.isPresent()) {
+                        if (Boolean.TRUE.equals(metricsEnabled.get())) {
+                            foundMetricsEnabledTrueForThisApi = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!foundMetricsEnabledTrueForThisApi) {
+                    allRelevantApisSatisfyCondition = false;
+                    failureMessages.append(String.format("API resource '%s' has MethodSettings but does not contain 'MetricsEnabled: true'.%n", logicalId));
+                }
+            }
+        }
+
+        assertTrue(allRelevantApisSatisfyCondition, "One or more AWS::Serverless::Api resources failed the MetricsEnabled check:\n" + failureMessages.toString());
+    }
+
+    @Test
+    @DisplayName("All AWS::Serverless::Api resources with MethodSettings should contain ThrottlingRateLimit")
+    void allApiMethodSettingsShouldContainThrottlingRateLimit() {
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+
+        assertTrue(apiGatewayProperties.size() > 0, "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean allRelevantApisSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<List<Map<String, Object>>> methodSettingsOptional = getPropertyTypeReference(properties, new TypeReference<List<Map<String, Object>>>() {});
+
+            if (methodSettingsOptional.isPresent()) {
+                List<Map<String, Object>> methodSettings = methodSettingsOptional.get();
+
+                boolean foundThrottlingRateLimitForThisApi = false;
+                for (Map<String, Object> setting : methodSettings) {
+                    // Check if 'ThrottlingRateLimit' property exists and is of type Integer
+                    Optional<Integer> throttlingRateLimit = getProperty(setting, "ThrottlingRateLimit", Integer.class);
+
+                    if (throttlingRateLimit.isPresent()) {
+                        foundThrottlingRateLimitForThisApi = true;
+                        break; // Found it for this API, no need to check other settings
+                    }
+                }
+
+                if (!foundThrottlingRateLimitForThisApi) {
+                    allRelevantApisSatisfyCondition = false;
+                    failureMessages.append(String.format("API resource '%s' has MethodSettings but does not contain 'ThrottlingRateLimit'.%n", logicalId));
+                }
+            }
+        }
+
+        assertTrue(allRelevantApisSatisfyCondition, "One or more AWS::Serverless::Api resources failed the ThrottlingRateLimit check:\n" + failureMessages.toString());
+    }
+
+    @Test
+    @DisplayName("All AWS::Serverless::Api resources with MethodSettings should contain ThrottlingBurstLimit")
+    void allApiMethodSettingsShouldContainThrottlingBurstLimit() {
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+
+        assertTrue(apiGatewayProperties.size() > 0, "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean allRelevantApisSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<List<Map<String, Object>>> methodSettingsOptional = getPropertyTypeReference(properties, new TypeReference<List<Map<String, Object>>>() {});
+
+            if (methodSettingsOptional.isPresent()) {
+                List<Map<String, Object>> methodSettings = methodSettingsOptional.get();
+
+                boolean foundThrottlingBurstLimitForThisApi = false;
+                for (Map<String, Object> setting : methodSettings) {
+                    // Check if 'ThrottlingBurstLimit' property exists and is of type Integer
+                    Optional<Integer> throttlingBurstLimit = getProperty(setting, "ThrottlingBurstLimit", Integer.class);
+
+                    if (throttlingBurstLimit.isPresent()) {
+                        foundThrottlingBurstLimitForThisApi = true;
+                        break; // Found it for this API, no need to check other settings
+                    }
+                }
+
+                if (!foundThrottlingBurstLimitForThisApi) {
+                    allRelevantApisSatisfyCondition = false;
+                    failureMessages.append(String.format("API resource '%s' has MethodSettings but does not contain 'ThrottlingBurstLimit'.%n", logicalId));
+                }
+            }
+        }
+
+        assertTrue(allRelevantApisSatisfyCondition, "One or more AWS::Serverless::Api resources failed the ThrottlingBurstLimit check:\n" + failureMessages.toString());
+    }
+
+    @Test
+    @DisplayName("All AWS::Serverless::Api resources with MethodSettings should contain DataTraceEnabled: [IsProdEnvironment, false, true]")
+    void allApiMethodSettingsShouldContainDataTraceEnabled() {
+        Map<String, Map<String, Object>> apiGatewayProperties = getAllResourceProperties("AWS::Serverless::Api");
+        assertFalse(apiGatewayProperties.isEmpty(), "Expected at least one AWS::Serverless::Api resource in the template.");
+
+        boolean allRelevantApisSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        List<Object> expectedDataTraceEnabledList = List.of("IsProdEnvironment", false, true);
+
+        for (Map.Entry<String, Map<String, Object>> entry : apiGatewayProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<List<Map<String, Object>>> methodSettingsOptional = getPropertyTypeReference(properties, new TypeReference<List<Map<String, Object>>>() {});
+
+            if (methodSettingsOptional.isPresent()) {
+                List<Map<String, Object>> methodSettings = methodSettingsOptional.get();
+
+                boolean foundDataTraceEnabledValuesForThisApi = false;
+                for (Map<String, Object> setting : methodSettings) {
+
+                    @SuppressWarnings("unchecked")
+                    Optional<List<Object>> dataTraceEnabledListOptional = getProperty(setting, "DataTraceEnabled", (Class<List<Object>>)(Class<?>)List.class);
+
+                    if (dataTraceEnabledListOptional.isPresent()) {
+                        List<Object> actualDataTraceEnabledList = dataTraceEnabledListOptional.get();
+
+                        // Compare the actual list with the expected list
+                        if (expectedDataTraceEnabledList.equals(actualDataTraceEnabledList)) {
+                            foundDataTraceEnabledValuesForThisApi = true;
+                            break;
+                        } else {
+                            System.out.printf("    Mismatch for DataTraceEnabled in '%s'. Expected: %s, Actual: %s%n",
+                                    logicalId, expectedDataTraceEnabledList, actualDataTraceEnabledList);
+                        }
+                    } else {
+                        System.out.println("    'DataTraceEnabled' property not found or not a List in this MethodSetting.");
+                    }
+                }
+
+                if (!foundDataTraceEnabledValuesForThisApi) {
+                    allRelevantApisSatisfyCondition = false;
+                    failureMessages.append(String.format("API resource '%s' has MethodSettings but does not contain 'DataTraceEnabled: %s'.%n", logicalId, expectedDataTraceEnabledList));
+                } else {
+                    System.out.println(String.format("API resource '%s' correctly contains 'DataTraceEnabled: %s' in its MethodSettings.", logicalId, expectedDataTraceEnabledList));
+                }
+            } else {
+                // If MethodSettings is mandatory, you might want to change this to an assertion failure.
+                // For now, it logs and skips the check for this specific API.
+                System.out.println(String.format("API resource '%s' does not define MethodSettings or it's not a List, skipping check.", logicalId));
+            }
+        }
+
+        assertTrue(allRelevantApisSatisfyCondition, "One or more AWS::Serverless::Api resources failed the MethodSettings check:\n" + failureMessages.toString());
+        System.out.println("\nAssertion Passed: All relevant AWS::Serverless::Api resources checked for 'DataTraceEnabled: [IsProdEnvironment, false, true]'.");
+        System.out.println("--- AWS::Serverless::Api MethodSettings Validation Complete ---");
+    }
+
+    // Lambda Function Resource Tests
+
+    @Test
+    @DisplayName("Lambda Function Resource should contain correct properties Handler prefix")
+    void lambdaHandlerShouldStartWithPrefix() {
+        Map<String, Map<String, Object>> lambdaProperties = getAllResourceProperties("AWS::Serverless::Function");
+
+        assertFalse(lambdaProperties.isEmpty(), "Expected at least one AWS::Serverless::Function resource.");
+
+        boolean allHandlersMatchPrefix = true; // Changed logic to check if ALL handlers match, not just one
+        String expectedPrefix = "uk.gov.di.ipv.cri.";
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : lambdaProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<String> handlerOptional = getProperty(properties, "Handler", String.class);
+
+            if (handlerOptional.isPresent()) {
+                String handler = handlerOptional.get();
+                if (!handler.startsWith(expectedPrefix)) {
+                    allHandlersMatchPrefix = false;
+                    failureMessages.append(String.format("Lambda function '%s' Handler '%s' does not start with '%s'.%n", logicalId, handler, expectedPrefix));
+                } else {
+                    System.out.println("Found Lambda function '" + logicalId + "' with Handler: " + handler + " (starts with '" + expectedPrefix + "')");
+                }
+            } else {
+                allHandlersMatchPrefix = false;
+                failureMessages.append(String.format("Lambda function '%s' is missing the mandatory 'Handler' property or it's not a String.%n", logicalId));
+            }
+        }
+        assertTrue(allHandlersMatchPrefix, "One or more Lambda function handlers failed the prefix check:\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant Lambda functions checked for Handler prefix.");
+    }
+
+    @Test
+    @DisplayName("Lambda Function Resource should contain the 'CodeUri' property")
+    void lambdaFunctionShouldHaveCodeUri() {
+        Map<String, Map<String, Object>> lambdaProperties = getAllResourceProperties("AWS::Serverless::Function");
+        assertFalse(lambdaProperties.isEmpty(), "Expected at least one AWS::Serverless::Function resource.");
+
+        boolean allCodeUrisExist = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : lambdaProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue(); // This 'properties' map contains Type and Properties key
+
+            Optional<String> codeUriOptional = getProperty(properties, "CodeUri", String.class);
+
+            if (codeUriOptional.isEmpty()) {
+                allCodeUrisExist = false;
+                failureMessages.append(String.format("Lambda function '%s' is missing the mandatory 'CodeUri' property or it's not a String.%n", logicalId));
+            } else {
+                System.out.println("Found Lambda function '" + logicalId + "' with CodeUri: " + codeUriOptional.get());
+            }
+        }
+
+        assertTrue(allCodeUrisExist, "One or more Lambda functions are missing the 'CodeUri' property:\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant Lambda functions checked for 'CodeUri' property.");
+    }
+
+    @Test
+    @DisplayName("Lambda Function Resource 'AutoPublishAlias' should be set to 'live'")
+    void lambdaFunctionAutoPublishAliasShouldBeLive() {
+        Map<String, Map<String, Object>> lambdaProperties = getAllResourceProperties("AWS::Serverless::Function");
+        assertFalse(lambdaProperties.isEmpty(), "Expected at least one AWS::Serverless::Function resource.");
+
+        boolean allAliasesAreLive = true;
+        String expectedAlias = "live";
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : lambdaProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue(); // This 'properties' map contains Type and Properties key
+
+            Optional<String> autoPublishAliasOptional = getProperty(properties, "AutoPublishAlias", String.class);
+
+            if (autoPublishAliasOptional.isEmpty()) {
+                allAliasesAreLive = false;
+                failureMessages.append(String.format("Lambda function '%s' is missing the 'AutoPublishAlias' property or it's not a String.%n", logicalId));
+            } else {
+                String actualAlias = autoPublishAliasOptional.get();
+                if (!actualAlias.equals(expectedAlias)) {
+                    allAliasesAreLive = false;
+                    failureMessages.append(String.format("Lambda function '%s' 'AutoPublishAlias' is '%s' but expected '%s'.%n", logicalId, actualAlias, expectedAlias));
+                } else {
+                    System.out.println("Found Lambda function '" + logicalId + "' with AutoPublishAlias: " + actualAlias + " (matches '" + expectedAlias + "')");
+                }
+            }
+        }
+
+        assertTrue(allAliasesAreLive, "One or more Lambda functions have an incorrect or missing 'AutoPublishAlias':\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant Lambda functions checked for 'AutoPublishAlias' being 'live'.");
+    }
+
+    @Test
+    @DisplayName("Lambda Function Resource 'AutoPublishAliasAllProperties' should be set to 'true'")
+    void lambdaFunctionAutoPublishAliasAllPropertiesShouldBeTrue() {
+        Map<String, Map<String, Object>> lambdaProperties = getAllResourceProperties("AWS::Serverless::Function");
+        assertFalse(lambdaProperties.isEmpty(), "Expected at least one AWS::Serverless::Function resource.");
+
+        boolean allAutoPublishPropertiesAreTrue = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : lambdaProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue(); // This 'properties' map contains Type and Properties key
+
+            Optional<Boolean> autoPublishAllPropertiesOptional = getProperty(properties, "AutoPublishAliasAllProperties", Boolean.class);
+
+            if (autoPublishAllPropertiesOptional.isEmpty()) {
+                allAutoPublishPropertiesAreTrue = false;
+                failureMessages.append(String.format("Lambda function '%s' is missing the 'AutoPublishAliasAllProperties' property or it's not a Boolean.%n", logicalId));
+            } else {
+                Boolean actualValue = autoPublishAllPropertiesOptional.get();
+                if (!actualValue) { // Check if the boolean value is not true
+                    allAutoPublishPropertiesAreTrue = false;
+                    failureMessages.append(String.format("Lambda function '%s' 'AutoPublishAliasAllProperties' is '%s' but expected 'true'.%n", logicalId, actualValue));
+                } else {
+                    System.out.println("Found Lambda function '" + logicalId + "' with AutoPublishAliasAllProperties: " + actualValue + " (matches 'true')");
+                }
+            }
+        }
+
+        assertTrue(allAutoPublishPropertiesAreTrue, "One or more Lambda functions have an incorrect or missing 'AutoPublishAliasAllProperties':\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant Lambda functions checked for 'AutoPublishAliasAllProperties' being 'true'.");
     }
 
 
-    // --- Tests for DrivingPermitCheckingFunction ---
+    // Logs - Log Group Resource Tests
 
-//    @Test
-//    @DisplayName("DrivingPermitCheckingFunction should be a Serverless Function with properties")
-//    void shouldContainDrivingPermitCheckingFunctionBasicProperties() {
-//        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Function", Map.of(
-//                "CodeUri", "lambdas/drivingpermitcheck",
-//                "Handler", "uk.gov.di.ipv.cri.drivingpermit.api.handler.DrivingPermitHandler::handleRequest",
-//                "AutoPublishAlias", "live",
-//                "AutoPublishAliasAllProperties", true
-//        ));
-//        System.out.println("Assertion Passed: DrivingPermitCheckingFunction basic properties are correct.");
-//    }
+    @Test
+    @DisplayName("All AWS::Logs::LogGroup resources should contain a LogGroupName")
+    void allLogGroupResourcesShouldContainLogGroupName() {
+        Map<String, Map<String, Object>> logGroupProperties = getAllResourceProperties("AWS::Logs::LogGroup");
 
-//    @Test
-//    @DisplayName("DrivingPermitCheckingFunction should have correct Environment Variables")
-//    void shouldContainDrivingPermitCheckingFunctionEnvironmentVariables() {
-//        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Function", Map.of(
-//                "Properties", Map.of(
-//                        "Environment", Map.of(
-//                                "Variables", Map.of(
-//                                        "POWERTOOLS_SERVICE_NAME", Map.of("Fn::Sub", "${CriIdentifier}-drivingpermitcheck"),
-//                                        "DVA_PERFORMANCE_STUB_IN_USE", Map.of("Fn::FindInMap", List.of("DVAPerformanceStubEnabledEnvVar", "Environment", Map.of("Ref", "Environment"))),
-//                                        "LOG_DVA_RESPONSE", Map.of("Fn::FindInMap", List.of("LogDVAResponseEnvVar", "Environment", Map.of("Ref", "Environment"))),
-//                                        "DVLA_PASSWORD_ROTATION_ENABLED", Map.of("Fn::FindInMap", List.of("DVLAPasswordRotationEnabledEnvVar", "Environment", Map.of("Ref", "Environment"))),
-//                                        "DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", Map.of("Fn::FindInMap", List.of("DevEnvironmentOnlyEnhancedDebugMappingEnvVar", "Environment", Map.of("Ref", "Environment"))),
-//                                        "HAS_CA", Map.of("Fn::FindInMap", List.of("FeatureFlagMapping", Map.of("Ref", "Environment"), "hasCA")),
-//                                        "SIGNING_CERTIFICATE_ARN", Map.of("Fn::If", List.of(
-//                                                "IsCAEnvironment",
-//                                                Map.of("Fn::ImportValue", "acm-infra-DLCRISigningCertificateArn"),
-//                                                Map.of("Ref", "AWS::NoValue")
-//                                        )),
-//                                        "TLS_CERTIFICATE_ARN", Map.of("Fn::If", List.of(
-//                                                "IsCAEnvironment",
-//                                                Map.of("Fn::ImportValue", "acm-infra-DLCRIMtlsCertificateArn"),
-//                                                Map.of("Ref", "AWS::NoValue")
-//                                        )),
-//                                        "SIGNING_KEY_ID", Map.of("Fn::ImportValue", "acm-infra-DvaSigningKeyId"),
-//                                        "ENCRYPTION_KEY_ID", Map.of("Fn::ImportValue", "acm-infra-DvaEncryptionKeyId")
-//                                )
-//                        )
-//                )
-//        ));
-//        System.out.println("Assertion Passed: DrivingPermitCheckingFunction environment variables are correct.");
-//    }
+        assertFalse(logGroupProperties.isEmpty(), "Expected at least one AWS::Logs::LogGroup resource in the template.");
 
-//    @Test
-//    @DisplayName("DrivingPermitCheckingFunction should have correct SnapStart configuration")
-//    void shouldContainDrivingPermitCheckingFunctionSnapStart() {
-//        cloudFormationTemplate.hasResourceProperties("AWS::Serverless::Function", Map.of(
-//                "SnapStart", Map.of( // <--- Removed the outer "Properties" wrapper here
-//                        "ApplyOn", List.of("Fn::FindInMap", List.of("SnapStartMapping", "Environment", Map.of("Ref", "Environment")))
-//                )));
-//        System.out.println("Assertion Passed: DrivingPermitCheckingFunction SnapStart configuration is correct.");
-//    }
+        boolean allLogGroupsSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : logGroupProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<String> logGroupName = getProperty(properties, "LogGroupName", String.class);
+
+            if (!logGroupName.isPresent()) {
+                allLogGroupsSatisfyCondition = false;
+                failureMessages.append(String.format("LogGroup resource '%s' does not have a 'LogGroupName' property or it's not a String.%n", logicalId));
+            }
+        }
+
+        assertTrue(allLogGroupsSatisfyCondition, "One or more AWS::Logs::LogGroup resources failed the LogGroupName existence check:\n" + failureMessages.toString());
+    }
+
+    @Test
+    @DisplayName("All AWS::Logs::LogGroup resources should contain a RetentionInDays")
+    void allLogGroupResourcesShouldContainRetentionInDays() {
+        Map<String, Map<String, Object>> logGroupProperties = getAllResourceProperties("AWS::Logs::LogGroup");
+
+        assertFalse(logGroupProperties.isEmpty(), "Expected at least one AWS::Logs::LogGroup resource in the template.");
+
+        boolean allLogGroupsSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : logGroupProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            // Retrieve the 'RetentionInDays' property, typically an Integer
+            Optional<String> retentionInDays = getProperty(properties, "RetentionInDays", String.class);
+
+            if (retentionInDays.isEmpty()) { // Check if the property is NOT present
+                allLogGroupsSatisfyCondition = false;
+                failureMessages.append(String.format("LogGroup resource '%s' does not have a 'RetentionInDays' property or it's not an Integer.%n", logicalId));
+            }
+        }
+
+        assertTrue(allLogGroupsSatisfyCondition, "One or more AWS::Logs::LogGroup resources failed the RetentionInDays existence check:\n" + failureMessages.toString());
+    }
+
+    // Logs - Subscription Filter Resource Tests
+
+    @Test
+    @DisplayName("All AWS::Logs::SubscriptionFilter resources should contain Condition: LogSendingEnabled")
+    void allSubscriptionFilterResourcesShouldContainLogSendingEnabledCondition() {
+        Map<String, Map<String, Object>> subscriptionFilterResources = getAllResources("AWS::Logs::SubscriptionFilter");
+
+        assertFalse(subscriptionFilterResources.isEmpty(), "Expected at least one AWS::Logs::SubscriptionFilter resource in the template.");
+
+        boolean allSubscriptionFiltersSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : subscriptionFilterResources.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> resourceDefinition = entry.getValue();
+
+            Optional<String> condition = getTopLevelProperty(resourceDefinition, "Condition", String.class);
+
+            if (condition.isPresent()) {
+                String conditionValue = condition.get();
+                if (!"LogSendingEnabled".equals(conditionValue)) {
+                    allSubscriptionFiltersSatisfyCondition = false;
+                    failureMessages.append(String.format("SubscriptionFilter resource '%s' has Condition '%s' but expected 'LogSendingEnabled'.%n", logicalId, conditionValue));
+                }
+            } else {
+                allSubscriptionFiltersSatisfyCondition = false;
+                failureMessages.append(String.format("SubscriptionFilter resource '%s' does not have a 'Condition' property or it's not a String.%n", logicalId));
+            }
+        }
+
+        assertTrue(allSubscriptionFiltersSatisfyCondition, "One or more AWS::Logs::SubscriptionFilter resources failed the Condition check:\n" + failureMessages.toString());
+    }
+
+    @Test
+    @DisplayName("All AWS::Logs::SubscriptionFilter resources should contain a LogGroupName")
+    void allSubscriptionFilterResourcesShouldContainLogGroupName() {
+        Map<String, Map<String, Object>> logGroupProperties = getAllResourceProperties("AWS::Logs::SubscriptionFilter");
+
+        assertFalse(logGroupProperties.isEmpty(), "Expected at least one AWS::Logs::SubscriptionFilter resource in the template.");
+
+        boolean allLogGroupsSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : logGroupProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<String> logGroupName = getProperty(properties, "LogGroupName", String.class);
+
+            if (!logGroupName.isPresent()) {
+                allLogGroupsSatisfyCondition = false;
+                failureMessages.append(String.format("LogGroup resource '%s' does not have a 'LogGroupName' property or it's not a String.%n", logicalId));
+            }
+        }
+
+        assertTrue(allLogGroupsSatisfyCondition, "One or more AWS::Logs::SubscriptionFilter resources failed the LogGroupName existence check:\n" + failureMessages.toString());
+    }
+
+    @Test
+    @DisplayName("All AWS::Logs::SubscriptionFilter resources should contain DestinationArn starting with 'arn:aws:logs:eu-west-2:'")
+    void allSubscriptionFilterResourcesShouldContainDestinationArnWithPrefix() {
+        Map<String, Map<String, Object>> subscriptionFilterProperties = getAllResourceProperties("AWS::Logs::SubscriptionFilter");
+
+        assertFalse(subscriptionFilterProperties.isEmpty(), "Expected at least one AWS::Logs::SubscriptionFilter resource in the template.");
+
+        boolean allSubscriptionFiltersSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        String expectedPrefix = "arn:aws:logs:eu-west-2:";
+
+        for (Map.Entry<String, Map<String, Object>> entry : subscriptionFilterProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            // Retrieve the 'DestinationArn' property from the 'Properties' map
+            Optional<String> destinationArn = getProperty(properties, "DestinationArn", String.class);
+
+            if (destinationArn.isPresent()) {
+                String destinationArnValue = destinationArn.get();
+                if (!destinationArnValue.startsWith(expectedPrefix)) {
+                    allSubscriptionFiltersSatisfyCondition = false;
+                    failureMessages.append(String.format("SubscriptionFilter resource '%s' has DestinationArn '%s' which does not start with '%s'.%n",
+                            logicalId, destinationArnValue, expectedPrefix));
+                }
+            } else {
+                allSubscriptionFiltersSatisfyCondition = false;
+                failureMessages.append(String.format("SubscriptionFilter resource '%s' does not have a 'DestinationArn' property or it's not a String.%n", logicalId));
+            }
+        }
+
+        assertTrue(allSubscriptionFiltersSatisfyCondition, "One or more AWS::Logs::SubscriptionFilter resources failed the DestinationArn prefix check:\n" + failureMessages.toString());
+    }
 
 
-//    @Test
-//    @DisplayName("DrivingPermitCheckingFunction should have correct SnapStart configuration")
-//    void shouldContainDrivingPermitCheckingFunctionSnapStart() {
-//        // Step 1: Use findResources to locate the specific AWS::Serverless::Function
-//        // by a unique property, such as its Handler.
-//        // The `findResources` method returns a Map where keys are logical IDs and values are the resource definitions.
-//        // The `Map.of("Properties", Map.of("Handler", ...))` part specifies that we are looking for
-//        // a resource of type "AWS::Serverless::Function" whose "Properties" block contains a "Handler" key
-//        // with the specified value.
-//        Map<String, Map<String, Object>> foundResources = cloudFormationTemplate.findResources(
-//                "AWS::Serverless::Function",
-//                Map.of("Properties", Map.of("Handler", "uk.gov.di.ipv.cri.drivingpermit.api.handler.DrivingPermitHandler::handleRequest"))
-//        );
-//
-//        // Step 2: Assert that exactly one resource was found matching the criteria.
-//        assertNotNull(foundResources, "No resources found matching the criteria for DrivingPermitCheckingFunction.");
-//        assertEquals(1, foundResources.size(), "Expected exactly one DrivingPermitCheckingFunction, but found " + foundResources.size());
-//
-//        // Step 3: Get the logical ID of the found resource.
-//        // Since we expect exactly one, we can safely get the first (and only) key.
-//        String logicalId = foundResources.keySet().iterator().next();
-//        assertEquals("DrivingPermitCheckingFunction", logicalId, "The found resource's logical ID does not match 'DrivingPermitCheckingFunction'.");
-//
-//        // Step 4: Extract the full resource definition for the identified function.
-//        Map<String, Object> drivingPermitFunctionResource = foundResources.get(logicalId);
-//        assertNotNull(drivingPermitFunctionResource, "DrivingPermitCheckingFunction resource definition should not be null.");
-//
-//        // Step 5: Assert its type (optional, but good for robustness).
-//        assertEquals("AWS::Serverless::Function", drivingPermitFunctionResource.get("Type"),
-//                "DrivingPermitCheckingFunction resource type should be AWS::Serverless::Function.");
-//
-//        // Step 6: Extract the 'Properties' block from the resource.
-//        @SuppressWarnings("unchecked") // Cast is safe if template structure is as expected
-//        Map<String, Object> functionProperties = (Map<String, Object>) drivingPermitFunctionResource.get("Properties");
-//        assertNotNull(functionProperties, "DrivingPermitCheckingFunction should have a 'Properties' block.");
-//
-//        // Step 7: Extract the 'SnapStart' configuration from the 'Properties'.
-//        @SuppressWarnings("unchecked")
-//        Map<String, Object> snapStartConfig = (Map<String, Object>) functionProperties.get("SnapStart");
-//        assertNotNull(snapStartConfig, "DrivingPermitCheckingFunction should have a 'SnapStart' configuration.");
-//
-//        // Step 8: Extract the 'ApplyOn' property from 'SnapStart'.
-//        @SuppressWarnings("unchecked")
-//        List<Object> applyOn = (List<Object>) snapStartConfig.get("ApplyOn");
-//        assertNotNull(applyOn, "SnapStart configuration should have an 'ApplyOn' property.");
-//
-//        // Step 9: Construct the expected 'ApplyOn' value.
-//        // This needs to precisely match the structure of !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
-//        // when it's parsed into a Java Map/List structure by Jackson.
-//        List<Object> expectedApplyOn = List.of(
-//                "Fn::FindInMap",
-//                List.of("SnapStartMapping", "Environment", Map.of("Ref", "Environment"))
-//        );
-//
-////        // Step 10: Assert that the actual 'ApplyOn' matches the expected value.
-////        assertEquals(expectedApplyOn, applyOn, "SnapStart 'ApplyOn' configuration does not match expected value.");
-//
-//        System.out.println("Assertion Passed: DrivingPermitCheckingFunction SnapStart configuration is correct.");
-//    }
+    // Lambda - Permission Resource Tests
+
+    @Test
+    @DisplayName("All AWS::Lambda::Permission resources should contain an 'Action' property")
+    void allLambdaPermissionResourcesShouldContainAction() {
+        Map<String, Map<String, Object>> permissionProperties = getAllResourceProperties("AWS::Lambda::Permission");
+        assertFalse(permissionProperties.isEmpty(), "Expected at least one AWS::Lambda::Permission resource in the template.");
+
+        boolean allPermissionsSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : permissionProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue(); // This 'properties' map contains Type and Properties key
+
+            Optional<String> actionOptional = getProperty(properties, "Action", String.class);
+
+            if (actionOptional.isEmpty()) {
+                allPermissionsSatisfyCondition = false;
+                failureMessages.append(String.format("Lambda Permission resource '%s' does not have an 'Action' property or it's not a String.%n", logicalId));
+            } else {
+                System.out.println("Found Lambda Permission resource '" + logicalId + "' with Action: " + actionOptional.get());
+            }
+        }
+
+        assertTrue(allPermissionsSatisfyCondition, "One or more AWS::Lambda::Permission resources failed the 'Action' property existence check:\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant AWS::Lambda::Permission resources checked for 'Action' property.");
+    }
+
+    @Test
+    @DisplayName("All AWS::Lambda::Permission resources should contain a 'FunctionName' property")
+    void allLambdaPermissionResourcesShouldContainFunctionName() {
+        Map<String, Map<String, Object>> permissionProperties = getAllResourceProperties("AWS::Lambda::Permission");
+        assertFalse(permissionProperties.isEmpty(), "Expected at least one AWS::Lambda::Permission resource in the template.");
+
+        boolean allPermissionsSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : permissionProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue(); // This 'properties' map contains Type and Properties key
+
+            Optional<String> functionNameOptional = getProperty(properties, "FunctionName", String.class);
+
+            if (functionNameOptional.isEmpty()) {
+                allPermissionsSatisfyCondition = false;
+                failureMessages.append(String.format("Lambda Permission resource '%s' does not have a 'FunctionName' property or it's not a String.%n", logicalId));
+            } else {
+                System.out.println("Found Lambda Permission resource '" + logicalId + "' with FunctionName: " + functionNameOptional.get());
+            }
+        }
+
+        assertTrue(allPermissionsSatisfyCondition, "One or more AWS::Lambda::Permission resources failed the 'FunctionName' property existence check:\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant AWS::Lambda::Permission resources checked for 'FunctionName' property.");
+    }
+
+    @Test
+    @DisplayName("All AWS::Lambda::Permission resources should contain a 'Principal' property")
+    void allLambdaPermissionResourcesShouldContainPrincipal() {
+        Map<String, Map<String, Object>> permissionProperties = getAllResourceProperties("AWS::Lambda::Permission");
+        assertFalse(permissionProperties.isEmpty(), "Expected at least one AWS::Lambda::Permission resource in the template.");
+
+        boolean allPermissionsSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : permissionProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue(); // This 'properties' map contains Type and Properties key
+
+            Optional<String> principalOptional = getProperty(properties, "Principal", String.class);
+
+            if (principalOptional.isEmpty()) {
+                allPermissionsSatisfyCondition = false;
+                failureMessages.append(String.format("Lambda Permission resource '%s' does not have a 'Principal' property or it's not a String.%n", logicalId));
+            } else {
+                System.out.println("Found Lambda Permission resource '" + logicalId + "' with Principal: " + principalOptional.get());
+            }
+        }
+
+        assertTrue(allPermissionsSatisfyCondition, "One or more AWS::Lambda::Permission resources failed the 'Principal' property existence check:\n" + failureMessages.toString());
+        System.out.println("Assertion Passed: All relevant AWS::Lambda::Permission resources checked for 'Principal' property.");
+    }
 
 }

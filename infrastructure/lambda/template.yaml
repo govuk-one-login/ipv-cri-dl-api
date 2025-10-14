@@ -87,10 +87,6 @@ Conditions:
   OverrideSettingOfEnvironmentWideFeatureFlag: !Equals
     - !Ref Environment
     - dev
-  IsDevOrBuildOrStaging: !Or
-    - !Equals [ !Ref Environment, dev ]
-    - !Equals [ !Ref Environment, build ]
-    - !Equals [ !Ref Environment, staging ]
   UsingCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -419,8 +415,8 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
       Tags:
-        FMSRegionalPolicy: !If [ IsDevOrBuildOrStaging, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuildOrStaging, "true", "none" ]
+        FMSRegionalPolicy: "false"
+        CustomPolicy: "true"
 
   PublicDrivingPermitApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -501,8 +497,8 @@ Resources:
                           !Sub "${VpcStackName}-ApiGatewayVpcEndpointId"
               - !Ref AWS::NoValue
       Tags:
-        FMSRegionalPolicy: !If [ IsDevOrBuildOrStaging, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuildOrStaging, "true", "none" ]
+        FMSRegionalPolicy: "false"
+        CustomPolicy: "true"
 
   PrivateDrivingPermitApiAccessLogGroup:
     Type: AWS::Logs::LogGroup

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+rm -rf kmsEncryption
 mkdir kmsEncryption
 privateKey=$(aws-vault exec $ACCOUNT_FROM -- aws acm export-certificate --certificate-arn $ENCRYPTION_CERT_ACM --passphrase fileb://passPhrase.txt | jq -r '"\(.PrivateKey)"')
 echo "$privateKey" > ./kmsEncryption/encrypted_key.pem
@@ -24,7 +25,6 @@ openssl rand -out ./kmsEncryption/aes-key.bin 32
 
 openssl enc -id-aes256-wrap-pad \
         -K "$(xxd -p < ./kmsEncryption/aes-key.bin | tr -d '\n')" \
-        -iv A65959A6 \
         -in ./kmsEncryption/PlaintextKeyMaterial.bin\
         -out ./kmsEncryption/key-material-wrapped.bin
 

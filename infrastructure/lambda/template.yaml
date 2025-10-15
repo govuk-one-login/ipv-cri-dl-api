@@ -2430,7 +2430,9 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-Authorization4XXApiGwErrorAlarm"
       AlarmDescription: !Sub
-        - "There has been a small proportion of 4XX errors on the Authorization endpoint. ${SupportManualURL}"
+        - |
+          There has been a higher than normal proportion of 4XX errors on the Authorization endpoint. ${SupportManualURL}.
+          The errorPercentage exceeds the Threshold (percentage) for the DatapointsToAlarm intervals within the EvaluationPeriod.
         - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       OKActions:
@@ -2439,16 +2441,20 @@ Resources:
         - !ImportValue platform-alarm-warning-alert-topic
       InsufficientDataActions: [ ]
       Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 15
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 10
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       Metrics:
         - Id: errorThreshold
           Label: errorThreshold
           ReturnData: true
-          Expression: IF(invocations<10,0,errorPercentage)
+          Expression: IF(invocations<150,0,errorPercentage)
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
         - Id: invocations
           ReturnData: false
           MetricStat:
@@ -2464,12 +2470,8 @@ Resources:
                   Value: !Ref Environment
                 - Name: Method
                   Value: GET
-            Period: 60
+            Period: 900
             Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
         - Id: error
           ReturnData: false
           MetricStat:
@@ -2485,7 +2487,7 @@ Resources:
                   Value: !Ref Environment
                 - Name: Method
                   Value: GET
-            Period: 60
+            Period: 900
             Stat: Sum
 
   AuthorizationThrottleAlarm:

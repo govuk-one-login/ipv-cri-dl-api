@@ -267,7 +267,7 @@ Mappings:
       build: "R6LBd5ZMZkqOptUzzX4ltCe6NsQApMYVnYlMimkKJY8"
       staging: "tM9th8lqLODNFibQE7NQVsv-RydlIw7UHQVtCcyt8f0"
       integration: "tM9th8lqLODNFibQE7NQVsv-RydlIw7UHQVtCcyt8f0"
-      production: "bbffnKvtWHNVujCwK_weHd84HiVVrP4qZLAPcWaCSAc"
+      production: "l9U9W-KahMow1Ghbdb17_6SMY2jkWdafDLnrw5ZP-6c"
 
   LogDVAResponseEnvVar:
     Environment:

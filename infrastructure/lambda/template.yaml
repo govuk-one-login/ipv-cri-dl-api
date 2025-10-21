@@ -277,8 +277,8 @@ Mappings:
   DVLAPasswordRotationEnabledEnvVar:
     Environment:
       dev: "true"
-      build: "true"
-      staging: "false"
+      build: "false"
+      staging: "true"
       integration: "false"
       production: "true"
 

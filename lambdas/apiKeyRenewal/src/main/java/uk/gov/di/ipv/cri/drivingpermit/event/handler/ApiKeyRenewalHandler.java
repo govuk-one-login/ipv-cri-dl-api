@@ -37,6 +37,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
@@ -55,7 +56,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
     private final SecretsManagerClient secretsManagerClient;
     private final ChangeApiKeyService changeApiKeyService;
     private final TokenRequestService tokenRequestService;
-    //    private final DriverMatchService driverMatchService;
+    private final DriverMatchService driverMatchService;
     private final EventProbe eventProbe;
     private final DvlaConfiguration dvlaConfiguration;
 
@@ -96,26 +97,26 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                         defaultRequestConfig,
                         objectMapper,
                         eventProbe);
-        //        driverMatchService =
-        //                new DriverMatchService(
-        //                        dvlaConfiguration,
-        //                        httpRetryer,
-        //                        defaultRequestConfig,
-        //                        objectMapper,
-        //                        eventProbe);
+        driverMatchService =
+                new DriverMatchService(
+                        dvlaConfiguration,
+                        httpRetryer,
+                        defaultRequestConfig,
+                        objectMapper,
+                        eventProbe);
     }
 
     public ApiKeyRenewalHandler(
             SecretsManagerClient secretsManagerClient,
             ChangeApiKeyService changeApiKeyService,
             TokenRequestService tokenRequestService,
-            //            DriverMatchService driverMatchService,
+            DriverMatchService driverMatchService,
             EventProbe eventProbe,
             DvlaConfiguration dvlaConfiguration) {
         this.secretsManagerClient = secretsManagerClient;
         this.changeApiKeyService = changeApiKeyService;
         this.tokenRequestService = tokenRequestService;
-        //        this.driverMatchService = driverMatchService;
+        this.driverMatchService = driverMatchService;
         this.eventProbe = eventProbe;
         this.dvlaConfiguration = dvlaConfiguration;
     }
@@ -141,7 +142,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                         If not, we will call DVLA to request a new API Key and advance with it
                          */
                         apiKeyFromPreviousRun = getValue(secretsManagerClient, input.getSecretId());
-                        LOGGER.info("Found existing API Key in Secrets Manager, advancing to test");
+                        LOGGER.info("Found existing API Key in Secrets Manager, advancing to test :: key value is {}", apiKeyFromPreviousRun);
                     } catch (SecretNotFoundException | ResourceNotFoundException e) {
                         if (dvlaConfiguration.isApiKeyRotationEnabled()) {
                             if (apiKeyFromPreviousRun == null) {
@@ -151,6 +152,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                                 // Everything ran after this point, previous apiKey is no longer
                                 // valid
                                 LOGGER.debug("The new API Key is {}", pendingNewApiKey);
+                                LOGGER.info("The new API Key is {}", pendingNewApiKey);
                                 PutSecretValueRequest secretRequest =
                                         PutSecretValueRequest.builder()
                                                 .secretId(input.getSecretId())
@@ -161,6 +163,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                                 LOGGER.info("Secret has been stored in AWS successfully");
                             } else {
                                 pendingNewApiKey = apiKeyFromPreviousRun;
+                                LOGGER.info("The API Key is set as pending already exists {}", pendingNewApiKey);
                             }
                         }
                     }
@@ -168,35 +171,32 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                     // CREATE SECRET END
 
                     // TEST SECRET START
-                    //
-                    // logStepCommenced(SecretsManagerRotationStep.TEST_SECRET);
-                    /*Next step is to verify that the secret has been set in
-                    DVLA
-                                        * To do so, we request a token to ensure the new api key
-                    works, but this does not
-                                        * replace the token in the DB, and does not invalidate
-                    the existing one.
-                                        * Then we perform a driver match service request*/
+                    logStepCommenced(SecretsManagerRotationStep.TEST_SECRET);
+                    /*Next step is to verify that the secret has been set in DVLA
+                     * To do so, we request a token to ensure the new api key
+                    works, but this does not replace the token in the DB, and does not invalidate the existing one.
+                    * Then we perform a driver match service request*/
 
-                    // Setting TestStrategy to default until approach
-                    //                                        Strategy strategy =
-                    // Strategy.NO_CHANGE;
+                    // Setting TestStrategy to default until test data strategy approach agreed
+                    Strategy strategy = Strategy.NO_CHANGE;
 
                     if (dvlaConfiguration.isApiKeyRotationEnabled()) {
                         if (apiKeyFromPreviousRun != null) {
+
                             pendingNewApiKey = apiKeyFromPreviousRun;
+                            LOGGER.info(
+                                    "state of pendingNewApiKey in testsecret step::::{}",
+                                    pendingNewApiKey);
                         }
-                        //
-                        // driverMatchService.performMatch(
-                        //                                                    drivingPermitForm(),
-                        //
-                        // tokenRequestService.requestToken(true,
-                        //                     strategy),
-                        //                                                    pendingNewApiKey,
-                        //                                                    strategy);
+
+                        driverMatchService.performMatch(
+                                drivingPermitForm(),
+                                tokenRequestService.requestToken(true, strategy),
+                                pendingNewApiKey,
+                                strategy);
                     }
-                    //
-                    // logStepCompleted(SecretsManagerRotationStep.TEST_SECRET);
+
+                    logStepCompleted(SecretsManagerRotationStep.TEST_SECRET);
                     // TEST SECRET END
 
                     // FINISH SECRET START
@@ -204,8 +204,9 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
                     /*Final step updates Secrets Manager to set api-key as AWSCURRENT*/
                     if (dvlaConfiguration.isApiKeyRotationEnabled()) {
                         updateSecret(input.getSecretId(), pendingNewApiKey);
+                        LOGGER.info("pending api key at point where current is updated is {}", pendingNewApiKey);
                         LOGGER.info("Updating Secret in Secrets Manager");
-                        tokenRequestService.removeTokenItem(Strategy.NO_CHANGE);
+                        tokenRequestService.removeTokenItem(strategy);
                         tokenRequestService.removeTokenItem(Strategy.LIVE);
                         tokenRequestService.removeTokenItem(Strategy.UAT);
                     }

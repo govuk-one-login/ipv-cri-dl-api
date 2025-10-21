@@ -142,6 +142,11 @@ public class DriverMatchService {
                 ENDPOINT_NAME,
                 LOGGER.isDebugEnabled() ? (Arrays.toString(request.getAllHeaders())) : "");
         LOGGER.debug("{} request body : {}", ENDPOINT_NAME, requestBody);
+        LOGGER.info(
+                "{} request headers : {}",
+                ENDPOINT_NAME,
+                LOGGER.isInfoEnabled() ? (Arrays.toString(request.getAllHeaders())) : "");
+        LOGGER.info("{} request body : {}", ENDPOINT_NAME, requestBody);
 
         request.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
 
@@ -151,6 +156,7 @@ public class DriverMatchService {
         final HTTPReply httpReply;
         String requestURIString = requestURI.toString();
         LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
+        LOGGER.info("{} request endpoint is {}", REQUEST_NAME, requestURIString);
         LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
         stopWatch.start();
         try (CloseableHttpResponse response =
@@ -192,6 +198,8 @@ public class DriverMatchService {
 
             LOGGER.debug("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
             LOGGER.debug("{} response {}", REQUEST_NAME, httpReply.responseBody);
+            LOGGER.info("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
+            LOGGER.info("{} response {}", REQUEST_NAME, httpReply.responseBody);
 
             try {
                 Validity validity;

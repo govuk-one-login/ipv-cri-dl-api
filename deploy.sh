@@ -50,6 +50,6 @@ sam deploy --stack-name "$stack_name" \
   CommonStackName=driving-permit-common-cri-api-local \
   CriIdentifier=$cri_identifier \
   CreateMockTxmaResourcesOverride=true \
-  ParameterPrefix="dl-cri-api-v1" \
+  ParameterPrefix="di-ipv-cri-dp-shill" \
   DeploymentType="not-pipeline" \
   LambdaDeploymentPreference="AllAtOnce"

@@ -20,8 +20,10 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangeApiKeyService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
@@ -53,7 +55,7 @@ class ApiKeyRenewalHandlerTest {
 
     @Mock private Context mockContext;
 
-    //    @Mock private DriverMatchService mockDriverMatchService;
+    @Mock private DriverMatchService mockDriverMatchService;
 
     @Mock private DvlaConfiguration mockDvlaConfiguration;
 
@@ -67,6 +69,7 @@ class ApiKeyRenewalHandlerTest {
                         mockSecretsManagerClient,
                         mockChangeApiKeyService,
                         mockTokenRequestService,
+                        mockDriverMatchService,
                         mockEventProbe,
                         mockDvlaConfiguration);
     }
@@ -110,32 +113,30 @@ class ApiKeyRenewalHandlerTest {
         assertEquals("AWSPENDING", putSecretValueRequest.versionStages().get(0));
     }
 
-    //    @Test
-    //    void whenTestSecretStepCalledThenPerformMatchIsVerified() throws
-    // OAuthErrorResponseException {
-    //
-    //        when(mockDvlaConfiguration.isApiKeyRotationEnabled()).thenReturn(true);
-    //
-    //        GetSecretValueResponse secretValueResponse =
-    //                GetSecretValueResponse.builder().secretString("new_api_key").build();
-    //        when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
-    //                .thenReturn(secretValueResponse);
-    //
-    //
-    // when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
-    //        when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
-    //        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
-    //                .thenReturn("token_value");
-    //
-    //        apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
-    //
-    //        verify(mockDriverMatchService)
-    //                .performMatch(
-    //                        any(DvlaFormFields.class),
-    //                        eq("token_value"),
-    //                        eq("new_api_key"),
-    //                        eq(Strategy.NO_CHANGE));
-    //    }
+    @Test
+    void whenTestSecretStepCalledThenPerformMatchIsVerified() throws OAuthErrorResponseException {
+
+        when(mockDvlaConfiguration.isApiKeyRotationEnabled()).thenReturn(true);
+
+        GetSecretValueResponse secretValueResponse =
+                GetSecretValueResponse.builder().secretString("new_api_key").build();
+        when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
+                .thenReturn(secretValueResponse);
+
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
+                .thenReturn("token_value");
+
+        apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
+
+        verify(mockDriverMatchService)
+                .performMatch(
+                        any(DvlaFormFields.class),
+                        eq("token_value"),
+                        eq("new_api_key"),
+                        eq(Strategy.NO_CHANGE));
+    }
 
     @Test
     void whenFinishSecretStepCalledThenSecretUpdatedSuccessfully() {

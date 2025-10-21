@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.drivingpermit.event.endpoints;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.Header;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -92,6 +93,11 @@ public class ChangeApiKeyService {
         final HTTPReply httpReply;
         String requestURIString = requestURI.toString();
         LOGGER.debug("{} request endpoint is {}", REQUEST_NAME, requestURIString);
+        LOGGER.info("TEMP:::{} request endpoint is {}", REQUEST_NAME, requestURIString);
+        // Temp Logging headers
+        for (Header header : request.getAllHeaders()) {
+            LOGGER.info("TEMP:::  Request Header: {} = {}", header.getName(), header.getValue());
+        }
         LOGGER.info("Submitting {} request to third party...", REQUEST_NAME);
         try (CloseableHttpResponse response =
                 httpRetryer.sendHTTPRequestRetryIfAllowed(request, httpRetryStatusConfig)) {
@@ -100,6 +106,9 @@ public class ChangeApiKeyService {
             // throws OAuthErrorResponseException on error
             httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
             LOGGER.debug("response: {} httpReply: {}", response, httpReply);
+            LOGGER.info("TEMP:::response: {} httpReply: {}", response, httpReply);
+            LOGGER.info("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
+
         } catch (IOException e) {
 
             LOGGER.error("IOException executing {} request - {}", REQUEST_NAME, e.getMessage());
@@ -117,6 +126,7 @@ public class ChangeApiKeyService {
 
             eventProbe.counterMetric(
                     DVLA_CHANGE_API_KEY_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+            LOGGER.info("Full API response: {}", httpReply.responseBody);
             ApiKeyResponse apiKeyResponse =
                     objectMapper.readValue(httpReply.responseBody, ApiKeyResponse.class);
             LOGGER.info("apiKey response message {}", apiKeyResponse.getMessage());

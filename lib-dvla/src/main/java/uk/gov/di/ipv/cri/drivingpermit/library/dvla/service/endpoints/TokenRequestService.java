@@ -196,6 +196,7 @@ public class TokenRequestService {
 
             requestBody = objectMapper.writeValueAsString(tokenRequestPayload);
             LOGGER.debug("response body: {}", requestBody);
+            LOGGER.info("response body: {}", requestBody);
         } catch (JsonProcessingException e) {
             LOGGER.error("JsonProcessingException creating request body");
             LOGGER.debug(e.getMessage());
@@ -209,6 +210,11 @@ public class TokenRequestService {
                 ENDPOINT_NAME,
                 LOGGER.isDebugEnabled() ? (Arrays.toString(request.getAllHeaders())) : "");
         LOGGER.debug("{} request body : {}", REQUEST_NAME, requestBody);
+        LOGGER.info(
+                "{} request headers : {}",
+                ENDPOINT_NAME,
+                LOGGER.isInfoEnabled() ? (Arrays.toString(request.getAllHeaders())) : "");
+        LOGGER.info("{} request body : {}", REQUEST_NAME, requestBody);
 
         request.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
 
@@ -257,6 +263,8 @@ public class TokenRequestService {
             try {
                 LOGGER.debug("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
                 LOGGER.debug("{} response {}", REQUEST_NAME, httpReply.responseBody);
+                LOGGER.info("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
+                LOGGER.info("{} response {}", REQUEST_NAME, httpReply.responseBody);
 
                 TokenResponse response =
                         objectMapper.readValue(httpReply.responseBody, TokenResponse.class);

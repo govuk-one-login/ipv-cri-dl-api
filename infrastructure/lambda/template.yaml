@@ -1009,6 +1009,7 @@ Resources:
   ApiKeyRenewalFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Timeout: 120 # seconds
       CodeUri: lambdas/apiKeyRenewal
       Handler: uk.gov.di.ipv.cri.drivingpermit.event.handler.ApiKeyRenewalHandler::handleRequest
       Environment:

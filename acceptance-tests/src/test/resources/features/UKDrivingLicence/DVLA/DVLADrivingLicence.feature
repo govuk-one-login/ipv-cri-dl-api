@@ -189,6 +189,14 @@ Feature: Driving Licence Test
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
 
+  @build @stub @test
+  Scenario: DVLA - Api Key rotation check
+    Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
+    When User clicks on continue
+    And I navigate to the Driving Licence verifiable issuer to check for a Valid response
+    Then The DVLA API Key secret has been created
+    Then The DVLA API Key should be valid and rotated within the specified window
+
   @build @staging @integration @dvlaDirect @stub @uat
   Scenario: DVLA - User consents to have DL checked and navigates to DVLA privacy notice
     Then I see the consent section Allow DVLA to check your driving licence details

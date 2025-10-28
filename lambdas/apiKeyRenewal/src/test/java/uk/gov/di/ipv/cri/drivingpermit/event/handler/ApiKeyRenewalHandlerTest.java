@@ -19,9 +19,12 @@ import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangeApiKeyService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
+import uk.gov.di.ipv.cri.drivingpermit.event.util.PauseHelper;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
+import uk.gov.di.ipv.cri.drivingpermit.library.domain.DvlaFormFields;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
@@ -53,22 +56,24 @@ class ApiKeyRenewalHandlerTest {
 
     @Mock private Context mockContext;
 
-    //    @Mock private DriverMatchService mockDriverMatchService;
+    @Mock private DriverMatchService mockDriverMatchService;
 
     @Mock private DvlaConfiguration mockDvlaConfiguration;
 
     private ApiKeyRenewalHandler apiKeyRenewalHandler;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
 
         this.apiKeyRenewalHandler =
                 new ApiKeyRenewalHandler(
                         mockSecretsManagerClient,
                         mockChangeApiKeyService,
                         mockTokenRequestService,
+                        mockDriverMatchService,
                         mockEventProbe,
-                        mockDvlaConfiguration);
+                        mockDvlaConfiguration,
+                        new PauseHelper(100));
     }
 
     @Test
@@ -87,7 +92,7 @@ class ApiKeyRenewalHandlerTest {
                 .thenThrow(new SecretNotFoundException("Api Key not found"))
                 .thenReturn(secretValueResponse);
 
-        when(mockTokenRequestService.requestToken(false, Strategy.NO_CHANGE))
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
                 .thenReturn("token_value");
         when(mockDvlaConfiguration.getApiKey()).thenReturn("existing_api_key");
 
@@ -97,7 +102,7 @@ class ApiKeyRenewalHandlerTest {
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
 
-        apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
+        String result = apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
 
         ArgumentCaptor<PutSecretValueRequest> putSecretValueCaptor =
                 ArgumentCaptor.forClass(PutSecretValueRequest.class);
@@ -108,34 +113,34 @@ class ApiKeyRenewalHandlerTest {
         assertNotNull(putSecretValueRequest.secretString());
         assertEquals("/stackName/DVLA/apiKey", putSecretValueRequest.secretId());
         assertEquals("AWSPENDING", putSecretValueRequest.versionStages().get(0));
+        assertEquals("Success", result);
     }
 
-    //    @Test
-    //    void whenTestSecretStepCalledThenPerformMatchIsVerified() throws
-    // OAuthErrorResponseException {
-    //
-    //        when(mockDvlaConfiguration.isApiKeyRotationEnabled()).thenReturn(true);
-    //
-    //        GetSecretValueResponse secretValueResponse =
-    //                GetSecretValueResponse.builder().secretString("new_api_key").build();
-    //        when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
-    //                .thenReturn(secretValueResponse);
-    //
-    //
-    // when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
-    //        when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
-    //        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
-    //                .thenReturn("token_value");
-    //
-    //        apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
-    //
-    //        verify(mockDriverMatchService)
-    //                .performMatch(
-    //                        any(DvlaFormFields.class),
-    //                        eq("token_value"),
-    //                        eq("new_api_key"),
-    //                        eq(Strategy.NO_CHANGE));
-    //    }
+    @Test
+    void whenTestSecretStepCalledThenPerformMatchIsVerified() throws OAuthErrorResponseException {
+
+        when(mockDvlaConfiguration.isApiKeyRotationEnabled()).thenReturn(true);
+
+        GetSecretValueResponse secretValueResponse =
+                GetSecretValueResponse.builder().secretString("new_api_key").build();
+        when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
+                .thenReturn(secretValueResponse);
+
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
+                .thenReturn("token_value");
+
+        String result = apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
+
+        verify(mockDriverMatchService)
+                .performMatch(
+                        any(DvlaFormFields.class),
+                        eq("token_value"),
+                        eq("new_api_key"),
+                        eq(Strategy.NO_CHANGE));
+        assertEquals("Success", result);
+    }
 
     @Test
     void whenFinishSecretStepCalledThenSecretUpdatedSuccessfully() {
@@ -151,7 +156,7 @@ class ApiKeyRenewalHandlerTest {
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
 
-        apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
+        String result = apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
 
         ArgumentCaptor<UpdateSecretRequest> updateSecretRequestArgumentCaptor =
                 ArgumentCaptor.forClass(UpdateSecretRequest.class);
@@ -161,6 +166,26 @@ class ApiKeyRenewalHandlerTest {
         assertNotNull(updateSecretValueRequest);
         assertNotNull(updateSecretValueRequest.secretString());
         assertEquals("/stackName/DVLA/apiKey", updateSecretValueRequest.secretId());
+        verify(mockTokenRequestService).removeTokenItem(Strategy.NO_CHANGE);
+        verify(mockTokenRequestService).removeTokenItem(Strategy.LIVE);
+        verify(mockTokenRequestService).removeTokenItem(Strategy.UAT);
+        assertEquals("Success", result);
+    }
+
+    @Test
+    void whenIsApiKeyRotationEnabledIsFalseOnlyGetValueIsCalled() {
+        when(mockDvlaConfiguration.isApiKeyRotationEnabled()).thenReturn(false);
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
+
+        apiKeyRenewalHandler.handleRequest(mockInput, mockContext);
+
+        verify(mockSecretsManagerClient).getSecretValue(any(GetSecretValueRequest.class));
+        verifyNoMoreInteractions(
+                mockSecretsManagerClient,
+                mockChangeApiKeyService,
+                mockTokenRequestService,
+                mockDriverMatchService);
     }
 
     @Test
@@ -177,7 +202,7 @@ class ApiKeyRenewalHandlerTest {
         when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
                 .thenReturn(secretValueResponse);
         when(mockDvlaConfiguration.getApiKey()).thenReturn("existing_api_key");
-        when(mockTokenRequestService.requestToken(false, Strategy.NO_CHANGE))
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
                 .thenReturn("token_value");
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn(null);
@@ -201,6 +226,25 @@ class ApiKeyRenewalHandlerTest {
     }
 
     @Test
+    void whenGetValueFailsThenSecretsManagerExceptionIsThrown() {
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
+        when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
+                .thenThrow(
+                        SecretsManagerException.builder()
+                                .awsErrorDetails(
+                                        AwsErrorDetails.builder()
+                                                .errorMessage("error message")
+                                                .build())
+                                .message("Exception creating request for Secrets Manager")
+                                .build());
+
+        assertThrows(
+                RuntimeException.class,
+                () -> apiKeyRenewalHandler.handleRequest(mockInput, mockContext));
+    }
+
+    @Test
     void whenDVLAIsCalledAndApiKeyRenewalRequestFailsThenThrowRuntimeException()
             throws OAuthErrorResponseException, JsonProcessingException {
 
@@ -216,7 +260,7 @@ class ApiKeyRenewalHandlerTest {
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
         when(mockDvlaConfiguration.getApiKey()).thenReturn("existing_api_key");
-        when(mockTokenRequestService.requestToken(false, Strategy.NO_CHANGE))
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
                 .thenReturn("authorization_token_value");
 
         doThrow(new OAuthErrorResponseException(500, ERROR_INVOKING_THIRD_PARTY_API_KEY_ENDPOINT))
@@ -245,7 +289,7 @@ class ApiKeyRenewalHandlerTest {
                 .sendApiKeyChangeRequest(eq(null), anyString());
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
-        when(mockTokenRequestService.requestToken(false, Strategy.NO_CHANGE))
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
                 .thenReturn("token_value");
 
         GetSecretValueResponse secretValueResponse =
@@ -278,7 +322,7 @@ class ApiKeyRenewalHandlerTest {
         when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
         when(mockInput.getSecretId()).thenReturn("/stackName/DVLA/apiKey");
         when(mockDvlaConfiguration.getApiKey()).thenReturn("existing_api_key");
-        when(mockTokenRequestService.requestToken(false, Strategy.NO_CHANGE))
+        when(mockTokenRequestService.requestToken(true, Strategy.NO_CHANGE))
                 .thenReturn("authorization_token_value");
         when(mockChangeApiKeyService.sendApiKeyChangeRequest(
                         "existing_api_key", "authorization_token_value"))

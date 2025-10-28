@@ -193,11 +193,21 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
 
     @And("The secret has been created")
     public void dl_time_is_past_rotation_window() {
-        getLastTestedTime();
+        getLastTestedTime("DVLA/password");
     }
 
     @Then("The DVLA password should be valid and rotated within the specified window")
     public void dl_password_has_rotated() {
         passwordHasRotatedSuccessfully();
+    }
+
+    @And("The DVLA API Key secret has been created")
+    public void dvla_api_key_time_is_past_rotation_window() {
+        getLastTestedTime("DVLA/apiKey");
+    }
+
+    @Then("The DVLA API Key should be valid and rotated within the specified window")
+    public void dvla_api_key_has_rotated() {
+        apiKeyHasRotatedSuccessfully();
     }
 }

@@ -843,13 +843,12 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         assertEquals(sb.toString(), DRIVING_LICENCE_CHECK_RESPONSE);
     }
 
-    public void getLastTestedTime() {
+    public void getLastTestedTime(String secretName) {
         String parameterNameFormat = "/%s/%s";
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
 
         if (stackParameterPrefix != null) {
-            String secretId =
-                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/password");
+            String secretId = String.format(parameterNameFormat, stackParameterPrefix, secretName);
             LOGGER.info("Attempting to describe secret: {}", secretId);
 
             try {
@@ -866,7 +865,6 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                 } else {
                     LOGGER.warn("Last changed date not available for secret {}", secretId);
                 }
-
                 LOGGER.info("Rotation Enabled: {}", describeResponse.rotationEnabled());
                 LOGGER.info("Next Rotation Date: {}", describeResponse.nextRotationDate());
                 if (describeResponse.lastRotatedDate() != null) {
@@ -939,6 +937,36 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                 }
             }
             assertTrue(lowerCaseCharCount >= 6, "Password Validation failed in Passay");
+        } else {
+            LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
+        }
+    }
+
+    public void apiKeyHasRotatedSuccessfully() {
+        String parameterNameFormat = "/%s/%s";
+        String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
+
+        if (stackParameterPrefix != null) {
+            String secretId =
+                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/apiKey");
+            LOGGER.info("{} {}", "getStackSecretValue", secretId);
+
+            GetSecretValueRequest valueRequest =
+                    GetSecretValueRequest.builder()
+                            .secretId(secretId)
+                            .versionStage("AWSCURRENT")
+                            .build();
+
+            GetSecretValueResponse valueResponse =
+                    secretsManagerClient.getSecretValue(valueRequest);
+
+            assertTrue(
+                    LocalDateTime.parse(DATE_TIME_OF_ROTATION, DateTimeFormatter.ISO_DATE_TIME)
+                            .isAfter(LocalDateTime.now().minusHours(4)));
+
+            assertTrue(
+                    valueResponse.versionStages().contains("AWSCURRENT"),
+                    "Retrieved secret version is not associated with AWSCURRENT stage.");
         } else {
             LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
         }

@@ -21,6 +21,7 @@ configurations {
 dependencies {
 	var aws_powertools_version = "1.20.1"
 	var java_cucumber_version = "7.23.0"
+	var aws_cdk_version = "2.120.0"
 	var dependencyVersions = [
 
 		cri_common_lib_version             : "6.6.0",
@@ -28,6 +29,7 @@ dependencies {
 		// CRI_LIB aws
 		aws_sdk_version                    : "2.34.3",
 		aws_lambda_events_version          : "3.16.0",
+
 
 		// CRI_LIB nimbus
 		nimbusds_oauth_version             : "11.29.1",
@@ -64,7 +66,8 @@ dependencies {
 
 		// acceptance tests testImplementation
 		rest_assured_version               : "5.5.6",
-		cucumber_junit_version             : "${java_cucumber_version}"
+		cucumber_junit_version             : "${java_cucumber_version}",
+		aws_cdk_version                    : "${aws_cdk_version}"
 	]
 
 	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"),
@@ -93,7 +96,9 @@ dependencies {
 			"com.deque.html.axe-core:selenium:${dependencyVersions.axe_core_selenium_version}"
 
 	testImplementation "io.rest-assured:rest-assured:${dependencyVersions.rest_assured_version}",
-			"io.cucumber:cucumber-junit:${dependencyVersions.cucumber_junit_version}"
+			"io.cucumber:cucumber-junit:${dependencyVersions.cucumber_junit_version}",
+			"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${dependencyVersions.jackson_version}",
+			"software.amazon.awscdk:aws-cdk-lib:${dependencyVersions.aws_cdk_version}"
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
@@ -107,8 +112,16 @@ java {
 }
 
 test {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags "InfraTest"
+	}
 	systemProperty "cucumber.filter.tags", System.getProperty("cucumber.filter.tags")
+}
+
+tasks.register("infra-test", Test) {
+	useJUnitPlatform {
+		includeTags "InfraTest"
+	}
 }
 
 //*************************************//

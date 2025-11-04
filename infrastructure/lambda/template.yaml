@@ -376,7 +376,7 @@ Resources:
     Properties:
       Description: Public Driving Permit CRI API
       MethodSettings:
-        - LoggingLevel: INFO
+        - LoggingLevel: !If [IsProdEnvironment, "OFF", "INFO"]
           ResourcePath: '/*'
           HttpMethod: '*'
           # Disable data trace in production to avoid logging customer sensitive information
@@ -437,7 +437,7 @@ Resources:
     Properties:
       Description: Private Driving Permit CRI API
       MethodSettings:
-        - LoggingLevel: INFO
+        - LoggingLevel: !If [IsProdEnvironment, "OFF", "INFO"]
           ResourcePath: '/*'
           HttpMethod: '*'
           # Disable data trace in production to avoid logging customer sensitive information

@@ -18,7 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -40,7 +40,11 @@ import java.net.http.HttpRequest;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
 import static org.junit.Assert.assertNotNull;
@@ -72,7 +76,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private final SecretsManagerClient secretsManagerClient =
             SecretsManagerClient.builder()
                     .region(Region.EU_WEST_2)
-                    .httpClient(UrlConnectionHttpClient.create())
+                    .httpClient(AwsCrtHttpClient.builder().build())
                     .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                     .build();
     private static final Logger LOGGER = LogManager.getLogger();
@@ -497,8 +501,8 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         .POST(HttpRequest.BodyPublishers.ofString(drivingPermitInputJsonString));
 
         switch (invalidHeaderValue) {
-            case "mismatchSessionId" -> builder.setHeader(
-                    "session_id", UUID.randomUUID().toString());
+            case "mismatchSessionId" ->
+                    builder.setHeader("session_id", UUID.randomUUID().toString());
             case "malformedSessionId" -> builder.setHeader("session_id", "&%^$£$%");
             case "missingSessionId" -> builder.setHeader("session_id", "");
             default -> {

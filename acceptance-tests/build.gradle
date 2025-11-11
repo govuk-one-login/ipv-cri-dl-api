@@ -73,6 +73,7 @@ dependencies {
 	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"),
 			platform("com.fasterxml.jackson:jackson-bom:${dependencyVersions.jackson_version}"),
 			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+			"software.amazon.awssdk:aws-crt-client",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
 			"com.fasterxml.jackson.core:jackson-databind",

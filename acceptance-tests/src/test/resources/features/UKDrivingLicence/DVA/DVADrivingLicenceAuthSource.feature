@@ -18,6 +18,7 @@ Feature: DVA Auth Source Driving Licence Test
     And JSON response should contain personal number <personalNumber> same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject   | personalNumber |
       | check_details | DVAAuthSourceValidKennethJsonPayload | 12345678       |
@@ -30,6 +31,7 @@ Feature: DVA Auth Source Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Invalid Context field value and status code as 302
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject |
       | check_detail  | DVAAuthSourceValidBillyJsonPayload |
@@ -54,6 +56,7 @@ Feature: DVA Auth Source Driving Licence Test
     And JSON response should contain personal number <personalNumber> same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | contextValue | DVADrivingLicenceAuthSourceSubject   | personalNumber | DVADrivingLicenceSubject             |
       |              | DVAAuthSourceValidKennethJsonPayload | 12345678       | DVADrivingLicenceSubjectHappyKenneth |
@@ -74,6 +77,7 @@ Feature: DVA Auth Source Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject   |
       | check_details | DVAAuthSourceInvalidBillyJsonPayload |
@@ -96,6 +100,7 @@ Feature: DVA Auth Source Driving Licence Test
     And JSON response should contain personal number <personalNumber> same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject   | personalNumber |
       | check_details | DVAAuthSourceInvalidBillyJsonPayload | 55667788       |
@@ -113,6 +118,7 @@ Feature: DVA Auth Source Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject   |
       | check_details | DVAAuthSourceValidBillyJsonPayload   |
@@ -132,6 +138,7 @@ Feature: DVA Auth Source Driving Licence Test
     When User clicks on continue
     And I see the DVA give your consent error in the summary as Error: You must give your consent to continue
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVADrivingLicenceAuthSourceSubject   |
       | check_details | DVAAuthSourceValidBillyJsonPayload   |

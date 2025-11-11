@@ -106,8 +106,12 @@ class DVACloseableHttpClientFactoryTest {
         "KeyManagementException"
     })
     void shouldThrowHttpClientExceptionOnCatchingException(String thrownExceptionName)
-            throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException,
-                    InvalidKeySpecException, KeyStoreException, IOException,
+            throws UnrecoverableKeyException,
+                    CertificateException,
+                    NoSuchAlgorithmException,
+                    InvalidKeySpecException,
+                    KeyStoreException,
+                    IOException,
                     KeyManagementException {
         environmentVariables.set("AWS_REGION", "eu-west-2");
 
@@ -118,19 +122,20 @@ class DVACloseableHttpClientFactoryTest {
 
         Exception thrownException =
                 switch (thrownExceptionName) {
-                    case "InvalidKeySpecException" -> thrownException =
-                            new InvalidKeySpecException(thrownExceptionName);
-                    case "CertificateException" -> thrownException =
-                            new CertificateException(thrownExceptionName);
-                    case "KeyStoreException" -> thrownException =
-                            new KeyStoreException(thrownExceptionName);
+                    case "InvalidKeySpecException" ->
+                            thrownException = new InvalidKeySpecException(thrownExceptionName);
+                    case "CertificateException" ->
+                            thrownException = new CertificateException(thrownExceptionName);
+                    case "KeyStoreException" ->
+                            thrownException = new KeyStoreException(thrownExceptionName);
                     case "IOException" -> thrownException = new IOException(thrownExceptionName);
-                    case "UnrecoverableKeyException" -> thrownException =
-                            new UnrecoverableKeyException(thrownExceptionName);
-                    case "KeyManagementException" -> thrownException =
-                            new KeyManagementException(thrownExceptionName);
-                    default -> throw new IllegalStateException(
-                            "Unexpected value: " + thrownExceptionName);
+                    case "UnrecoverableKeyException" ->
+                            thrownException = new UnrecoverableKeyException(thrownExceptionName);
+                    case "KeyManagementException" ->
+                            thrownException = new KeyManagementException(thrownExceptionName);
+                    default ->
+                            throw new IllegalStateException(
+                                    "Unexpected value: " + thrownExceptionName);
                 };
 
         when(mockApacheHTTPClientFactoryService.generateHTTPClientFromExternalApacheHttpClient(

@@ -29,7 +29,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
-import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.*;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.DRIVING_PERMIT_CREDENTIAL_TYPE;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_ADDRESS_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_BIRTHDATE_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_DRIVING_PERMIT_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_NAME_KEY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
 
 public class VerifiableCredentialService {

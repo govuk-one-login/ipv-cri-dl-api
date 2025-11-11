@@ -20,6 +20,7 @@ Feature: Driving Licence Test
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
@@ -35,6 +36,7 @@ Feature: Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And JSON response should contain personal number PARKE610112PBFGI same as given Driving Licence
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject           | InvalidLicenceNumber |
       | DrivingLicenceSubjectHappyPeter | PARKE610112PBFGI     |
@@ -47,6 +49,7 @@ Feature: Driving Licence Test
     Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
     Then I see the enter licence number as it appears above the field as Error:Enter the number exactly as it appears on your driving licence
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject           | InvalidLicenceNumber |
       | DrivingLicenceSubjectHappyPeter | 1234567890111213     |
@@ -61,6 +64,7 @@ Feature: Driving Licence Test
     Then I see check date of birth sentence as Check you have entered your date of birth correctly
     Then I see enter the date as it appears above the field as Error:Check you have entered your date of birth correctly
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
       | DrivingLicenceSubjectHappyKenneth | 12              | 08                | 1985             |
@@ -75,6 +79,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             | InvalidLastName |
       | DrivingLicenceSubjectHappyKenneth | KYLE            |
@@ -91,6 +96,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
@@ -107,6 +113,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
       | DrivingLicenceSubjectHappyKenneth | 04                | 08                  | 2032               |
@@ -123,6 +130,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
@@ -137,6 +145,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
@@ -152,6 +161,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject           | InvalidLicenceNumber |
       | DrivingLicenceSubjectHappyPeter | PARKE610112PBFGI     |
@@ -216,6 +226,7 @@ Feature: Driving Licence Test
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
@@ -240,6 +251,7 @@ Feature: Driving Licence Test
     When User clicks on continue
     Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject           | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidIssueDay | InvalidIssueMonth | InvalidIssueYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | InvalidLicenceNumber | InvalidIssueNumber | InvalidPostCode |
       | DrivingLicenceSubjectHappyPeter |                 | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | 12                 | NW3 5RG         |

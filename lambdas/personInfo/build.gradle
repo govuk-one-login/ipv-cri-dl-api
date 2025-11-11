@@ -8,12 +8,6 @@ plugins {
 	id 'java-test-fixtures'
 }
 
-configurations.all {
-	// https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/
-	exclude group:"software.amazon.awssdk", module: "apache-client"
-	exclude group:"software.amazon.awssdk", module: "netty-nio-client"
-}
-
 dependencies {
 	implementation project(":lib")
 
@@ -99,8 +93,4 @@ tasks.register("pactTests", Test) {
 	useJUnitPlatform {
 		includeTags 'Pact'
 	}
-}
-
-configurations.configureEach {
-	exclude group:"software.amazon.awssdk", module: "apache-client"
 }

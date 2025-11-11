@@ -14,6 +14,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
     And Driving Licence VC should contain JTI field
+
     Examples:
       | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                         | JSONPayloadRequest             |
       | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA          | DVAAuthValidKennethJsonPayload |
@@ -27,6 +28,7 @@ Feature: DVA CRI API
     When Driving Licence user sends a POST request to Driving Licence endpoint using updated jsonRequest returned from the personInfo Table <JSONPayloadRequest>
     Then Driving Licence check response should contain Retry value as false
     Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+
     Examples:
       | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                | JSONPayloadRequest              | cri_internal_error_code | cri_internal_error_message    |
       | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA | DVAAuthSourceInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
@@ -39,9 +41,10 @@ Feature: DVA CRI API
     And Driving Licence user gets a session-id
     When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest <JSONPayloadRequest>
     Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+
     Examples:
-      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress                | JSONPayloadRequest                     | cri_internal_error_code | cri_internal_error_message  |
-      | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      |                            | DVAAuthSourceInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
+      | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress | JSONPayloadRequest                     | cri_internal_error_code | cri_internal_error_message  |
+      | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      |             | DVAAuthSourceInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVA Driving Licence Happy path
@@ -70,8 +73,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
 
-  #########  Direct connection tests ##########
-
+  # ########  Direct connection tests ##########
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVA Driving Licence Happy path with dva direct connection as document checking route
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
@@ -117,6 +119,7 @@ Feature: DVA CRI API
     And Driving Licence user sends a POST request to session endpoint
     And Driving Licence user gets a session-id
     When Driving Licence user sends a POST request to Driving Licence endpoint with a invalid <invalidHeaderValue> value using jsonRequest DVAInvalidJsonPayload
+
     Examples:
       | invalidHeaderValue |
       | invalidSessionId   |

@@ -14,6 +14,7 @@ Feature: DrivingLicence CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
     And Driving Licence VC should contain JTI field
+
     Examples:
       | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress                | JSONPayloadRequest          |
       | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     | 8 HADLEY ROAD BATH TB2 5AA | DVLAValidKennethJsonPayload |
@@ -32,6 +33,7 @@ Feature: DrivingLicence CRI API
     And Driving Licence VC should contain validityScore 0 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in failedCheckDetails checkDetails
     And Driving Licence VC should contain JTI field
+
     Examples:
       | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress                | JSONPayloadRequest     |
       | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     | 8 HADLEY ROAD BATH TB2 5AA | DVLAInvalidJsonPayload |
@@ -43,10 +45,10 @@ Feature: DrivingLicence CRI API
     And Driving Licence user gets a session-id
     When Driving Licence user sends a POST request to Driving Licence endpoint using jsonRequest <JSONPayloadRequest>
     Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+
     Examples:
       | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress | JSONPayloadRequest            | cri_internal_error_code | cri_internal_error_message  |
       | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     |             | DVLAInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
-
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVLA Driving Licence Happy path
@@ -94,8 +96,7 @@ Feature: DrivingLicence CRI API
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain ci D02, validityScore 0 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in failed checkDetails
-
-#########  Direct connection tests ##########
+# ########  Direct connection tests ##########
 
   @drivingLicenceCRI_API @pre-merge @dev
   Scenario: DVLA Driving Licence Happy path with dvla direct connection as document checking route
@@ -129,6 +130,7 @@ Feature: DrivingLicence CRI API
     And Driving Licence user gets a session-id
     When Driving Licence user sends a editable POST request to Driving Licence endpoint using jsonRequest <JsonPayload> with edited fields <jsonEdits>
     Then Check response contains unexpected server error exception containing debug error code <cri_internal_error_code> and debug error message <cri_internal_error_message>
+
     Examples:
       | JsonPayload                 | jsonEdits                                                                  | cri_internal_error_code | cri_internal_error_message                                |
       | DVLAValidKennethJsonPayload | {"surname": "Unauthorized", "drivingLicenceNumber" : "UNAUT123456AB1AB"}   | 1316                    | error dvla expired token recovery failed                  |
@@ -150,6 +152,7 @@ Feature: DrivingLicence CRI API
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain ci D02, validityScore 0 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in failed checkDetails
+
     Examples:
       | JsonPayload                 | jsonEdits                                                                 |
       | DVLAValidKennethJsonPayload | {"surname": "CannotBeFound", "drivingLicenceNumber" : "CANNO123456AB1AB"} |
@@ -160,6 +163,7 @@ Feature: DrivingLicence CRI API
     And Driving Licence user sends a POST request to session endpoint
     And Driving Licence user gets a session-id
     When Driving Licence user sends a POST request to Driving Licence endpoint with a invalid <invalidHeaderValue> value using jsonRequest DVAInvalidJsonPayload
+
     Examples:
       | invalidHeaderValue |
       | mismatchSessionId  |

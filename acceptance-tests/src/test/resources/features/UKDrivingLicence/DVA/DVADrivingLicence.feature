@@ -21,8 +21,9 @@ Feature: DVA Driving Licence Test
     And JSON response should contain personal number 12345678 same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
-      | DVADrivingLicenceSubject           |
+      | DVADrivingLicenceSubject             |
       | DVADrivingLicenceSubjectHappyKenneth |
 
   @DVADrivingLicence_test
@@ -32,6 +33,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject              |
       | DVADrivingLicenceSubjectUnhappySelina |
@@ -47,6 +49,7 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
@@ -61,6 +64,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidFirstName |
       | DVADrivingLicenceSubjectHappyBilly | SELINA           |
@@ -75,6 +79,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidLastName |
       | DVADrivingLicenceSubjectHappyBilly | KYLE            |
@@ -91,6 +96,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DVADrivingLicenceSubjectHappyBilly | 14                     | 09                       | 2019                    |
@@ -107,6 +113,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
       | DVADrivingLicenceSubjectHappyBilly | 04                | 08                  | 2032               |
@@ -121,6 +128,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidPostcode |
       | DVADrivingLicenceSubjectHappyBilly | E20 2AQ         |
@@ -135,6 +143,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           |
       | DVADrivingLicenceSubjectHappyBilly |
@@ -150,6 +159,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
@@ -198,6 +208,7 @@ Feature: DVA Driving Licence Test
     When User clicks on continue
     Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidIssueDay | InvalidIssueMonth | InvalidIssueYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | InvalidLicenceNumber | InvalidPostCode |
       | DVADrivingLicenceSubjectHappyBilly |                 | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW3 5RG         |
@@ -218,9 +229,9 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PB^&*     | NW3 5RG         |
       | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW* ^%G         |
       | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | CA 95128        |
+# ##########  DVA Field Validations ##########
 
-###########  DVA Field Validations ##########
-  #not existing in front end repo
+  # not existing in front end repo
   @build @staging @integration @smoke @uat @stub
   Scenario: DVA - User consents to have DL checked and navigates to DVA privacy notice
     Then I see the DVA consent section Allow DVA to check your driving licence details
@@ -230,7 +241,7 @@ Feature: DVA Driving Licence Test
     Then I see the DVA privacy notice link the DVA privacy notice (opens in a new tab)
     And The test is complete and I close the driver
 
-  #not existing in front end repo
+  # not existing in front end repo
   @build @staging @integration @smoke @stub @uat @traffic
   Scenario Outline: DVA - User attempts journey with invalid details and clicks on prove another way and generates a VC
     Given User enters DVA data as a <DVADrivingLicenceSubject>
@@ -241,6 +252,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON response should contain personal number 88776655 same as given Driving Licence
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
@@ -255,6 +267,7 @@ Feature: DVA Driving Licence Test
     Then User can see the DVA consent error in summary as You must give your consent to continue
     And User can see the DVA consent error on the checkbox as Error:You must give your consent to continue
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject              |
       | DVADrivingLicenceSubjectHappyBilly |
@@ -270,6 +283,7 @@ Feature: DVA Driving Licence Test
     And JSON response should contain personal number 12345678 same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject             |
       | DVADrivingLicenceSubjectHappyKenneth |

@@ -1,7 +1,9 @@
 # Digital Identity Driving Permit Credential Issuer
+
 Driving Permit Check Credential Issuer
 
 ## SDKMan
+
 This project has an `.sdkmanrc` file
 
 Install SDKMan via the instructions on `https://sdkman.io/install`
@@ -29,6 +31,7 @@ Completely optional, there is a `.pre-commit-config.yaml` configuration setup in
 * runs checkov and checks for any issues.
 
 ### Dependency Installation
+
 To use this locally you will first need to install the dependencies, this can be done in 2 ways:
 
 #### Method 1 - Python pip
@@ -52,7 +55,9 @@ brew install checkov
 ```
 
 ### Post Installation Configuration
+
 once installed run:
+
 ```
 pre-commit install
 ```
@@ -84,6 +89,7 @@ Checkov..............................................(no files to check)Skipped
 ```
 
 To remove the pre-commit hooks should there be an issue
+
 ```
 pre-commit uninstall
 ```
@@ -122,6 +128,7 @@ not need parameters set unless new ones are being added.
 `gds aws gds aws di-ipv-cri-dl-dev-admin -- ./deploy.sh di-ipv-cri-dl-myusernameORticket`
 
 ### Delete stack from DL dev account
+
 > The stack name *must* be unique to you and created by you in the deploy stage above.
 > Type `y`es when prompted to delete the stack and the folders in S3 bucket
 
@@ -137,6 +144,7 @@ to "none" and all parameters set in the parameter store.
 `gds aws di-ipv-cri-dev -- ./deploy.sh di-ipv-cri-dl-myusernameORticket`
 
 ### Delete stack from shared dev account
+
 > The stack name *must* be unique to you and created by you in the deploy stage above.
 > Type `y`es when prompted to delete the stack and the folders in S3 bucket
 
@@ -202,6 +210,7 @@ Additional details on these stubs can be found on this confluence page -
 https://govukverify.atlassian.net/wiki/spaces/OJ/pages/3147333723/Stubs+for+testing+journeys
 
 ## Canaries
+
 When deploying using sam deploy, canary deployment strategy will be used which is set in LambdaDeploymentPreference in template.yaml file.
 
 When deploying using the pipeline, canary deployment strategy set in the pipeline will be used and override the default set in template.yaml.

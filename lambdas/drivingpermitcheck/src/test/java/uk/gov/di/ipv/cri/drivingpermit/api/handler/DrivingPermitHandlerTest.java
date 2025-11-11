@@ -57,7 +57,10 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -172,10 +175,12 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         switch (issuingAuthority) {
-            case "DVA" -> when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
-                    .thenReturn(mockDvaThirdPartyDocumentGateway);
-            case "DVLA" -> when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
-                    .thenReturn(mockDvlaThirdPartyDocumentGateway);
+            case "DVA" ->
+                    when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
+                            .thenReturn(mockDvaThirdPartyDocumentGateway);
+            case "DVLA" ->
+                    when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
+                            .thenReturn(mockDvlaThirdPartyDocumentGateway);
         }
 
         when(mockIdentityVerificationService.verifyIdentity(
@@ -200,16 +205,18 @@ class DrivingPermitHandlerTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         switch (issuingAuthority) {
-            case "DVA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(
-                            drivingPermitForm,
-                            mockDvaThirdPartyDocumentGateway,
-                            Strategy.NO_CHANGE);
-            case "DVLA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(
-                            drivingPermitForm,
-                            mockDvlaThirdPartyDocumentGateway,
-                            Strategy.NO_CHANGE);
+            case "DVA" ->
+                    verify(mockIdentityVerificationService)
+                            .verifyIdentity(
+                                    drivingPermitForm,
+                                    mockDvaThirdPartyDocumentGateway,
+                                    Strategy.NO_CHANGE);
+            case "DVLA" ->
+                    verify(mockIdentityVerificationService)
+                            .verifyIdentity(
+                                    drivingPermitForm,
+                                    mockDvlaThirdPartyDocumentGateway,
+                                    Strategy.NO_CHANGE);
         }
 
         verify(mockDocumentCheckResultStorageService)
@@ -264,10 +271,12 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         switch (issuingAuthority) {
-            case "DVA" -> when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
-                    .thenReturn(mockDvaThirdPartyDocumentGateway);
-            case "DVLA" -> when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
-                    .thenReturn(mockDvlaThirdPartyDocumentGateway);
+            case "DVA" ->
+                    when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
+                            .thenReturn(mockDvaThirdPartyDocumentGateway);
+            case "DVLA" ->
+                    when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
+                            .thenReturn(mockDvlaThirdPartyDocumentGateway);
         }
 
         when(mockIdentityVerificationService.verifyIdentity(
@@ -306,16 +315,18 @@ class DrivingPermitHandlerTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         switch (issuingAuthority) {
-            case "DVA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(
-                            drivingPermitForm,
-                            mockDvaThirdPartyDocumentGateway,
-                            Strategy.NO_CHANGE);
-            case "DVLA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(
-                            drivingPermitForm,
-                            mockDvlaThirdPartyDocumentGateway,
-                            Strategy.NO_CHANGE);
+            case "DVA" ->
+                    verify(mockIdentityVerificationService)
+                            .verifyIdentity(
+                                    drivingPermitForm,
+                                    mockDvaThirdPartyDocumentGateway,
+                                    Strategy.NO_CHANGE);
+            case "DVLA" ->
+                    verify(mockIdentityVerificationService)
+                            .verifyIdentity(
+                                    drivingPermitForm,
+                                    mockDvlaThirdPartyDocumentGateway,
+                                    Strategy.NO_CHANGE);
         }
     }
 
@@ -364,10 +375,12 @@ class DrivingPermitHandlerTest {
                 .sendAuditEvent(eq(AuditEventType.RESPONSE_RECEIVED), any(AuditEventContext.class));
 
         switch (issuingAuthority) {
-            case "DVA" -> when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
-                    .thenReturn(mockDvaThirdPartyDocumentGateway);
-            case "DVLA" -> when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
-                    .thenReturn(mockDvlaThirdPartyDocumentGateway);
+            case "DVA" ->
+                    when(mockThirdPartyAPIServiceFactory.getDvaThirdPartyAPIService())
+                            .thenReturn(mockDvaThirdPartyDocumentGateway);
+            case "DVLA" ->
+                    when(mockThirdPartyAPIServiceFactory.getDvlaThirdPartyAPIService())
+                            .thenReturn(mockDvlaThirdPartyDocumentGateway);
         }
 
         when(mockIdentityVerificationService.verifyIdentity(
@@ -395,16 +408,18 @@ class DrivingPermitHandlerTest {
         }
 
         switch (issuingAuthority) {
-            case "DVA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(
-                            drivingPermitForm,
-                            mockDvaThirdPartyDocumentGateway,
-                            Strategy.NO_CHANGE);
-            case "DVLA" -> verify(mockIdentityVerificationService)
-                    .verifyIdentity(
-                            drivingPermitForm,
-                            mockDvlaThirdPartyDocumentGateway,
-                            Strategy.NO_CHANGE);
+            case "DVA" ->
+                    verify(mockIdentityVerificationService)
+                            .verifyIdentity(
+                                    drivingPermitForm,
+                                    mockDvaThirdPartyDocumentGateway,
+                                    Strategy.NO_CHANGE);
+            case "DVLA" ->
+                    verify(mockIdentityVerificationService)
+                            .verifyIdentity(
+                                    drivingPermitForm,
+                                    mockDvlaThirdPartyDocumentGateway,
+                                    Strategy.NO_CHANGE);
         }
 
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_DRIVING_PERMIT_CHECK_COMPLETED_OK);

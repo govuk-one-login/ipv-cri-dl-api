@@ -58,7 +58,10 @@ class DvaCryptographyServiceTest {
 
     @Test
     void preparePayload()
-            throws GeneralSecurityException, JOSEException, IOException, ParseException,
+            throws GeneralSecurityException,
+                    JOSEException,
+                    IOException,
+                    ParseException,
                     java.text.ParseException {
         environmentVariables.set("SIGNING_CERT_SHA", "signsha256");
         when(kmsSigner.supportedJWSAlgorithms()).thenReturn(Set.of(RS256));

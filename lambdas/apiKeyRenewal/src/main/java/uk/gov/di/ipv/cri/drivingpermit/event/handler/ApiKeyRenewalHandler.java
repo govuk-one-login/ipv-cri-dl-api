@@ -10,9 +10,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -20,13 +17,12 @@ import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueReques
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
-import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
-import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangeApiKeyService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
@@ -65,18 +61,12 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
 
     @ExcludeFromGeneratedCoverageReport
     public ApiKeyRenewalHandler() throws JsonProcessingException {
-        secretsManagerClient =
-                SecretsManagerClient.builder()
-                        .region(Region.EU_WEST_2)
-                        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                        .build();
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
+
+        secretsManagerClient = clientProviderFactory.getSecretsManagerClient();
         ParameterStoreService parameterStoreService =
                 new ParameterStoreService(
-                        ParamManager.getSsmProvider(
-                                SsmClient.builder()
-                                        .region(Region.of(System.getenv("AWS_REGION")))
-                                        .httpClient(UrlConnectionHttpClient.create())
-                                        .build()));
+                        ParamManager.getSsmProvider(clientProviderFactory.getSsmClient()));
         SecretsManagerService secretsManagerService =
                 new SecretsManagerService(secretsManagerClient);
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -95,7 +85,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
         tokenRequestService =
                 new TokenRequestService(
                         dvlaConfiguration,
-                        DataStore.getClient(),
+                        clientProviderFactory.getDynamoDbEnhancedClient(),
                         httpRetryer,
                         defaultRequestConfig,
                         objectMapper,

@@ -7,6 +7,7 @@ Feature: Driving License Test Common - API
   @DrivingLicenceTest @build @staging @stub @uat
   Scenario Outline: Public API endpoints that are not well known cannot be accessed (issuer/token)
     Given User sends a basic POST request to public <endpoint_name> endpoint without apiKey they get a forbidden error
+
     Examples:
       | endpoint_name     |
       | /token            |

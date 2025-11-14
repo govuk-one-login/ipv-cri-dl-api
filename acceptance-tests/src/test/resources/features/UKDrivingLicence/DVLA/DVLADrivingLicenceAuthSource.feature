@@ -18,6 +18,7 @@ Feature: DVLA Auth Source Driving Licence Test
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
       | check_details | DVLAAuthSourceValidKennethJsonPayload |
@@ -30,6 +31,7 @@ Feature: DVLA Auth Source Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Invalid Context field value and status code as 302
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
       | check_detail  | DVLAAuthSourceValidKennethJsonPayload |
@@ -54,6 +56,7 @@ Feature: DVLA Auth Source Driving Licence Test
     And JSON response should contain personal number <personalNumber> same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | contextValue | DVLADrivingLicenceAuthSourceSubject   | personalNumber   | DVLADrivingLicenceSubject         |
       |              | DVLAAuthSourceValidKennethJsonPayload | DECER607085K99AE | DrivingLicenceSubjectHappyKenneth |
@@ -71,6 +74,7 @@ Feature: DVLA Auth Source Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
       | check_details | DVLAAuthSourceValidKennethJsonPayload |
@@ -89,6 +93,7 @@ Feature: DVLA Auth Source Driving Licence Test
     When User clicks on continue
     And I see the give your consent error in the summary as Error: You must give your consent to continue
     And The test is complete and I close the driver
+
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
       | check_details | DVLAAuthSourceValidKennethJsonPayload |

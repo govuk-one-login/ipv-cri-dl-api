@@ -20,7 +20,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.di.ipv.cri.common.library.domain.personidentity.*;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
+import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential.EvidenceType;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.fixtures.TestFixtures;
@@ -43,10 +44,14 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_ADDRESS_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_CLAIM;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_CREDENTIAL_SUBJECT;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_EVIDENCE_KEY;
+import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_EVIDENCE_TYPE_KEY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY;
 
 @ExtendWith(MockitoExtension.class)
@@ -99,7 +104,10 @@ class VerifiableCredentialServiceTest implements TestFixtures {
         "DVLA, true",
     })
     void testGenerateSignedVerifiableCredentialJWT(String issuer, boolean includeKidInVC)
-            throws JOSEException, JsonProcessingException, ParseException, NoSuchAlgorithmException,
+            throws JOSEException,
+                    JsonProcessingException,
+                    ParseException,
+                    NoSuchAlgorithmException,
                     MalformedURLException {
         environmentVariables.set("INCLUDE_VC_KID", includeKidInVC);
 

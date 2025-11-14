@@ -1,6 +1,7 @@
 package gov.di_ipv_drivingpermit.step_definitions;
 
-import gov.di_ipv_drivingpermit.pages.*;
+import gov.di_ipv_drivingpermit.pages.DVAEnterYourDetailsExactlyPageObject;
+import gov.di_ipv_drivingpermit.pages.DrivingLicencePageObject;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;

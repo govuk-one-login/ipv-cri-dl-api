@@ -101,7 +101,9 @@ public class DrivingPermitHandler
 
     @ExcludeFromGeneratedCoverageReport
     public DrivingPermitHandler()
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException,
+            throws CertificateException,
+                    NoSuchAlgorithmException,
+                    InvalidKeySpecException,
                     JsonProcessingException {
         ServiceFactory serviceFactory = new ServiceFactory();
 

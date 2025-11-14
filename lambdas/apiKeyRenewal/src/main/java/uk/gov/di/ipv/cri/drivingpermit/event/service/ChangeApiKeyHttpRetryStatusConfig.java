@@ -4,7 +4,11 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.ResponseStatusCodes.SUCCESS;
-import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.*;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_API_KEY_HTTP_RETRYER_REQUEST_SEND_FAIL;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_API_KEY_HTTP_RETRYER_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_API_KEY_HTTP_RETRYER_REQUEST_SEND_RETRY;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_API_KEY_HTTP_RETRYER_SEND_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_API_KEY_HTTP_RETRYER_SEND_MAX_RETRIES;
 
 @ExcludeFromGeneratedCoverageReport
 public class ChangeApiKeyHttpRetryStatusConfig implements HttpRetryStatusConfig {

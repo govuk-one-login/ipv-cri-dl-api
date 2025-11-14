@@ -77,7 +77,8 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -167,8 +168,12 @@ class DvaThirdPartyDocumentGatewayTest {
 
     @Test
     void shouldInvokeThirdPartyAPI()
-            throws IOException, GeneralSecurityException, ParseException, JOSEException,
-                    OAuthErrorResponseException, java.text.ParseException {
+            throws IOException,
+                    GeneralSecurityException,
+                    ParseException,
+                    JOSEException,
+                    OAuthErrorResponseException,
+                    java.text.ParseException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
@@ -404,8 +409,12 @@ class DvaThirdPartyDocumentGatewayTest {
     @ParameterizedTest
     @MethodSource("getRetryStatusCodes") // Retry status codes
     void retryThirdPartyApiHTTPResponseForStatusCode(int initialStatusCodeResponse)
-            throws IOException, GeneralSecurityException, ParseException, JOSEException,
-                    OAuthErrorResponseException, java.text.ParseException {
+            throws IOException,
+                    GeneralSecurityException,
+                    ParseException,
+                    JOSEException,
+                    OAuthErrorResponseException,
+                    java.text.ParseException {
         final String testRequestBody = "serialisedCrossCoreApiRequest";
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();

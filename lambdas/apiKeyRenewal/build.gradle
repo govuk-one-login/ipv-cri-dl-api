@@ -7,12 +7,6 @@ plugins {
 	id "jacoco"
 }
 
-configurations.all {
-	// https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/
-	exclude group:"software.amazon.awssdk", module: "apache-client"
-	exclude group:"software.amazon.awssdk", module: "netty-nio-client"
-}
-
 dependencies {
 	implementation project(":lib"), project(":lib-dvla")
 	implementation 'software.amazon.awssdk:url-connection-client:2.35.1'

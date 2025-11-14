@@ -1,6 +1,6 @@
 package gov.di_ipv_drivingpermit.step_definitions;
 
-import gov.di_ipv_drivingpermit.pages.*;
+import gov.di_ipv_drivingpermit.pages.DrivingLicenceAPIPage;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -183,7 +183,10 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
 
     @Given("Driving Licence CRI is functioning as expected for CRI Id (.*)$")
     public void dl_is_functioning_as_expected(String criId)
-            throws IOException, InterruptedException, URISyntaxException, NoSuchFieldException,
+            throws IOException,
+                    InterruptedException,
+                    URISyntaxException,
+                    NoSuchFieldException,
                     IllegalAccessException {
         dlUserIdentityAsJwtString(criId, 6);
         dlPostRequestToSessionEndpoint();

@@ -19,6 +19,7 @@ Feature: Driving License Language Test
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
     And The test is complete and I close the driver
+
     Examples:
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
@@ -35,6 +36,7 @@ Feature: Driving License Language Test
     And JSON response should contain personal number 55667788 same as given Driving Licence
     And JSON response should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | DVADrivingLicenceSubject           |
       | DVADrivingLicenceSubjectHappyBilly |

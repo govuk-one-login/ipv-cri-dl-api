@@ -39,9 +39,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -69,7 +67,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.CONTEXT_VALUE_NULL;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_RETRY;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_DRIVING_PERMIT_CHECK_ATTEMPT_STATUS_UNVERIFIED;
@@ -92,7 +89,6 @@ class DrivingPermitHandlerTest {
 
     @Mock private PersonIdentityService mockPersonIdentityService;
     @Mock private DocumentCheckResultStorageService mockDocumentCheckResultStorageService;
-    @Mock private ParameterStoreService mockParameterStoreService;
 
     @Mock private ServiceFactory mockServiceFactory;
     @Mock private ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
@@ -114,6 +110,7 @@ class DrivingPermitHandlerTest {
         environmentVariables.set("DVA_PERFORMANCE_STUB_IN_USE", "false");
         environmentVariables.set("LOG_DVA_RESPONSE", "false");
         environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
+        environmentVariables.set("SESSION_TTL", 1000L);
 
         when(mockServiceFactory.getObjectMapper()).thenReturn(mockObjectMapper);
         when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
@@ -121,11 +118,6 @@ class DrivingPermitHandlerTest {
         when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
 
         when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
-        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
-
-        when(mockParameterStoreService.getParameterValue(
-                        ParameterPrefix.COMMON_API, DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
-                .thenReturn(String.valueOf(1000L));
 
         when(mockServiceFactory.getDocumentCheckResultStorageService())
                 .thenReturn(mockDocumentCheckResultStorageService);

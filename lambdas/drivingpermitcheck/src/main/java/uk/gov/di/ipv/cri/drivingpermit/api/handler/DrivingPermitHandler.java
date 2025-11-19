@@ -50,7 +50,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckRes
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
-import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -63,7 +62,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
-import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 
 public class DrivingPermitHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -151,12 +149,7 @@ public class DrivingPermitHandler
         this.thirdPartyAPIServiceFactory = thirdPartyAPIServiceFactory;
         this.identityVerificationService = identityVerificationService;
 
-        ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();
-
-        documentCheckResultItemTtl =
-                Long.parseLong(
-                        parameterStoreService.getParameterValue(
-                                ParameterPrefix.COMMON_API, DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
+        documentCheckResultItemTtl = Long.parseLong(System.getenv("SESSION_TTL"));
 
         // Get environment to decide if to output internal state
         // for api test asserts (dev only)

@@ -90,11 +90,9 @@ public class VerifiableCredentialService {
         if (Boolean.parseBoolean(System.getenv("INCLUDE_VC_KID"))) {
             String issuer =
                     removeIssuerPrefix(
-                            commonLibConfigurationService.getCommonParameterValue(
-                                    "verifiable-credential/issuer"));
+                            commonLibConfigurationService.getVerifiableCredentialIssuer());
             String kmsSigningKeyId =
-                    commonLibConfigurationService.getCommonParameterValue(
-                            "verifiableCredentialKmsSigningKeyId");
+                    commonLibConfigurationService.getVerifiableCredentialKmsSigningKeyId();
             signedJwt = signedJwtFactory.createSignedJwt(claimsSet, issuer, kmsSigningKeyId);
         } else {
             signedJwt = signedJwtFactory.createSignedJwt(claimsSet);

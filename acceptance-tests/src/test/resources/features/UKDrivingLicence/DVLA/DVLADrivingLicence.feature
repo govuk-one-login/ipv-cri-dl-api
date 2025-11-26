@@ -199,7 +199,7 @@ Feature: Driving Licence Test
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
 
-  @build @stub @test
+  @build @stub
   Scenario: DVLA - Api Key rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
     When User clicks on continue

@@ -1945,17 +1945,44 @@ Resources:
   #                                                                  #
   ####################################################################
 
+  AlarmSNSTopicKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "Allow Cloudwatch to enqueue encrypted messages"
+            Effect: Allow
+            Resource: "*"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Principal:
+              Service:
+                - "cloudwatch.amazonaws.com"
+                - "sns.amazonaws.com"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref "AWS::AccountId"
+          - Sid: "Allow the account to manage the key"
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+
   AlarmTopicDL:
     Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: !Ref AlarmSNSTopicKey
     Metadata:
       SamResourceId: AlarmTopicDL
   AlarmTopicSubscriptionPagerDutyDL:
     Type: AWS::SNS::Subscription
     Properties:
-      TopicArn:
-        Ref: AlarmTopicDL
-      Endpoint:
-        Fn::Sub: '{{resolve:ssm:/alerting/pagerduty-dl/url}}'
+      TopicArn: !Ref AlarmTopicDL
+      Endpoint: !Sub "{{resolve:ssm:/alerting/pagerduty-dl/url}}"
       Protocol: https
     Metadata:
       SamResourceId: AlarmTopicSubscriptionPagerDutyDL
@@ -1963,20 +1990,18 @@ Resources:
     Type: AWS::SNS::TopicPolicy
     Properties:
       Topics:
-        - Ref: AlarmTopicDL
+        - !Ref AlarmTopicDL
       PolicyDocument:
-        Version: 2012-10-17
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action: sns:Publish
-            Resource:
-              Ref: AlarmTopicDL
+            Resource: !Ref AlarmTopicDL
             Principal:
               Service: cloudwatch.amazonaws.com
             Condition:
               ArnLike:
-                AWS:SourceArn:
-                  Fn::Sub: arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*
+                AWS:SourceArn: !Sub "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*"
     Metadata:
       SamResourceId: AlarmPublishToTopicPolicyDL
 

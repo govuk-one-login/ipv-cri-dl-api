@@ -130,7 +130,7 @@ class IssueCredentialHandlerTest {
 
     @au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors
     public static SelectorBuilder consumerVersionSelectors() {
-        return new SelectorBuilder().branch("main", "IpvCoreBack").deployedOrReleased();
+        return new SelectorBuilder().mainBranch();
     }
 
     @BeforeEach

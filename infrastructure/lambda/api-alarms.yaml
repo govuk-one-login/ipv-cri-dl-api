@@ -1,0 +1,310 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Digital Identity Driving Permit Shared Alarm Template - Used per Lambda function"
+
+Parameters:
+  Environment:
+    Type: String
+    Description: "Environment name"
+  FunctionName:
+    Type: String
+    Description: "Name of the Lambda function"
+  ApiGatewayName:
+    Type: String
+    Description: "Name of the API Gateway"
+  ApiGatewayResourcePath:
+    Type: String
+    Description: "Name of the API Gateway resource path"
+  MainStackName:
+    Type: String
+    Description: "Name of the main (parent) stack"
+  IsCommonLambda:
+    Type: String
+    Description: "True if this is a common stack, false otherwise"
+    Default: false
+  CriticalAlarmTopic:
+    Type: String
+    Description: "SNS topic ARN for critical alarms, ensure this is correct for enviornment"
+  WarningAlarmTopic:
+    type: String
+    Default: ""
+    Description: "SNS topic for warning alarms, ensure this is correct for enviornment"
+  FunctionLogGroup:
+    Type: String
+    Description: "Lambda function's CloudWatch log group, not required for common lambdas"
+    default: ""
+  SupportManualURL:
+    Type: String
+    Description: "URL for the support manual"
+
+# potential for this to split out further into a common lambdas alarm template
+Conditions:
+  IsNotCommonLambda: !Equals [ !Ref IsCommonLambda, "true"]
+
+Resources:
+  5XXApiGwErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-5XXApiGwErrorAlarm"
+      AlarmDescription: !Sub
+        - "There has been a small proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
+      ActionsEnabled: true
+      OKActions: !Ref WarningAlarmTopic
+      AlarmActions: !Ref WarningAlarmTopic
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<4 || error<2,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: Method
+                  Value: POST
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: Method
+                  Value: POST
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: 60
+            Stat: Sum
+
+  5XXApiGwErrorCriticalAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-5XXApiGwErrorCriticalAlarm"
+      AlarmDescription: "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
+      ActionsEnabled: true
+      AlarmActions: !Ref CriticalAlarmTopic
+      OKActions: !Ref CriticalAlarmTopic
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<10,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: Method
+                  Value: POST
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: Method
+                  Value: POST
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: 60
+            Stat: Sum
+
+  4XXApiGwErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-4XXApiGwErrorAlarm"
+      AlarmDescription: "There has been a small proportion of 4XX errors on the Session endpoint. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions: !Ref WarningAlarmTopic
+      AlarmActions: !Ref WarningAlarmTopic
+      InsufficientDataActions: [ ]
+      Dimensions: [ ]
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<2 || error<2,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Method
+                  Value: POST
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 4XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Method
+                  Value: POST
+            Period: 60
+            Stat: Sum
+
+  LambdaThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions: !Ref CriticalAlarmTopic
+      OKActions: !Ref CriticalAlarmTopic
+      InsufficientDataActions: []
+      AlarmDescription: "Trigger if the ${FunctionName} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FunctionName
+      TreatMissingData: notBreaching
+      Period: 60 # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  ###############################################
+  # Alarms that are only deployed if the lambda
+  # function is NOT a common lambda
+  ###############################################
+
+  # TODO: The following two resources might only be used for canary deployments?
+  # In which case it should be removed from this
+  # Actually pretty sure they don't work.
+  # FatalErrorMetricFilter:
+  #   Type: AWS::Logs::MetricFilter
+  #   Condition: IsNotCommonLambda
+  #   Properties:
+  #     LogGroupName: !Ref FunctionLogGroup
+  #     FilterPattern: '{ $.level = "FATAL" || $.message = "Unhandled Exception:*" }'
+  #     MetricTransformations:
+  #       -
+  #         MetricValue: "1"
+  #         MetricNamespace: !Sub "${MainStackName}/LogMessages"
+  #         MetricName: !Sub "${FunctionName}-Fatalerror"
+
+  # LambdaFatalErrorAlarm:
+  #   DependsOn:
+  #     - "FatalErrorMetricFilter"
+  #   Type: AWS::CloudWatch::Alarm
+  #   Condition: IsNotCommonLambda
+  #   Properties:
+  #     AlarmName: !Sub "${MainStackName}-${FunctionName}-FatalErrorAlarm"
+  #     AlarmDescription: "Trigger an alarm when Fatal Error occurs. ${SupportManualURL}"
+  #     ActionsEnabled: true
+  #     OKActions: !Ref WarningAlarmTopic
+  #     AlarmActions: !Ref WarningAlarmTopic
+  #     InsufficientDataActions: [ ]
+  #     MetricName: !Sub "${FunctionName}-Fatalerror"
+  #     Namespace: !Sub "${MainStackName}/LogMessages"
+  #     Statistic: Sum
+  #     Dimensions: [ ]
+  #     Period: 60
+  #     EvaluationPeriods: 1
+  #     DatapointsToAlarm: 1
+  #     Threshold: 1
+  #     ComparisonOperator: GreaterThanOrEqualToThreshold
+  #     TreatMissingData: notBreaching
+
+  LambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsNotCommonLambda
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-ConcurrencyThresholdReached"
+      AlarmDescription: !Sub ${Environment} - ${FunctionName} - Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions: !Ref CriticalAlarmTopicss
+      OKActions: !Ref CriticalAlarmTopic
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FunctionName
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching

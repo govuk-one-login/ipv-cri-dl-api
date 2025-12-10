@@ -2322,135 +2322,27 @@ Resources:
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
-  ################################# Common Lambda Authorization Alarms ##############################
-  Authorization5XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
+
+  ################################# Common Lambda Authorization Alarms #################################
+
+  AuthorizationFunctionAlarms:
+    Type: AWS::Serverless::Application
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<4 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: GET
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /authorization
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: GET
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /authorization
-            Period: 60
-            Stat: Sum
+        Location: ./api-alarms.yaml
+        Parameters:
+          Environment: !Ref Environment
+          FunctionName: !Sub "${CommonStackName}-AuthorizationFunction"
+          ApiGatewayName: !Sub "${AWS::StackName}-PrivateDLApi"
+          ApiGatewayResourcePath: "/authorization"
+          MainStackName: !Sub "${AWS::StackName}"
+          IsCommonLambda: true
+          WarningAlarmTopic: !ImportValue platform-alarm-warning-alert-topic
+          CriticalAlarmTopic: !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+          FunctionLogGroup: !Ref SessionFunctionLogGroup
+          SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
 
-  Authorization5XXApiGwErrorCriticalAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-Authorization5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub
-        - "There has been a significant proportion of 5XX errors on the Authorization endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 80
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<10,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: GET
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /authorization
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: GET
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /authorization
-            Period: 60
-            Stat: Sum
-
+  # why is this one so different to the other alarms
   Authorization4XXApiGwErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
@@ -2517,33 +2409,6 @@ Resources:
             Period: 900
             Stat: Sum
 
-  AuthorizationThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: []
-      AlarmDescription: !Sub
-        - "Trigger if the ${CommonStackName}-AuthorizationFunction lambda throttles. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
-      AlarmName: !Sub "${AWS::StackName}-AuthorizationFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Sub "${CommonStackName}-AuthorizationFunction"
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-
   AuthorizationFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -2597,227 +2462,24 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ################################# CommonLambda AccessTokenFunction Alarms ##############################
+  ################################# CommonLambda AccessTokenFunction Alarms #################################
 
-
-  AccessToken5XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
+  AccessTokenFunctionAlarms:
+    Type: AWS::Serverless::Application
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-AccessToken5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<4 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /token
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /token
-            Period: 60
-            Stat: Sum
-
-  AccessToken5XXApiGwErrorCriticalAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-AccessToken5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub
-        - "There has been a significant proportion of 5XX errors on the AccessToken endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 80
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<10,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /token
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /token
-            Period: 60
-            Stat: Sum
-
-  AccessToken4XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-AccessToken4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 4XX errors on the AccessToken endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<2 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Resource
-                  Value: /token
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Resource
-                  Value: /token
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
-
-  AccessTokenThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: []
-      AlarmDescription: !Sub
-        - "Trigger if the ${CommonStackName}-AccessTokenFunction lambda throttles. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      AlarmName: !Sub "${AWS::StackName}-AccessTokenFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Sub "${CommonStackName}-AccessTokenFunction"
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
+        Location: ./api-alarms.yaml
+        Parameters:
+          Environment: !Ref Environment
+          FunctionName: !Sub "${CommonStackName}-AccessTokenFunction"
+          ApiGatewayName: !Sub "${AWS::StackName}-PublicDLApi"
+          ApiGatewayResourcePath: "/token"
+          MainStackName: !Sub "${AWS::StackName}"
+          IsCommonLambda: true
+          WarningAlarmTopic: !ImportValue platform-alarm-warning-alert-topic
+          CriticalAlarmTopic: !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+          FunctionLogGroup: !Ref SessionFunctionLogGroup
+          SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
 
   AccessTokenFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2872,225 +2534,24 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ################################# Common Lambda Session Alarms ##############################
-  Session5XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<4 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /session
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /session
-            Period: 60
-            Stat: Sum
+  ################################# Common Lambda Session Alarms #################################
 
-  Session5XXApiGwErrorCriticalAlarm:
-    Type: AWS::CloudWatch::Alarm
+  SessionFunctionAlarms:
+    Type: AWS::Serverless::Application
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-Session5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub
-        - "There has been a significant proportion of 5XX errors on the Session endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 80
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<10,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /session
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /session
-            Period: 60
-            Stat: Sum
-
-  Session4XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-Session4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 4XX errors on the Session endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<2 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Resource
-                  Value: /session
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Resource
-                  Value: /session
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
-
-  SessionThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: []
-      AlarmDescription: !Sub
-        - "Trigger if the ${CommonStackName}-SessionFunction lambda throttles. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      AlarmName: !Sub "${AWS::StackName}-SessionFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Sub "${CommonStackName}-SessionFunction"
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
+        Location: ./api-alarms.yaml
+        Parameters:
+          Environment: !Ref Environment
+          FunctionName: !Sub "${CommonStackName}-SessionFunction"
+          ApiGatewayName: !Sub "${AWS::StackName}-PrivateDLApi"
+          ApiGatewayResourcePath: "/session"
+          MainStackName: !Sub "${AWS::StackName}"
+          IsCommonLambda: true
+          WarningAlarmTopic: platform-alarm-warning-alert-topic
+          CriticalAlarmTopic: !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+          FunctionLogGroup: !Ref SessionFunctionLogGroup
+          SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
 
   SessionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -3145,198 +2606,24 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ################################# DrivingPermitChecking Alarms ##############################
-  DrivingPermitChecking5XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 5XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<4 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /check-driving-licence
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /check-driving-licence
-            Period: 60
-            Stat: Sum
+  ################################# DrivingPermitChecking Alarms #################################
 
-  DrivingPermitChecking5XXApiGwErrorCriticalAlarm:
-    Type: AWS::CloudWatch::Alarm
+  DrivingPermitCheckingAlarms:
+    Type: AWS::Serverless::Application
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub
-        - "There has been a significant proportion of 5XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 80
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<10,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /check-driving-licence
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /check-driving-licence
-            Period: 60
-            Stat: Sum
-
-  DrivingPermitChecking4XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-DrivingPermitChecking4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 4XX errors on the DrivingPermitChecking endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<2 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Resource
-                  Value: /check-driving-licence
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateDLApi"
-                - Name: Resource
-                  Value: /check-driving-licence
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
+        Location: ./api-alarms.yaml
+        Parameters:
+          Environment: !Ref Environment
+          FunctionName: !Ref DrivingPermitCheckingFunction
+          ApiGatewayName: !Sub "${AWS::StackName}-PrivateDLApi"
+          ApiGatewayResourcePath: "/check-driving-licence"
+          MainStackName: !Sub "${AWS::StackName}"
+          IsCommonLambda: false
+          WarningAlarmTopic: platform-alarm-warning-alert-topic
+          CriticalAlarmTopic: !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+          FunctionLogGroup: !Ref DrivingPermitCheckingFunctionLogGroup
+          SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
 
   DVAThirdPartyApiErrorAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -3384,33 +2671,6 @@ Resources:
                   Value: !Sub "${CriIdentifier}-drivingpermitcheck"
             Period: 60
             Stat: Sum
-
-  DrivingPermitCheckingThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: []
-      AlarmDescription: !Sub
-        - "Trigger if the ${DrivingPermitCheckingFunction} lambda throttles. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref DrivingPermitCheckingFunction
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
 
   DrivingPermitCheckingFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -3506,225 +2766,24 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ################################# IssueCredential Alarms ##############################
-  IssueCredential5XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-IssueCredential5XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 5XX errors on the IssueCredential endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<4 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /credential/issue
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /credential/issue
-            Period: 60
-            Stat: Sum
+  ################################# IssueCredential Alarms #################################
 
-  IssueCredential5XXApiGwErrorCriticalAlarm:
-    Type: AWS::CloudWatch::Alarm
+  IssueCredentialAlarms:
+    Type: AWS::Serverless::Application
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-IssueCredential5XXApiGwErrorCriticalAlarm"
-      AlarmDescription: !Sub
-        - "There has been a significant proportion of 5XX errors on the IssueCredential endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 80
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<10,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /credential/issue
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: Method
-                  Value: POST
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Resource
-                  Value: /credential/issue
-            Period: 60
-            Stat: Sum
-
-  IssueCredential4XXApiGwErrorAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-IssueCredential4XXApiGwErrorAlarm"
-      AlarmDescription: !Sub
-        - "There has been a small proportion of 4XX errors on the IssueCredential endpoint. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      ActionsEnabled: true
-      OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
-      InsufficientDataActions: [ ]
-      Dimensions: [ ]
-      EvaluationPeriods: 5
-      DatapointsToAlarm: 2
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: errorThreshold
-          Label: errorThreshold
-          ReturnData: true
-          Expression: IF(invocations<2 || error<2,0,errorPercentage)
-        - Id: invocations
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: Count
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Resource
-                  Value: /credential/issue
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
-        - Id: errorPercentage
-          Label: errorPercentage
-          ReturnData: false
-          Expression: (error/invocations)*100
-        - Id: error
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicDLApi"
-                - Name: Resource
-                  Value: /credential/issue
-                - Name: Stage
-                  Value: !Ref Environment
-                - Name: Method
-                  Value: POST
-            Period: 60
-            Stat: Sum
-
-  IssueCredentialThrottleAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
-      InsufficientDataActions: []
-      AlarmDescription: !Sub
-        - "Trigger if the ${IssueCredentialFunction} lambda throttles. ${SupportManualURL}"
-        - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
-      AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunction-throttles"
-      MetricName: Throttles
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref IssueCredentialFunction
-      TreatMissingData: notBreaching
-      Period: 60 # This is the minimum value for the AWS Namespace
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
+        Location: ./api-alarms.yaml
+        Parameters:
+          Environment: !Ref Environment
+          FunctionName: !Ref IssueCredentialFunction
+          ApiGatewayName: !Sub "${AWS::StackName}-PublicDLApi"
+          ApiGatewayResourcePath: "/credential/issue"
+          MainStackName: !Sub "${AWS::StackName}"
+          IsCommonLambda: false
+          WarningAlarmTopic: platform-alarm-warning-alert-topic
+          CriticalAlarmTopic: !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+          FunctionLogGroup: !Ref DrivingPermitCheckingFunctionLogGroup
+          SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
 
   IssueCredentialFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -3820,7 +2879,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ################################# PersonInfoFunction Alarms ##############################
+  ################################# PersonInfoFunction Alarms #################################
 
   PersonInfoFunctionFatalErorMetricFilter:
     Type: AWS::Logs::MetricFilter

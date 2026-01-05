@@ -57,10 +57,6 @@ Parameters:
     Type: String
     Default: "pipeline"
     Description: Private Api gateway resources are not be reachable in stacks deployed via pipelines, this override enables less restrictive settings for manual/pre-merge-test deployments.
-  DeployAlarmsInDev:
-    Description: "Set to the string value `true` to deploy alarms in a DEV environment"
-    Type: String
-    Default: false
   CreateMockTxmaResourcesOverride:
     Description: "Mock TXMA SQS Queue"
     Type: String

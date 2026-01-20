@@ -1,3 +1,4 @@
+@QualityGateSmokeTest @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: Driving Licence Test
 
   Background:
@@ -12,7 +13,7 @@ Feature: Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVLA LicenceNumber
 
-  @build @staging @integration @smoke @stub @uat @traffic
+  @build @staging @integration @smoke-build @stub @uat @traffic
   Scenario Outline: DVLA - Happy path
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue
@@ -41,7 +42,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject           | InvalidLicenceNumber |
       | DrivingLicenceSubjectHappyPeter | PARKE610112PBFGI     |
 
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @stub @uat
   Scenario Outline: DVLA - User enters driving licence number in incorrect format which returns validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters license number as <InvalidLicenceNumber>
@@ -135,7 +136,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
 
-  @build @staging @integration @smoke @stub @uat @traffic
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -150,7 +151,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             |
       | DrivingLicenceSubjectHappyKenneth |
 
-  @build @staging @integration @smoke @stub @uat @traffic
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue
@@ -166,7 +167,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject           | InvalidLicenceNumber |
       | DrivingLicenceSubjectHappyPeter | PARKE610112PBFGI     |
 
-  @build @staging @integration @smoke @stub @uat @traffic
+  @build @staging @integration @stub @uat @traffic
   Scenario: DVLA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue

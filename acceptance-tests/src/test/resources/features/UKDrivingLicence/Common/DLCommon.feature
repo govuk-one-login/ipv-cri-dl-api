@@ -1,3 +1,4 @@
+@QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: Driving License Test Common
 
   Background:
@@ -11,7 +12,7 @@ Feature: Driving License Test Common
     Then I see the message begins with We need to make sure is shown
     And I assert the url path contains licence-issuer
 
-  @DrivingLicenceTest @build @staging @integration @smoke @stub
+  @DrivingLicenceTest @build @staging @integration @stub
   Scenario: Three selection options and Radio button available on the Driving Licence page
     Given I can see a DVLA radio button titled DVLA
     Then I can see a DVA radio button titled DVA

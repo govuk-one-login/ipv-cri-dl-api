@@ -1,4 +1,4 @@
-@drivingLicence_CRI_API
+@QualityGateStackTest @QualityGateRegressionTest @drivingLicence_CRI_API
 Feature: DrivingLicence CRI API
 
   @drivingLicenceCRI_API @pre-merge @dev

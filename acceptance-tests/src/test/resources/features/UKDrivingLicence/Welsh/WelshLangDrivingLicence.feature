@@ -1,3 +1,4 @@
+@QualityGateRegressionTest
 Feature: Driving License Language Test
 
   Background:

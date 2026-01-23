@@ -1,3 +1,4 @@
+@QualityGateSmokeTest @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: DVA Driving Licence Test
 
   Background:
@@ -12,7 +13,7 @@ Feature: DVA Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVA LicenceNumber
 
-  @build @staging @integration @smoke @stub @uat @traffic
+  @build @staging @integration @smoke-build @stub @uat @traffic
   Scenario Outline: DVA - Happy path
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue
@@ -133,7 +134,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidPostcode |
       | DVADrivingLicenceSubjectHappyBilly | E20 2AQ         |
 
-  @build @staging @integration @smoke @stub @traffic
+  @build @staging @integration @stub @traffic
   Scenario Outline: DVA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -148,7 +149,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           |
       | DVADrivingLicenceSubjectHappyBilly |
 
-  @build @staging @integration @stub @smoke @traffic
+  @build @staging @integration @stub @traffic
   Scenario Outline: DVA - User attempts invalid journey and retries with invalid details
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -164,7 +165,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
-  @build @staging @integration @stub @uat @smoke @traffic
+  @build @staging @integration @stub @uat @traffic
   Scenario: DVA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVA details
     When User clicks on continue
@@ -232,7 +233,7 @@ Feature: DVA Driving Licence Test
 # ##########  DVA Field Validations ##########
 
   # not existing in front end repo
-  @build @staging @integration @smoke @uat @stub
+  @build @staging @integration @uat @stub
   Scenario: DVA - User consents to have DL checked and navigates to DVA privacy notice
     Then I see the DVA consent section Allow DVA to check your driving licence details
     And I see the Consent sentence in DVA page DVA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.
@@ -242,7 +243,7 @@ Feature: DVA Driving Licence Test
     And The test is complete and I close the driver
 
   # not existing in front end repo
-  @build @staging @integration @smoke @stub @uat @traffic
+  @build @staging @integration @stub @uat @traffic
   Scenario Outline: DVA - User attempts journey with invalid details and clicks on prove another way and generates a VC
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA license number as <InvalidLicenceNumber>
@@ -257,7 +258,7 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject           | InvalidLicenceNumber |
       | DVADrivingLicenceSubjectHappyBilly | 88776655             |
 
-  @build @staging @integration @smoke @stub @uat
+  @build @staging @integration @stub @uat
   Scenario Outline: DVA - User attempts journey with consent checkbox unselected and returns error
     Given User enters DVA data as a <DrivingLicenceSubject>
     And DVA consent checkbox is unselected

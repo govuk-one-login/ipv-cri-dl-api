@@ -175,7 +175,7 @@ task smokeTestBuild() {
 				'gov/di_ipv_drivingpermit/step_definitions',
 				'src/test/resources/features/',
 				'--tags',
-				'@smoke'
+				'@smoke-build'
 			]
 		}
 	}
@@ -194,7 +194,7 @@ task smokeTestStaging() {
 				'gov/di_ipv_drivingpermit/step_definitions',
 				'src/test/resources/features/',
 				'--tags',
-				'@staging'
+				'@smoke-staging'
 			]
 		}
 	}

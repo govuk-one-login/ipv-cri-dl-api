@@ -1,3 +1,4 @@
+@QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: Driving License Test Common - API
 
   @DrivingLicenceTest @build @staging @stub @uat

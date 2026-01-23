@@ -1,6 +1,7 @@
+@QualityGateSmokeTest @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: DVA Auth Source Driving Licence Test
 
-  @build @smoke @stub @staging @integration @uat @traffic
+  @build @smoke-build @stub @staging @integration @uat @traffic
   Scenario Outline: DVA Auth Source - Happy path
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -23,7 +24,7 @@ Feature: DVA Auth Source Driving Licence Test
       | contextValue  | DVADrivingLicenceAuthSourceSubject   | personalNumber |
       | check_details | DVAAuthSourceValidKennethJsonPayload | 12345678       |
 
-  @build @smoke @stub @staging @integration @uat
+  @build @stub @staging @integration @uat
   Scenario Outline: DVA Auth Source - Validation Test - Invalid Context Values
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -37,7 +38,7 @@ Feature: DVA Auth Source Driving Licence Test
       | check_detail  | DVAAuthSourceValidBillyJsonPayload |
       | invalid_value | DVAAuthSourceValidBillyJsonPayload |
 
-  @build @smoke @stub @staging @integration @uat @traffic
+  @build @stub @staging @integration @uat @traffic
   Scenario Outline: DVA Auth Source - Validation Test - Missing context field directs to default DVA journey
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -61,7 +62,7 @@ Feature: DVA Auth Source Driving Licence Test
       | contextValue | DVADrivingLicenceAuthSourceSubject   | personalNumber | DVADrivingLicenceSubject             |
       |              | DVAAuthSourceValidKennethJsonPayload | 12345678       | DVADrivingLicenceSubjectHappyKenneth |
 
-  @build @smoke @stub
+  @build @stub
   Scenario Outline: DVA Auth Source - Negative Scenario - Postcode does not match the DVA Stub expected value
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -105,7 +106,7 @@ Feature: DVA Auth Source Driving Licence Test
       | contextValue  | DVADrivingLicenceAuthSourceSubject   | personalNumber |
       | check_details | DVAAuthSourceInvalidBillyJsonPayload | 55667788       |
 
-  @build @smoke @stub @staging @integration @uat
+  @build @smoke-build @stub @staging @integration @uat
   Scenario Outline: DVA Auth Source - Happy path - User selects No on the check your details are correct page
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -124,7 +125,7 @@ Feature: DVA Auth Source Driving Licence Test
       | check_details | DVAAuthSourceValidBillyJsonPayload   |
       | check_details | DVAAuthSourceValidKennethJsonPayload |
 
-  @build @smoke @stub @staging @integration @uat
+  @build @stub @staging @integration @uat
   Scenario Outline: DVA Auth Source - Error Validation Text - Fail to provide consent
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string

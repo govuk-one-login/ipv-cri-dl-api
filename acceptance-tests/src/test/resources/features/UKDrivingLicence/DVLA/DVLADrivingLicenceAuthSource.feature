@@ -1,7 +1,7 @@
 @QualityGateSmokeTest @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: DVLA Auth Source Driving Licence Test
 
-  @build @smoke-build @stub @staging @integration @uat @traffic
+  @smoke-build @stub @uat @traffic
   Scenario Outline: DVLA Auth Source - Happy path
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -24,7 +24,7 @@ Feature: DVLA Auth Source Driving Licence Test
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
       | check_details | DVLAAuthSourceValidKennethJsonPayload |
 
-  @build @stub @staging @integration @uat
+  @stub @uat
   Scenario Outline: DVLA Auth Source - Validation Test - Invalid Context Values
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -38,7 +38,7 @@ Feature: DVLA Auth Source Driving Licence Test
       | check_detail  | DVLAAuthSourceValidKennethJsonPayload |
       | invalid_value | DVLAAuthSourceValidKennethJsonPayload |
 
-  @build @stub @staging @integration @uat @traffic
+  @stub @uat @traffic
   Scenario Outline: DVLA Auth Source - Validation Test - Missing context field directs to default DVLA journey
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -62,7 +62,7 @@ Feature: DVLA Auth Source Driving Licence Test
       | contextValue | DVLADrivingLicenceAuthSourceSubject   | personalNumber   | DVLADrivingLicenceSubject         |
       |              | DVLAAuthSourceValidKennethJsonPayload | DECER607085K99AE | DrivingLicenceSubjectHappyKenneth |
 
-  @build @smoke-build @stub @staging @integration @uat
+  @smoke-build @stub @uat
   Scenario Outline: DVLA Auth Source - Happy path
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -80,7 +80,7 @@ Feature: DVLA Auth Source Driving Licence Test
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
       | check_details | DVLAAuthSourceValidKennethJsonPayload |
 
-  @build @stub @staging @integration @uat
+  @stub @uat
   Scenario Outline: DVLA Auth Source - Error Validation Text - Fail to provide consent
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string

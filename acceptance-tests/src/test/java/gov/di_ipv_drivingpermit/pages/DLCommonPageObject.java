@@ -162,7 +162,7 @@ public class DLCommonPageObject extends UniversalSteps {
         String coreStubUrl = configurationService.getCoreStubUrl(false);
         String expUrl =
                 coreStubUrl
-                        + "callback?error=access_denied&error_description=Authorization+permission+denied";
+                        + "/callback?error=access_denied&error_description=Authorization+permission+denied";
         String actUrl = Driver.get().getCurrentUrl();
         LOGGER.info("expectedUrl = " + expUrl);
         LOGGER.info("actualUrl = " + actUrl);

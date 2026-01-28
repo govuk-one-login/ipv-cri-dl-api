@@ -1,7 +1,7 @@
-@QualityGateStackTest @QualityGateRegressionTest @drivingLicence_CRI_API
+@QualityGateStackTest @QualityGateRegressionTest
 Feature: DVA CRI API
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario Outline: DVA Driving Licence - Auth Source Happy path
     Given DVA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
     And Driving Licence user sends a POST request to session endpoint
@@ -20,7 +20,7 @@ Feature: DVA CRI API
       | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA          | DVAAuthValidKennethJsonPayload |
       | check_details | 55667788       | 2042-10-01 | 2018-04-19 | DVA      | 70 OLD BAKERS COURT BELFAST NW3 5RG | DVAAuthValidBillyJsonPayload   |
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario Outline: DVA Driving Licence - Auth Source Retry Journey Happy Path
     Given DVA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
     And Driving Licence user sends a POST request to session endpoint
@@ -34,7 +34,7 @@ Feature: DVA CRI API
       | check_details | 12345678       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH BA2 5AA | DVAAuthSourceInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
       | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      | 8 HADLEY ROAD BATH NW3 5RG | DVAAuthSourceInvalidJsonPayload | 1229                    | Failed to unwrap DVA response |
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario Outline: DVA Driving Licence - Auth Source Negative Scenario - Missing Address field in payload
     Given DVA Driving Licence with a signed JWT string with <context>, <personalNumber>, <expiryDate>, <issueDate>, <issuedBy> and <fullAddress> for CRI Id driving-licence-cri-dev and JSON Shared Claims 197
     And Driving Licence user sends a POST request to session endpoint
@@ -46,7 +46,7 @@ Feature: DVA CRI API
       | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress | JSONPayloadRequest                     | cri_internal_error_code | cri_internal_error_message  |
       | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      |             | DVAAuthSourceInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario: DVA Driving Licence Happy path
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -58,7 +58,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario: DVA Driving Licence Retry Journey Happy Path
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -74,7 +74,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
 
   # ########  Direct connection tests ##########
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario: DVA Driving Licence Happy path with dva direct connection as document checking route
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -86,7 +86,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario: DVA Driving Licence Retry Journey Happy Path with dva direct connection as document checking route
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -100,7 +100,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario: DVA Driving Licence user fails first attempt with dva direct as document checking route but VC is still created
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -113,7 +113,7 @@ Feature: DVA CRI API
     And Driving Licence VC should contain ci D02, validityScore 0 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in failed checkDetails
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario Outline: DVA Driving Licence Un-Happy path with invalid sessionId on Driving Licence Endpoint
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -127,7 +127,7 @@ Feature: DVA CRI API
       | missingSessionId   |
       | noSessionHeader    |
 
-  @drivingLicenceCRI_API @pre-merge @dev
+  @pre-merge
   Scenario: DVA Driving Licence Un-Happy path with invalid authCode on Credential Issuer Endpoint
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint

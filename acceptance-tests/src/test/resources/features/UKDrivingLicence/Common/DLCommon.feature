@@ -12,7 +12,7 @@ Feature: Driving License Test Common
     Then I see the message begins with We need to make sure is shown
     And I assert the url path contains licence-issuer
 
-  @DrivingLicenceTest @build @staging @integration @stub
+  @stub
   Scenario: Three selection options and Radio button available on the Driving Licence page
     Given I can see a DVLA radio button titled DVLA
     Then I can see a DVA radio button titled DVA
@@ -20,7 +20,7 @@ Feature: Driving License Test Common
     Then I can see CTA Continue
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest
+  @stub
   Scenario: User selects no Driving Licence and landed in IPV Core
     Given I click I do not have UK Driving License and continue
     When I am directed to the IPV Core routing page
@@ -29,7 +29,7 @@ Feature: Driving License Test Common
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration @stub
+  @stub
   Scenario: User continue with no selection and see the error displayed
     Given I have not selected anything and continue
     When I can see an error box highlighted red
@@ -38,7 +38,7 @@ Feature: Driving License Test Common
     And The field error copy Error:You must choose an option to continue
     And The test is complete and I close the driver
 
-  @DrivingLicenceTest @build @staging @integration @stub
+  @stub
   Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – GOV.UK One Login

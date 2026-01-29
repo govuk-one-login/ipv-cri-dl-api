@@ -49,7 +49,7 @@ ext {
 		gson_version                       : "2.8.9",
 
 		// Code weaving (powertools+lombok)
-		aspectjrt_version                  : "1.9.22.1",
+		aspectjrt_version                  : "1.9.25.1",
 
 		// Open telemetry
 		opentelemetry_bom_alpha_version    : "2.20.1-alpha",

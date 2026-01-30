@@ -120,111 +120,115 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
     @Logging
     @Metrics(captureColdStart = true)
     public String handleRequest(SecretsManagerRotationEvent input, Context context) {
-        LOGGER.info("step {} secretId: {}", input.getStep(), input.getSecretId());
 
-        Optional<SecretsManagerRotationStep> nullableStep =
-                SecretsManagerRotationStep.of(input.getStep());
-        if (nullableStep.isPresent()) {
-            SecretsManagerRotationStep step = nullableStep.get();
-            try {
-                if (step == SecretsManagerRotationStep.FINISH_SECRET) {
-                    // CREATE SECRET START
-                    logStepCommenced(SecretsManagerRotationStep.CREATE_SECRET);
+        try {
+            LOGGER.info("step {} secretId: {}", input.getStep(), input.getSecretId());
 
-                    String apiKeyFromPreviousRun = null;
-                    String pendingNewApiKey = null;
-                    try {
-                        /*Firstly, checking to see if we have an 'AWSPENDING' Secret, if we do, we will advance to test with it
-                        If not, we will call DVLA to request a new API Key and advance with it
-                         */
-                        apiKeyFromPreviousRun = getValue(secretsManagerClient, input.getSecretId());
-                        LOGGER.info("Found existing API Key in Secrets Manager, advancing to test");
-                    } catch (SecretNotFoundException | ResourceNotFoundException e) {
-                        if (dvlaConfiguration.isApiKeyRotationEnabled()
-                                && apiKeyFromPreviousRun == null) {
+            Optional<SecretsManagerRotationStep> nullableStep =
+                    SecretsManagerRotationStep.of(input.getStep());
 
-                            LOGGER.info(
-                                    "'AWSPENDING' value is null, requesting a new API Key from DVLA");
-                            pendingNewApiKey = callDVLAApi();
-                            // After this point, previous apiKey is no longer valid with new token
-                            LOGGER.debug("The new API Key is {}", pendingNewApiKey);
-                            PutSecretValueRequest secretRequest =
-                                    PutSecretValueRequest.builder()
-                                            .secretId(input.getSecretId())
-                                            .secretString(pendingNewApiKey)
-                                            .versionStages("AWSPENDING")
-                                            .build();
-                            secretsManagerClient.putSecretValue(secretRequest);
-                            LOGGER.info("Secret has been stored in AWS successfully");
-                        } else if (dvlaConfiguration.isApiKeyRotationEnabled()) {
-                            pendingNewApiKey = apiKeyFromPreviousRun;
-                            LOGGER.debug("AWSPENDING already exists {}", pendingNewApiKey);
-                        }
-                    }
-                    logStepCompleted(SecretsManagerRotationStep.CREATE_SECRET);
-                    // CREATE SECRET END
-
-                    // TEST SECRET START
-                    logStepCommenced(SecretsManagerRotationStep.TEST_SECRET);
-                    /*Next step is to verify that the secret has been set in DVLA
-                     * To do so, we request a token to ensure the new api key works, but this does not replace the token in the DB, and does not invalidate the existing one.
-                     * Then we perform a driver match service request*/
-
-                    // Setting TestStrategy to default until test data strategy approach agreed
-                    Strategy strategy = Strategy.NO_CHANGE;
-
-                    if (dvlaConfiguration.isApiKeyRotationEnabled()) {
-                        if (apiKeyFromPreviousRun != null) {
-                            pendingNewApiKey = apiKeyFromPreviousRun;
-                        }
-
-                        pauseHelper.pause();
-                        driverMatchService.performMatch(
-                                drivingPermitForm(),
-                                tokenRequestService.requestToken(true, strategy),
-                                pendingNewApiKey,
-                                strategy);
-                    }
-
-                    logStepCompleted(SecretsManagerRotationStep.TEST_SECRET);
-                    // TEST SECRET END
-
-                    // FINISH SECRET START
-                    logStepCommenced(SecretsManagerRotationStep.FINISH_SECRET);
-                    /*Final step updates Secrets Manager to set api-key as AWSCURRENT*/
-                    if (dvlaConfiguration.isApiKeyRotationEnabled()) {
-                        updateSecret(input.getSecretId(), pendingNewApiKey);
-                        LOGGER.info("Updating Secret in Secrets Manager");
-                        tokenRequestService.removeTokenItem(strategy);
-                        tokenRequestService.removeTokenItem(Strategy.LIVE);
-                        tokenRequestService.removeTokenItem(Strategy.UAT);
-                    }
-                    logStepCompleted(SecretsManagerRotationStep.FINISH_SECRET);
-                    // FINISH SECRET END
-                }
-                eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_OK);
-            } catch (OAuthErrorResponseException e) {
-                // api-key Renewal Lambda Completed with an Error
-                eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_ERROR);
-                LOGGER.error("Failed to call DVLA. OAuth Exception thrown");
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                LOGGER.error(e.getMessage(), e);
-                Thread.currentThread().interrupt();
-                eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_ERROR);
-                throw new RuntimeException(e);
-            } catch (Exception e) {
-                LOGGER.error(
-                        "Unhandled Exception while handling lambda {} exception {}",
-                        context.getFunctionName(),
-                        e.getClass());
-                LOGGER.error(e.getMessage(), e);
-
-                eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_ERROR);
-                throw new RuntimeException(e);
+            if (nullableStep.isEmpty()
+                    || nullableStep.get() != SecretsManagerRotationStep.FINISH_SECRET) {
+                return completedOk();
             }
+            String pendingNewApiKey = executeCreateSecretStep(input.getSecretId());
+            executeTestSecretStep(pendingNewApiKey);
+            executeFinishSecretStep(input.getSecretId(), pendingNewApiKey);
+            return completedOk();
+        } catch (InterruptedException e) {
+            LOGGER.error("API key rotation interrupted: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt();
+            eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_ERROR);
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            LOGGER.error(
+                    "API key rotation failed in lambda {}: {}",
+                    context.getFunctionName(),
+                    e.getMessage(),
+                    e);
+            eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_ERROR);
+            throw new RuntimeException(e);
         }
+    }
+
+    private String completedOk() {
+        // Lambda Complete No Error
+        eventProbe.counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_OK);
         return "Success";
+    }
+
+    private String executeCreateSecretStep(String secretId)
+            throws OAuthErrorResponseException, JsonProcessingException {
+        logStepCommenced(SecretsManagerRotationStep.CREATE_SECRET);
+        String pendingNewApiKey = retrieveOrCreateApiKey(secretId);
+        logStepCompleted(SecretsManagerRotationStep.CREATE_SECRET);
+        return pendingNewApiKey;
+    }
+
+    private String retrieveOrCreateApiKey(String secretId)
+            throws OAuthErrorResponseException, JsonProcessingException {
+        try {
+            String apiKeyFromPreviousRun = getValue(secretsManagerClient, secretId);
+            LOGGER.info("Found existing API Key in Secrets Manager, advancing to test");
+            return apiKeyFromPreviousRun;
+        } catch (SecretNotFoundException | ResourceNotFoundException e) {
+            return createNewApiKeyIfEnabled(secretId);
+        }
+    }
+
+    private String createNewApiKeyIfEnabled(String secretId)
+            throws OAuthErrorResponseException, JsonProcessingException {
+        if (!dvlaConfiguration.isApiKeyRotationEnabled()) {
+            return null;
+        }
+
+        LOGGER.info("'AWSPENDING' value is null, requesting a new API Key from DVLA");
+        String pendingNewApiKey = callDVLAApi();
+        // After this point, previous apiKey is no longer valid with new token
+        LOGGER.debug("The new API Key is {}", pendingNewApiKey);
+
+        PutSecretValueRequest secretRequest =
+                PutSecretValueRequest.builder()
+                        .secretId(secretId)
+                        .secretString(pendingNewApiKey)
+                        .versionStages("AWSPENDING")
+                        .build();
+        secretsManagerClient.putSecretValue(secretRequest);
+        LOGGER.info("Secret has been stored in AWS successfully");
+
+        return pendingNewApiKey;
+    }
+
+    private void executeTestSecretStep(String pendingNewApiKey)
+            throws OAuthErrorResponseException, InterruptedException {
+        logStepCommenced(SecretsManagerRotationStep.TEST_SECRET);
+
+        if (dvlaConfiguration.isApiKeyRotationEnabled() && pendingNewApiKey != null) {
+            Strategy strategy =
+                    Strategy.NO_CHANGE; // Setting to default until test strategy approach agreed
+            pauseHelper.pause();
+            driverMatchService.performMatch(
+                    drivingPermitForm(),
+                    tokenRequestService.requestToken(true, strategy),
+                    pendingNewApiKey,
+                    strategy);
+        }
+
+        logStepCompleted(SecretsManagerRotationStep.TEST_SECRET);
+    }
+
+    private void executeFinishSecretStep(String secretId, String pendingNewApiKey) {
+        logStepCommenced(SecretsManagerRotationStep.FINISH_SECRET);
+
+        if (dvlaConfiguration.isApiKeyRotationEnabled()) {
+            updateSecret(secretId, pendingNewApiKey);
+            LOGGER.info("Updating Secret in Secrets Manager");
+            tokenRequestService.removeTokenItem(Strategy.NO_CHANGE);
+            tokenRequestService.removeTokenItem(Strategy.LIVE);
+            tokenRequestService.removeTokenItem(Strategy.UAT);
+        }
+
+        logStepCompleted(SecretsManagerRotationStep.FINISH_SECRET);
     }
 
     private String callDVLAApi() throws OAuthErrorResponseException, JsonProcessingException {

@@ -106,7 +106,7 @@ class ChangeApiKeyServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         assertChangeApiKeyHeaders(httpRequestCaptor);
-        assertEquals(newApiKey, "test_api_key_response");
+        assertEquals("test_api_key_response", newApiKey);
     }
 
     @Test

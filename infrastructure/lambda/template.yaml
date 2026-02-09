@@ -3536,7 +3536,7 @@ Resources:
       Period: 60
       EvaluationPeriods: 3
       DatapointsToAlarm: 2
-      Threshold: 1
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -3561,8 +3561,8 @@ Resources:
       Unit: Count
       Period: 60
       EvaluationPeriods: 3
-      DatapointsToAlarm: 3
-      Threshold: 1
+      DatapointsToAlarm: 2
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -3850,7 +3850,7 @@ Resources:
       Period: 60
       EvaluationPeriods: 3
       DatapointsToAlarm: 2
-      Threshold: 1
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -3874,9 +3874,9 @@ Resources:
       Statistic: Sum
       Unit: Count
       Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -3946,7 +3946,7 @@ Resources:
       Period: 60
       EvaluationPeriods: 3
       DatapointsToAlarm: 2
-      Threshold: 1
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -3970,9 +3970,9 @@ Resources:
       Statistic: Sum
       Unit: Count
       Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: 2
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 

@@ -6,7 +6,7 @@ plugins {
 	id 'io.freefair.aspectj.post-compile-weaving' version '8.12.1'
 	id "jacoco"
 	id "jacoco-report-aggregation"
-	id "com.diffplug.spotless" version "8.0.0"
+	id "com.diffplug.spotless" version "8.2.1"
 	id "nebula.lint" version "20.5.6"
 }
 

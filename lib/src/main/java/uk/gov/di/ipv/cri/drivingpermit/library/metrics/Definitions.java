@@ -64,13 +64,19 @@ public class Definitions {
     // Cert Expiry Reminder
     public static final String CERTIFICATE_EXPIRY_REMINDER =
             "dva_cert_expiry_reminder_alert_metric";
+    public static final String LAMBDA_CERT_EXPIRY_REMINDER_COMPLETED_ERROR =
+            "lambda_cert_expiry_reminder_completed_error";
+    public static final String LAMBDA_CERT_EXPIRY_REMINDER_COMPLETED_OK =
+            "lambda_cert_expiry_reminder_completed_ok";
 
     // Cert Expiry metric
-    public static final String CERTIFICATE_EXPIRYS = "dva_cert_expiry_metric";
+    public static final String CERTIFICATE_EXPIRED = "dva_cert_expiry_metric";
 
     // Password renewal
     public static final String LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_ERROR =
             "lambda_password_renewal_check_completed_error";
+    public static final String LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_OK =
+            "lambda_password_renewal_check_completed_ok";
 
     // Context Value Tracking
     public static final String CONTEXT_VALUE = "context_value_";

@@ -9,11 +9,11 @@ import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
 import gov.di_ipv_drivingpermit.utilities.Driver;
 import gov.di_ipv_drivingpermit.utilities.TestDataCreator;
 import gov.di_ipv_drivingpermit.utilities.TestInput;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -26,9 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DrivingLicencePageObject extends UniversalSteps {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final ConfigurationService configurationService;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrivingLicencePageObject.class);
 
     // ---------------------
 
@@ -549,8 +550,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
     public List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {
         JsonNode evidenceNode = vcNode.get(evidence);
 
-        ObjectReader objectReader =
-                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
+        ObjectReader objectReader = OBJECT_MAPPER.readerFor(new TypeReference<List<JsonNode>>() {});
         return objectReader.readValue(evidenceNode);
     }
 

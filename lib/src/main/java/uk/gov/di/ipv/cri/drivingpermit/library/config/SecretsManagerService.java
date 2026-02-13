@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.config;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class SecretsManagerService {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(SecretsManagerService.class);
 
     private static final String PARAMETER_NAME_FORMAT = "/%s/%s";
 

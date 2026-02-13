@@ -4,11 +4,15 @@ import com.amazonaws.services.lambda.runtime.Context;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.certreminder.config.CertExpiryReminderConfig;
 import uk.gov.di.ipv.cri.drivingpermit.certreminder.handler.CertExpiryReminderHandler;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
@@ -18,10 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.CERTIFICATE_EXPIRED;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.CERTIFICATE_EXPIRY_REMINDER;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_CERT_EXPIRY_REMINDER_COMPLETED_OK;
 
+@ExtendWith(SystemStubsExtension.class)
 @ExtendWith(MockitoExtension.class)
 class CertExpiryReminderHandlerTest {
 
@@ -40,10 +48,13 @@ class CertExpiryReminderHandlerTest {
 
     @Mock private Context context;
 
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     private CertExpiryReminderHandler certExpiryReminderHandler;
 
     @BeforeEach()
     void setup() {
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
         // The following certs are outside the expiryWindow (4 weeks)
         createCertificateMocks();
 
@@ -67,7 +78,7 @@ class CertExpiryReminderHandlerTest {
     }
 
     @Test
-    void HandlerShouldIncrementMetricCountWhenCertIsCloseToExpiry() {
+    void HandlerShouldRecordReminderMetricWhenCertIsCloseToExpiry() {
         Date expiry =
                 Date.from(
                         LocalDate.now()
@@ -77,9 +88,6 @@ class CertExpiryReminderHandlerTest {
         when(mockDvaSigningCert.getNotAfter()).thenReturn(expiry);
         when(eventProbe.counterMetric(anyString())).thenReturn(eventProbe);
 
-        LocalDate expiryWindow =
-                LocalDate.now().atStartOfDay(ZoneId.systemDefault()).plusWeeks(3).toLocalDate();
-
         certExpiryReminderHandler.handleRequest(null, context);
 
         Map<String, String> certExpiryMap = new HashMap<String, String>();
@@ -87,11 +95,17 @@ class CertExpiryReminderHandlerTest {
                 "signingCert",
                 expiry.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString());
 
-        verify(eventProbe).addDimensions(certExpiryMap);
+        InOrder inOrder = inOrder(eventProbe);
+        inOrder.verify(eventProbe).counterMetric(CERTIFICATE_EXPIRY_REMINDER);
+        inOrder.verify(eventProbe).counterMetric(CERTIFICATE_EXPIRED);
+        inOrder.verify(eventProbe).addDimensions(certExpiryMap);
+        inOrder.verify(eventProbe).counterMetric(LAMBDA_CERT_EXPIRY_REMINDER_COMPLETED_OK);
+        inOrder.verifyNoMoreInteractions();
+        verifyNoMoreInteractions(eventProbe);
     }
 
     @Test
-    void HandlerShouldNotIncrementMetricCountWhenCertIsOutsideExpiryWindow() {
+    void HandlerShouldIncrementOkMetricCountWhenCompletedSuccessfully() {
         when(mockDvaSigningCert.getNotAfter())
                 .thenReturn(
                         Date.from(
@@ -100,9 +114,14 @@ class CertExpiryReminderHandlerTest {
                                         .plusWeeks(5)
                                         .toInstant()));
 
+        when(eventProbe.counterMetric(anyString())).thenReturn(eventProbe);
+
         certExpiryReminderHandler.handleRequest(null, context);
 
-        verifyNoInteractions(eventProbe);
+        InOrder inOrder = inOrder(eventProbe);
+        inOrder.verify(eventProbe).counterMetric(LAMBDA_CERT_EXPIRY_REMINDER_COMPLETED_OK);
+        inOrder.verifyNoMoreInteractions();
+        verifyNoMoreInteractions(eventProbe);
     }
 
     private void createCertificateMocks() {

@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
@@ -25,7 +25,8 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
     private static final String SERVICE_NAME = DvlaThirdPartyDocumentGateway.class.getSimpleName();
     private static final APIResultSource API_RESULT_SOURCE = DVLA;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(DvlaThirdPartyDocumentGateway.class);
 
     private final TokenRequestService tokenRequestService;
     private final DriverMatchService driverMatchService;
@@ -84,7 +85,7 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 if (iteration == MAX_UNAUTHORIZED_RECOVERY_ATTEMPTS) {
 
                     // If Unauthorized comes back again, there could be an issue with the api key
-                    LOGGER.error(ERROR_DVLA_EXPIRED_TOKEN_RECOVERY_FAILED);
+                    LOGGER.error(ERROR_DVLA_EXPIRED_TOKEN_RECOVERY_FAILED.getMessage());
 
                     throw new OAuthErrorResponseException(
                             HttpStatusCode.INTERNAL_SERVER_ERROR,

@@ -4,8 +4,8 @@ import lombok.experimental.UtilityClass;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
@@ -17,7 +17,7 @@ import java.util.Map;
 @UtilityClass
 public class HTTPReplyHelper {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(HTTPReplyHelper.class);
 
     // Small helper to avoid duplicating this code for each endpoint and api
     public static HTTPReply retrieveResponse(HttpResponse response, String endpointName)
@@ -37,7 +37,7 @@ public class HTTPReplyHelper {
             return new HTTPReply(httpStatusCode, responseHeaders, responseBody);
         } catch (IOException e) {
 
-            LOGGER.error(String.format("IOException retrieving %s response body", endpointName));
+            LOGGER.error("IOException retrieving {} response body", endpointName);
             LOGGER.debug(e.getMessage());
 
             throw new OAuthErrorResponseException(

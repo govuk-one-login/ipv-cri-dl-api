@@ -1,7 +1,5 @@
 package gov.di_ipv_drivingpermit.utilities;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
@@ -17,6 +15,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class BrowserUtils {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(BrowserUtils.class);
 
     /**
      * Switches to new window by the exact title. Returns to original window if target title not
@@ -103,7 +103,7 @@ public class BrowserUtils {
         try {
             Thread.sleep(seconds * 1000);
         } catch (InterruptedException e) {
-            LOGGER.error(e);
+            LOGGER.error("Error: ", e);
         }
     }
 
@@ -311,7 +311,7 @@ public class BrowserUtils {
             Assert.assertTrue(
                     "Element not visible: " + by, Driver.get().findElement(by).isDisplayed());
         } catch (NoSuchElementException e) {
-            LOGGER.error(e);
+            LOGGER.error("Error: ", e);
             Assert.fail("Element not found: " + by);
         }
     }
@@ -328,7 +328,7 @@ public class BrowserUtils {
                     "Element should not be visible: " + by,
                     Driver.get().findElement(by).isDisplayed());
         } catch (NoSuchElementException e) {
-            LOGGER.error(e);
+            LOGGER.error("Error: ", e);
         }
     }
 
@@ -342,7 +342,7 @@ public class BrowserUtils {
         try {
             Assert.assertTrue("Element not visible: " + element, element.isDisplayed());
         } catch (NoSuchElementException e) {
-            LOGGER.error(e);
+            LOGGER.error("Error: ", e);
             Assert.fail("Element not found: " + element);
         }
     }
@@ -505,7 +505,7 @@ public class BrowserUtils {
                 // if click failed
                 // print exception
                 // print attempt
-                LOGGER.error(e);
+                LOGGER.error("Error: ", e);
                 ++counter;
                 // wait for 1 second, and try to click again
                 waitFor(1);

@@ -3,8 +3,8 @@ package uk.gov.di.ipv.cri.drivingpermit.library.service;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.SleepHelper;
 
@@ -13,7 +13,7 @@ import java.net.http.HttpConnectTimeoutException;
 
 public class HttpRetryer {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpRetryer.class);
 
     public static final long HTTP_RETRY_WAIT_TIME_LIMIT_MS = 12800L;
 

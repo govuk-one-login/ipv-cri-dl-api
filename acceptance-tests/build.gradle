@@ -19,12 +19,12 @@ configurations {
 
 
 dependencies {
-	var aws_powertools_version = "1.20.1"
+	var aws_powertools_version = "2.9.0"
 	var java_cucumber_version = "7.33.0"
 	var aws_cdk_version = "2.120.0"
 	var dependencyVersions = [
 
-		cri_common_lib_version             : "7.0.0",
+		cri_common_lib_version             : "8.3.0",
 
 		// CRI_LIB aws
 		aws_sdk_version                    : "2.34.3",
@@ -51,7 +51,6 @@ dependencies {
 		aspectjrt_version                  : "1.9.22.1",
 
 		// Test
-		junit_platform                     : "6.0.1",
 		junit_version                      : "6.0.1",
 		mockito_version                    : "5.17.0",
 		// testFixturesImplementation
@@ -73,13 +72,15 @@ dependencies {
 			platform("com.fasterxml.jackson:jackson-bom:${dependencyVersions.jackson_version}"),
 			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
 			"software.amazon.awssdk:aws-crt-client",
+			"software.amazon.awssdk:dynamodb",
+			"software.amazon.awssdk:secretsmanager",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
 			"com.fasterxml.jackson.core:jackson-databind",
 			"com.fasterxml.jackson.core:jackson-annotations",
 			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",
 			platform("org.junit:junit-bom:${dependencyVersions.junit_version}"),
-			"org.junit.platform:junit-platform-launcher:${dependencyVersions.junit_platform}",
+			"org.junit.platform:junit-platform-launcher:${dependencyVersions.junit_version}",
 			"org.junit.jupiter:junit-jupiter-engine",
 			"org.junit.jupiter:junit-jupiter-api",
 			"org.junit.jupiter:junit-jupiter-params",
@@ -92,17 +93,13 @@ dependencies {
 	implementation "io.cucumber:cucumber-java:${dependencyVersions.cucumber_version}",
 			"org.seleniumhq.selenium:selenium-java:${dependencyVersions.selenium_version}",
 			"io.github.bonigarcia:webdrivermanager:${dependencyVersions.webdrivermanager_version}",
-			"com.deque.html.axe-core:selenium:${dependencyVersions.axe_core_selenium_version}"
+			"com.deque.html.axe-core:selenium:${dependencyVersions.axe_core_selenium_version}",
+			"software.amazon.lambda:powertools-logging-log4j:${dependencyVersions.aws_powertools_logging_version}"
 
 	testImplementation "io.rest-assured:rest-assured:${dependencyVersions.rest_assured_version}",
 			"io.cucumber:cucumber-junit:${dependencyVersions.cucumber_junit_version}",
 			"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${dependencyVersions.jackson_version}",
 			"software.amazon.awscdk:aws-cdk-lib:${dependencyVersions.aws_cdk_version}"
-
-	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
-			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}",
-			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
 }
 
 java {

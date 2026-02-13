@@ -7,12 +7,12 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
-import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
+import software.amazon.lambda.powertools.logging.CorrelationIdPaths;
 import software.amazon.lambda.powertools.logging.Logging;
-import software.amazon.lambda.powertools.metrics.Metrics;
+import software.amazon.lambda.powertools.metrics.FlushMetrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
@@ -69,7 +69,11 @@ public class DrivingPermitHandler
     // We need this first and static for it to be created as soon as possible during function init
     private static final long FUNCTION_INIT_START_TIME_MILLISECONDS = System.currentTimeMillis();
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrivingPermitHandler.class);
+
+    static {
+        LoggingSupport.populateLambdaInitLoggerValues();
+    }
 
     private static final boolean DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG =
             Boolean.parseBoolean(System.getenv("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG"));
@@ -175,16 +179,12 @@ public class DrivingPermitHandler
     }
 
     @Override
-    @Logging(correlationIdPath = CorrelationIdPathConstants.API_GATEWAY_REST)
-    @Metrics(captureColdStart = true)
+    @Logging(clearState = true, correlationIdPath = CorrelationIdPaths.API_GATEWAY_REST)
+    @FlushMetrics(captureColdStart = true)
     public APIGatewayProxyResponseEvent handleRequest(
             APIGatewayProxyRequestEvent input, Context context) {
 
         try {
-            // There is logging before the session read which attaches journey keys
-            // We clear these persistent ones now so these not attributed to any previous journey
-            LoggingSupport.clearPersistentJourneyKeys();
-
             LOGGER.info(
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),

@@ -27,6 +27,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfigurat
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,6 +44,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_KEY_ENDPOINT;
 
+@ExtendWith(SystemStubsExtension.class)
 @ExtendWith(MockitoExtension.class)
 class ApiKeyRenewalHandlerTest {
 
@@ -62,8 +66,11 @@ class ApiKeyRenewalHandlerTest {
 
     private ApiKeyRenewalHandler apiKeyRenewalHandler;
 
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     @BeforeEach
     void setup() {
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
 
         this.apiKeyRenewalHandler =
                 new ApiKeyRenewalHandler(

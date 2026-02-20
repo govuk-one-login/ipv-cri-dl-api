@@ -8,12 +8,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.passay.CharacterData;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -22,7 +22,7 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
 import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import software.amazon.lambda.powertools.logging.Logging;
-import software.amazon.lambda.powertools.metrics.Metrics;
+import software.amazon.lambda.powertools.metrics.FlushMetrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -36,6 +36,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfigurat
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
+import uk.gov.di.ipv.cri.drivingpermit.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
@@ -43,10 +44,15 @@ import java.util.Optional;
 
 import static org.passay.AllowedCharacterRule.ERROR_CODE;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_ERROR;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_OK;
 
 public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRotationEvent, String> {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(PasswordRenewalHandler.class);
+
+    static {
+        LoggingSupport.populateLambdaInitLoggerValues();
+    }
 
     private final SecretsManagerClient secretsManagerClient;
     private final ChangePasswordService changePasswordService;
@@ -103,8 +109,8 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
         this.dvlaConfiguration = dvlaConfiguration;
     }
 
-    @Logging
-    @Metrics(captureColdStart = true)
+    @Logging(clearState = true)
+    @FlushMetrics(captureColdStart = true)
     public String handleRequest(SecretsManagerRotationEvent input, Context context) {
         LOGGER.info("step {} secretId: {}", input.getStep(), input.getSecretId());
 
@@ -218,6 +224,12 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                 throw new RuntimeException(e);
             }
         }
+        return completedOk();
+    }
+
+    private String completedOk() {
+        // Lambda Complete No Error
+        eventProbe.counterMetric(LAMBDA_PASSWORD_RENEWAL_CHECK_COMPLETED_OK);
         return "Success";
     }
 
@@ -275,7 +287,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
 
         } catch (SecretsManagerException e) {
             LOGGER.error("Update value method returned Exception {}", e.getClass().getSimpleName());
-            LOGGER.debug(e);
+            LOGGER.debug("Error: ", e);
             throw e;
         }
     }
@@ -299,7 +311,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
 
         } catch (SecretsManagerException e) {
             LOGGER.error("Get value method returned Exception {}", e.getClass().getSimpleName());
-            LOGGER.debug(e);
+            LOGGER.debug("Error: ", e);
             throw e;
         }
     }

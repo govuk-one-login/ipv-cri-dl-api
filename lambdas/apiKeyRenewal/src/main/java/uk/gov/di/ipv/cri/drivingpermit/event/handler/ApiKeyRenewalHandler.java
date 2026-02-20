@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -18,8 +18,7 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
 import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import software.amazon.lambda.powertools.logging.Logging;
-import software.amazon.lambda.powertools.metrics.Metrics;
-import software.amazon.lambda.powertools.parameters.ParamManager;
+import software.amazon.lambda.powertools.metrics.FlushMetrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
@@ -37,6 +36,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfigurat
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
+import uk.gov.di.ipv.cri.drivingpermit.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
@@ -49,7 +49,12 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 
 public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotationEvent, String> {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeyRenewalHandler.class);
+
+    static {
+        LoggingSupport.populateLambdaInitLoggerValues();
+    }
+
     public static final int SLEEP_DURATION_MS = 20000;
     private final SecretsManagerClient secretsManagerClient;
     private final ChangeApiKeyService changeApiKeyService;
@@ -65,8 +70,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
 
         secretsManagerClient = clientProviderFactory.getSecretsManagerClient();
         ParameterStoreService parameterStoreService =
-                new ParameterStoreService(
-                        ParamManager.getSsmProvider(clientProviderFactory.getSsmClient()));
+                new ParameterStoreService(clientProviderFactory.getSSMProvider());
         SecretsManagerService secretsManagerService =
                 new SecretsManagerService(secretsManagerClient);
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -117,8 +121,8 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
         this.pauseHelper = pauseHelper;
     }
 
-    @Logging
-    @Metrics(captureColdStart = true)
+    @Logging(clearState = true)
+    @FlushMetrics(captureColdStart = true)
     public String handleRequest(SecretsManagerRotationEvent input, Context context) {
 
         try {
@@ -253,7 +257,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
 
         } catch (SecretsManagerException e) {
             LOGGER.error(e.awsErrorDetails().errorMessage(), e);
-            LOGGER.debug(e);
+            LOGGER.debug("Error: ", e);
             throw e;
         }
     }
@@ -277,7 +281,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
 
         } catch (SecretsManagerException e) {
             LOGGER.error("Get value method returned Exception {}", e.getClass().getSimpleName());
-            LOGGER.debug(e);
+            LOGGER.debug("Error: ", e);
             throw e;
         }
     }

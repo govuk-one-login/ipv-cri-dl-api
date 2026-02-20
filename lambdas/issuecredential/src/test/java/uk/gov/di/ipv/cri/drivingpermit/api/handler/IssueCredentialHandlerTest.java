@@ -100,6 +100,7 @@ class IssueCredentialHandlerTest {
     @BeforeEach
     void setup() {
         environmentVariables.set("AWS_REGION", "eu-west-2");
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
 
         mockServiceFactoryBehaviour();
 

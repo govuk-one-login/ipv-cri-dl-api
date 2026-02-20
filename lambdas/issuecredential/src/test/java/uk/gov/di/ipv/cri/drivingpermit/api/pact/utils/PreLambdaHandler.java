@@ -19,8 +19,8 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mock;
 
 class PreLambdaHandler implements HttpHandler {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(PreLambdaHandler.class);
     private final RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> handler;
     private final Map<Integer, String> pathParamsFromInjector;
 
@@ -100,16 +100,16 @@ class PreLambdaHandler implements HttpHandler {
     }
 
     public static Map<String, String> getQueryStringParams(URI url) {
-        Map<String, String> query_pairs = new HashMap<>();
+        Map<String, String> queryPairs = new HashMap<>();
         String query = url.getQuery();
         String[] pairs = query.split("&");
         for (String pair : pairs) {
             int idx = pair.indexOf("=");
-            query_pairs.put(
+            queryPairs.put(
                     URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8),
                     URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8));
         }
-        return query_pairs;
+        return queryPairs;
     }
 
     private APIGatewayProxyRequestEvent translateRequest(HttpExchange request) throws IOException {

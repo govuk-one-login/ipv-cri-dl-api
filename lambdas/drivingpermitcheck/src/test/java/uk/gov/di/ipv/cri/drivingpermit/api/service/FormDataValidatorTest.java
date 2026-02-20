@@ -1,8 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.JsonValidationUtility;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class FormDataValidatorTest {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(FormDataValidatorTest.class);
 
     @Test
     void testFormDataValidatorNamesCannotBeNull() {
@@ -53,12 +53,12 @@ class FormDataValidatorTest {
     @Test
     void testFormDataValidatorDOBCannotBeNull() {
 
-        final LocalDate TEST_LOCAL_DATE = null;
+        final LocalDate testLocalDate = null;
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        drivingPermitForm.setDateOfBirth(TEST_LOCAL_DATE);
+        drivingPermitForm.setDateOfBirth(testLocalDate);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(drivingPermitForm);
@@ -68,7 +68,7 @@ class FormDataValidatorTest {
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_LOCAL_DATE, drivingPermitForm.getDateOfBirth());
+        assertEquals(testLocalDate, drivingPermitForm.getDateOfBirth());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
@@ -77,12 +77,12 @@ class FormDataValidatorTest {
     @Test
     void testFormDataValidatorAddressesCannotBeNull() {
 
-        final List<Address> TEST_ADDRESSES = null;
+        final List<Address> testAddresses = null;
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        drivingPermitForm.setAddresses(TEST_ADDRESSES);
+        drivingPermitForm.setAddresses(testAddresses);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(drivingPermitForm);
@@ -92,7 +92,7 @@ class FormDataValidatorTest {
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
+        assertEquals(testAddresses, drivingPermitForm.getAddresses());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
@@ -101,18 +101,18 @@ class FormDataValidatorTest {
     @Test
     void testFormDataValidatorAddressesCannotBeEmpty() {
 
-        final List<Address> TEST_ADDRESSES = new ArrayList<>();
+        final List<Address> testAddresses = new ArrayList<>();
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        drivingPermitForm.setAddresses(TEST_ADDRESSES);
+        drivingPermitForm.setAddresses(testAddresses);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(drivingPermitForm);
 
         final String TEST_INTEGER_NAME = "Addresses";
-        final int TEST_VALUE = TEST_ADDRESSES.size();
+        final int TEST_VALUE = testAddresses.size();
 
         final String EXPECTED_ERROR =
                 JsonValidationUtility.createIntegerRangeErrorMessage(
@@ -123,7 +123,7 @@ class FormDataValidatorTest {
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
+        assertEquals(testAddresses, drivingPermitForm.getAddresses());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
@@ -134,23 +134,20 @@ class FormDataValidatorTest {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        final List<Address> TEST_ADDRESSES = drivingPermitForm.getAddresses();
-        TEST_ADDRESSES.get(0).setPostalCode(null);
+        final List<Address> testAddresses = drivingPermitForm.getAddresses();
+        testAddresses.get(0).setPostalCode(null);
 
-        drivingPermitForm.setAddresses(TEST_ADDRESSES);
+        drivingPermitForm.setAddresses(testAddresses);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(drivingPermitForm);
-
-        final String TEST_INTEGER_NAME = "Addresses";
-        final int TEST_VALUE = TEST_ADDRESSES.size();
 
         final String EXPECTED_ERROR =
                 "Postcode" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
+        assertEquals(testAddresses, drivingPermitForm.getAddresses());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
@@ -161,23 +158,20 @@ class FormDataValidatorTest {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        final List<Address> TEST_ADDRESSES = drivingPermitForm.getAddresses();
-        TEST_ADDRESSES.get(0).setPostalCode("");
+        final List<Address> testAddresses = drivingPermitForm.getAddresses();
+        testAddresses.get(0).setPostalCode("");
 
-        drivingPermitForm.setAddresses(TEST_ADDRESSES);
+        drivingPermitForm.setAddresses(testAddresses);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(drivingPermitForm);
-
-        final String TEST_INTEGER_NAME = "Addresses";
-        final int TEST_VALUE = TEST_ADDRESSES.size();
 
         final String EXPECTED_ERROR =
                 "Postcode" + JsonValidationUtility.IS_EMPTY_ERROR_MESSAGE_SUFFIX;
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_ADDRESSES, drivingPermitForm.getAddresses());
+        assertEquals(testAddresses, drivingPermitForm.getAddresses());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());

@@ -9,8 +9,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
@@ -58,7 +58,8 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
     private static final String SERVICE_NAME = DvaThirdPartyDocumentGateway.class.getSimpleName();
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(DvaThirdPartyDocumentGateway.class);
     private static final APIResultSource API_RESULT_SOURCE = DVA;
     private final DvaCryptographyService dvaCryptographyService;
     private final RequestHashValidator requestHashValidator;
@@ -242,7 +243,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         if (statusCode == 200) {
             try {
                 if (drivingPermitConfigurationService.isLogDvaResponse()) {
-                    LOGGER.info("DVA response " + responseBody);
+                    LOGGER.info("DVA response {}", responseBody);
                 }
                 DvaResponse unwrappedDvaResponse =
                         dvaCryptographyService.unwrapDvaResponse(responseBody);

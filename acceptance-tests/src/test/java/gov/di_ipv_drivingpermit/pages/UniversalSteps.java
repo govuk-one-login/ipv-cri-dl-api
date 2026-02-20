@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import gov.di_ipv_drivingpermit.utilities.Driver;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.support.PageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -26,13 +26,13 @@ import static org.junit.Assert.assertTrue;
 
 public class UniversalSteps {
 
-    private final ObjectMapper objectMapper =
+    private static final ObjectMapper OBJECT_MAPPER =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(UniversalSteps.class);
 
     public static final int MAX_WAIT_SEC = 15;
 
@@ -66,7 +66,7 @@ public class UniversalSteps {
         boolean status = waitForUrlToContain(expected, MAX_WAIT_SEC);
 
         String url = Driver.get().getCurrentUrl();
-        LOGGER.info("Page url: " + url);
+        LOGGER.info("Page url: {}", url);
 
         assertTrue(status);
     }
@@ -105,7 +105,7 @@ public class UniversalSteps {
         LOGGER.info("wellKnownJWKSResponse = {}", wellKnownJWKSResponse);
 
         try {
-            JsonNode rootNode = objectMapper.readTree(wellKnownJWKSResponse);
+            JsonNode rootNode = OBJECT_MAPPER.readTree(wellKnownJWKSResponse);
             JsonNode keysNode = rootNode.path("keys").get(0);
 
             // Assertions for each key-value pair
@@ -134,7 +134,7 @@ public class UniversalSteps {
     public void postRequestToPublicApiEndpointWithoutApiKey(String endpoint)
             throws IOException, InterruptedException {
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
-        LOGGER.info("getPublicAPIEndpoint() ==> " + publicApiGatewayUrl);
+        LOGGER.info("getPublicAPIEndpoint() ==> {}", publicApiGatewayUrl);
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(publicApiGatewayUrl + endpoint))
@@ -144,11 +144,9 @@ public class UniversalSteps {
                         .build();
         String publicAPIGatewayEndpointPostResponse = sendHttpRequest(request).body();
         LOGGER.info(
-                "publicAPIGatewayEndpointPostResponse = " + publicAPIGatewayEndpointPostResponse);
+                "publicAPIGatewayEndpointPostResponse = {}", publicAPIGatewayEndpointPostResponse);
         try {
-            ObjectMapper objectMapper =
-                    new ObjectMapper(); // Assuming you have ObjectMapper defined elsewhere
-            JsonNode rootNode = objectMapper.readTree(publicAPIGatewayEndpointPostResponse);
+            JsonNode rootNode = OBJECT_MAPPER.readTree(publicAPIGatewayEndpointPostResponse);
 
             // Assertion for the expected error message
             Assertions.assertEquals(
@@ -170,8 +168,7 @@ public class UniversalSteps {
     }
 
     public JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(result);
         return jsonNode.get(vc);
     }
 }

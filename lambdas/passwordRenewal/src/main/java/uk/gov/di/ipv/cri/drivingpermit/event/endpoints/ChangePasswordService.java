@@ -7,8 +7,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.request.ChangePasswordPayload;
@@ -39,7 +39,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 
 public class ChangePasswordService {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChangePasswordService.class);
 
     private static final String ENDPOINT_NAME = "change password endpoint";
     private static final String REQUEST_NAME = "Change Password";

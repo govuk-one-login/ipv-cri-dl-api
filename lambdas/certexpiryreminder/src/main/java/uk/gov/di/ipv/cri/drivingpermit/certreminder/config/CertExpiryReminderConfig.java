@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.certreminder.config;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.service.DVACloseableHttpClientFactory;
@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class CertExpiryReminderConfig {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(CertExpiryReminderConfig.class);
 
     private final Map<String, X509Certificate> certMap = new HashMap<>();
 

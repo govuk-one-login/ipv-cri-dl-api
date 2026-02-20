@@ -1,12 +1,12 @@
 package gov.di_ipv_drivingpermit.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConfigurationService {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationService.class);
 
     private final String publicApiBaseUrl;
     private final String coreStubEndpoint;
@@ -36,8 +36,7 @@ public class ConfigurationService {
     }
 
     private String getParameter(String paramName) {
-        String parameterValue = System.getenv(paramName);
-        return parameterValue;
+        return System.getenv(paramName);
     }
 
     public String getPublicApiBaseUrl() {
@@ -61,17 +60,19 @@ public class ConfigurationService {
     }
 
     public String getCoreStubUrl(boolean withAuth) {
-        String coreStubUsername = this.getCoreStubUsername();
-        String coreStubPassword = this.getCoreStubPassword();
-        String coreStubUrl = this.getCoreStubEndpoint();
 
         if (usingLocalStub) {
-            return "http://" + coreStubUrl;
+            return "http://" + coreStubEndpoint;
         } else {
             if (null != coreStubUsername && null != coreStubPassword && withAuth) {
-                return "https://" + coreStubUsername + ":" + coreStubPassword + "@" + coreStubUrl;
+                return "https://"
+                        + coreStubUsername
+                        + ":"
+                        + coreStubPassword
+                        + "@"
+                        + coreStubEndpoint;
             } else {
-                return "https://" + coreStubUrl;
+                return "https://" + coreStubEndpoint;
             }
         }
     }
@@ -86,7 +87,7 @@ public class ConfigurationService {
                 this.environment.equals("local") || this.environment.equals("shared-dev")
                         ? "dev"
                         : this.environment;
-        LOGGER.info("privateGatewayId =>" + privateGatewayId);
+        LOGGER.info("privateGatewayId =>{}", privateGatewayId);
         return "https://" + privateGatewayId + ".execute-api.eu-west-2.amazonaws.com/" + stage;
     }
 
@@ -108,7 +109,7 @@ public class ConfigurationService {
                 this.environment.equals("local") || this.environment.equals("shared-dev")
                         ? "dev"
                         : this.environment;
-        LOGGER.info("publicGatewayId =>" + publicGatewayId);
+        LOGGER.info("publicGatewayId => {}", publicGatewayId);
         return "https://" + publicGatewayId + ".execute-api.eu-west-2.amazonaws.com/" + stage;
     }
 

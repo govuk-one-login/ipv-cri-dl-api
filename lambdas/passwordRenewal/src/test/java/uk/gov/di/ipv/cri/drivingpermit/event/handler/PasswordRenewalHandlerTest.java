@@ -25,6 +25,9 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.TokenRespons
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,6 +44,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT;
 
+@ExtendWith(SystemStubsExtension.class)
 @ExtendWith(MockitoExtension.class)
 class PasswordRenewalHandlerTest {
 
@@ -57,10 +61,13 @@ class PasswordRenewalHandlerTest {
     @Mock private Context mockContext;
     @Mock private DvlaConfiguration dvlaConfiguration;
 
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     private PasswordRenewalHandler passwordRenewalHandler;
 
     @BeforeEach
     public void setup() {
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "DrivingPermitCRI");
 
         this.passwordRenewalHandler =
                 new PasswordRenewalHandler(

@@ -1,11 +1,11 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.util;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SleepHelper {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(SleepHelper.class);
 
     public final long maxSleepTimeMs;
 

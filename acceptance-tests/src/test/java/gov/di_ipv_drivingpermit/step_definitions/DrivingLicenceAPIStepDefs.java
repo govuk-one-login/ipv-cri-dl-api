@@ -103,11 +103,11 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
     }
 
     @When(
-            "Driving Licence user sends a POST request to Driving Licence endpoint with a invalid (.*) value using jsonRequest (.*)$")
+            "Driving Licence user sends a POST request to /check-driving-licence endpoint with an invalid sessionId header value of (.*) using jsonRequest (.*) and API returns the OAuth error access_denied$")
     public void DL_user_sends_a_post_request_to_driving_licence_end_point_with_invalid_session_id(
             String invalidHeaderValue, String dlJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToDrivingLicenceEndpointWithInvalidSessionId(
+        postRequestToDrivingLicenceEndpointWithInvalidSessionIdAndAPIReturnsOAuthAccessDenied(
                 invalidHeaderValue, dlJsonRequestBody);
     }
 
@@ -152,10 +152,10 @@ public class DrivingLicenceAPIStepDefs extends DrivingLicenceAPIPage {
 
     @When(
             "Driving Licence user sends a editable POST request to Driving Licence endpoint using jsonRequest (.*) with edited fields (.*)$")
-    public void passport_user_sends_a_post_request_to_passport_end_point(
-            String passportJsonRequestBody, String jsonEdits)
+    public void dl_user_sends_a_post_request_to_dl_end_point(
+            String dlJsonRequestBody, String jsonEdits)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToDrivingLicenceEndpoint(passportJsonRequestBody, jsonEdits);
+        postRequestToDrivingLicenceEndpoint(dlJsonRequestBody, jsonEdits);
     }
 
     @Then(

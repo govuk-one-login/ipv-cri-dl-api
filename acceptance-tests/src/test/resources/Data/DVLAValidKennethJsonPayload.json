@@ -1,11 +1,13 @@
 {
-  "drivingLicenceNumber": "DECER607085K99AE",
-  "postcode": "BA2 5AA",
-  "licenceIssuer": "DVLA",
-  "forenames": ["KENNETH"],
-  "surname": "DECERQUEIRA",
-  "dateOfBirth": "1965-07-08",
-  "issueDate": "2025-05-02",
-  "expiryDate": "2035-05-01",
-  "issueNumber": "17"
+	"drivingLicenceNumber": "DECER607085K99AE",
+	"postcode": "BA2 5AA",
+	"licenceIssuer": "DVLA",
+	"forenames": [
+		"KENNETH"
+	],
+	"surname": "DECERQUEIRA",
+	"dateOfBirth": "1965-07-08",
+	"issueDate": "2025-05-02",
+	"expiryDate": "2035-05-01",
+	"issueNumber": "17"
 }

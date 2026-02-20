@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
@@ -24,7 +24,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.FORM_D
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.ISSUING_AUTHORITY_PREFIX;
 
 public class IdentityVerificationService {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityVerificationService.class);
 
     private static final String OPENID_CHECK_METHOD_IDENTIFIER = "data";
     private static final String IDENTITY_CHECK_POLICY = "published";

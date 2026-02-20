@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dva.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
 
 import java.security.MessageDigest;
@@ -26,7 +26,7 @@ public class RequestHashValidator {
 
     public static class HashFactory {
         private final Sha256MessageDigestFactory messageDigestFactory;
-        private final Logger LOGGER = LogManager.getLogger();
+        private static final Logger LOGGER = LoggerFactory.getLogger(HashFactory.class);
 
         public HashFactory() {
             this(new Sha256MessageDigestFactory());

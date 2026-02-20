@@ -1,11 +1,11 @@
 package uk.gov.di.ipv.cri.drivingpermit.event.util;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PauseHelper {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(PauseHelper.class);
     private final long millis;
 
     public PauseHelper(long millis) {

@@ -1,15 +1,15 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import software.amazon.lambda.powertools.parameters.SSMProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.lambda.powertools.parameters.ssm.SSMProvider;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.util.Map;
 
 public class ParameterStoreService {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ParameterStoreService.class);
     private static final String LOG_MESSAGE_FORMAT = "Method {}, Prefix {}, Path {}, FullPath {}";
 
     private static final String PARAMETER_NAME_FORMAT = "/%s/%s";

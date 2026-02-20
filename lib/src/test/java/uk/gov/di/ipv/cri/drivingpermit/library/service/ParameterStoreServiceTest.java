@@ -6,7 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.lambda.powertools.parameters.SSMProvider;
+import software.amazon.lambda.powertools.parameters.ssm.SSMProvider;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -24,14 +24,13 @@ class ParameterStoreServiceTest {
 
     private static final String TEST_PARAM_NAME = "TEST-Parameter";
     private static final String TEST_PARAM_VALUE = "TEST-Parameter-Value";
+    private static final String AWS_STACK_NAME = "cri-api-dev";
+    private static final String PARAMETER_PREFIX = "cri-api-pipeline";
+    private static final String COMMON_PARAMETER_NAME_PREFIX = "commmon-lambdas";
 
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock SSMProvider mockSSMProvider;
-
-    private final String AWS_STACK_NAME = "cri-api-dev";
-    private final String PARAMETER_PREFIX = "cri-api-pipeline";
-    private final String COMMON_PARAMETER_NAME_PREFIX = "commmon-lambdas";
 
     private ParameterStoreService parameterStoreService;
 

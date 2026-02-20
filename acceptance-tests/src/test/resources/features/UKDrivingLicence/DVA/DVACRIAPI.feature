@@ -118,7 +118,7 @@ Feature: DVA CRI API
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
     And Driving Licence user gets a session-id
-    When Driving Licence user sends a POST request to Driving Licence endpoint with a invalid <invalidHeaderValue> value using jsonRequest DVAInvalidJsonPayload
+    When Driving Licence user sends a POST request to /check-driving-licence endpoint with an invalid sessionId header value of <invalidHeaderValue> using jsonRequest DVAInvalidJsonPayload and API returns the OAuth error access_denied
 
     Examples:
       | invalidHeaderValue |

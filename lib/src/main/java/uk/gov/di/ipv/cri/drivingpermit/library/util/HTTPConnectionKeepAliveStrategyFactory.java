@@ -7,12 +7,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @UtilityClass
 public class HTTPConnectionKeepAliveStrategyFactory {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(HTTPConnectionKeepAliveStrategyFactory.class);
 
     // See https://hc.apache.org/httpcomponents-client-4.5.x/current/tutorial/html/connmgmt.html
     public static ConnectionKeepAliveStrategy createHTTPConnectionKeepAliveStrategy(

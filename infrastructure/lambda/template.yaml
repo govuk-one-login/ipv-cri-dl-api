@@ -2016,17 +2016,16 @@ Resources:
 
   5XXErrorAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-5XXErrorAlarm"
+      AlarmName: !Sub "${AWS::StackName}-TESTING-5XXErrorAlarm"
       AlarmDescription: !Sub
-        - "There has been a small proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
+        - "THIS IS A TEST NOT A REAL ALARM. IGNORE!! There has been a small proportion of 5XX errors on the backend api-gateway. ${SupportManualURL}"
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue slack-notifications-WarningAlertsTopicArn
+        - !ImportValue slack-notifications-PagerDutySNSTopicArn
       AlarmActions:
-        - !ImportValue slack-notifications-WarningAlertsTopicArn
+        - !ImportValue slack-notifications-PagerDutySNSTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5

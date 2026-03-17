@@ -1645,9 +1645,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API Session Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1668,9 +1668,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${CommonStackName}-SessionFunctionTS lambda throttles. ${SupportManualURL}"
@@ -1697,9 +1697,9 @@ Resources:
       AlarmDescription: !Sub Driving licence ${Environment} - Common API Session Lambda all aliases unavailable for decryption
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       InsufficientDataActions: [ ]
       MetricName: all_aliases_unavailable_for_decryption
       Namespace: !Sub "${CriIdentifier}"
@@ -1722,9 +1722,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the session lambda.
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       InsufficientDataActions: [ ]
       MetricName: jwt_verification_failed
       Namespace: !Sub "${CriIdentifier}"
@@ -1746,9 +1746,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API Authorization Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1769,9 +1769,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${CommonStackName}-AuthorizationFunctionTS lambda throttles. ${SupportManualURL}"
@@ -1797,9 +1797,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API AccessToken Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1820,9 +1820,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${CommonStackName}-AccessTokenFunctionTS lambda throttles. ${SupportManualURL}"
@@ -1849,9 +1849,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the token lambda.
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       InsufficientDataActions: [ ]
       MetricName: jwt_verification_failed
       Namespace: !Sub "${CriIdentifier}"
@@ -1877,9 +1877,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - DrivingPermitCheck Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1900,9 +1900,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${DrivingPermitCheckingFunction} lambda throttles. ${SupportManualURL}"
@@ -1928,9 +1928,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} - IssueCredential Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1951,9 +1951,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       AlarmDescription: !Sub
         - "Trigger if the ${IssueCredentialFunction} lambda throttles. ${SupportManualURL}"
@@ -1979,9 +1979,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} lambda errors
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic ]
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
       InsufficientDataActions: [ ]
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -2006,9 +2006,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} DVLA Token endpoint returned a 400/401 response to a token request (failure to authenticate)
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: []
       MetricName: dvla_third_party_api_token_endpoint_status_code_alert_metric
       Namespace: !Sub "${CriIdentifier}"
@@ -2031,9 +2031,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the API Key used to perform document matches.
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue slack-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue slack-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: lambda_api_key_check_completed_error
       Namespace: !Sub "${CriIdentifier}"
@@ -2056,9 +2056,9 @@ Resources:
         AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the Password used to perform document matches.
         ActionsEnabled: true
         AlarmActions:
-          - !ImportValue platform-alarm-critical-alert-topic
+          - !ImportValue slack-notifications-CriticalAlertsTopicArn
         OKActions:
-          - !ImportValue platform-alarm-critical-alert-topic
+          - !ImportValue slack-notifications-CriticalAlertsTopicArn
         InsufficientDataActions: [ ]
         MetricName: lambda_password_renewal_check_completed_error
         Namespace: !Sub "${CriIdentifier}"
@@ -2083,9 +2083,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue slack-notifications-CriticalAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue slack-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       EvaluationPeriods: 1440
       DatapointsToAlarm: 2
@@ -2128,9 +2128,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} DVA certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue slack-notifications-CriticalAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-critical-alert-topic
+        - !ImportValue slack-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: dva_cert_expiry_metric
       Namespace: !Sub "${CriIdentifier}"
@@ -2156,9 +2156,9 @@ Resources:
       AlarmDescription: !Sub Driving Licence ${Environment} API Gateway 5XX errors
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       DatapointsToAlarm: 3
@@ -2204,9 +2204,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2284,9 +2284,9 @@ Resources:
         - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2364,9 +2364,9 @@ Resources:
         - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2440,9 +2440,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2504,9 +2504,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2568,9 +2568,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2632,9 +2632,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2696,9 +2696,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2760,9 +2760,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2824,9 +2824,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2888,9 +2888,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -2952,9 +2952,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3016,9 +3016,9 @@ Resources:
         - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3080,9 +3080,9 @@ Resources:
         - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3146,9 +3146,9 @@ Resources:
         - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 1
@@ -3210,9 +3210,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       AlarmActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       OKActions:
-        - !If [IsProdEnvironment, !Ref AlarmTopicDL, !ImportValue platform-alarm-critical-alert-topic]
+        - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3274,9 +3274,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3338,9 +3338,9 @@ Resources:
         - SupportManualURL: !FindInMap [StaticVariables, Urls, SupportManualURL]
       ActionsEnabled: true
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       InsufficientDataActions: [ ]
       Dimensions: [ ]
       EvaluationPeriods: 5
@@ -3404,9 +3404,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub "PersonInfo Lambda error."
       MetricName: Errors
       Dimensions:
@@ -3430,9 +3430,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub "PersonInfoFunction Lambda returning 5xx response."
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
@@ -3460,9 +3460,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub "DrivingPermitChecking Lambda error."
       MetricName: Errors
       Dimensions:
@@ -3486,9 +3486,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub "DrivingPermitCheckingFunction Lambda returning 5xx response."
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
@@ -3516,9 +3516,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub "IssueCredential Lambda error."
       MetricName: Errors
       Dimensions:
@@ -3542,9 +3542,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
-        - !ImportValue platform-alarm-warning-alert-topic
+        - !ImportValue slack-notifications-WarningAlertsTopicArn
       AlarmDescription: !Sub "IssueCredentialFunction Lambda returning 5xx response."
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
@@ -3566,71 +3566,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ####################################################################
-  #                                                                  #
-  # Alarm setup                                                      #
-  #                                                                  #
-  ####################################################################
 
-  AlarmSNSTopicKey:
-    Type: AWS::KMS::Key
-    Properties:
-      EnableKeyRotation: true
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: "Allow Cloudwatch to enqueue encrypted messages"
-            Effect: Allow
-            Resource: "*"
-            Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Principal:
-              Service:
-                - "cloudwatch.amazonaws.com"
-                - "sns.amazonaws.com"
-            Condition:
-              StringEquals:
-                aws:SourceAccount: !Ref "AWS::AccountId"
-          - Sid: "Allow the account to manage the key"
-            Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "kms:*"
-            Resource: "*"
-
-  AlarmTopicDL:
-    Type: AWS::SNS::Topic
-    Properties:
-      KmsMasterKeyId: !Ref AlarmSNSTopicKey
-    Metadata:
-      SamResourceId: AlarmTopicDL
-  AlarmTopicSubscriptionPagerDutyDL:
-    Type: AWS::SNS::Subscription
-    Properties:
-      TopicArn: !Ref AlarmTopicDL
-      Endpoint: !Sub "{{resolve:ssm:/alerting/pagerduty-dl/url}}"
-      Protocol: https
-    Metadata:
-      SamResourceId: AlarmTopicSubscriptionPagerDutyDL
-  AlarmPublishToTopicPolicyDL:
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      Topics:
-        - !Ref AlarmTopicDL
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action: sns:Publish
-            Resource: !Ref AlarmTopicDL
-            Principal:
-              Service: cloudwatch.amazonaws.com
-            Condition:
-              ArnLike:
-                AWS:SourceArn: !Sub "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*"
-    Metadata:
-      SamResourceId: AlarmPublishToTopicPolicyDL
 
 Outputs:
   StackName:

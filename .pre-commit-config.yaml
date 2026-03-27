@@ -15,14 +15,14 @@ repos:
             lib-dva/src/test/java/uk/gov/di/ipv/cri/drivingpermit/library/dva/service/DVACloseableHttpClientFactoryTest.java
         )$
 
-  - repo: https://github.com/awslabs/cfn-python-lint
-    rev: v1.18.1 # The version of cfn-lint to use
+  - repo: https://github.com/aws-cloudformation/cfn-lint
+    rev:  v1.46.0
     hooks:
-    - id: cfn-python-lint
-      files: .template\.yaml$
+    - id: cfn-lint
+      files: template\.ya?ml$
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.2.456'
+    rev: 3.2.457
     hooks:
     - id: checkov
       verbose: true

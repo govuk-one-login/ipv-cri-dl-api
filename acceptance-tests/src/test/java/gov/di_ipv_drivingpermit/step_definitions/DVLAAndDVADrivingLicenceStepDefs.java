@@ -2,6 +2,8 @@ package gov.di_ipv_drivingpermit.step_definitions;
 
 import gov.di_ipv_drivingpermit.pages.DVAEnterYourDetailsExactlyPageObject;
 import gov.di_ipv_drivingpermit.pages.DrivingLicencePageObject;
+import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
+import gov.di_ipv_drivingpermit.utilities.Driver;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -13,6 +15,12 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @When("User clicks on continue")
     public void user_clicks_on_continue() {
         continuebutton.click();
+    }
+
+    @When("User clicks on continue and waits for page reload")
+    public void user_clicks_on_continue_and_waits_for_page_reload() {
+        continuebutton.click();
+        BrowserUtils.waitForStaleElement(Driver.get(), continuebutton);
     }
 
     @When("User clicks the DVA consent checkbox")

@@ -247,7 +247,7 @@ Feature: DVA Driving Licence Test
   Scenario Outline: DVA - User attempts journey with invalid details and clicks on prove another way and generates a VC
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     And User re-enters DVA license number as <InvalidLicenceNumber>
-    When User clicks on continue
+    When User clicks on continue and waits for page reload
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
@@ -262,7 +262,7 @@ Feature: DVA Driving Licence Test
   Scenario Outline: DVA - User attempts journey with consent checkbox unselected and returns error
     Given User enters DVA data as a <DrivingLicenceSubject>
     And DVA consent checkbox is unselected
-    When User clicks on continue
+    When User clicks on continue and waits for page reload
     When I can see an error box highlighted red
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     Then User can see the DVA consent error in summary as You must give your consent to continue

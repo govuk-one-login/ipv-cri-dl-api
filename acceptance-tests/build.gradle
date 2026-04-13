@@ -6,9 +6,7 @@ plugins {
 defaultTasks 'clean', 'build'
 
 repositories {
-	maven {
-		url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-	}
+	mavenCentral()
 }
 
 configurations {

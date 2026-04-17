@@ -15,9 +15,7 @@ plugins {
 defaultTasks 'clean', 'spotlessApply', 'build'
 
 repositories {
-	maven {
-		url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-	}
+	mavenCentral()
 }
 
 ext {
@@ -194,9 +192,7 @@ subprojects {
 	}
 
 	repositories {
-		maven {
-			url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-		}
+		mavenCentral()
 		//flatDir {
 		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
 		//}

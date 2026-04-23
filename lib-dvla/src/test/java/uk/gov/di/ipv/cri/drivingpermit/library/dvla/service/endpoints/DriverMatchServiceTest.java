@@ -19,9 +19,9 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DvlaFormFields;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.DriverMatchAPIResponse;
@@ -175,8 +175,8 @@ class DriverMatchServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         assertNotNull(driverMatchServiceResult);
-        assertNotNull(driverMatchServiceResult.getValidity());
-        assertEquals(expectedValidity, driverMatchServiceResult.getValidity());
+        assertNotNull(driverMatchServiceResult.validity());
+        assertEquals(expectedValidity, driverMatchServiceResult.validity());
         assertDriverMatchHeaders(httpRequestCaptor);
     }
 
@@ -265,8 +265,8 @@ class DriverMatchServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         assertNotNull(driverMatchServiceResult);
-        assertNotNull(driverMatchServiceResult.getValidity());
-        assertEquals(expectedValidity, driverMatchServiceResult.getValidity());
+        assertNotNull(driverMatchServiceResult.validity());
+        assertEquals(expectedValidity, driverMatchServiceResult.validity());
         assertDriverMatchHeaders(httpRequestCaptor);
     }
 

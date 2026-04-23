@@ -37,9 +37,9 @@ class HttpRetryerTest {
     private HttpRetryer httpRetryer;
     @Mock private HttpPost mockPostRequest;
 
-    private List<Integer> TEST_RETRY_STATUS_CODES = List.of(300, 400, 500);
-    private List<Integer> TEST_SUCCESS_STATUS_CODES = List.of(200, 201);
-    private int TEST_MAX_RETRIES = 3;
+    private static final List<Integer> TEST_RETRY_STATUS_CODES = List.of(300, 400, 500);
+    private static final List<Integer> TEST_SUCCESS_STATUS_CODES = List.of(200, 201);
+    private static final int TEST_MAX_RETRIES = 3;
 
     @BeforeEach
     void setUp() {

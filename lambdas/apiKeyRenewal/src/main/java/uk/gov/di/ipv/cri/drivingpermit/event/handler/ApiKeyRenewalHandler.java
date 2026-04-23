@@ -19,6 +19,8 @@ import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerExcept
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.FlushMetrics;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.LoggingSupport;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
@@ -31,12 +33,10 @@ import uk.gov.di.ipv.cri.drivingpermit.library.config.GlobalConstants;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.drivingpermit.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
@@ -175,7 +175,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
             String apiKeyFromPreviousRun = getValue(secretsManagerClient, secretId);
             LOGGER.info("Found existing API Key in Secrets Manager, advancing to test");
             return apiKeyFromPreviousRun;
-        } catch (SecretNotFoundException | ResourceNotFoundException e) {
+        } catch (SecretNotFoundException | ResourceNotFoundException _) {
             return createNewApiKeyIfEnabled(secretId);
         }
     }

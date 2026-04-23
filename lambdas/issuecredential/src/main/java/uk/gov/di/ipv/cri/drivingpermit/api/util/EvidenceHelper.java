@@ -1,6 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.util;
 
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeConstructorFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential.Evidence;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.verifiablecredential.EvidenceType;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class EvidenceHelper {
 
-    @ExcludeFromGeneratedCoverageReport
+    @ExcludeConstructorFromGeneratedCoverageReport
     private EvidenceHelper() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

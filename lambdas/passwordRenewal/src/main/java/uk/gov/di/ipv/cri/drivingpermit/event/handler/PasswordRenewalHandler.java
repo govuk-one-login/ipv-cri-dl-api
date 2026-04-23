@@ -23,6 +23,8 @@ import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerExcept
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.FlushMetrics;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.LoggingSupport;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -31,15 +33,14 @@ import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
-import uk.gov.di.ipv.cri.drivingpermit.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.passay.AllowedCharacterRule.ERROR_CODE;
@@ -49,6 +50,9 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA
 public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRotationEvent, String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordRenewalHandler.class);
+
+    private static final String STEP_COMMENCED_LOG_FORMAT = "{} commenced";
+    private static final String STEP_COMPLETE_LOG_FORMAT = "{} step is complete";
 
     static {
         LoggingSupport.populateLambdaInitLoggerValues();
@@ -121,7 +125,8 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
             try {
                 if (step == SecretsManagerRotationStep.FINISH_SECRET) {
                     // CREATE SECRET START
-                    LOGGER.info("{} commenced", SecretsManagerRotationStep.CREATE_SECRET);
+                    LOGGER.info(
+                            STEP_COMMENCED_LOG_FORMAT, SecretsManagerRotationStep.CREATE_SECRET);
                     /*First step is for the new password to be generated, which will be labelled as 'AWSPENDING'
                      * and stored in the Secrets Manager as the pending new password until it's been verified by DVLA*/
                     LOGGER.info("Generating a new password");
@@ -130,7 +135,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                     try {
                         passwordFromPreviousRun =
                                 getValue(secretsManagerClient, input.getSecretId());
-                    } catch (SecretNotFoundException | ResourceNotFoundException e) {
+                    } catch (SecretNotFoundException | ResourceNotFoundException _) {
                         LOGGER.info(
                                 "If the value is null, we place the new secret into Secrets Manager");
                         PutSecretValueRequest secretRequest =
@@ -141,7 +146,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                                         .build();
                         secretsManagerClient.putSecretValue(secretRequest);
                     }
-                    LOGGER.info("{} step is complete", SecretsManagerRotationStep.CREATE_SECRET);
+                    LOGGER.info(STEP_COMPLETE_LOG_FORMAT, SecretsManagerRotationStep.CREATE_SECRET);
                     // CREATE SECRET END
 
                     // Setting TestStrategy to default until approach for password renewal has been
@@ -149,7 +154,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                     Strategy strategy = Strategy.NO_CHANGE;
 
                     // SET SECRET START
-                    LOGGER.info("{} commenced", SecretsManagerRotationStep.SET_SECRET);
+                    LOGGER.info(STEP_COMMENCED_LOG_FORMAT, SecretsManagerRotationStep.SET_SECRET);
                     /*Second step is to retrieve the AWS Pending Password and to send it to DVLA*/
                     // Scenarios:
                     // 1: New password set as pending then fails to set in DVLA
@@ -172,7 +177,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                                         "Running DVLA password updated with the value from pending");
                                 newPassword = passwordFromPreviousRun;
                                 callDVLAApi(passwordFromPreviousRun, strategy);
-                            } catch (UnauthorisedException e) {
+                            } catch (UnauthorisedException _) {
                                 LOGGER.info(
                                         "Unauthorised. Password or username has already been changed. Moving to testing");
                                 // Do nothing password has already been changed. Continue to test
@@ -183,11 +188,11 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                             callDVLAApi(newPassword, strategy);
                         }
                     }
-                    LOGGER.info("{} step is complete", SecretsManagerRotationStep.SET_SECRET);
+                    LOGGER.info(STEP_COMPLETE_LOG_FORMAT, SecretsManagerRotationStep.SET_SECRET);
                     // SET SECRET END
 
                     // TEST SECRET START
-                    LOGGER.info("{} commenced", SecretsManagerRotationStep.TEST_SECRET);
+                    LOGGER.info(STEP_COMMENCED_LOG_FORMAT, SecretsManagerRotationStep.TEST_SECRET);
                     /*Third step is to verify that the secret has been set in DVLA
                      * To do so, we request a token to ensure the new password works, but this does
                      * not replace the token in the DB, and does not invalidate the existing one*/
@@ -197,15 +202,16 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
                                 newPassword, strategy); // This may be breaking
                         LOGGER.info("Token retrieved successfully");
                     }
-                    LOGGER.info("{} step is complete", SecretsManagerRotationStep.TEST_SECRET);
+                    LOGGER.info(STEP_COMPLETE_LOG_FORMAT, SecretsManagerRotationStep.TEST_SECRET);
                     // TEST SECRET END
 
                     // FINISH SECRET START
-                    LOGGER.info("{} commenced", SecretsManagerRotationStep.FINISH_SECRET);
+                    LOGGER.info(
+                            STEP_COMMENCED_LOG_FORMAT, SecretsManagerRotationStep.FINISH_SECRET);
                     /*Final step updates Secrets Manager to set password as AWSCURRENT*/
                     LOGGER.info("Updating Secret in Secrets Manager");
                     updateSecret(input.getSecretId(), newPassword);
-                    LOGGER.info("{} step is complete", SecretsManagerRotationStep.FINISH_SECRET);
+                    LOGGER.info(STEP_COMPLETE_LOG_FORMAT, SecretsManagerRotationStep.FINISH_SECRET);
                     // FINISH SECRET END
                 }
 
@@ -264,7 +270,7 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
         LOGGER.info("Password has been successfully generated");
 
         return password.generatePassword(
-                14, splCharRule, lowerCaseRule, upperCaseRule, digitalRule);
+                14, List.of(splCharRule, lowerCaseRule, upperCaseRule, digitalRule));
     }
 
     private void callDVLAApi(String newPassword, Strategy strategy)
@@ -292,7 +298,8 @@ public class PasswordRenewalHandler implements RequestHandler<SecretsManagerRota
         }
     }
 
-    private static String getValue(SecretsManagerClient secretsClient, String secretId) {
+    private static String getValue(SecretsManagerClient secretsClient, String secretId)
+            throws SecretNotFoundException {
 
         try {
             GetSecretValueRequest valueRequest =

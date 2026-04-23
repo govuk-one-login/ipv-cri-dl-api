@@ -1,9 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints;
 
-import lombok.experimental.UtilityClass;
-
-@UtilityClass
-public class ResponseStatusCodes {
+public final class ResponseStatusCodes {
     // Extracted from dev portal + driver-get version 1.13.0
     public static final int SUCCESS = 200;
 
@@ -18,4 +15,9 @@ public class ResponseStatusCodes {
     public static final int UNSPECIFIED_ERROR_500 = 500; // Remote API Server Error
     public static final int BAD_GATEWAY = 502; // Remote API Network Issue
     public static final int GATEWAY_TIMEOUT = 504; // Remote API Network Issue
+
+    private ResponseStatusCodes() {
+        throw new UnsupportedOperationException(
+                "This is a utility class and cannot be instantiated");
+    }
 }

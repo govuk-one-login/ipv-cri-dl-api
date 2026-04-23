@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nimbusds.oauth2.sdk.ErrorObject;
 import net.minidev.json.JSONObject;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeClassFromGeneratedCoverageReport;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@ExcludeClassFromGeneratedCoverageReport
 public class CommonExpressOAuthError {
 
     /* OAuth Redirect */

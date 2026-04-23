@@ -26,15 +26,16 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.aws.certificate.utils.CryptoUtils;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
+import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.api.util.MyJwsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
@@ -47,6 +48,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.JweKmsDecrypter;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.KmsSigner;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.helpers.KeyCertHelper;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
@@ -81,7 +83,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -96,9 +100,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateSer
 @ExtendWith(SystemStubsExtension.class)
 class DvaThirdPartyDocumentGatewayTest {
     public static final String SELF_SIGNED_ROOT_CERT = System.getenv("SELF_SIGNED_ROOT_CERT");
-    private static final String TEST_API_RESPONSE_BODY = "test-api-response-content";
     private static final String TEST_ENDPOINT_URL = "https://test-endpoint.co.uk";
-    private static final int MOCK_HTTP_STATUS_CODE = -1;
     public static final String ACM_ROOT_CERT = System.getenv("ACM_ROOT_CERT");
     public static final String SAMPLE_PAYLOAD = System.getenv("SAMPLE_PAYLOAD");
     public static final String SIGNING_KEY_ID = System.getenv("SIGNING_KEY_ID");
@@ -174,10 +176,7 @@ class DvaThirdPartyDocumentGatewayTest {
                     JOSEException,
                     OAuthErrorResponseException,
                     java.text.ParseException {
-        final String testRequestBody = "serialisedCrossCoreApiRequest";
-
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
-        DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
@@ -196,9 +195,14 @@ class DvaThirdPartyDocumentGatewayTest {
         when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
                 .thenReturn(true);
 
-        DocumentCheckResult actualDocumentCheckResult =
+        DocumentCheckResult result =
                 dvaThirdPartyDocumentGateway.performDocumentCheck(
                         drivingPermitForm, Strategy.NO_CHANGE);
+
+        assertTrue(result.isExecutedSuccessfully());
+        assertTrue(result.isValid());
+        assertNotNull(result.getTransactionId());
+        assertEquals(APIResultSource.DVA, result.getApiResultSource());
 
         assertEquals(
                 TEST_ENDPOINT_URL + "/api/ukverify",
@@ -211,11 +215,411 @@ class DvaThirdPartyDocumentGatewayTest {
     }
 
     @Test
+    void getServiceNameReturnsDvaThirdPartyDocumentGateway() {
+        assertEquals("DvaThirdPartyDocumentGateway", dvaThirdPartyDocumentGateway.getServiceName());
+    }
+
+    @Test
+    void shouldNotAddRequestHashHeaderWhenNotPerformanceStub()
+            throws IOException,
+                    GeneralSecurityException,
+                    ParseException,
+                    JOSEException,
+                    OAuthErrorResponseException,
+                    java.text.ParseException {
+        when(mockDrivingPermitConfigurationService.isDvaPerformanceStub()).thenReturn(false);
+
+        this.dvaThirdPartyDocumentGateway =
+                new DvaThirdPartyDocumentGateway(
+                        dvaCryptographyService,
+                        requestHashValidator,
+                        mockDrivingPermitConfigurationService,
+                        httpRetryer,
+                        mockEventProbe);
+
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(createSuccessDvaResponse());
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
+                .thenReturn(true);
+
+        DocumentCheckResult result =
+                dvaThirdPartyDocumentGateway.performDocumentCheck(
+                        drivingPermitForm, Strategy.NO_CHANGE);
+
+        assertNotNull(result);
+        assertTrue(result.isExecutedSuccessfully());
+
+        HttpPost capturedRequest = httpRequestCaptor.getValue();
+        assertNull(capturedRequest.getFirstHeader("request-hash"));
+        assertNull(capturedRequest.getFirstHeader("has-ca"));
+    }
+
+    @Test
+    void shouldThrowWhenPreparePayloadFails()
+            throws JOSEException, IOException, GeneralSecurityException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenThrow(new JOSEException("signing failed"));
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.FAILED_TO_PREPARE_DVA_PAYLOAD.getMessage(),
+                e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenUnwrapDvaResponseThrowsIpvCryptoException()
+            throws IOException, GeneralSecurityException, JOSEException, java.text.ParseException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenThrow(new IpvCryptoException("cert expired"));
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE.getMessage(),
+                e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenUnwrapDvaResponseThrowsParseException()
+            throws IOException, GeneralSecurityException, JOSEException, java.text.ParseException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenThrow(new java.text.ParseException("bad format", 0));
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE.getMessage(),
+                e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenDvaResponseHashIsNull()
+            throws IOException, GeneralSecurityException, JOSEException, java.text.ParseException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+
+        DvaResponse incompleteResponse = new DvaResponse();
+        incompleteResponse.setRequestHash(null);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(incompleteResponse);
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.DVA_RETURNED_AN_INCOMPLETE_RESPONSE.getMessage(),
+                e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenHashValidationFails()
+            throws IOException, GeneralSecurityException, JOSEException, java.text.ParseException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(createSuccessDvaResponse());
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
+                .thenReturn(false);
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.DVA_D_HASH_VALIDATION_ERROR.getMessage(),
+                e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenHashValidationThrowsNoSuchAlgorithmException()
+            throws IOException, GeneralSecurityException, JOSEException, java.text.ParseException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(createSuccessDvaResponse());
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
+                .thenThrow(new NoSuchAlgorithmException("bad algorithm"));
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.INCORRECT_HASH_VALIDATION_ALGORITHM_ERROR.getMessage(),
+                e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void thirdPartyApiReturnsErrorOnHTTP401Response()
+            throws IOException, GeneralSecurityException, JOSEException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(401, null, "", false);
+
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.DVA_ERROR_HTTP_401.getMessage(), e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void thirdPartyApiReturnsErrorOnHTTP40XResponse()
+            throws IOException, GeneralSecurityException, JOSEException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(403, null, "", false);
+
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.DVA_ERROR_HTTP_40X.getMessage(), e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenJOSEExceptionDuringResponseHandling()
+            throws IOException, GeneralSecurityException, JOSEException, java.text.ParseException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenThrow(new JOSEException("decryption failed"));
+
+        OAuthErrorResponseException e =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () -> {
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
+                        });
+
+        assertEquals(
+                ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE.getMessage(),
+                e.getErrorResponse().getMessage());
+    }
+
+    @Test
+    void shouldLogDvaResponseWhenConfigEnabled()
+            throws IOException,
+                    GeneralSecurityException,
+                    ParseException,
+                    JOSEException,
+                    OAuthErrorResponseException,
+                    java.text.ParseException {
+        when(mockDrivingPermitConfigurationService.isLogDvaResponse()).thenReturn(true);
+
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "test-body", false);
+
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(createSuccessDvaResponse());
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
+                .thenReturn(true);
+
+        DocumentCheckResult result =
+                dvaThirdPartyDocumentGateway.performDocumentCheck(
+                        drivingPermitForm, Strategy.NO_CHANGE);
+
+        assertNotNull(result);
+        assertTrue(result.isExecutedSuccessfully());
+    }
+
+    @Test
+    void shouldReturnInvalidDocumentCheckResultWhenDvaResponseIsInvalid()
+            throws IOException,
+                    GeneralSecurityException,
+                    ParseException,
+                    JOSEException,
+                    OAuthErrorResponseException,
+                    java.text.ParseException {
+        DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
+
+        CloseableHttpResponse httpResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, "", false);
+
+        when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
+                        any(HttpUriRequest.class), any(DvaHttpRetryStatusConfig.class)))
+                .thenReturn(httpResponse);
+
+        DvaResponse invalidResponse = new DvaResponse();
+        invalidResponse.setRequestHash("somehash");
+        invalidResponse.setValidDocument(false);
+        when(this.dvaCryptographyService.unwrapDvaResponse(anyString()))
+                .thenReturn(invalidResponse);
+        JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
+        jwsObject.sign(new MyJwsSigner());
+        when(this.dvaCryptographyService.preparePayload(any(DvaPayload.class)))
+                .thenReturn(jwsObject);
+        when(this.requestHashValidator.valid(any(DvaPayload.class), anyString(), anyBoolean()))
+                .thenReturn(true);
+
+        DocumentCheckResult result =
+                dvaThirdPartyDocumentGateway.performDocumentCheck(
+                        drivingPermitForm, Strategy.NO_CHANGE);
+
+        assertTrue(result.isExecutedSuccessfully());
+        assertFalse(result.isValid());
+        assertEquals(APIResultSource.DVA, result.getApiResultSource());
+    }
+
+    @Test
     void thirdPartyApiReturnsErrorOnHTTP300Response()
             throws IOException, GeneralSecurityException, JOSEException {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
-        DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
-
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
         JWSObject jwsObject = new JWSObject(new JWSHeader(JWSAlgorithm.EdDSA), new Payload(""));
@@ -234,9 +638,8 @@ class DvaThirdPartyDocumentGatewayTest {
                 assertThrows(
                         OAuthErrorResponseException.class,
                         () -> {
-                            DocumentCheckResult actualFraudCheckResult =
-                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm, Strategy.NO_CHANGE);
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_30X.getMessage();
@@ -283,7 +686,6 @@ class DvaThirdPartyDocumentGatewayTest {
             throws IOException, GeneralSecurityException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
-        DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
@@ -303,9 +705,8 @@ class DvaThirdPartyDocumentGatewayTest {
                 assertThrows(
                         OAuthErrorResponseException.class,
                         () -> {
-                            DocumentCheckResult actualFraudCheckResult =
-                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm, Strategy.NO_CHANGE);
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_400.getMessage();
@@ -326,7 +727,6 @@ class DvaThirdPartyDocumentGatewayTest {
             throws IOException, GeneralSecurityException, JOSEException {
 
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
-        DocumentCheckResult testDocumentCheckResult = new DocumentCheckResult();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
@@ -346,9 +746,8 @@ class DvaThirdPartyDocumentGatewayTest {
                 assertThrows(
                         OAuthErrorResponseException.class,
                         () -> {
-                            DocumentCheckResult actualFraudCheckResult =
-                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm, Strategy.NO_CHANGE);
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_50X.getMessage();
@@ -378,7 +777,7 @@ class DvaThirdPartyDocumentGatewayTest {
                 .thenReturn(jwsObject);
 
         CloseableHttpResponse httpResponse =
-                HttpResponseFixtures.createHttpResponse(-1, null, "", false);
+                HttpResponseFixtures.createHttpResponse(600, null, "", false);
 
         when(this.httpRetryer.sendHTTPRequestRetryIfAllowed(
                         httpRequestCaptor.capture(), any(DvaHttpRetryStatusConfig.class)))
@@ -388,9 +787,8 @@ class DvaThirdPartyDocumentGatewayTest {
                 assertThrows(
                         OAuthErrorResponseException.class,
                         () -> {
-                            DocumentCheckResult actualFraudCheckResult =
-                                    dvaThirdPartyDocumentGateway.performDocumentCheck(
-                                            drivingPermitForm, Strategy.NO_CHANGE);
+                            dvaThirdPartyDocumentGateway.performDocumentCheck(
+                                    drivingPermitForm, Strategy.NO_CHANGE);
                         });
 
         final String EXPECTED_ERROR = ErrorResponse.DVA_ERROR_HTTP_X.getMessage();
@@ -415,8 +813,6 @@ class DvaThirdPartyDocumentGatewayTest {
                     JOSEException,
                     OAuthErrorResponseException,
                     java.text.ParseException {
-        final String testRequestBody = "serialisedCrossCoreApiRequest";
-
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);

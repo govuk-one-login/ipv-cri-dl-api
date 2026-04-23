@@ -16,13 +16,14 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.request.ChangePasswordPayload;
 import uk.gov.di.ipv.cri.drivingpermit.event.service.ChangePasswordHttpRetryStatusConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
+import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
@@ -35,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
@@ -71,7 +73,6 @@ class ChangePasswordServiceTest {
 
         when(mockDvlaConfiguration.getChangePasswordEndpoint()).thenReturn(TEST_END_POINT);
         when(mockDvlaConfiguration.getUsername()).thenReturn(TEST_USER_NAME);
-        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         changePasswordService =
                 new ChangePasswordService(
@@ -84,6 +85,7 @@ class ChangePasswordServiceTest {
 
     @Test
     void shouldReturn200WhenChangePasswordServiceCalled() throws IOException {
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
                 ArgumentCaptor.forClass(HttpPost.class);
@@ -126,6 +128,7 @@ class ChangePasswordServiceTest {
     @Test
     void shouldReturnOAuthErrorResponseExceptionWhenChangePasswordEndpointDoesNotRespond()
             throws IOException {
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         Exception exceptionCaught = new IOException("Change Password Endpoint Timed out");
 
@@ -178,6 +181,8 @@ class ChangePasswordServiceTest {
     @Test
     void shouldReturnOAuthErrorResponseExceptionWhenChangePasswordEndpointResponseStatusCodeNot200()
             throws IOException {
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
+
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
         // change password response but status not 200
@@ -243,6 +248,7 @@ class ChangePasswordServiceTest {
     @Test
     void shouldReturnOAuthErrorResponseExceptionWhenFailingToCreateChangePasswordRequestBody()
             throws IOException {
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         ObjectMapper spyObjectMapper = Mockito.spy(new ObjectMapper());
 
@@ -282,7 +288,116 @@ class ChangePasswordServiceTest {
     }
 
     @Test
+    void shouldReturnUnauthorisedExceptionWhenChangePasswordEndpointReturns401()
+            throws IOException {
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
+
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
+
+        CloseableHttpResponse changePasswordResponse =
+                HttpResponseFixtures.createHttpResponse(401, null, "Unauthorized", false);
+
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(),
+                        any(ChangePasswordHttpRetryStatusConfig.class)))
+                .thenReturn(changePasswordResponse);
+
+        UnauthorisedException thrownException =
+                assertThrows(
+                        UnauthorisedException.class,
+                        () ->
+                                changePasswordService.sendPasswordChangeRequest(
+                                        "NEW_PASSWORD", Strategy.NO_CHANGE),
+                        "Expected UnauthorisedException");
+
+        InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
+        inOrderMockHttpRetryerSequence
+                .verify(mockHttpRetryer, times(1))
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(ChangePasswordHttpRetryStatusConfig.class));
+        verifyNoMoreInteractions(mockHttpRetryer);
+
+        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        eq(DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix()),
+                        anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS
+                                .withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        DVLA_CHANGE_PASSWORD_RESPONSE_STATUS_CODE_ALERT_METRIC
+                                .withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertEquals(HttpStatus.SC_UNAUTHORIZED, thrownException.getStatusCode());
+        assertEquals(
+                ErrorResponse.ERROR_CHANGE_PASSWORD_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE
+                        .getMessage(),
+                thrownException.getErrorReason());
+    }
+
+    @Test
+    void shouldReturn200WhenSendPasswordChangeRequestCalledWithExistingPassword()
+            throws IOException {
+
+        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
+                ArgumentCaptor.forClass(HttpPost.class);
+
+        CloseableHttpResponse changePasswordResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, null, false);
+
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(),
+                        any(ChangePasswordHttpRetryStatusConfig.class)))
+                .thenReturn(changePasswordResponse);
+
+        assertDoesNotThrow(
+                () ->
+                        changePasswordService.sendPasswordChangeRequest(
+                                "NEWPASSWORD", "EXISTING_PASSWORD", Strategy.NO_CHANGE));
+
+        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        eq(DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix()),
+                        anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_EXPECTED_HTTP_STATUS
+                                .withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertChangePasswordHeaders(httpRequestCaptor);
+
+        String capturedBody =
+                new String(httpRequestCaptor.getValue().getEntity().getContent().readAllBytes());
+        assertTrue(capturedBody.contains("EXISTING_PASSWORD"));
+        assertTrue(capturedBody.contains("NEWPASSWORD"));
+    }
+
+    @Test
     void shouldReturn200WhenChangePasswordServiceCalledWithLiveTestStrategy() throws IOException {
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
                 ArgumentCaptor.forClass(HttpPost.class);

@@ -5,12 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.util.DrivingPermitFormTestDataGenerator;
@@ -53,8 +53,6 @@ class IdentityVerificationServiceTest {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generate();
         DocumentCheckResult testFraudCheckResult = new DocumentCheckResult();
         testFraudCheckResult.setExecutedSuccessfully(true);
-        String[] thirdPartyFraudCodes = new String[] {"sample-code"};
-        String[] mappedFraudCodes = new String[] {"mapped-code"};
         testFraudCheckResult.setValid(true);
         when(mockFormDataValidator.validate(drivingPermitForm))
                 .thenReturn(ValidationResult.createValidResult());
@@ -140,7 +138,6 @@ class IdentityVerificationServiceTest {
         assertNotNull(result);
         assertFalse(result.isExecutedSuccessfully());
         assertFalse(result.isVerified());
-        assertEquals("DrivingPermitCheckResult had no error message.", result.getError());
 
         verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
         verify(mockEventProbe).counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);

@@ -5,8 +5,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.SleepHelper;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.SleepHelper;
 
 import java.io.IOException;
 import java.net.http.HttpConnectTimeoutException;

@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckVerificationResult;
@@ -10,7 +11,6 @@ import uk.gov.di.ipv.cri.drivingpermit.api.domain.ValidationResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
@@ -41,8 +41,6 @@ public class IdentityVerificationService {
             "Error occurred when attempting to invoke the third party api";
     private static final String ERROR_DRIVING_PERMIT_CHECK_RESULT_RETURN_NULL =
             "Null DrivingPermitCheckResult returned when invoking third party API.";
-    private static final String ERROR_DRIVING_PERMIT_CHECK_RESULT_NO_ERR_MSG =
-            "DrivingPermitCheckResult had no error message.";
 
     private final FormDataValidator formDataValidator;
     private final EventProbe eventProbe;
@@ -128,13 +126,6 @@ public class IdentityVerificationService {
                 } else {
                     LOGGER.warn("Driving licence check failed");
                     eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
-
-                    if (Objects.nonNull(documentCheckResult.getErrorMessage())) {
-                        result.setError(documentCheckResult.getErrorMessage());
-                    } else {
-                        result.setError(ERROR_DRIVING_PERMIT_CHECK_RESULT_NO_ERR_MSG);
-                        LOGGER.warn(ERROR_DRIVING_PERMIT_CHECK_RESULT_NO_ERR_MSG);
-                    }
                 }
                 return result;
             }

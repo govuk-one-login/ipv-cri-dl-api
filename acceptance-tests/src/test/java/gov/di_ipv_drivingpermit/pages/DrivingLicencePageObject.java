@@ -264,17 +264,17 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public void clickOnDVLARadioButton() {
         radioBtnDVLA.click();
-        ctButton.click();
+        BrowserUtils.clickAndWaitForNavigation(ctButton);
     }
 
     public void clickOnDVARadioButton() {
         radioBtnDVA.click();
-        ctButton.click();
+        BrowserUtils.clickAndWaitForNavigation(ctButton);
     }
 
     public void clickOnIDoNotHaveAUKDrivingLicenceRadioButton() {
         noDLRadioBtn.click();
-        continuebutton.click();
+        BrowserUtils.clickAndWaitForNavigation(continuebutton);
     }
 
     public void noSelectContinue() {
@@ -305,13 +305,13 @@ public class DrivingLicencePageObject extends UniversalSteps {
     // -----------------------
 
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
-        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBanner, 10);
+        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBanner, MAX_WAIT_SEC);
         assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }
 
     public void userNotFoundInThirdPartyErrorIsDisplayedDva() {
-        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBannerDva, 10);
+        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBannerDva, MAX_WAIT_SEC);
         assertTrue(userNotFoundInThirdPartyBannerDva.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBannerDva.getText());
     }
@@ -511,34 +511,34 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void assertInvalidDoBInErrorSummary(String expectedText) {
-        BrowserUtils.waitForVisibility(invalidDOBErrorInSummary, 10);
+        BrowserUtils.waitForVisibility(invalidDOBErrorInSummary, MAX_WAIT_SEC);
         assertEquals(expectedText, invalidDOBErrorInSummary.getText());
     }
 
     public void assertInvalidDoBOnField(String expectedText) {
-        BrowserUtils.waitForVisibility(invalidDateOfBirthFieldError, 10);
+        BrowserUtils.waitForVisibility(invalidDateOfBirthFieldError, MAX_WAIT_SEC);
         assertEquals(expectedText, invalidDateOfBirthFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidLicenceNumberInErrorSummary(String expectedText) {
-        BrowserUtils.waitForVisibility(invalidDrivingLicenceErrorInSummary, 10);
+        BrowserUtils.waitForVisibility(invalidDrivingLicenceErrorInSummary, MAX_WAIT_SEC);
         assertEquals(expectedText, invalidDrivingLicenceErrorInSummary.getText());
     }
 
     public void assertInvalidLicenceNumberField(String expectedText) {
-        BrowserUtils.waitForVisibility(invalidDrivingLicenceErrorInField, 10);
+        BrowserUtils.waitForVisibility(invalidDrivingLicenceErrorInField, MAX_WAIT_SEC);
         assertEquals(
                 expectedText, invalidDrivingLicenceErrorInField.getText().trim().replace("\n", ""));
     }
 
     public void assertNoConsentGivenInErrorSummary(String expectedText) {
-        BrowserUtils.waitForVisibility(dvlaConsentCheckboxError, 10);
+        BrowserUtils.waitForVisibility(dvlaConsentCheckboxError, MAX_WAIT_SEC);
         String formattedErrorText = dvlaConsentCheckboxError.getText().replaceAll("\\s+", " ");
         assertEquals(expectedText, formattedErrorText);
     }
 
     public void assertNoConsentGivenInDVAErrorSummary(String expectedText) {
-        BrowserUtils.waitForVisibility(dvaConsentCheckboxError, 10);
+        BrowserUtils.waitForVisibility(dvaConsentCheckboxError, MAX_WAIT_SEC);
         String formattedErrorText = dvaConsentCheckboxError.getText().replaceAll("\\s+", " ");
         assertEquals(expectedText, formattedErrorText);
     }

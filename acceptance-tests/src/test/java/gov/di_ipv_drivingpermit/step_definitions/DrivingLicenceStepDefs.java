@@ -211,11 +211,11 @@ public class DrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @Given("User clicks on language toggle and switches to Welsh")
     public void userClickOnLanguageToggle() {
-        languageToggle.click();
+        BrowserUtils.clickAndWaitForNavigation(languageToggle);
     }
 
     @Given("User clicks language toggle and switches to English")
     public void userClickOnLanguageToggleWales() {
-        languageToggleWales.click();
+        BrowserUtils.clickAndWaitForNavigation(languageToggleWales);
     }
 }

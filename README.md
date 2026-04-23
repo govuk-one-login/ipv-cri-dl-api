@@ -2,22 +2,19 @@
 
 Driving Permit Check Credential Issuer
 
-## SDKMan
+### SDKMan
 
 This project has an `.sdkmanrc` file
 
 Install SDKMan via the instructions on `https://sdkman.io/install`
 
-For auto-switching between JDK versions, edit your `~/.sdkman/etc/config` and set `sdkman_auto_env=true`
-
-Then use sdkman to install Java JDK listed in this projects `.sdkmanrc`
-e.g `sdk install java x.y.z-amzn`
+For auto-switching between JDK/Gradle versions, edit your `~/.sdkman/etc/config` and set `sdkman_auto_env=true`
 
 Restart your terminal
 
-## Gradle
+Install the compatible jdk and gradle version with `sdk env install`
 
-Gradle 8 is used on this project
+Build with `./gradlew`
 
 ## Pre-Commit Checking / Verification
 

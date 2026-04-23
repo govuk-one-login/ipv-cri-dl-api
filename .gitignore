@@ -1,3 +1,6 @@
+# Intellij / Amazon Q
+.ai
+
 # Compiled class file
 *.class
 
@@ -61,5 +64,3 @@ kmsSigning
 *.srl
 *.p12
 dva-dev-certs
-
-*.toml

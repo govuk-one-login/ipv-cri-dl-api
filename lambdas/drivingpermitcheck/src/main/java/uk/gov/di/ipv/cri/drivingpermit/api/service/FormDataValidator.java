@@ -36,17 +36,17 @@ public class FormDataValidator {
                     "DateOfBirth" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX);
         }
 
-        if (Objects.isNull(drivingPermitForm.getAddresses())) {
-            validationErrors.add("Addresses" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX);
-        } else if (JsonValidationUtility.validateIntegerRangeData(
-                drivingPermitForm.getAddresses().size(),
-                MIN_SUPPORTED_ADDRESSES,
-                MAX_SUPPORTED_ADDRESSES,
-                "Addresses",
-                validationErrors)) {
+        if (JsonValidationUtility.validateListDataEmptyIsAllowed(
+                        drivingPermitForm.getAddresses(), "Addresses", validationErrors)
+                && JsonValidationUtility.validateIntegerRangeDataNullIsFail(
+                        drivingPermitForm.getAddresses().size(),
+                        MIN_SUPPORTED_ADDRESSES,
+                        MAX_SUPPORTED_ADDRESSES,
+                        "Addresses",
+                        validationErrors)) {
 
             JsonValidationUtility.validateStringDataEmptyIsFail(
-                    drivingPermitForm.getAddresses().get(0).getPostalCode(),
+                    drivingPermitForm.getAddresses().getFirst().getPostalCode(),
                     POSTCODE_STRING_MAX_LEN,
                     "Postcode",
                     validationErrors);
@@ -54,7 +54,7 @@ public class FormDataValidator {
 
         try {
             IssuingAuthority.valueOf(drivingPermitForm.getLicenceIssuer());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             validationErrors.add(
                     String.format(
                             "LicenceIssuer %s is Unknown", drivingPermitForm.getLicenceIssuer()));

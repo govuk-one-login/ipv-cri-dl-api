@@ -14,6 +14,9 @@ public class SecretsManagerService {
 
     private static final String PARAMETER_NAME_FORMAT = "/%s/%s";
 
+    private static final String GET_STACK_SECRET_VALUE_LOG_FORMAT = "{} getStackSecretValue";
+    private static final String AWS_CURRENT = "AWSCURRENT";
+
     // Prefixes
     private final String parameterPrefix; // Parameters that can hava prefix override
     private final String stackParameterPrefix; // Parameters that must always be from the stack
@@ -39,12 +42,12 @@ public class SecretsManagerService {
         GetSecretValueRequest valueRequest =
                 GetSecretValueRequest.builder()
                         .secretId(secretId)
-                        .versionStage("AWSCURRENT")
+                        .versionStage(AWS_CURRENT)
                         .build();
 
         GetSecretValueResponse valueResponse = secretsManagerClient.getSecretValue(valueRequest);
 
-        LOGGER.info("{} {}", "getStackSecretValue", secretId);
+        LOGGER.info(GET_STACK_SECRET_VALUE_LOG_FORMAT, secretId);
 
         return valueResponse.secretString();
     }
@@ -55,12 +58,12 @@ public class SecretsManagerService {
         GetSecretValueRequest valueRequest =
                 GetSecretValueRequest.builder()
                         .secretId(secretId)
-                        .versionStage("AWSCURRENT")
+                        .versionStage(AWS_CURRENT)
                         .build();
 
         GetSecretValueResponse valueResponse = secretsManagerClient.getSecretValue(valueRequest);
 
-        LOGGER.info("{} {}", "getStackSecretValue", secretId);
+        LOGGER.info(GET_STACK_SECRET_VALUE_LOG_FORMAT, secretId);
 
         return valueResponse.secretString();
     }
@@ -73,12 +76,12 @@ public class SecretsManagerService {
         GetSecretValueRequest valueRequest =
                 GetSecretValueRequest.builder()
                         .secretId(secretId)
-                        .versionStage("AWSCURRENT")
+                        .versionStage(AWS_CURRENT)
                         .build();
 
         GetSecretValueResponse valueResponse = secretsManagerClient.getSecretValue(valueRequest);
 
-        LOGGER.info("{} {}", "getStackSecretValue", secretId);
+        LOGGER.info(GET_STACK_SECRET_VALUE_LOG_FORMAT, secretId);
 
         return valueResponse.secretString();
     }

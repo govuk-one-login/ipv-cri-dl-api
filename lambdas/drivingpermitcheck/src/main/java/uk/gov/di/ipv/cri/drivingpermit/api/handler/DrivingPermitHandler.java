@@ -13,6 +13,8 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.lambda.powertools.logging.CorrelationIdPaths;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.FlushMetrics;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.LoggingSupport;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
@@ -39,12 +41,10 @@ import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.CheckDetails;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.util.AcmCertificateService;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.drivingpermit.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.drivingpermit.library.persistence.item.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.DocumentCheckResultStorageService;
@@ -109,19 +109,19 @@ public class DrivingPermitHandler
                     JsonProcessingException {
         ServiceFactory serviceFactory = new ServiceFactory();
 
-        DrivingPermitConfigurationService drivingPermitConfigurationServiceNotYetAssigned =
+        final DrivingPermitConfigurationService drivingPermitConfigurationServiceNotYetAssigned =
                 createDrivingPermitConfigurationService(serviceFactory);
 
-        AcmCertificateService acmCertificateService =
+        final AcmCertificateService acmCertificateService =
                 new AcmCertificateService(serviceFactory.getClientProviderFactory().getAcmClient());
 
-        ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactoryNotAssignedYet =
+        final ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactoryNotAssignedYet =
                 new ThirdPartyAPIServiceFactory(
                         serviceFactory,
                         drivingPermitConfigurationServiceNotYetAssigned,
                         acmCertificateService);
 
-        IdentityVerificationService identityVerificationServiceNotAssignedYet =
+        final IdentityVerificationService identityVerificationServiceNotAssignedYet =
                 createIdentityVerificationService(serviceFactory);
 
         initializeLambdaServices(
@@ -138,7 +138,7 @@ public class DrivingPermitHandler
                 serviceFactory, thirdPartyAPIServiceFactory, identityVerificationService);
     }
 
-    public void initializeLambdaServices(
+    private void initializeLambdaServices(
             ServiceFactory serviceFactory,
             ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
             IdentityVerificationService identityVerificationService) {
@@ -531,10 +531,8 @@ public class DrivingPermitHandler
     }
 
     private APIGatewayProxyResponseEvent generateExitResponseEvent(boolean canRetry) {
-        DocumentVerificationResponse response = new DocumentVerificationResponse();
-        response.setRetry(canRetry);
-
-        return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatusCode.OK, response);
+        return ApiGatewayResponseGenerator.proxyJsonResponse(
+                HttpStatusCode.OK, new DocumentVerificationResponse(canRetry));
     }
 
     private String retrieveSessionIdFromHeaders(Map<String, String> headers) {

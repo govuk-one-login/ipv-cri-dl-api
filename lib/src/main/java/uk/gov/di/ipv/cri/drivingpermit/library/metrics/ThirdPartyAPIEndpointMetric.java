@@ -24,9 +24,9 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetri
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 public enum ThirdPartyAPIEndpointMetric {
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DVA End Point Metrics                                                                     //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+     DVA End Point Metrics
+    *********************************************************************************************************** */
     DVA_REQUEST_CREATED(DVA_THIRD_PARTY_API_DVA_ENDPOINT, REQUEST_CREATED),
     DVA_REQUEST_SEND_OK(DVA_THIRD_PARTY_API_DVA_ENDPOINT, REQUEST_SEND_OK),
     DVA_REQUEST_SEND_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, REQUEST_SEND_ERROR),
@@ -56,9 +56,9 @@ public enum ThirdPartyAPIEndpointMetric {
     DVA_INVALID_REQUEST_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, "invalid_request_error"),
     DVA_REQUEST_ERROR(DVA_THIRD_PARTY_API_DVA_ENDPOINT, "request_error"),
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DLVA Token End Point Metrics                                                              //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+     DLVA Token End Point Metrics
+    *********************************************************************************************************** */
     DVLA_TOKEN_REQUEST_REUSING_CACHED_TOKEN(
             DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, "reusing_cached_token"), // Unique to DVLA Token
 
@@ -93,9 +93,9 @@ public enum ThirdPartyAPIEndpointMetric {
     DVLA_TOKEN_HTTP_RETRYER_SEND_ERROR(
             DVLA_THIRD_PARTY_API_TOKEN_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DVLA Match End Point Metrics                                                              //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+     DLVA Match End Point Metrics
+    *********************************************************************************************************** */
     DVLA_MATCH_REQUEST_CREATED(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, REQUEST_CREATED),
     DVLA_MATCH_REQUEST_SEND_OK(DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, REQUEST_SEND_OK),
 
@@ -125,9 +125,9 @@ public enum ThirdPartyAPIEndpointMetric {
     DVLA_MATCH_HTTP_RETRYER_SEND_ERROR(
             DVLA_THIRD_PARTY_API_MATCH_ENDPOINT, HTTP_RETRYER_SEND_ERROR),
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DVLA change password Metrics                                                              //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+     DLVA change password End Point Metrics
+    *********************************************************************************************************** */
     DVLA_CHANGE_PASSWORD_REQUEST_CREATED(
             DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT, REQUEST_CREATED),
     DVLA_CHANGE_PASSWORD_REQUEST_SEND_OK(
@@ -164,10 +164,9 @@ public enum ThirdPartyAPIEndpointMetric {
             DVLA_THIRD_PARTY_API_CHANGE_PASSWORD_ENDPOINT,
             "password_fail_alert_metric"), // Unique to DVLA Password
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DVLA change API Key Metrics                                                               //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
+    /* *********************************************************************************************************
+     DLVA change API  Key End Point Metrics
+    *********************************************************************************************************** */
     DVLA_CHANGE_API_KEY_REQUEST_CREATED(DVLA_THIRD_PARTY_API_KEY_ENDPOINT, REQUEST_CREATED),
     DVLA_CHANGE_API_KEY_REQUEST_SEND_OK(DVLA_THIRD_PARTY_API_KEY_ENDPOINT, REQUEST_SEND_OK),
 
@@ -198,9 +197,9 @@ public enum ThirdPartyAPIEndpointMetric {
     DVLA_CHANGE_API_KEY_RESPONSE_STATUS_CODE_ALERT_METRIC(
             DVLA_THIRD_PARTY_API_KEY_ENDPOINT, "api_key_fail_alert_metric");
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // End Of Metric Descriptions                                                                //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+    End Of Metric Descriptions
+    *********************************************************************************************************** */
 
     private static final String METRIC_FORMAT = "%s_%s";
     private static final String METRIC_CAUSE_FORMAT = METRIC_FORMAT;

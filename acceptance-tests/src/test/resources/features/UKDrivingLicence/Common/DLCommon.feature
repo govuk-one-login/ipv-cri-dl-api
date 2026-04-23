@@ -18,7 +18,6 @@ Feature: Driving License Test Common
     Then I can see a DVA radio button titled DVA
     And I can see a I do not have a UK driving licence radio button titled I do not have a UK photocard driving licence
     Then I can see CTA Continue
-    And The test is complete and I close the driver
 
   @stub
   Scenario: User selects no Driving Licence and landed in IPV Core
@@ -27,7 +26,6 @@ Feature: Driving License Test Common
     And I validate the URL having access denied
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
-    And The test is complete and I close the driver
 
   @stub
   Scenario: User continue with no selection and see the error displayed
@@ -36,11 +34,9 @@ Feature: Driving License Test Common
     And An error heading copy You must choose an option to continue
     Then I can select a link which directs to the problem field
     And The field error copy Error:You must choose an option to continue
-    And The test is complete and I close the driver
 
   @stub
   Scenario: Check the Unrecoverable error/ Unknown error in Driving Licence CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – GOV.UK One Login
     Then I can see the error heading Sorry, there is a problem
-    And The test is complete and I close the driver

@@ -1,10 +1,9 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import org.apache.http.client.config.RequestConfig;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeClassFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
@@ -12,8 +11,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatc
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
 
-@ExcludeFromGeneratedCoverageReport
-@Getter
+@ExcludeClassFromGeneratedCoverageReport
 public class DvlaEndpointFactory {
 
     private final TokenRequestService tokenRequestService;
@@ -45,5 +43,13 @@ public class DvlaEndpointFactory {
                         defaultRequestConfig,
                         objectMapper,
                         eventProbe);
+    }
+
+    public TokenRequestService getTokenRequestService() {
+        return this.tokenRequestService;
+    }
+
+    public DriverMatchService getDriverMatchService() {
+        return this.driverMatchService;
     }
 }

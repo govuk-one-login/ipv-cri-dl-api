@@ -1,8 +1,8 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service;
 
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
 public interface ThirdPartyAPIService {

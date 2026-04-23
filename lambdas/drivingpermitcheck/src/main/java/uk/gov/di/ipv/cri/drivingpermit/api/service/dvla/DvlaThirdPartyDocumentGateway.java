@@ -3,11 +3,11 @@ package uk.gov.di.ipv.cri.drivingpermit.api.service.dvla;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.Validity;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.result.DriverMatchServiceResult;
@@ -113,9 +113,9 @@ public class DvlaThirdPartyDocumentGateway implements ThirdPartyAPIService {
         LOGGER.info("Mapping DVLA response");
 
         // Validity.NOT_FOUND and Validity.INVALID map as false here
-        boolean validDocument = (driverMatchServiceResult.getValidity() == Validity.VALID);
+        boolean validDocument = (driverMatchServiceResult.validity() == Validity.VALID);
 
-        String requestId = driverMatchServiceResult.getRequestId();
+        String requestId = driverMatchServiceResult.requestId();
 
         DocumentCheckResult documentCheckResult = new DocumentCheckResult();
         documentCheckResult.setValid(validDocument);

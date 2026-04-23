@@ -1,11 +1,11 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.dynamo;
 
-import lombok.NoArgsConstructor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeClassFromGeneratedCoverageReport;
 
 @DynamoDbBean
-@NoArgsConstructor
+@ExcludeClassFromGeneratedCoverageReport
 public class TokenItem {
 
     private String id;
@@ -13,6 +13,10 @@ public class TokenItem {
     private String tokenValue;
 
     private long ttl;
+
+    public TokenItem() {
+        /*Intended */
+    }
 
     public TokenItem(String tokenValue) {
         this.tokenValue = tokenValue;

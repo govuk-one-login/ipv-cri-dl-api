@@ -1,12 +1,37 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+	}
+}
+
+dependencyResolutionManagement {
+	repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+	repositories {
+		// mavenLocal() // Uncomment if using locally published libs
+		//flatDir {
+		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
+		//}
+		mavenCentral()
+	}
+}
+
 rootProject.name = "di-ipv-cri-driving-permit-api"
 
-include "acceptance-tests",
-		"lib",
-		"lib-dva",
-		"lib-dvla",
-		"lambdas:drivingpermitcheck",
-		"lambdas:issuecredential",
-		"lambdas:certexpiryreminder",
-		"lambdas:passwordRenewal",
-		"lambdas:personInfo",
-		'lambdas:apiKeyRenewal'
+if (System.getenv('AC_TEST_ONLY')) {
+	include "acceptance-tests"
+} else {
+	include "acceptance-tests",
+			"lib",
+			"lib-dva",
+			"lib-dvla",
+			"lambdas:drivingpermitcheck",
+			"lambdas:issuecredential",
+			"lambdas:certexpiryreminder",
+			"lambdas:passwordRenewal",
+			"lambdas:personInfo",
+			'lambdas:apiKeyRenewal'
+}
+
+enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')

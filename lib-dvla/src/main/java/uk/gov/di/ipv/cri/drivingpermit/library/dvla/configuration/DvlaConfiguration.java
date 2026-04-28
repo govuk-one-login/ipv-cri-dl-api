@@ -3,7 +3,7 @@ package uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeClassFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.config.SecretsManagerService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
@@ -14,7 +14,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParam
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_PASSWORD_SECRET;
 import static uk.gov.di.ipv.cri.drivingpermit.library.config.ParameterStoreParameters.DVLA_TOKEN_TABLE_NAME;
 
-@ExcludeFromGeneratedCoverageReport
+@ExcludeClassFromGeneratedCoverageReport
 public class DvlaConfiguration {
 
     private static final String DVLA_PARAMETER_PATH = "DVLA";
@@ -56,13 +56,13 @@ public class DvlaConfiguration {
                         ParameterPrefix.OVERRIDE, DVLA_PARAMETER_PATH);
 
         final String endpointUri = dvlaParameterMap.get("endpointUrl");
-        ////////////////////////// TestStrategyMVP////////////////////////////////////
+
+        // TestStrategyMVP
         this.endpointURLs = constructParameterMap(dvlaParameterMap.get("testStrategy/endpointUrl"));
         this.tokenPath = dvlaParameterMap.get("tokenPath");
         this.matchPath = dvlaParameterMap.get("matchPath");
         this.changePasswordPath = dvlaParameterMap.get("passwordPath");
         this.changeApiKeyPath = dvlaParameterMap.get("apiKeyPath");
-        /////////////////////////////////////////////////////////////////////////////
 
         this.tokenEndpoint = String.format("%s%s", endpointUri, tokenPath);
         this.matchEndpoint = String.format("%s%s", endpointUri, matchPath);
@@ -113,7 +113,7 @@ public class DvlaConfiguration {
         if (isPasswordRotationEnabled()) {
             try {
                 return secretsManagerService.getStackSecretValue(DVLA_PASSWORD_SECRET);
-            } catch (ResourceNotFoundException e) {
+            } catch (ResourceNotFoundException _) {
                 return password;
             }
         } else {
@@ -125,7 +125,7 @@ public class DvlaConfiguration {
         if (isApiKeyRotationEnabled()) {
             try {
                 return secretsManagerService.getStackSecretValue(DVLA_API_KEY_SECRET);
-            } catch (ResourceNotFoundException e) {
+            } catch (ResourceNotFoundException _) {
                 return apiKey;
             }
         } else {

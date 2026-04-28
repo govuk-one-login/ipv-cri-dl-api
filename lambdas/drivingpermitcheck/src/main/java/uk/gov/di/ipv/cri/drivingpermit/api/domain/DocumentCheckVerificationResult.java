@@ -8,7 +8,6 @@ public class DocumentCheckVerificationResult {
 
     private boolean executedSuccessfully;
     private boolean verified;
-    private List<String> validationErrors;
     private String error;
     private List<String> contraIndicators;
     private int strengthScore;
@@ -33,14 +32,6 @@ public class DocumentCheckVerificationResult {
 
     public void setVerified(boolean verified) {
         this.verified = verified;
-    }
-
-    public List<String> getValidationErrors() {
-        return validationErrors;
-    }
-
-    public void setValidationErrors(List<String> validationErrors) {
-        this.validationErrors = validationErrors;
     }
 
     public List<String> getContraIndicators() {

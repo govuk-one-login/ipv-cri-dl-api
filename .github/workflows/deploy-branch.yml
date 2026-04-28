@@ -15,36 +15,36 @@ on:
         description: The region in which the stack was deployed
         value: ${{ jobs.deploy.outputs.aws-region }}
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 jobs:
   build:
     name: Build SAM app
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      contents: read
     concurrency:
       group: build-development-${{ github.head_ref || github.ref_name }}
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
       repo_base_dir : ${{ steps.vars.outputs.repo_base_dir }}
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
+      - name: Check out repository code
+        uses: actions/checkout@v6
         with:
-          java-version: 17
-          distribution: zulu
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version-file: '.sdkmanrc'
+          distribution: corretto
+          cache: gradle
 
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
-
-      - name: Check out repository code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Get output variables
         id: vars
@@ -56,7 +56,7 @@ jobs:
         uses: govuk-one-login/github-actions/sam/build-application@3b0015c58dd0e19e1572fda59dda4184df387d1e
         id: build
         with:
-          sam-version: "1.134.0"
+          sam-version: "1.157.1"
           base-dir: ${{ steps.vars.outputs.repo_base_dir }}
           template: infrastructure/lambda/template.yaml
           cache-name: ipv-cri-dl-api-${{ steps.vars.outputs.sha_short }}
@@ -65,6 +65,8 @@ jobs:
   deploy:
     name: Deploy stack
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     timeout-minutes: 15
     needs: build
     concurrency:

@@ -136,7 +136,7 @@ class PreLambdaHandler implements HttpHandler {
                                 new APIGatewayProxyRequestEvent.ProxyRequestContext()
                                         .withRequestId(requestId));
         String requestQuery = request.getRequestURI().getQuery();
-        LOGGER.info("query retrieved: " + requestQuery);
+        LOGGER.info("query retrieved: {}", requestQuery);
 
         if (requestQuery != null) {
             apiGatewayProxyRequestEvent.setQueryStringParameters(
@@ -174,8 +174,7 @@ class PreLambdaHandler implements HttpHandler {
                 Map<String, Object> credentialSubject =
                         (Map<String, Object>) vc.get("credentialSubject");
                 List<Object> evidence = (List<Object>) vc.get("evidence");
-                List<Object> sortedEvidence =
-                        evidence.stream().sorted().collect(Collectors.toList());
+                List<Object> sortedEvidence = evidence.stream().sorted().toList();
                 TreeMap<Object, Object> sortedCredentialSubject = new TreeMap<>(credentialSubject);
 
                 vc.put("credentialSubject", sortedCredentialSubject);
@@ -184,7 +183,7 @@ class PreLambdaHandler implements HttpHandler {
                 SignedJWT signedJWT = amendClaimSet(jwt, nbf, jtiId, vc, claimsSet);
 
                 body = signedJWT.serialize();
-            } catch (ParseException e) {
+            } catch (ParseException _) {
 
                 // Continue
             }
@@ -201,7 +200,7 @@ class PreLambdaHandler implements HttpHandler {
             throws JOSEException, ParseException, JsonProcessingException {
 
         ObjectMapper customObjectMapper =
-                new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                new ObjectMapper().setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
         String vcAsString = customObjectMapper.writeValueAsString(vc);
         Map<String, Object> sanitisedVc = customObjectMapper.readValue(vcAsString, Map.class);
         JWTClaimsSet modifiedClaimsSet =
@@ -225,10 +224,6 @@ class PreLambdaHandler implements HttpHandler {
         Base64URL jwtHeader = Base64URL.encode(new ObjectMapper().writeValueAsString(test));
         String[] serialize = signedJWT.serialize().split("\\.");
 
-        SignedJWT signedJWTNew =
-                new SignedJWT(
-                        jwtHeader, Base64URL.from(serialize[1]), Base64URL.from(serialize[2]));
-
-        return signedJWTNew;
+        return new SignedJWT(jwtHeader, Base64URL.from(serialize[1]), Base64URL.from(serialize[2]));
     }
 }

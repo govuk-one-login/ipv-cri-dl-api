@@ -9,6 +9,8 @@ on:
 
   workflow_dispatch: # deploy manually
 
+permissions: {}
+
 jobs:
   deploy:
     name: Deploy to acm dev
@@ -23,14 +25,12 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
-        with:
-          submodules: true
 
       - name: Setup SAM
         uses: aws-actions/setup-sam@d78e1a4a9656d3b223e59b80676a797f20093133 # v2
         with:
           use-installer: true
-          version: "1.134.0"
+          version: "1.157.1"
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0

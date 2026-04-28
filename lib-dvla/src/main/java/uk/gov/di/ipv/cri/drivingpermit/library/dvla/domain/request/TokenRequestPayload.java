@@ -1,11 +1,35 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request;
 
-import lombok.Builder;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Data
-@Builder
-public class TokenRequestPayload {
-    private String userName;
-    private String password;
+public record TokenRequestPayload(
+        @JsonProperty(value = "userName", required = true) String userName,
+        @JsonProperty(value = "password", required = true) String password) {
+
+    public static TokenRequestPayloadBuilder builder() {
+        return new TokenRequestPayloadBuilder();
+    }
+
+    public static class TokenRequestPayloadBuilder {
+        private String userName;
+        private String password;
+
+        TokenRequestPayloadBuilder() {
+            // Intended
+        }
+
+        public TokenRequestPayloadBuilder userName(String userName) {
+            this.userName = userName;
+            return this;
+        }
+
+        public TokenRequestPayloadBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public TokenRequestPayload build() {
+            return new TokenRequestPayload(userName, password);
+        }
+    }
 }

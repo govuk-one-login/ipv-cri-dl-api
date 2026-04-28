@@ -1,10 +1,10 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.service;
 
 import org.apache.http.impl.client.CloseableHttpClient;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeClassFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.ApacheHTTPClientFactoryService;
 
-@ExcludeFromGeneratedCoverageReport
+@ExcludeClassFromGeneratedCoverageReport
 public class DVLACloseableHttpClientFactory {
 
     private ApacheHTTPClientFactoryService apacheHTTPClientFactoryService;

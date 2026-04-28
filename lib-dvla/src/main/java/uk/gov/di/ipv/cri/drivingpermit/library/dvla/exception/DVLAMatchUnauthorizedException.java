@@ -1,6 +1,10 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception;
 
+import java.io.Serial;
+
 public class DVLAMatchUnauthorizedException extends RuntimeException {
+    @Serial private static final long serialVersionUID = -3016468273412000959L;
+
     public DVLAMatchUnauthorizedException(String message) {
         super(message);
     }

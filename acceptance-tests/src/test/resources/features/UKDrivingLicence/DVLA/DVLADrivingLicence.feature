@@ -16,11 +16,10 @@ Feature: Driving Licence Test
   @smoke-build @stub @uat @traffic
   Scenario Outline: DVLA - Happy path
     Given User enters DVLA data as a <DrivingLicenceSubject>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             |
@@ -30,13 +29,12 @@ Feature: Driving Licence Test
   Scenario Outline: DVLA - User enters invalid driving licence number
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters license number as <InvalidLicenceNumber>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
     And JSON response should contain personal number PARKE610112PBFGI same as given Driving Licence
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject           | InvalidLicenceNumber |
@@ -46,10 +44,9 @@ Feature: Driving Licence Test
   Scenario Outline: DVLA - User enters driving licence number in incorrect format which returns validation error
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters license number as <InvalidLicenceNumber>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I see the licence number error in the summary as Enter the number exactly as it appears on your driving licence
     Then I see the enter licence number as it appears above the field as Error:Enter the number exactly as it appears on your driving licence
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject           | InvalidLicenceNumber |
@@ -61,10 +58,9 @@ Feature: Driving Licence Test
     And User re-enters birth day as <InvalidBirthDay>
     And User re-enters birth month as <InvalidBirthMonth>
     And User re-enters birth year as <InvalidBirthYear>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I see check date of birth sentence as Check you have entered your date of birth correctly
     Then I see enter the date as it appears above the field as Error:Check you have entered your date of birth correctly
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
@@ -74,12 +70,11 @@ Feature: Driving Licence Test
   Scenario Outline: DVLA - User enters invalid last name and returns could not find your details error message
     Given User enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters last name as <InvalidLastName>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             | InvalidLastName |
@@ -91,12 +86,11 @@ Feature: Driving Licence Test
     And User re-enters issue day as <InvalidLicenceIssueDay>
     And User re-enters issue month as <InvalidLicenceIssueMonth>
     And User re-enters issue year as <InvalidLicenceIssueYear>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
@@ -108,12 +102,11 @@ Feature: Driving Licence Test
     And User re-enters valid to day as <InvalidValidToDay>
     And User re-enters valid to month as <InvalidValidToMonth>
     And User re-enters valid to year as <InvalidValidToYear>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear |
@@ -125,12 +118,11 @@ Feature: Driving Licence Test
     And User re-enters issue day as <InvalidLicenceIssueDay>
     And User re-enters issue month as <InvalidLicenceIssueMonth>
     And User re-enters issue year as <InvalidLicenceIssueYear>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
@@ -139,13 +131,12 @@ Feature: Driving Licence Test
   @stub @uat @traffic
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
     When User Re-enters DVLA data as a <DrivingLicenceSubject>
-    And User clicks on continue
+    And User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             |
@@ -154,14 +145,13 @@ Feature: Driving Licence Test
   @stub @uat @traffic
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
     When User Re-enters DVLA data as a <DrivingLicenceSubject>
     And User re-enters license number as <InvalidLicenceNumber>
-    And User clicks on continue
+    And User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject           | InvalidLicenceNumber |
@@ -170,19 +160,17 @@ Feature: Driving Licence Test
   @stub @uat @traffic
   Scenario: DVLA - User attempts invalid journey and cancels after first attempt
     Given User enters invalid Driving Licence DVLA details
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
     When User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0, strength score 3 and type IdentityCheck
-    And The test is complete and I close the driver
 
   @stub
   Scenario: DVLA - User cancels before first attempt by clicking prove another way and returns an authorisation error
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
-    And The test is complete and I close the driver
 
   @dev
   Scenario: DVLA - User cancels before first attempt by clicking no driving licence and returns an authorisation error
@@ -190,12 +178,11 @@ Feature: Driving Licence Test
     When User click on I do not have a UK driving licence radio button
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
-    And The test is complete and I close the driver
 
   @stub
   Scenario: DVLA - Password rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I navigate to the Driving Licence verifiable issuer to check for a Valid response
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
@@ -203,7 +190,7 @@ Feature: Driving Licence Test
   @stub
   Scenario: DVLA - Api Key rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I navigate to the Driving Licence verifiable issuer to check for a Valid response
     Then The DVLA API Key secret has been created
     Then The DVLA API Key should be valid and rotated within the specified window
@@ -215,18 +202,16 @@ Feature: Driving Licence Test
     And I see the second line To find out more about how your driving licence details will be used, you can read:
     And I see privacy notice link the GOV.UK One Login privacy notice (opens in a new tab)
     Then I see the DVLA privacy notice link the DVLA privacy notice (opens in a new tab)
-    And The test is complete and I close the driver
 
   @stub @Language-regression @traffic
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich trwydded yrru – GOV.UK One Login
     Then User enters DVLA data as a <DrivingLicenceSubject>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject             |
@@ -249,9 +234,8 @@ Feature: Driving Licence Test
     And User re-enters license number as <InvalidLicenceNumber>
     And User re-enters valid issue number as <InvalidIssueNumber>
     And User re-enters postcode as <InvalidPostCode>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I check the page title is Error: Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
-    And The test is complete and I close the driver
 
     Examples:
       | DrivingLicenceSubject           | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidIssueDay | InvalidIssueMonth | InvalidIssueYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | InvalidLicenceNumber | InvalidIssueNumber | InvalidPostCode |

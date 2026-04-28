@@ -1,12 +1,13 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.util;
 
-import lombok.experimental.UtilityClass;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeConstructorFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 
@@ -14,10 +15,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@UtilityClass
 public class HTTPReplyHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPReplyHelper.class);
+
+    @ExcludeConstructorFromGeneratedCoverageReport
+    private HTTPReplyHelper() {
+        throw new UnsupportedOperationException(
+                "This is a utility class and cannot be instantiated");
+    }
 
     // Small helper to avoid duplicating this code for each endpoint and api
     public static HTTPReply retrieveResponse(HttpResponse response, String endpointName)

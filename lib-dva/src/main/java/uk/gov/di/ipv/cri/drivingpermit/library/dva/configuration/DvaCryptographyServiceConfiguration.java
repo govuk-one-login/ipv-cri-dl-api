@@ -63,9 +63,7 @@ public class DvaCryptographyServiceConfiguration {
 
     public DvaCryptographyServiceConfiguration(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException {
-        /////////////////
-        //// JWS Map ////
-        /////////////////
+        // JWS Map
         Map<String, String> dvaJWSmap =
                 parameterStoreService.getAllParametersFromPathWithDecryption(
                         ParameterPrefix.OVERRIDE, DVA_JWS_PARAMETER_PATH);
@@ -79,9 +77,7 @@ public class DvaCryptographyServiceConfiguration {
                 KeyCertHelper.getDecodedX509Certificate(
                         dvaJWSmap.get(MAP_KEY_SECONDARY_SIGNING_CERT_FOR_DVA_TO_VERIFY));
 
-        /////////////////
-        //// JWE Map ////
-        /////////////////
+        // JWE Map
         Map<String, String> dvaJWEmap =
                 parameterStoreService.getAllParametersFromPathWithDecryption(
                         ParameterPrefix.OVERRIDE, DVA_JWE_PARAMETER_PATH);

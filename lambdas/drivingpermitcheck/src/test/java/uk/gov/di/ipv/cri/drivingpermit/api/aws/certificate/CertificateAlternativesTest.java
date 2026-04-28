@@ -57,7 +57,7 @@ class CertificateAlternativesTest {
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         environmentVariables.set("SQS_AUDIT_EVENT_PREFIX", "PREFIX_CRI");
         environmentVariables.set(
                 "COMMON_PARAMETER_NAME_PREFIX", "driving-permit-common-cri-api-local");

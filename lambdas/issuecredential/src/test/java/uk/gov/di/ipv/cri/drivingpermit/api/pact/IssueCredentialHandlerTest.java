@@ -16,7 +16,6 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
-import org.apache.log4j.BasicConfigurator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.AfterEach;
@@ -123,7 +122,6 @@ class IssueCredentialHandlerTest {
 
         if (ENABLE_FULL_DEBUG) {
             // AutoConfig SL4j with Log4J
-            BasicConfigurator.configure();
             Configurator.setAllLevels("", Level.DEBUG);
         }
     }
@@ -166,12 +164,14 @@ class IssueCredentialHandlerTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         MockHttpServer.stopServer();
     }
 
     @State("dummyApiKey is a valid api key")
-    void dummyAPIKeyIsValid() {}
+    void dummyAPIKeyIsValid() {
+        /* intended */
+    }
 
     @State("dummyAccessToken is a valid access token")
     void accessTokenIsValid() {
@@ -233,16 +233,24 @@ class IssueCredentialHandlerTest {
     }
 
     @State("dummyInvalidAccessToken is an invalid access token")
-    void invalidAccessTokenIsInvalidAccessToken() {}
+    void invalidAccessTokenIsInvalidAccessToken() {
+        /* intended */
+    }
 
     @State("test-subject is a valid subject")
-    void jwtSubjectIsValid() {}
+    void jwtSubjectIsValid() {
+        /* intended */
+    }
 
     @State("dummyDrivingLicenceComponentId is a valid issuer")
-    void componentIdIsValidIssue() {}
+    void componentIdIsValidIssue() {
+        /* intended */
+    }
 
     @State("VC evidence activityHistoryScore is 1")
-    void vcHasDesiredActivityHistoryScore() {}
+    void vcHasDesiredActivityHistoryScore() {
+        /* intended */
+    }
 
     @State("VC has a CI of D02")
     void vcHasDesiredCi() throws ParseException {
@@ -252,8 +260,6 @@ class IssueCredentialHandlerTest {
                                 AccessToken.parse(
                                         "Bearer dummyAccessToken", AccessTokenType.BEARER))
                         .getSessionId();
-        String sessionId = sessionUUID.toString();
-
         DocumentCheckResultItem documentCheckResultItem = createBaseDocumentResultItem(sessionUUID);
         documentCheckResultItem.setDocumentNumber("PARKE610112PBFGH");
         documentCheckResultItem.setCheckMethod("data");
@@ -277,8 +283,6 @@ class IssueCredentialHandlerTest {
                                 AccessToken.parse(
                                         "Bearer dummyAccessToken", AccessTokenType.BEARER))
                         .getSessionId();
-        String sessionId = sessionUUID.toString();
-
         DocumentCheckResultItem documentCheckResultItem = createBaseDocumentResultItem(sessionUUID);
         documentCheckResultItem.setDocumentNumber("PARKE610112PBFGH");
         documentCheckResultItem.setCheckMethod("data");
@@ -294,31 +298,49 @@ class IssueCredentialHandlerTest {
     }
 
     @State("VC evidence txn is dummyTxn")
-    void vcHasDesiredTxn() {}
+    void vcHasDesiredTxn() {
+        /* intended */
+    }
 
     @State("VC evidence checkDetails activityFrom is 1982-05-23")
-    void vcHasDesiredActivityFrom() {}
+    void vcHasDesiredActivityFrom() {
+        /* intended */
+    }
 
     @State("VC address is BS981TL, GB")
-    void vcHasDesiredAddress() {}
+    void vcHasDesiredAddress() {
+        /* intended */
+    }
 
     @State("VC is for Peter Benjamin Parker")
-    void vcHasTheDesiredName() {}
+    void vcHasTheDesiredName() {
+        /* intended */
+    }
 
     @State("VC driving licence issueNumber is 12")
-    void vcHasDesiredIssueNumber() {}
+    void vcHasDesiredIssueNumber() {
+        /* intended */
+    }
 
     @State("VC driving licence issuedBy is DVLA")
-    void vcHasDesiredIssuer() {}
+    void vcHasDesiredIssuer() {
+        /* intended */
+    }
 
     @State("VC driving licence issuedBy is DVA")
-    void vcHasDesiredDvaIssuer() {}
+    void vcHasDesiredDvaIssuer() {
+        /* intended */
+    }
 
     @State("VC birthDate is 1962-10-11")
-    void vcHasTheDesiredBirthDate() {}
+    void vcHasTheDesiredBirthDate() {
+        /* intended */
+    }
 
     @State("VC driving licence personalNumber is PARKE610112PBFGH")
-    void vcHasTheDesiredDocumentNumber() {}
+    void vcHasTheDesiredDocumentNumber() {
+        /* intended */
+    }
 
     @State("VC driving licence personalNumber is 55667788")
     void vcHasDesiredDvaDocumentNumber() throws ParseException {
@@ -328,8 +350,6 @@ class IssueCredentialHandlerTest {
                                 AccessToken.parse(
                                         "Bearer dummyAccessToken", AccessTokenType.BEARER))
                         .getSessionId();
-        String sessionId = sessionUUID.toString();
-
         DocumentCheckResultItem documentCheckResultItem = createBaseDocumentResultItem(sessionUUID);
         documentCheckResultItem.setDocumentNumber("55667788");
         documentCheckResultItem.setCheckMethod("data");
@@ -352,8 +372,6 @@ class IssueCredentialHandlerTest {
                                 AccessToken.parse(
                                         "Bearer dummyAccessToken", AccessTokenType.BEARER))
                         .getSessionId();
-        String sessionId = sessionUUID.toString();
-
         DocumentCheckResultItem documentCheckResultItem = createBaseDocumentResultItem(sessionUUID);
         documentCheckResultItem.setDocumentNumber("55667780");
         documentCheckResultItem.setCheckMethod("data");
@@ -365,16 +383,20 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setIssueDate("1982-05-23");
         documentCheckResultItem.setActivityHistoryScore(0);
         documentCheckResultItem.setContraIndicators(List.of("D02"));
-        ;
+
         when(mockDocumentCheckResultStorageService.getDocumentCheckResult(sessionUUID))
                 .thenReturn(documentCheckResultItem);
     }
 
     @State("VC driving licence issuedDate is 1982-05-23")
-    void vcHasTheDesiredIssueDate() {}
+    void vcHasTheDesiredIssueDate() {
+        /* intended */
+    }
 
     @State("VC driving licence expiryDate is 2062-12-09")
-    void vcHasTheDesiredExpiryDate() {}
+    void vcHasTheDesiredExpiryDate() {
+        /* intended */
+    }
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)

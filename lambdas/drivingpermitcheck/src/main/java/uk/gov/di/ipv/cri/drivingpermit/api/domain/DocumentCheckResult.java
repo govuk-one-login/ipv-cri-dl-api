@@ -8,13 +8,11 @@ public class DocumentCheckResult {
 
     private boolean executedSuccessfully;
     private String result;
-    private String errorMessage;
     private String transactionId;
 
     private CheckDetails checkDetails;
 
     private boolean isValid;
-    private int attemptCount;
 
     public DocumentCheckResult() {
         /* Intended */
@@ -34,14 +32,6 @@ public class DocumentCheckResult {
 
     public void setResult(String result) {
         this.result = result;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
     }
 
     public String getTransactionId() {
@@ -66,14 +56,6 @@ public class DocumentCheckResult {
 
     public void setValid(boolean valid) {
         isValid = valid;
-    }
-
-    public int getAttemptCount() {
-        return attemptCount;
-    }
-
-    public void setAttemptCount(int attemptCount) {
-        this.attemptCount = attemptCount;
     }
 
     public void setApiResultSource(APIResultSource apiResultSource) {

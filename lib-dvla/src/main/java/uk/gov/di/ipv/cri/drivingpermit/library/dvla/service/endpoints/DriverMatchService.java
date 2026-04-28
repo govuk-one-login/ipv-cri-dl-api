@@ -10,9 +10,11 @@ import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.StopWatch;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DvlaFormFields;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.DvlaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.RequestHeaderKeys;
@@ -27,9 +29,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseExce
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -182,50 +182,50 @@ public class DriverMatchService {
                 DVLA_MATCH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         // There are two API response types possible depending on userdata
-        if (httpReply.statusCode == SUCCESS || httpReply.statusCode == NOT_FOUND) {
+        if (httpReply.statusCode() == SUCCESS || httpReply.statusCode() == NOT_FOUND) {
 
-            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode);
+            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode());
 
             eventProbe.counterMetric(
                     ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS
                             .withEndpointPrefix());
 
-            LOGGER.debug("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
-            LOGGER.debug("{} response {}", REQUEST_NAME, httpReply.responseBody);
+            LOGGER.debug("{} headers {}", REQUEST_NAME, httpReply.responseHeaders());
+            LOGGER.debug("{} response {}", REQUEST_NAME, httpReply.responseBody());
 
             try {
                 Validity validity;
 
-                if (httpReply.statusCode == SUCCESS) {
+                if (httpReply.statusCode() == SUCCESS) {
                     DriverMatchAPIResponse driverMatchAPIResponse =
                             objectMapper.readValue(
-                                    httpReply.responseBody, DriverMatchAPIResponse.class);
+                                    httpReply.responseBody(), DriverMatchAPIResponse.class);
 
                     // Invalid = licence number found but details mismatch
                     validity =
-                            driverMatchAPIResponse.isValidDocument()
+                            driverMatchAPIResponse.validDocument()
                                     ? Validity.VALID
                                     : Validity.INVALID;
                 } else {
                     // 404 response - with message in body
                     DriverMatchErrorResponse driverMatchErrorResponse =
                             objectMapper.readValue(
-                                    httpReply.responseBody, DriverMatchErrorResponse.class);
+                                    httpReply.responseBody(), DriverMatchErrorResponse.class);
 
                     // For monitoring
-                    int numberOfErrors = driverMatchErrorResponse.getErrors().size();
+                    int numberOfErrors = driverMatchErrorResponse.errors().size();
                     if (numberOfErrors > 1) {
                         LOGGER.warn(
                                 "404 response contains {} errors in errors array, only expected 1",
                                 numberOfErrors);
                     }
 
-                    Errors errors = driverMatchErrorResponse.getErrors().get(0);
+                    Errors errors = driverMatchErrorResponse.errors().get(0);
                     LOGGER.info(
                             "{} got valid 404 response, Code {}, Detail {}",
                             REQUEST_NAME,
-                            errors.getCode(),
-                            errors.getDetail());
+                            errors.code(),
+                            errors.detail());
 
                     // licence number was not found
                     validity = Validity.NOT_FOUND;
@@ -235,7 +235,7 @@ public class DriverMatchService {
 
                 // requestId is in the response header
                 String requestId =
-                        httpReply.responseHeaders.get(DVLA_RESPONSE_HEADER_REQUEST_ID_KEY);
+                        httpReply.responseHeaders().get(DVLA_RESPONSE_HEADER_REQUEST_ID_KEY);
                 LOGGER.info("{} response request Id {}", REQUEST_NAME, requestId);
 
                 eventProbe.counterMetric(
@@ -266,8 +266,8 @@ public class DriverMatchService {
             LOGGER.error(
                     "{} response status code {} content - {}",
                     REQUEST_NAME,
-                    httpReply.statusCode,
-                    httpReply.responseBody);
+                    httpReply.statusCode(),
+                    httpReply.responseBody());
 
             eventProbe.counterMetric(
                     ThirdPartyAPIEndpointMetric.DVLA_MATCH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS
@@ -275,7 +275,7 @@ public class DriverMatchService {
 
             // Note 401 is for Token or API Key
             // Throw exception to allow recovering cases of token expiry
-            if (httpReply.statusCode == UNAUTHORISED) {
+            if (httpReply.statusCode() == UNAUTHORISED) {
 
                 LOGGER.warn(ERROR_MATCH_ENDPOINT_REJECTED_TOKEN_OR_API_KEY.getMessage());
 

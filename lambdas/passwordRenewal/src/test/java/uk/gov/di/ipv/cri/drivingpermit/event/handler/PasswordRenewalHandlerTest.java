@@ -13,13 +13,14 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.endpoints.ChangePasswordService;
 import uk.gov.di.ipv.cri.drivingpermit.event.exceptions.SecretNotFoundException;
 import uk.gov.di.ipv.cri.drivingpermit.event.util.SecretsManagerRotationStep;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.TokenResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
@@ -66,7 +67,7 @@ class PasswordRenewalHandlerTest {
     private PasswordRenewalHandler passwordRenewalHandler;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "DrivingPermitCRI");
 
         this.passwordRenewalHandler =
@@ -405,6 +406,104 @@ class PasswordRenewalHandlerTest {
         String response = passwordRenewalHandler.handleRequest(mockInput, mockContext);
         assertNotNull(response);
 
+        verifyNoMoreInteractions(mockSecretsManagerClient);
+        verifyNoMoreInteractions(mockChangePasswordService);
+        verifyNoMoreInteractions(mockTokenRequestService);
+    }
+
+    @Test
+    void whenPasswordRotationIsDisabledThenDVLAIsNotCalledAndSecretIsStillUpdated() {
+        when(dvlaConfiguration.isPasswordRotationEnabled()).thenReturn(false);
+
+        doThrow(new SecretNotFoundException("Secret not set"))
+                .when(mockSecretsManagerClient)
+                .getSecretValue(any(GetSecretValueRequest.class));
+        when(mockSecretsManagerClient.putSecretValue(any(PutSecretValueRequest.class)))
+                .thenReturn(null);
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("1234567");
+
+        String response = passwordRenewalHandler.handleRequest(mockInput, mockContext);
+
+        assertEquals("Success", response);
+        verifyNoMoreInteractions(mockChangePasswordService);
+        verifyNoMoreInteractions(mockTokenRequestService);
+    }
+
+    @Test
+    void whenCreateSecretStepIsCalledAndResourceNotFoundThenNewPasswordGeneratedAndSaved() {
+        when(dvlaConfiguration.isPasswordRotationEnabled()).thenReturn(true);
+        when(mockSecretsManagerClient.putSecretValue(any(PutSecretValueRequest.class)))
+                .thenReturn(null);
+
+        doThrow(ResourceNotFoundException.builder().message("Resource not found").build())
+                .when(mockSecretsManagerClient)
+                .getSecretValue(any(GetSecretValueRequest.class));
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("1234567");
+
+        passwordRenewalHandler.handleRequest(mockInput, mockContext);
+
+        ArgumentCaptor<PutSecretValueRequest> putSecretValueCaptor =
+                ArgumentCaptor.forClass(PutSecretValueRequest.class);
+        verify(mockSecretsManagerClient).putSecretValue(putSecretValueCaptor.capture());
+        PutSecretValueRequest putSecretValueRequest = putSecretValueCaptor.getValue();
+        assertNotNull(putSecretValueRequest.secretString());
+        assertEquals("AWSPENDING", putSecretValueRequest.versionStages().get(0));
+    }
+
+    @Test
+    void
+            whenGetValueReturnsNullSecretStringThenSecretNotFoundExceptionIsThrownAndNewPasswordSaved() {
+        when(dvlaConfiguration.isPasswordRotationEnabled()).thenReturn(true);
+        when(mockSecretsManagerClient.putSecretValue(any(PutSecretValueRequest.class)))
+                .thenReturn(null);
+
+        GetSecretValueResponse secretValueResponse =
+                GetSecretValueResponse.builder().secretString(null).build();
+        when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
+                .thenReturn(secretValueResponse);
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("1234567");
+
+        passwordRenewalHandler.handleRequest(mockInput, mockContext);
+
+        ArgumentCaptor<PutSecretValueRequest> putSecretValueCaptor =
+                ArgumentCaptor.forClass(PutSecretValueRequest.class);
+        verify(mockSecretsManagerClient).putSecretValue(putSecretValueCaptor.capture());
+        PutSecretValueRequest putSecretValueRequest = putSecretValueCaptor.getValue();
+        assertNotNull(putSecretValueRequest.secretString());
+        assertEquals("AWSPENDING", putSecretValueRequest.versionStages().get(0));
+    }
+
+    @Test
+    void whenGetValueReturnsNullResponseThenSecretNotFoundExceptionIsCaughtAndNewPasswordSaved() {
+        when(dvlaConfiguration.isPasswordRotationEnabled()).thenReturn(true);
+        when(mockSecretsManagerClient.putSecretValue(any(PutSecretValueRequest.class)))
+                .thenReturn(null);
+
+        when(mockSecretsManagerClient.getSecretValue(any(GetSecretValueRequest.class)))
+                .thenReturn(null);
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.FINISH_SECRET.toString());
+        when(mockInput.getSecretId()).thenReturn("1234567");
+
+        passwordRenewalHandler.handleRequest(mockInput, mockContext);
+
+        ArgumentCaptor<PutSecretValueRequest> putSecretValueCaptor =
+                ArgumentCaptor.forClass(PutSecretValueRequest.class);
+        verify(mockSecretsManagerClient).putSecretValue(putSecretValueCaptor.capture());
+        PutSecretValueRequest putSecretValueRequest = putSecretValueCaptor.getValue();
+        assertNotNull(putSecretValueRequest.secretString());
+        assertEquals("AWSPENDING", putSecretValueRequest.versionStages().get(0));
+    }
+
+    @Test
+    void whenNonFinishSecretStepIsCalledThenNoActionIsTaken() {
+        when(mockInput.getStep()).thenReturn(SecretsManagerRotationStep.CREATE_SECRET.toString());
+
+        String response = passwordRenewalHandler.handleRequest(mockInput, mockContext);
+
+        assertEquals("Success", response);
         verifyNoMoreInteractions(mockSecretsManagerClient);
         verifyNoMoreInteractions(mockChangePasswordService);
         verifyNoMoreInteractions(mockTokenRequestService);

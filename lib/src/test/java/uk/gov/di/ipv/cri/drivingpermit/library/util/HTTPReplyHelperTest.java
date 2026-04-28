@@ -4,6 +4,7 @@ import org.apache.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.util.HttpResponseFixtures;
 
@@ -17,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(MockitoExtension.class)
 class HTTPReplyHelperTest {
 
-    private final String ENDPOINT_NAME = "Test Endpoint";
-    private final String NO_BODY_TEXT_FORMAT = "No %s response body text found";
+    private static final String ENDPOINT_NAME = "Test Endpoint";
+    private static final String NO_BODY_TEXT_FORMAT = "No %s response body text found";
 
     @Test
     void shouldRetrieveResult() throws OAuthErrorResponseException {
@@ -37,10 +38,10 @@ class HTTPReplyHelperTest {
 
         HTTPReply reply = HTTPReplyHelper.retrieveResponse(mockResponse, ENDPOINT_NAME);
 
-        assertEquals(expectedBodyContent, reply.responseBody);
-        assertEquals(expectedStatusCode, reply.statusCode);
-        assertNotNull(reply.responseHeaders.get(expectedTestHeaderKey));
-        assertEquals(expectedTestHeaderValue, reply.responseHeaders.get(expectedTestHeaderKey));
+        assertEquals(expectedBodyContent, reply.responseBody());
+        assertEquals(expectedStatusCode, reply.statusCode());
+        assertNotNull(reply.responseHeaders().get(expectedTestHeaderKey));
+        assertEquals(expectedTestHeaderValue, reply.responseHeaders().get(expectedTestHeaderKey));
     }
 
     @Test
@@ -54,8 +55,8 @@ class HTTPReplyHelperTest {
 
         HTTPReply reply = HTTPReplyHelper.retrieveResponse(mockResponse, ENDPOINT_NAME);
 
-        assertEquals(expectedBodyContent, reply.responseBody);
-        assertEquals(expectedStatusCode, reply.statusCode);
+        assertEquals(expectedBodyContent, reply.responseBody());
+        assertEquals(expectedStatusCode, reply.statusCode());
     }
 
     @Test

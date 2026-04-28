@@ -43,7 +43,7 @@ commons_io = "2.21.0"
 cucumber = "7.33.0"
 selenium = "4.40.0"
 axe_core_selenium = "4.11.0"
-restassured =  "5.5.6"
+restassured =  "6.0.0"
 aws_cdk_lib = "2.120.0"
 
 [libraries]

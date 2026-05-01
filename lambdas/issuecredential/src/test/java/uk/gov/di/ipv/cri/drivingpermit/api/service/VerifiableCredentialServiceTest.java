@@ -178,7 +178,7 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                         .asText());
 
         assertEquals(
-                savedDocumentCheckResultItem.getContraIndicators().get(0),
+                savedDocumentCheckResultItem.getContraIndicators().getFirst(),
                 claimsSet.get(VC_CLAIM).get(VC_EVIDENCE_KEY).get(0).get("ci").get(0).asText());
         assertEquals(
                 savedDocumentCheckResultItem.getStrengthScore(),

@@ -173,7 +173,7 @@ class IssueCredentialHandlerTest {
         inOrder.verify(mockEventProbe)
                 .counterMetric(
                         DRIVING_PERMIT_CI_PREFIX
-                                + savedDocumentCheckResultItem.getContraIndicators().get(0));
+                                + savedDocumentCheckResultItem.getContraIndicators().getFirst());
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
         verifyNoMoreInteractions(mockEventProbe);
 
@@ -243,7 +243,7 @@ class IssueCredentialHandlerTest {
         inOrder.verify(mockEventProbe, never())
                 .counterMetric(
                         DRIVING_PERMIT_CI_PREFIX
-                                + savedDocumentCheckResultItem.getContraIndicators().get(0));
+                                + savedDocumentCheckResultItem.getContraIndicators().getFirst());
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
         verifyNoMoreInteractions(mockEventProbe);
 

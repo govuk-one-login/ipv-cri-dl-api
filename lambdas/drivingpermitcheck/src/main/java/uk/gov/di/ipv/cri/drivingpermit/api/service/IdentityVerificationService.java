@@ -93,11 +93,11 @@ public class IdentityVerificationService {
                     int documentStrengthScore = MAX_DRIVING_PERMIT_GPG45_STRENGTH_VALUE;
                     int documentValidityScore = calculateValidity(documentCheckResult);
                     int activityHistoryScore = calculateActivityHistory(documentCheckResult);
-                    List<String> cis = calculateContraIndicators(documentCheckResult);
+                    List<String> contraIndicators = calculateContraIndicators(documentCheckResult);
 
                     LOGGER.info(
                             "Driving licence check passed successfully. Indicators {}, Strength Score {}, Validity Score {}, Activity HistoryScore {}",
-                            (cis != null) ? String.join(", ", cis) : "[]",
+                            !contraIndicators.isEmpty() ? String.join(", ", contraIndicators) : "[]",
                             documentStrengthScore,
                             documentValidityScore,
                             activityHistoryScore);
@@ -109,7 +109,7 @@ public class IdentityVerificationService {
                             "Third party transaction id {}",
                             documentCheckResult.getTransactionId());
 
-                    result.setContraIndicators(cis);
+                    result.setContraIndicators(contraIndicators);
 
                     result.setStrengthScore(documentStrengthScore);
                     result.setValidityScore(documentValidityScore);
@@ -169,9 +169,7 @@ public class IdentityVerificationService {
                 : MIN_DRIVING_ACTIVITY_HISTORY_SCORE;
     }
 
-    // Todo change this to return an empty list, to avoid needing/forgetting null checks later
-    // Later code behaviour is based on this being null - change also to empty checks
     private List<String> calculateContraIndicators(DocumentCheckResult documentCheckResult) {
-        return documentCheckResult.isValid() ? null : List.of(DOCUMENT_VALIDITY_CI);
+        return documentCheckResult.isValid() ? List.of() : List.of(DOCUMENT_VALIDITY_CI);
     }
 }

@@ -11,9 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.StopWatch;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.dynamo.TokenItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.request.RequestHeaderKeys;
@@ -25,9 +27,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseExce
 import uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -247,19 +247,19 @@ public class TokenRequestService {
         eventProbe.counterMetric(
                 DVLA_TOKEN_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
-        if (httpReply.statusCode == 200) {
-            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode);
+        if (httpReply.statusCode() == 200) {
+            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode());
 
             eventProbe.counterMetric(
                     ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS
                             .withEndpointPrefix());
 
             try {
-                LOGGER.debug("{} headers {}", REQUEST_NAME, httpReply.responseHeaders);
-                LOGGER.debug("{} response {}", REQUEST_NAME, httpReply.responseBody);
+                LOGGER.debug("{} headers {}", REQUEST_NAME, httpReply.responseHeaders());
+                LOGGER.debug("{} response {}", REQUEST_NAME, httpReply.responseBody());
 
                 TokenResponse response =
-                        objectMapper.readValue(httpReply.responseBody, TokenResponse.class);
+                        objectMapper.readValue(httpReply.responseBody(), TokenResponse.class);
 
                 eventProbe.counterMetric(
                         ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_VALID
@@ -283,15 +283,15 @@ public class TokenRequestService {
             LOGGER.error(
                     "{} response status code {} content - {}",
                     REQUEST_NAME,
-                    httpReply.statusCode,
-                    httpReply.responseBody);
+                    httpReply.statusCode(),
+                    httpReply.responseBody());
 
             eventProbe.counterMetric(
                     ThirdPartyAPIEndpointMetric.DVLA_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS
                             .withEndpointPrefix());
 
-            if (alertStatusCodes.contains(httpReply.statusCode)) {
-                LOGGER.warn("Status code {}, triggered alert metric", httpReply.statusCode);
+            if (alertStatusCodes.contains(httpReply.statusCode())) {
+                LOGGER.warn("Status code {}, triggered alert metric", httpReply.statusCode());
 
                 // Alarm Firing
                 eventProbe.counterMetric(

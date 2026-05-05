@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpStatus;
@@ -20,11 +21,12 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.dynamo.TokenItem;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.domain.response.TokenResponse;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLATokenExpiryWindowException;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
@@ -37,8 +39,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
@@ -81,7 +85,7 @@ class TokenRequestServiceTest {
     private TokenRequestService tokenRequestService;
 
     @Mock DynamoDbTable<TokenItem> mockTokenTable; // To mock the internals of Datastore
-    private final Key TOKEN_ITEM_KEY =
+    private static final Key TOKEN_ITEM_KEY =
             Key.builder().partitionValue(Strategy.NO_CHANGE.name() + TOKEN_ITEM_ID).build();
 
     @BeforeEach
@@ -91,7 +95,6 @@ class TokenRequestServiceTest {
         when(mockDvlaConfiguration.getTokenEndpoint()).thenReturn(TEST_END_POINT);
         when(mockDvlaConfiguration.getTokenTableName()).thenReturn(TEST_TOKEN_TABLE_NAME);
         when(mockDvlaConfiguration.getUsername()).thenReturn(TEST_USER_NAME);
-        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         // Datastore is wrapper around DynamoDbEnhancedClient
         when(mockDynamoDbEnhancedClient.table(eq(TEST_TOKEN_TABLE_NAME), any(TableSchema.class)))
@@ -110,6 +113,8 @@ class TokenRequestServiceTest {
     @Test
     void shouldReturnTokenValueWhenTokenEndpointRespondsWithToken()
             throws OAuthErrorResponseException, IOException {
+
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
                 ArgumentCaptor.forClass(HttpPost.class);
@@ -164,6 +169,8 @@ class TokenRequestServiceTest {
     void shouldReturnOAuthErrorResponseExceptionWhenTokenEndpointDoesNotRespond()
             throws IOException {
 
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
+
         Exception exceptionCaught = new IOException("Token Endpoint Timed out");
 
         doThrow(exceptionCaught)
@@ -211,6 +218,9 @@ class TokenRequestServiceTest {
     @Test
     void shouldReturnOAuthErrorResponseExceptionWhenTokenEndpointResponseStatusCodeNot200()
             throws IOException {
+
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
+
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
         // Bearer access token but status not 200
@@ -267,6 +277,9 @@ class TokenRequestServiceTest {
     })
     void shouldCaptureTokenResponseStatusCodeAlertMetricWhenStatusCodeIs(
             int tokenResponseStatusCode) throws IOException {
+
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
+
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
         CloseableHttpResponse tokenResponse =
@@ -324,6 +337,9 @@ class TokenRequestServiceTest {
     @Test
     void shouldReturnOAuthErrorResponseExceptionWhenFailingToMapTokenEndpointResponse()
             throws IOException {
+
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
+
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
         // Invalid Response Body
@@ -379,6 +395,8 @@ class TokenRequestServiceTest {
     @Test
     void shouldReturnCachedAccessTokenIfTokenNotExpired()
             throws IOException, OAuthErrorResponseException {
+
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
@@ -444,6 +462,8 @@ class TokenRequestServiceTest {
     @Test
     void shouldRequestNewAccessTokenIfCachedTokenIsExpired()
             throws IOException, OAuthErrorResponseException {
+
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
 
@@ -522,6 +542,191 @@ class TokenRequestServiceTest {
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVLA_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
+    }
+
+    @Test
+    void shouldThrowDVLATokenExpiryWindowExceptionWhenExpiryWindowIsZero() {
+        TokenItem tokenItem = new TokenItem(TEST_TOKEN_VALUE);
+        tokenItem.setTtl(Instant.now().plusSeconds(3000).getEpochSecond());
+
+        DVLATokenExpiryWindowException thrownException =
+                assertThrows(
+                        DVLATokenExpiryWindowException.class,
+                        () -> tokenRequestService.isTokenNearExpiration(tokenItem, 0),
+                        "Expected DVLATokenExpiryWindowException");
+
+        assertEquals(
+                TokenRequestService.INVALID_EXPIRY_WINDOW_ERROR_MESSAGE,
+                thrownException.getMessage());
+    }
+
+    @Test
+    void shouldThrowDVLATokenExpiryWindowExceptionWhenExpiryWindowIsNegative() {
+        TokenItem tokenItem = new TokenItem(TEST_TOKEN_VALUE);
+        tokenItem.setTtl(Instant.now().plusSeconds(3000).getEpochSecond());
+
+        DVLATokenExpiryWindowException thrownException =
+                assertThrows(
+                        DVLATokenExpiryWindowException.class,
+                        () -> tokenRequestService.isTokenNearExpiration(tokenItem, -1),
+                        "Expected DVLATokenExpiryWindowException");
+
+        assertEquals(
+                TokenRequestService.INVALID_EXPIRY_WINDOW_ERROR_MESSAGE,
+                thrownException.getMessage());
+    }
+
+    @Test
+    void shouldThrowDVLATokenExpiryWindowExceptionWhenExpiryWindowExceedsTtl() {
+        TokenItem tokenItem = new TokenItem(TEST_TOKEN_VALUE);
+        tokenItem.setTtl(Instant.now().plusSeconds(3000).getEpochSecond());
+
+        // TOKEN_ITEM_TTL_SECS = 3600 - 300 = 3300
+        DVLATokenExpiryWindowException thrownException =
+                assertThrows(
+                        DVLATokenExpiryWindowException.class,
+                        () -> tokenRequestService.isTokenNearExpiration(tokenItem, 3300),
+                        "Expected DVLATokenExpiryWindowException");
+
+        assertEquals(
+                TokenRequestService.INVALID_EXPIRY_WINDOW_ERROR_MESSAGE,
+                thrownException.getMessage());
+    }
+
+    @Test
+    void shouldReturnFalseWhenTokenIsNotNearExpiration() {
+        TokenItem tokenItem = new TokenItem(TEST_TOKEN_VALUE);
+        tokenItem.setTtl(Instant.now().plusSeconds(3000).getEpochSecond());
+
+        assertFalse(tokenRequestService.isTokenNearExpiration(tokenItem, 300));
+    }
+
+    @Test
+    void shouldReturnTrueWhenTokenIsNearExpiration() {
+        TokenItem tokenItem = new TokenItem(TEST_TOKEN_VALUE);
+        tokenItem.setTtl(Instant.now().getEpochSecond());
+
+        assertTrue(tokenRequestService.isTokenNearExpiration(tokenItem, 300));
+    }
+
+    @Test
+    void shouldRemoveTokenItemFromTable() {
+        tokenRequestService.removeTokenItem(Strategy.NO_CHANGE);
+
+        Key expectedKey =
+                Key.builder().partitionValue(Strategy.NO_CHANGE.name() + TOKEN_ITEM_ID).build();
+        InOrder inOrderMockTokenTable = inOrder(mockTokenTable);
+        inOrderMockTokenTable.verify(mockTokenTable).deleteItem(expectedKey);
+        verifyNoMoreInteractions(mockTokenTable);
+    }
+
+    @Test
+    void shouldRequestNewTokenWithStrategyBasedEndpoint()
+            throws OAuthErrorResponseException, IOException {
+
+        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
+                ArgumentCaptor.forClass(HttpPost.class);
+
+        String stubEndpoint = "http://stub-endpoint";
+        String tokenPath = "/token";
+        when(mockDvlaConfiguration.getEndpointURLs())
+                .thenReturn(Map.of(Strategy.STUB.name(), stubEndpoint));
+        when(mockDvlaConfiguration.getTokenPath()).thenReturn(tokenPath);
+
+        TokenResponse testTokenResponse = TokenResponse.builder().idToken(TEST_TOKEN_VALUE).build();
+        String testTokenResponseString = realObjectMapper.writeValueAsString(testTokenResponse);
+
+        CloseableHttpResponse tokenResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, testTokenResponseString, false);
+
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
+                .thenReturn(tokenResponse);
+
+        TokenResponse result =
+                tokenRequestService.performNewTokenRequest(TEST_PASSWORD, Strategy.STUB);
+
+        assertNotNull(result);
+        assertEquals(TEST_TOKEN_VALUE, result.getIdToken());
+        assertEquals(stubEndpoint + tokenPath, httpRequestCaptor.getValue().getURI().toString());
+    }
+
+    @Test
+    void shouldRequestNewTokenWhenAlwaysRequestNewTokenOverrideEnabledWithCachedToken()
+            throws OAuthErrorResponseException, IOException {
+
+        when(mockDvlaConfiguration.getPassword()).thenReturn(TEST_PASSWORD);
+
+        ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
+        ArgumentCaptor<TokenItem> dynamoPutItemTokenItemCaptor =
+                ArgumentCaptor.forClass(TokenItem.class);
+
+        TokenResponse testTokenResponse = TokenResponse.builder().idToken(TEST_TOKEN_VALUE).build();
+        String testTokenResponseString = realObjectMapper.writeValueAsString(testTokenResponse);
+        CloseableHttpResponse tokenResponse =
+                HttpResponseFixtures.createHttpResponse(200, null, testTokenResponseString, false);
+
+        // Cached token exists and is not expired
+        TokenItem cachedToken = new TokenItem("old-cached-token");
+        cachedToken.setId(Strategy.NO_CHANGE.name() + TOKEN_ITEM_ID);
+        cachedToken.setTtl(Instant.now().plusSeconds(3000).getEpochSecond());
+        when(mockTokenTable.getItem(TOKEN_ITEM_KEY)).thenReturn(cachedToken);
+
+        when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
+                        httpRequestCaptor.capture(), any(TokenHttpRetryStatusConfig.class)))
+                .thenReturn(tokenResponse);
+        doNothing().when(mockTokenTable).putItem(dynamoPutItemTokenItemCaptor.capture());
+
+        // alwaysRequestNewToken = true should override cached token
+        String tokenValue = tokenRequestService.requestToken(true, Strategy.NO_CHANGE);
+
+        assertEquals(TEST_TOKEN_VALUE, tokenValue);
+
+        InOrder inOrderMockHttpRetryerSequence = inOrder(mockHttpRetryer);
+        inOrderMockHttpRetryerSequence
+                .verify(mockHttpRetryer, times(1))
+                .sendHTTPRequestRetryIfAllowed(
+                        any(HttpPost.class), any(TokenHttpRetryStatusConfig.class));
+        verifyNoMoreInteractions(mockHttpRetryer);
+    }
+
+    @Test
+    void shouldReturnOAuthErrorResponseExceptionWhenFailingToSerialiseTokenRequestPayload()
+            throws IOException {
+
+        ObjectMapper mockObjectMapper = org.mockito.Mockito.mock(ObjectMapper.class);
+        when(mockObjectMapper.writeValueAsString(any()))
+                .thenThrow(new JsonProcessingException("serialisation error") {});
+
+        // Rebuild service with mock ObjectMapper
+        when(mockDvlaConfiguration.getTokenEndpoint()).thenReturn(TEST_END_POINT);
+        when(mockDvlaConfiguration.getTokenTableName()).thenReturn(TEST_TOKEN_TABLE_NAME);
+        when(mockDvlaConfiguration.getUsername()).thenReturn(TEST_USER_NAME);
+
+        TokenRequestService serviceWithMockMapper =
+                new TokenRequestService(
+                        mockDvlaConfiguration,
+                        mockDynamoDbEnhancedClient,
+                        mockHttpRetryer,
+                        mockRequestConfig,
+                        mockObjectMapper,
+                        mockEventProbe);
+
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
+                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_PREPARE_TOKEN_REQUEST_PAYLOAD);
+
+        OAuthErrorResponseException thrownException =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () ->
+                                serviceWithMockMapper.performNewTokenRequest(
+                                        TEST_PASSWORD, Strategy.NO_CHANGE),
+                        "Expected OAuthErrorResponseException");
+
+        assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
+        assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
     }
 
     private void assertTokenHeaders(

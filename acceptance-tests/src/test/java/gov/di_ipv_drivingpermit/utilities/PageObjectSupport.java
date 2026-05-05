@@ -39,7 +39,7 @@ public class PageObjectSupport {
         try {
             WebDriverWait wait = new WebDriverWait(getCurrentDriver(), Duration.ofSeconds(seconds));
             wait.until(ExpectedConditions.visibilityOfElementLocated(by));
-        } catch (NoSuchElementException | TimeoutException e) {
+        } catch (NoSuchElementException | TimeoutException _) {
             fail("Element is not visible " + by.toString());
             fail(
                     "Element  "
@@ -56,7 +56,7 @@ public class PageObjectSupport {
             wait.until(ExpectedConditions.visibilityOfElementLocated(by));
             getCurrentDriver().findElement(by);
             return true;
-        } catch (NoSuchElementException | TimeoutException e) {
+        } catch (NoSuchElementException | TimeoutException _) {
             return false;
         }
     }
@@ -74,7 +74,7 @@ public class PageObjectSupport {
                                     .executeScript("return document.readyState")
                                     .toString()
                                     .equals("complete"));
-        } catch (TimeoutException e) {
+        } catch (TimeoutException _) {
             throw new RuntimeException("Wait for page to load returned Timeout exception");
         }
     }

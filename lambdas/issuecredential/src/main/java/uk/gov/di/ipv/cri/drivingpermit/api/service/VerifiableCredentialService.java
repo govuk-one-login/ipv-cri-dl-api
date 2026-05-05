@@ -21,6 +21,7 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterPrefix;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
@@ -146,7 +147,7 @@ public class VerifiableCredentialService {
     }
 
     private String removeIssuerPrefix(String issuerUrl) throws MalformedURLException {
-        URL url = new URL(issuerUrl);
+        URL url = URI.create(issuerUrl).toURL();
         return url.getAuthority() + url.getPath();
     }
 }

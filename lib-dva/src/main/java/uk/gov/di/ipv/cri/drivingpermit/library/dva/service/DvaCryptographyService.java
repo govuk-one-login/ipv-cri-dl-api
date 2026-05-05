@@ -17,6 +17,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeMethodFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.Thumbprints;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaCryptographyServiceConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.DvaInterface;
@@ -73,6 +74,12 @@ public class DvaCryptographyService {
         if (isInvalidSignature(decryptedSignedPayload)) {
             throw new IpvCryptoException("Dva Response Inner Signature invalid.");
         }
+
+        return getDVAResponse(decryptedSignedPayload);
+    }
+
+    @ExcludeMethodFromGeneratedCoverageReport
+    private DvaResponse getDVAResponse(JWSObject decryptedSignedPayload) {
         try {
             return objectMapper.readValue(
                     decryptedSignedPayload.getPayload().toString(), DvaResponse.class);

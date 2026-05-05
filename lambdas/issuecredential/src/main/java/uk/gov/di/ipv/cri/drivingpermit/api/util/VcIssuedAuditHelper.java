@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.util;
 
-import lombok.experimental.UtilityClass;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Address;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.DrivingPermit;
@@ -14,8 +13,12 @@ import java.util.List;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.domain.IssuingAuthority.DVLA;
 
-@UtilityClass
-public class VcIssuedAuditHelper {
+public final class VcIssuedAuditHelper {
+
+    private VcIssuedAuditHelper() {
+        throw new UnsupportedOperationException(
+                "This is a utility class and cannot be instantiated");
+    }
 
     public static PersonIdentityDetailed
             mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(

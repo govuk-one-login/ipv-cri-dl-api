@@ -10,6 +10,7 @@ import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.request.ApiKeyResponse;
 import uk.gov.di.ipv.cri.drivingpermit.event.service.ChangeApiKeyHttpRetryStatusConfig;
@@ -18,7 +19,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
 
 import java.io.IOException;
@@ -112,27 +112,27 @@ public class ChangeApiKeyService {
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_KEY_ENDPOINT);
         }
 
-        if (httpReply.statusCode == 200) {
-            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode);
+        if (httpReply.statusCode() == 200) {
+            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode());
 
             eventProbe.counterMetric(
                     DVLA_CHANGE_API_KEY_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
             ApiKeyResponse apiKeyResponse =
-                    objectMapper.readValue(httpReply.responseBody, ApiKeyResponse.class);
-            LOGGER.info("apiKey response message {}", apiKeyResponse.getMessage());
-            return apiKeyResponse.getNewApiKey();
+                    objectMapper.readValue(httpReply.responseBody(), ApiKeyResponse.class);
+            LOGGER.info("apiKey response message {}", apiKeyResponse.message());
+            return apiKeyResponse.newApiKey();
         } else {
             // The change API Key request responded but with an unexpected status code
             LOGGER.error(
                     "{} response status code {} content - {}",
                     REQUEST_NAME,
-                    httpReply.statusCode,
-                    httpReply.responseBody);
+                    httpReply.statusCode(),
+                    httpReply.responseBody());
 
             eventProbe.counterMetric(
                     DVLA_CHANGE_API_KEY_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
 
-            LOGGER.warn("Status code {}, triggered alert metric", httpReply.statusCode);
+            LOGGER.warn("Status code {}, triggered alert metric", httpReply.statusCode());
 
             // Alarm Firing
             eventProbe.counterMetric(

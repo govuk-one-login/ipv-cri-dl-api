@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class BrowserUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserUtils.class);
+    private static final HttpClient httpClient = HttpClient.newBuilder().build();
 
     /**
      * Switches to new window by the exact title. Returns to original window if target title not
@@ -187,24 +188,6 @@ public class BrowserUtils {
     public static boolean waitForSpecificPageWithTitleToFullyLoad(
             String expectedTitle, boolean exactTitleMatchRequired, long timeOutInSeconds) {
 
-        ExpectedCondition<Boolean> pageLoadedExpectation =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor) driver)
-                                .executeScript("return document.readyState")
-                                .equals("complete");
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(pageLoadedExpectation);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
-
         ExpectedCondition<Boolean> titleExpectation =
                 new ExpectedCondition<Boolean>() {
                     public Boolean apply(WebDriver driver) {
@@ -247,24 +230,6 @@ public class BrowserUtils {
      * @param timeOutInSeconds
      */
     public static boolean waitForUrlToContain(String expectedText, long timeOutInSeconds) {
-
-        ExpectedCondition<Boolean> pageLoadedExpectation =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor) driver)
-                                .executeScript("return document.readyState")
-                                .equals("complete");
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(pageLoadedExpectation);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
 
         ExpectedCondition<Boolean> urlCheckExpectation =
                 new ExpectedCondition<Boolean>() {
@@ -347,16 +312,22 @@ public class BrowserUtils {
         }
     }
 
+    public static void clickAndWaitForNavigation(WebElement element) {
+        WebElement pageContainingElement = Driver.get().findElement(By.tagName("html"));
+        element.click();
+        waitForStaleElement(Driver.get(), pageContainingElement);
+    }
+
     /**
-     * Waits for element to be not stale
+     * Waits for element to become stale (indicating page navigation has started)
      *
      * @param element
      */
     public static void waitForStaleElement(WebDriver driver, WebElement element) {
         Wait<WebDriver> wait =
                 new FluentWait<>(driver)
-                        .withTimeout(Duration.ofSeconds(15)) // Adjust timeout as needed
-                        .pollingEvery(Duration.ofMillis(300)) // Optional: Adjust polling frequency
+                        .withTimeout(Duration.ofSeconds(MAX_WAIT_SEC))
+                        .pollingEvery(Duration.ofMillis(300))
                         .ignoring(StaleElementReferenceException.class, WebDriverException.class);
 
         try {
@@ -459,7 +430,7 @@ public class BrowserUtils {
             try {
                 element.click();
                 return;
-            } catch (WebDriverException e) {
+            } catch (WebDriverException _) {
                 waitFor(1);
             }
         }
@@ -579,12 +550,6 @@ public class BrowserUtils {
         LOGGER.info("Feature set tag was : {}", featureSet);
     }
 
-    public static HttpResponse<String> sendHttpRequest(HttpRequest request)
-            throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder().build();
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
-    }
-
     public static void checkOkHttpResponseOnLink(String link) {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(link)).GET().build();
         HttpResponse<String> httpResponse = null;
@@ -592,8 +557,13 @@ public class BrowserUtils {
             httpResponse = sendHttpRequest(request);
             int statusCode = httpResponse.statusCode();
             assertEquals(200, statusCode);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException _) {
             fail("Failed to get 200 back on request to url");
         }
+    }
+
+    public static HttpResponse<String> sendHttpRequest(HttpRequest request)
+            throws IOException, InterruptedException {
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 }

@@ -11,6 +11,7 @@ public class ThirdPartyAddress {
     private String postalCode;
 
     // Ignore sonar do not make this static
+    @SuppressWarnings("java:S1170")
     private final String addressCountry = GlobalConstants.UK_DRIVING_PERMIT_ADDRESS_COUNTRY;
 
     public String getPostalCode() {

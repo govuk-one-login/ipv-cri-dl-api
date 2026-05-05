@@ -665,6 +665,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         scoreIs(validityScore, strengthScore, vcBody);
     }
 
+    @Override
     public JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
         JsonNode jsonNode = OBJECT_MAPPER.readTree(result);
         return jsonNode.get(vc);

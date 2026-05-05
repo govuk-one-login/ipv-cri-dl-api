@@ -12,7 +12,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.parameterstore.ParameterP
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +27,7 @@ public class CertExpiryReminderConfig {
     }
 
     public CertExpiryReminderConfig(ParameterStoreService parameterStoreService)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+            throws CertificateException, NoSuchAlgorithmException {
 
         readDVAHTTPClientCerts(parameterStoreService);
 
@@ -69,7 +68,7 @@ public class CertExpiryReminderConfig {
     }
 
     private void readDVACryptoCerts(ParameterStoreService parameterStoreService)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+            throws CertificateException, NoSuchAlgorithmException {
 
         LOGGER.info("Reading DVA Crypto Certs");
         DvaCryptographyServiceConfiguration dvaCryptographyServiceConfiguration =

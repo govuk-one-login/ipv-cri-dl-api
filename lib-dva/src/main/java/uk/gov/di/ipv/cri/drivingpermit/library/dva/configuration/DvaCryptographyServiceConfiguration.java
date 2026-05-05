@@ -25,9 +25,9 @@ public class DvaCryptographyServiceConfiguration {
     public static final String DVA_JWE_PARAMETER_PATH = "DVA/JWE";
 
     public static final String MAP_KEY_ENCRYPTION_CERT_FOR_DRIVING_PERMIT_TO_ENCRYPT =
-            "encryptionCertForDrivingPermitToEncrypt-16-05-2024";
+            "encryptionCertForDrivingPermitToEncrypt-27-04-2026";
     public static final String MAP_KEY_SIGNING_CERT_FOR_DRIVING_PERMIT_TO_VERIFY =
-            "signingCertForDrivingPermitToVerify-16-05-2024";
+            "signingCertForDrivingPermitToVerify-27-04-2026";
     public static final String MAP_KEY_ENCRYPTION_KEY_FOR_DRIVING_PERMIT_TO_DECRYPT =
             "encryptionKeyForDrivingPermitToDecrypt-03-07-2024";
 
@@ -63,9 +63,7 @@ public class DvaCryptographyServiceConfiguration {
 
     public DvaCryptographyServiceConfiguration(ParameterStoreService parameterStoreService)
             throws CertificateException, NoSuchAlgorithmException {
-        /////////////////
-        //// JWS Map ////
-        /////////////////
+        // JWS Map
         Map<String, String> dvaJWSmap =
                 parameterStoreService.getAllParametersFromPathWithDecryption(
                         ParameterPrefix.OVERRIDE, DVA_JWS_PARAMETER_PATH);
@@ -79,9 +77,7 @@ public class DvaCryptographyServiceConfiguration {
                 KeyCertHelper.getDecodedX509Certificate(
                         dvaJWSmap.get(MAP_KEY_SECONDARY_SIGNING_CERT_FOR_DVA_TO_VERIFY));
 
-        /////////////////
-        //// JWE Map ////
-        /////////////////
+        // JWE Map
         Map<String, String> dvaJWEmap =
                 parameterStoreService.getAllParametersFromPathWithDecryption(
                         ParameterPrefix.OVERRIDE, DVA_JWE_PARAMETER_PATH);

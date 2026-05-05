@@ -10,15 +10,14 @@ Feature: DVLA Auth Source Driving Licence Test
     And I add a cookie to change the language to English
     And I check the page title is Check your UK photocard driving licence details – GOV.UK One Login
     And User clicks selects the Yes Radio Button
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I check the page title is We need to check your driving licence details – GOV.UK One Login
     And User clicks the DVLA consent checkbox
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
     And JSON response should contain JTI field
-    And The test is complete and I close the driver
 
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
@@ -31,7 +30,6 @@ Feature: DVLA Auth Source Driving Licence Test
     And I enter the shared claims raw JSON <DVLADrivingLicenceAuthSourceSubject> in the Input shared claims raw JSON
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Invalid Context field value and status code as 302
-    And The test is complete and I close the driver
 
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
@@ -51,12 +49,11 @@ Feature: DVLA Auth Source Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVLA LicenceNumber
     Given User enters DVLA data as a <DVLADrivingLicenceSubject>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number <personalNumber> same as given Driving Licence
     And JSON response should contain JTI field
-    And The test is complete and I close the driver
 
     Examples:
       | contextValue | DVLADrivingLicenceAuthSourceSubject   | personalNumber   | DVLADrivingLicenceSubject         |
@@ -71,10 +68,9 @@ Feature: DVLA Auth Source Driving Licence Test
     And I add a cookie to change the language to English
     And I check the page title is Check your UK photocard driving licence details – GOV.UK One Login
     And User clicks selects the No Radio Button
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
-    And The test is complete and I close the driver
 
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |
@@ -89,11 +85,10 @@ Feature: DVLA Auth Source Driving Licence Test
     And I add a cookie to change the language to English
     And I check the page title is Check your UK photocard driving licence details – GOV.UK One Login
     And User clicks selects the Yes Radio Button
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I check the page title is We need to check your driving licence details – GOV.UK One Login
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I see the give your consent error in the summary as Error: You must give your consent to continue
-    And The test is complete and I close the driver
 
     Examples:
       | contextValue  | DVLADrivingLicenceAuthSourceSubject   |

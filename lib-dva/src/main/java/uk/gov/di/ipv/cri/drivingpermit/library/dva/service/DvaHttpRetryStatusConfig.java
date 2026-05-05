@@ -11,16 +11,11 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 public class DvaHttpRetryStatusConfig implements HttpRetryStatusConfig {
     @Override
     public boolean shouldHttpClientRetry(int statusCode) {
-        if (statusCode == 200) {
-            // OK, Success
-            return false;
-        } else if (statusCode == 429) {
-            // Too many recent requests
-            return true;
-        } else {
-            // Retry all server errors, but not any other status codes
-            return ((statusCode >= 500) && (statusCode <= 599));
-        }
+        return switch (statusCode) {
+            case 200 -> false;
+            case 429 -> true;
+            default -> ((statusCode >= 500) && (statusCode <= 599));
+        };
     }
 
     @Override

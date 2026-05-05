@@ -10,19 +10,19 @@ import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.StopWatch;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.event.request.ChangePasswordPayload;
 import uk.gov.di.ipv.cri.drivingpermit.event.service.ChangePasswordHttpRetryStatusConfig;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.UnauthorisedException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.drivingpermit.library.util.HTTPReplyHelper;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -155,8 +155,8 @@ public class ChangePasswordService {
         eventProbe.counterMetric(
                 DVLA_CHANGE_PASSWORD_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
-        if (httpReply.statusCode == 200) {
-            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode);
+        if (httpReply.statusCode() == 200) {
+            LOGGER.info("{} status code {}", REQUEST_NAME, httpReply.statusCode());
 
             eventProbe.counterMetric(
                     DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -165,19 +165,19 @@ public class ChangePasswordService {
             LOGGER.error(
                     "{} response status code {} content - {}",
                     REQUEST_NAME,
-                    httpReply.statusCode,
-                    httpReply.responseBody);
+                    httpReply.statusCode(),
+                    httpReply.responseBody());
 
             eventProbe.counterMetric(
                     DVLA_CHANGE_PASSWORD_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
 
-            LOGGER.warn("Status code {}, triggered alert metric", httpReply.statusCode);
+            LOGGER.warn("Status code {}, triggered alert metric", httpReply.statusCode());
 
             // Alarm Firing
             eventProbe.counterMetric(
                     DVLA_CHANGE_PASSWORD_RESPONSE_STATUS_CODE_ALERT_METRIC.withEndpointPrefix());
 
-            if (httpReply.statusCode == HttpStatusCode.UNAUTHORIZED) {
+            if (httpReply.statusCode() == HttpStatusCode.UNAUTHORIZED) {
                 throw new UnauthorisedException(
                         HttpStatusCode.UNAUTHORIZED,
                         ErrorResponse

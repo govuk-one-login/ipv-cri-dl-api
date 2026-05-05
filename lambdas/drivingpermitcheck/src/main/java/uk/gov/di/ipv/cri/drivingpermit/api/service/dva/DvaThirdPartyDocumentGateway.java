@@ -12,13 +12,14 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.StopWatch;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.DocumentCheckResult;
 import uk.gov.di.ipv.cri.drivingpermit.api.domain.result.APIResultSource;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.drivingpermit.api.service.configuration.DrivingPermitConfigurationService;
 import uk.gov.di.ipv.cri.drivingpermit.library.domain.DrivingPermitForm;
-import uk.gov.di.ipv.cri.drivingpermit.library.domain.Strategy;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.configuration.DvaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.request.DvaPayload;
 import uk.gov.di.ipv.cri.drivingpermit.library.dva.domain.response.DvaResponse;
@@ -30,7 +31,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.IpvCryptoException;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryer;
-import uk.gov.di.ipv.cri.drivingpermit.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -150,7 +150,7 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 boolean additionalHeaderRequired =
                         drivingPermitConfigurationService.isDvaPerformanceStub();
                 request.addHeader("has-ca", String.valueOf(additionalHeaderRequired));
-            } catch (NoSuchAlgorithmException e) {
+            } catch (NoSuchAlgorithmException _) {
                 LOGGER.error("failed to hash payload successfully for testing");
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -268,54 +268,64 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_UNWRAP_DVA_RESPONSE);
-            } catch (NoSuchAlgorithmException e) {
+            } catch (NoSuchAlgorithmException _) {
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.INCORRECT_HASH_VALIDATION_ALGORITHM_ERROR);
             }
-        } else {
+        }
 
-            String responseText = responseBody == null ? "No Text Found" : responseBody;
+        throw handleDVAUnhappyPath(statusCode, responseBody);
+    }
 
-            LOGGER.error(
-                    "DVA replied with HTTP status code {}, response text: {}",
-                    statusCode,
-                    responseText);
+    private OAuthErrorResponseException handleDVAUnhappyPath(int statusCode, String responseBody)
+            throws OAuthErrorResponseException {
+        String responseText = responseBody == null ? "No Text Found" : responseBody;
 
-            eventProbe.counterMetric(DVA_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
+        LOGGER.error(
+                "DVA replied with HTTP status code {}, response text: {}",
+                statusCode,
+                responseText);
 
-            if (statusCode >= 300 && statusCode <= 399) {
+        eventProbe.counterMetric(DVA_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
+
+        switch (statusCode / 100) {
+            case 3:
                 // Not Seen
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_30X);
-            } else if (statusCode >= 400 && statusCode <= 499) {
-                if (statusCode == 400) {
-                    LOGGER.error(
-                            "DVA replied with an InvalidRequestError. Please check the schema and request sent to DVA");
-                    eventProbe.counterMetric(DVA_INVALID_REQUEST_ERROR.withEndpointPrefix());
-
-                    throw new OAuthErrorResponseException(
-                            HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_400);
-                } else if (statusCode == 401) {
-                    LOGGER.error(
-                            "DVA replied with an UnauthorizedError. Please check the schema and request sent to DVA");
-                    eventProbe.counterMetric(DVA_REQUEST_ERROR.withEndpointPrefix());
-
-                    throw new OAuthErrorResponseException(
-                            HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_401);
-                }
-                // Seen when a cert has expired
-                throw new OAuthErrorResponseException(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_40X);
-            } else if (statusCode >= 500 && statusCode <= 599) {
+            case 4:
+                throw handleDVA4xxResponse(statusCode);
+            case 5:
                 // Error on DCS side
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_50X);
-            } else {
+            default:
                 // Any other status codes
                 throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_X);
-            }
+        }
+    }
+
+    private OAuthErrorResponseException handleDVA4xxResponse(int statusCode)
+            throws OAuthErrorResponseException {
+        switch (statusCode) {
+            case 400:
+                LOGGER.error(
+                        "DVA replied with an InvalidRequestError. Please check the schema and request sent to DVA");
+                eventProbe.counterMetric(DVA_INVALID_REQUEST_ERROR.withEndpointPrefix());
+                throw new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_400);
+            case 401:
+                LOGGER.error(
+                        "DVA replied with an UnauthorizedError. Please check the schema and request sent to DVA");
+                eventProbe.counterMetric(DVA_REQUEST_ERROR.withEndpointPrefix());
+                throw new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_401);
+            default:
+                // Seen when a cert has expired
+                throw new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR, ErrorResponse.DVA_ERROR_HTTP_40X);
         }
     }
 

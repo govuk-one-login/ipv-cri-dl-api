@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
 import static java.lang.System.getenv;
@@ -94,29 +93,29 @@ public class DLCommonPageObject extends UniversalSteps {
     }
 
     public void navigateToDrivingLicenceCRIOnTestEnv() {
-        visitCredentialIssuers.click();
+        BrowserUtils.clickAndWaitForNavigation(visitCredentialIssuers);
         assertExpectedPage(IPV_CORE_STUB, false);
         String dlCRITestEnvironment = configurationService.getDlCRITestEnvironment();
         LOGGER.info("dlCRITestEnvironment = {}", dlCRITestEnvironment);
-        if (dlCRITestEnvironment.equalsIgnoreCase("dev")
-                || dlCRITestEnvironment.equalsIgnoreCase("local")) {
-            drivingLicenceCRIDev.click();
-        } else if (dlCRITestEnvironment.equalsIgnoreCase("Build")) {
-            drivingLicenceCRIBuild.click();
-        } else if (dlCRITestEnvironment.equalsIgnoreCase("Staging")) {
-            drivingLicenceCRIStaging.click();
-        } else if (dlCRITestEnvironment.equalsIgnoreCase("Integration")) {
-            drivingLicenceCRIIntegration.click();
-        } else {
-            LOGGER.info("No test environment is set");
+
+        switch (dlCRITestEnvironment.toLowerCase()) {
+            case "dev", "local" -> BrowserUtils.clickAndWaitForNavigation(drivingLicenceCRIDev);
+            case "build" -> BrowserUtils.clickAndWaitForNavigation(drivingLicenceCRIBuild);
+            case "staging" -> BrowserUtils.clickAndWaitForNavigation(drivingLicenceCRIStaging);
+            case "integration" ->
+                    BrowserUtils.clickAndWaitForNavigation(drivingLicenceCRIIntegration);
+            default -> LOGGER.info("No test environment is set");
         }
 
         assertURLContains("credential-issuer?cri=driving-licence-cri");
     }
 
+    // Selects a UAT user row and clicks search, triggering a redirect chain
+    // through to the driving licence credential issuer.
     public void searchForUATUser(String number) {
         selectRow.sendKeys(number);
-        searchButton.click();
+        BrowserUtils.clickAndWaitForNavigation(searchButton);
+        assertURLContains("licence-issuer");
     }
 
     public void enterContextValue(String contextValue) {
@@ -128,24 +127,24 @@ public class DLCommonPageObject extends UniversalSteps {
         String sharedClaimsRawJson = getJsonPayload(jsonFileName);
         if (sharedClaimsRawJson != null) {
             selectInputSharedClaimsValue.sendKeys(sharedClaimsRawJson);
-            searchButtonRawJson.click();
+            BrowserUtils.clickAndWaitForNavigation(searchButtonRawJson);
         } else {
             throw new RuntimeException("Failed to load JSON from file: " + jsonFileName);
         }
     }
 
     public void navigateToDrivingLicenceResponse(String validOrInvalid) {
-        assertURLContains("callback");
+        assertURLContains(configurationService.getCoreStubEndpoint() + "/callback");
 
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
             assertExpectedPage(STUB_ERROR_PAGE_TITLE, true);
             assertURLContains("callback");
-            BrowserUtils.waitForVisibility(errorResponse, 10);
+            BrowserUtils.waitForVisibility(errorResponse, MAX_WAIT_SEC);
             errorResponse.click();
         } else {
             assertExpectedPage(STUB_VC_PAGE_TITLE, true);
             assertURLContains("callback");
-            BrowserUtils.waitForVisibility(viewResponse, 10);
+            BrowserUtils.waitForVisibility(viewResponse, MAX_WAIT_SEC);
             viewResponse.click();
         }
     }
@@ -329,11 +328,10 @@ public class DLCommonPageObject extends UniversalSteps {
         ObjectReader objectReader = OBJECT_MAPPER.readerFor(new TypeReference<List<JsonNode>>() {});
         List<JsonNode> evidence = objectReader.readValue(evidenceNode);
 
-        return getListOfNodes(evidence.get(0), "ci").stream()
-                .map(JsonNode::asText)
-                .collect(Collectors.toList());
+        return getListOfNodes(evidence.getFirst(), "ci").stream().map(JsonNode::asText).toList();
     }
 
+    @Override
     public JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
         JsonNode jsonNode = OBJECT_MAPPER.readTree(result);
         return jsonNode.get(vc);
@@ -343,8 +341,7 @@ public class DLCommonPageObject extends UniversalSteps {
         JsonNode credentialSubject = vcNode.findValue("credentialSubject");
         List<JsonNode> evidence = getListOfNodes(credentialSubject, "drivingPermit");
 
-        String licenceNumber = evidence.get(0).get("personalNumber").asText();
-        return licenceNumber;
+        return evidence.getFirst().get("personalNumber").asText();
     }
 
     public List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {

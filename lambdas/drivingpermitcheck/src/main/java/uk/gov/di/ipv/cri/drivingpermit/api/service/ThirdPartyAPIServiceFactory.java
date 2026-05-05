@@ -27,7 +27,6 @@ import uk.gov.di.ipv.cri.drivingpermit.library.service.ServiceFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 public class ThirdPartyAPIServiceFactory {
@@ -46,7 +45,7 @@ public class ThirdPartyAPIServiceFactory {
             ServiceFactory serviceFactory,
             DrivingPermitConfigurationService drivingPermitConfigurationService,
             AcmCertificateService acmCertificateService)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+            throws CertificateException, NoSuchAlgorithmException {
 
         boolean tlsOnDva = !drivingPermitConfigurationService.isDvaPerformanceStub();
 
@@ -66,7 +65,7 @@ public class ThirdPartyAPIServiceFactory {
             DrivingPermitConfigurationService drivingPermitConfigurationService,
             AcmCertificateService acmCertificateService,
             boolean tlsOn)
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+            throws CertificateException, NoSuchAlgorithmException {
 
         EventProbe eventProbe = serviceFactory.getEventProbe();
         ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();

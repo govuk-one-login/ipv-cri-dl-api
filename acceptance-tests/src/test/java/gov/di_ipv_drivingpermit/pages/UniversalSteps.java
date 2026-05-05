@@ -14,12 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.sendHttpRequest;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.waitForSpecificPageWithTitleToFullyLoad;
 import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.waitForUrlToContain;
 import static org.junit.Assert.assertTrue;
@@ -58,10 +57,6 @@ public class UniversalSteps {
         assertTrue(success);
     }
 
-    public static void driverClose() {
-        Driver.closeDriver();
-    }
-
     public void assertURLContains(String expected) {
         boolean status = waitForUrlToContain(expected, MAX_WAIT_SEC);
 
@@ -82,13 +77,6 @@ public class UniversalSteps {
             e.printStackTrace();
             return null;
         }
-    }
-
-    private HttpResponse<String> sendHttpRequest(HttpRequest request)
-            throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response;
     }
 
     public void getRequestToJwksEndpoint() throws IOException, InterruptedException {

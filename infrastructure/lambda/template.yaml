@@ -141,7 +141,7 @@ Globals:
         - !ImportValue cri-vpc-LambdaSecurityGroup
       SubnetIds: !Split [ ",", !ImportValue cri-vpc-PrivateSubnets ]
     Timeout: 30 # seconds
-    Runtime: java17
+    Runtime: java25
     Tracing: Active
     MemorySize: !FindInMap [MemorySizeMapping, Environment, !Ref 'Environment']
     Architectures:

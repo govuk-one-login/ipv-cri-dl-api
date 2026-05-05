@@ -3,7 +3,6 @@ package gov.di_ipv_drivingpermit.step_definitions;
 import gov.di_ipv_drivingpermit.pages.DVAEnterYourDetailsExactlyPageObject;
 import gov.di_ipv_drivingpermit.pages.DrivingLicencePageObject;
 import gov.di_ipv_drivingpermit.utilities.BrowserUtils;
-import gov.di_ipv_drivingpermit.utilities.Driver;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -12,15 +11,9 @@ import org.junit.Assert;
 
 public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
 
-    @When("User clicks on continue")
-    public void user_clicks_on_continue() {
-        continuebutton.click();
-    }
-
-    @When("User clicks on continue and waits for page reload")
-    public void user_clicks_on_continue_and_waits_for_page_reload() {
-        continuebutton.click();
-        BrowserUtils.waitForStaleElement(Driver.get(), continuebutton);
+    @When("User clicks on continue and waits for page navigation")
+    public void user_clicks_on_continue_and_waits_for_page_navigation() {
+        BrowserUtils.clickAndWaitForNavigation(continuebutton);
     }
 
     @When("User clicks the DVA consent checkbox")
@@ -90,7 +83,7 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @Given("User click on ‘prove your identity another way' Link")
     public void userClickOnProveYourIdentityAnotherWayLink() {
-        proveAnotherWay.click();
+        BrowserUtils.clickAndWaitForNavigation(proveAnotherWay);
     }
 
     @When("User click on I do not have a UK driving licence radio button")
@@ -111,7 +104,7 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
 
     @Given("User click on ‘Back' Link")
     public void userClickOnBackLink() {
-        back.click();
+        BrowserUtils.clickAndWaitForNavigation(back);
     }
 
     @Then("^I see the consent section (.*)$")

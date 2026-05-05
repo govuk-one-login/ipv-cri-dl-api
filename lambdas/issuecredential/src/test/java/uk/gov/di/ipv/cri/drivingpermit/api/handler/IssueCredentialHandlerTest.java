@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.common.contenttype.ContentType;
@@ -126,9 +127,8 @@ class IssueCredentialHandlerTest {
                 DocumentCheckTestDataGenerator.generateValidResultItem(
                         UUID.randomUUID(), savedPersonIdentityDetailed);
 
-        var auditEventPersonIdentityDetailed =
-                VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
-                        savedPersonIdentityDetailed, savedDocumentCheckResultItem);
+        VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                savedPersonIdentityDetailed, savedDocumentCheckResultItem);
 
         SessionItem sessionItem = new SessionItem();
 
@@ -206,9 +206,8 @@ class IssueCredentialHandlerTest {
                 DocumentCheckTestDataGenerator.generateValidResultItem(
                         UUID.randomUUID(), savedPersonIdentityDetailed);
 
-        var auditEventPersonIdentityDetailed =
-                VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
-                        savedPersonIdentityDetailed, savedDocumentCheckResultItem);
+        VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                savedPersonIdentityDetailed, savedDocumentCheckResultItem);
 
         SessionItem sessionItem = new SessionItem();
 
@@ -254,7 +253,9 @@ class IssueCredentialHandlerTest {
                         eq(AuditEventType.VC_ISSUED),
                         any(AuditEventContext.class),
                         any(VCISSDocumentCheckAuditExtension.class));
-        Map responseBody = new ObjectMapper().readValue(response.getBody(), Map.class);
+        Map<String, Object> responseBody =
+                new ObjectMapper()
+                        .readValue(response.getBody(), new TypeReference<Map<String, Object>>() {});
         assertEquals(HttpStatusCode.BAD_REQUEST, response.getStatusCode());
         assertEquals(ErrorResponse.VERIFIABLE_CREDENTIAL_ERROR.getCode(), responseBody.get("code"));
         assertEquals(

@@ -63,17 +63,14 @@ class VerifiableCredentialServiceTest implements TestFixtures {
 
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @SuppressWarnings("java:S116")
-    private final String UNIT_TEST_VC_KEYID = "UNIT_TEST_VC_KEYID";
+    private static final String UNIT_TEST_VC_KEYID = "UNIT_TEST_VC_KEYID";
 
-    @SuppressWarnings("java:S116")
-    private final String UNIT_TEST_VC_ISSUER = "https://UNIT_TEST_VC_ISSUER";
+    private static final String UNIT_TEST_VC_ISSUER = "https://UNIT_TEST_VC_ISSUER";
 
-    @SuppressWarnings("java:S116")
-    private final String UNIT_TEST_SUBJECT = "urn:fdc:12345678";
+    private static final String UNIT_TEST_SUBJECT = "urn:fdc:12345678";
 
-    private final String UNIT_TEST_MAX_JWT_TTL_UNIT = "SECONDS";
-    private final long UNIT_TEST_MAX_JWT_TTL = 100L;
+    private static final String UNIT_TEST_MAX_JWT_TTL_UNIT = "SECONDS";
+    private static final long UNIT_TEST_MAX_JWT_TTL = 100L;
 
     // Returned via the ServiceFactory
     private final ObjectMapper realObjectMapper =
@@ -119,9 +116,8 @@ class VerifiableCredentialServiceTest implements TestFixtures {
                 DocumentCheckTestDataGenerator.generateValidResultItem(
                         UUID.randomUUID(), savedPersonIdentityDetailed);
 
-        var auditEventPersonIdentityDetailed =
-                VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
-                        savedPersonIdentityDetailed, savedDocumentCheckResultItem);
+        VcIssuedAuditHelper.mapPersonIdentityDetailedAndDrivingPermitDataToAuditRestricted(
+                savedPersonIdentityDetailed, savedDocumentCheckResultItem);
 
         if (includeKidInVC) {
             when(mockCommonLibConfigurationService.getVerifiableCredentialKmsSigningKeyId())

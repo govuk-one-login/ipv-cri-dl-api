@@ -4,16 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import gov.di_ipv_drivingpermit.model.AuthorisationResponse;
 import gov.di_ipv_drivingpermit.model.DocumentCheckResponse;
 import gov.di_ipv_drivingpermit.model.DrivingPermitForm;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
+import gov.di_ipv_drivingpermit.utilities.ObjectMapperFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +66,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     private static Boolean retry;
     private static String drivingLicenceCheckResponse;
-    private static final ObjectMapper OBJECT_MAPPER =
-            new ObjectMapper().registerModules(new JavaTimeModule());
+    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.MAPPER;
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
@@ -180,26 +178,24 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
             String drivingPermitIssueDate,
             String drivingPermitIssuedBy,
             String drivingPermitFullAddress) {
-        JSONObject jsonObject = new JSONObject(claimsJson);
-        JSONObject drivingPermitEntry = new JSONObject();
-
-        drivingPermitEntry.put("personalNumber", drivingPermitPersonalNumber);
-        drivingPermitEntry.put("expiryDate", drivingPermitExpiryDate);
-        drivingPermitEntry.put("issueDate", drivingPermitIssueDate);
-        drivingPermitEntry.put("issuedBy", drivingPermitIssuedBy);
-        drivingPermitEntry.put("fullAddress", drivingPermitFullAddress);
-
-        JSONArray drivingPermitArray = new JSONArray();
-        drivingPermitArray.put(drivingPermitEntry);
-
-        JSONObject sharedClaims = jsonObject.getJSONObject("shared_claims");
-
-        sharedClaims.remove("address");
-
-        sharedClaims.put("drivingPermit", drivingPermitArray);
-        jsonObject.put("context", "check_details");
-
-        return jsonObject.toString();
+        try {
+            ObjectNode jsonObject = (ObjectNode) OBJECT_MAPPER.readTree(claimsJson);
+            ObjectNode drivingPermitEntry = OBJECT_MAPPER.createObjectNode();
+            drivingPermitEntry.put("personalNumber", drivingPermitPersonalNumber);
+            drivingPermitEntry.put("expiryDate", drivingPermitExpiryDate);
+            drivingPermitEntry.put("issueDate", drivingPermitIssueDate);
+            drivingPermitEntry.put("issuedBy", drivingPermitIssuedBy);
+            drivingPermitEntry.put("fullAddress", drivingPermitFullAddress);
+            ArrayNode drivingPermitArray = OBJECT_MAPPER.createArrayNode();
+            drivingPermitArray.add(drivingPermitEntry);
+            ObjectNode sharedClaims = (ObjectNode) jsonObject.get("shared_claims");
+            sharedClaims.remove("address");
+            sharedClaims.set("drivingPermit", drivingPermitArray);
+            jsonObject.put("context", "check_details");
+            return jsonObject.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build DVA driving permit JSON", e);
+        }
     }
 
     private String insertDrivingPermitDVLA(
@@ -210,24 +206,25 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
             String drivingPermitIssueNumber,
             String drivingPermitIssuedBy,
             String drivingPermitFullAddress) {
-        JSONObject jsonObject = new JSONObject(claimsJson);
-        JSONObject drivingPermitEntry = new JSONObject();
-
-        drivingPermitEntry.put("personalNumber", drivingPermitPersonalNumber);
-        drivingPermitEntry.put("expiryDate", drivingPermitExpiryDate);
-        drivingPermitEntry.put("issueDate", drivingPermitIssueDate);
-        drivingPermitEntry.put("issueNumber", drivingPermitIssueNumber);
-        drivingPermitEntry.put("issuedBy", drivingPermitIssuedBy);
-        drivingPermitEntry.put("fullAddress", drivingPermitFullAddress);
-
-        JSONArray drivingPermitArray = new JSONArray();
-        drivingPermitArray.put(drivingPermitEntry);
-        JSONObject sharedClaims = jsonObject.getJSONObject("shared_claims");
-        sharedClaims.remove("address");
-        sharedClaims.put("drivingPermit", drivingPermitArray);
-        jsonObject.put("context", "check_details");
-
-        return jsonObject.toString();
+        try {
+            ObjectNode jsonObject = (ObjectNode) OBJECT_MAPPER.readTree(claimsJson);
+            ObjectNode drivingPermitEntry = OBJECT_MAPPER.createObjectNode();
+            drivingPermitEntry.put("personalNumber", drivingPermitPersonalNumber);
+            drivingPermitEntry.put("expiryDate", drivingPermitExpiryDate);
+            drivingPermitEntry.put("issueDate", drivingPermitIssueDate);
+            drivingPermitEntry.put("issueNumber", drivingPermitIssueNumber);
+            drivingPermitEntry.put("issuedBy", drivingPermitIssuedBy);
+            drivingPermitEntry.put("fullAddress", drivingPermitFullAddress);
+            ArrayNode drivingPermitArray = OBJECT_MAPPER.createArrayNode();
+            drivingPermitArray.add(drivingPermitEntry);
+            ObjectNode sharedClaims = (ObjectNode) jsonObject.get("shared_claims");
+            sharedClaims.remove("address");
+            sharedClaims.set("drivingPermit", drivingPermitArray);
+            jsonObject.put("context", "check_details");
+            return jsonObject.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build DVLA driving permit JSON", e);
+        }
     }
 
     public void dlUserIdentityAsJwtString(String criId, Integer rowNumber)
@@ -613,9 +610,9 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         vcBody = signedJWT.getJWTClaimsSet().toString();
         LOGGER.info("VC Body = {}", vcBody);
 
-        JSONObject jsonHeader;
+        JsonNode jsonHeader;
         try {
-            jsonHeader = new JSONObject(vcHeader);
+            jsonHeader = OBJECT_MAPPER.readTree(vcHeader);
         } catch (Exception e) {
             LOGGER.error("Failed to parse VC Header as JSON", e);
             throw new AssertionError("Failed to parse VC Header as JSON", e);
@@ -628,12 +625,12 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         Assert.assertEquals(
                 "The 'typ' field does not have the expected value",
                 "JWT",
-                jsonHeader.getString("typ"));
+                jsonHeader.get("typ").asText());
         Assert.assertEquals(
                 "The 'alg' field does not have the expected value",
                 "ES256",
-                jsonHeader.getString("alg"));
-        String kid = jsonHeader.getString("kid");
+                jsonHeader.get("alg").asText());
+        String kid = jsonHeader.get("kid").asText();
         Assert.assertTrue(
                 "The 'kid' field does not start with the expected prefix",
                 kid.startsWith(KID_PREFIX));

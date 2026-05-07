@@ -3,10 +3,9 @@ package gov.di_ipv_drivingpermit.pages;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import gov.di_ipv_drivingpermit.utilities.Driver;
-import org.json.JSONObject;
+import gov.di_ipv_drivingpermit.utilities.ObjectMapperFactory;
 import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.support.PageFactory;
 import org.slf4j.Logger;
@@ -25,8 +24,7 @@ import static org.junit.Assert.assertTrue;
 
 public class UniversalSteps {
 
-    private static final ObjectMapper OBJECT_MAPPER =
-            new ObjectMapper().registerModule(new JavaTimeModule());
+    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.MAPPER;
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
@@ -71,8 +69,7 @@ public class UniversalSteps {
         String filePath = "src/test/resources/Data/" + fileName + ".json";
         try {
             String content = new String(Files.readAllBytes(Paths.get(filePath)));
-            JSONObject jsonObject = new JSONObject(content);
-            return jsonObject.toString();
+            return OBJECT_MAPPER.readTree(content).toString();
         } catch (Exception e) {
             e.printStackTrace();
             return null;

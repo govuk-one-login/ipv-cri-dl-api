@@ -40,7 +40,7 @@ pact_provider = "4.6.19"
 commons_io = "2.21.0"
 
 # AC tests
-cucumber = "7.33.0"
+cucumber = "7.34.3"
 selenium = "4.40.0"
 axe_core_selenium = "4.11.0"
 restassured =  "5.5.6"

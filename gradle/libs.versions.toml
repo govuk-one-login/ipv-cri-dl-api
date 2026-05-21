@@ -31,7 +31,7 @@ wiremock_version = "3.13.2"
 passay_version = "1.6.6"
 
 # Unit tests
-junit = "6.0.3"
+junit = "6.1.0"
 mockito = "5.23.0"
 webcompere = "2.1.8"
 

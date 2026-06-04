@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @Tag("InfraTest")
+@Tag("QualityGateStackTest")
 @DisplayName("Certificate CloudFormation Template Assertions")
 class CertificateTemplateTest {
 

@@ -94,7 +94,8 @@
 					"check-types": [
 						"component",
 						"integration",
-						"regression"
+						"regression",
+						"stack"
 					],
 					"config": {
 						"file": ".github/workflows/check-pr.yml",

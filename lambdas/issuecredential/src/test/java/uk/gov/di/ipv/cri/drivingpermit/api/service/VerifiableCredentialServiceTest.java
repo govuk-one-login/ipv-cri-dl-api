@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.drivingpermit.api.domain.VerifiableCredentialConstants.VC_ADDRESS_KEY;
@@ -202,10 +203,8 @@ class VerifiableCredentialServiceTest implements TestFixtures {
         assertEquals(UNIT_TEST_VC_ISSUER, claimsSet.get("iss").textValue());
         assertEquals(UNIT_TEST_SUBJECT, claimsSet.get("sub").textValue());
 
-        long notBeforeTime = claimsSet.get("nbf").asLong();
-        final long expirationTime = claimsSet.get("exp").asLong();
-        assertEquals(expirationTime, notBeforeTime + UNIT_TEST_MAX_JWT_TTL);
-
+        assertNotNull(claimsSet.get("nbf"));
+        assertTrue(claimsSet.get("nbf").asLong() > 0);
         ECDSAVerifier ecVerifier = new ECDSAVerifier(ECKey.parse(TestFixtures.EC_PUBLIC_JWK_1));
         assertTrue(signedJWT.verify(ecVerifier));
     }

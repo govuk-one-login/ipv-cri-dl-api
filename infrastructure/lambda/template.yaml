@@ -78,11 +78,6 @@ Conditions:
   AlarmsEnabled: !Equals
     - !Ref DeploymentType
     - "pipeline"
-  # This is a special case fix to avoid setting this environment wide feature flag in dev.
-  # As it becomes owned by the first stack using it. Remove once the feature flag is removed and feature is permanent.
-  OverrideSettingOfEnvironmentWideFeatureFlag: !Equals
-    - !Ref Environment
-    - dev
   UsingCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -222,22 +217,6 @@ Mappings:
       integration: "6"
       production: "6"
 
-  VcExpiryRemoved:
-    Environment:
-      dev: "true"
-      build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
-
-  VcContainsUniqueIdMapping:
-    Environment:
-      dev: "true"
-      build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
-
   JwtTtlUnitMapping:
     Environment:
       dev: MONTHS
@@ -344,28 +323,18 @@ Mappings:
 
   FeatureFlagMapping:
     dev:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "true"
       hasCA: "false"
     build:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
       hasCA: "false"
     staging:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
       hasCA: "true"
     integration:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
       hasCA: "false"
     production:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
       hasCA: "true"
 
@@ -793,8 +762,6 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
-          ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
-          ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
           SESSION_TABLE: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
           VERIFIABLE_CREDENTIAL_ISSUER: !Sub "{{resolve:ssm:/${CommonStackName}/verifiable-credential/issuer}}"
@@ -1512,25 +1479,6 @@ Resources:
   # Parameters                                                       #
   #                                                                  #
   ####################################################################
-
-  ParameterReleaseFlagsVcExpiryRemoved:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !If
-        - OverrideSettingOfEnvironmentWideFeatureFlag
-        - !Sub "/${AWS::StackName}/release-flags-vc-expiry-removed-not-used-in-dev"
-        - !Sub "/release-flags/vc-expiry-removed"
-      Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
-      Type: String
-      Description: Expiry date release toggle
-
-  ReleaseFlagsVcContainsUniqueIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/release-flags/vc-contains-unique-id"
-      Value: !FindInMap [ VcContainsUniqueIdMapping, Environment, !Ref Environment ]
-      Type: String
-      Description: Verifiable Credential Contains UniqueId Mapping
 
   ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter

@@ -77,8 +77,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder.ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID;
-import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder.ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED;
 
 // For static tests against potential new contracts
 @Tag("Pact")
@@ -135,8 +133,6 @@ class IssueCredentialHandlerTest {
     void pactSetup(PactVerificationContext context)
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
 
-        environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED, true);
-        environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID, true);
         environmentVariables.set("INCLUDE_VC_KID", "false");
         environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
 

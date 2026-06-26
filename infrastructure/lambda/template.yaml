@@ -1154,7 +1154,7 @@ Resources:
       State: ENABLED
       Targets:
         - Arn:
-            Fn::ImportValue: "slack-notifications-BuildNotificationTopicArn"
+            Fn::ImportValue: "slack-notifications-SlackSNSTopicArn"
           Id: "NotifyOnRotationSuccededTarget"
           InputTransformer:
             InputPathsMap:

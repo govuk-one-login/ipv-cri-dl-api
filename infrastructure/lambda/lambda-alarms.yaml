@@ -1,0 +1,389 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Digital Identity CRI Shared Alarm Template - Used per Lambda function. 4 alarms are created per function/endpoint"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Required general configuration
+        Parameters:
+          - Environment
+          - MainStackName
+          - CriticalAlarmTopic
+          - WarningAlarmTopic
+          - SupportManualURL
+          - FunctionName
+          - ApiGatewayName
+          - ApiGatewayResourcePath
+          - ApiGatewayResourceMethod
+
+      - Label:
+          default: Optional disabling of specific alarms
+        Parameters:
+          - Enable5XXApiGwErrorAlarm
+          - Enable5XXApiGwErrorCriticalAlarm
+          - EnableLambdaThrottleAlarm
+          - EnableLambdaConcurrencyThresholdReachedAlarm
+
+      - Label:
+          default: Optional 5XXApiGwErrorAlarm configuration
+        Parameters:
+          - 5XXApiGwErrorAlarmEvaluationPeriods
+          - 5XXApiGwErrorAlarmDatapointsToAlarm
+          - 5XXApiGwErrorAlarmThreshold
+          - 5XXApiGwErrorAlarmPeriod
+          - 5XXApiGwErrorAlarmMinInvocationCount
+          - 5XXApiGwErrorAlarmMinErrorCount
+
+      - Label:
+          default: Optional 5XXApiGwErrorCriticalAlarm configuration
+        Parameters:
+          - 5XXApiGwErrorCriticalAlarmEvaluationPeriods
+          - 5XXApiGwErrorCriticalAlarmDatapointsToAlarm
+          - 5XXApiGwErrorCriticalAlarmThreshold
+          - 5XXApiGwErrorCriticalAlarmPeriod
+          - 5XXApiGwErrorCriticalAlarmMinInvocationCount
+          - 5XXApiGwErrorCriticalAlarmMinErrorCount
+
+      - Label:
+          default: Optional LambdaThrottleAlarm configuration
+        Parameters:
+          -   LambdaThrottleAlarmEvaluationPeriods
+          -   LambdaThrottleAlarmDatapointsToAlarm
+          -   LambdaThrottleAlarmThreshold
+          -   LambdaThrottleAlarmPeriod
+
+      - Label:
+          default: Optional LambdaConcurrencyThresholdReachedAlarm configuration
+        Parameters:
+          -   LambdaConcurrencyThresholdReachedAlarmEvaluationPeriods
+          -   LambdaConcurrencyThresholdReachedAlarmDatapointsToAlarm
+          -   LambdaConcurrencyThresholdReachedAlarmThreshold
+          -   LambdaConcurrencyThresholdReachedAlarmPeriod
+
+Parameters:
+  #########################
+  ## Required parameters ##
+  #########################
+  Environment:
+    Type: String
+    Description: "Environment name"
+  MainStackName:
+    Type: String
+    Description: "Name of the main (parent) stack"
+  CriticalAlarmTopic:
+    Type: String
+    Description: "SNS topic ARN for critical alarms, ensure this is correct for enviornment"
+  WarningAlarmTopic:
+    Type: String
+    Description: "SNS topic for warning alarms, ensure this is correct for enviornment"
+  SupportManualURL:
+    Type: String
+    Description: "URL for the support manual"
+  FunctionName:
+    Type: String
+    Description: "Name of the Lambda function"
+  ApiGatewayName:
+    Type: String
+    Description: "Name of the API Gateway"
+  ApiGatewayResourcePath:
+    Type: String
+    Description: "Name of the API Gateway resource path"
+  ApiGatewayResourceMethod:
+    Type: String
+    Description: "HTTP method for the API Gateway resource"
+    AllowedValues:
+      - "GET"
+      - "POST"
+
+  #################################################
+  ## Optional (en/dis)-abling of specific alarms ##
+  #################################################
+  Enable5XXApiGwErrorAlarm:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Description: "Enable creation of 5XXApiGwErrorAlarm"
+    Default: "true"
+  Enable5XXApiGwErrorCriticalAlarm:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Description: "Enable creation of 5XXApiGwErrorCriticalAlarm"
+    Default: "true"
+  EnableLambdaThrottleAlarm:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Description: "Enable creation of LambdaThrottleAlarm"
+    Default: "true"
+  EnableLambdaConcurrencyThresholdReachedAlarm:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Description: "Enable creation of LambdaConcurrencyThresholdReachedAlarm"
+    Default: "true"
+
+  ###############################################
+  ## 5XXApiGwErrorAlarm Optional Configuration ##
+  ###############################################
+  5XXApiGwErrorAlarmEvaluationPeriods:
+    Type: Number
+    Description: "Number of periods to evaluate"
+    Default: 5
+  5XXApiGwErrorAlarmDatapointsToAlarm:
+    Type: Number
+    Description: "Number of periods (within evaluation period) that must be breaching threshold to alarm"
+    Default: 2
+  5XXApiGwErrorAlarmThreshold:
+    Type: Number
+    Description: "Threshold for each period - i.e. percentage of requests that are 5XX errors"
+    Default: 1
+  5XXApiGwErrorAlarmPeriod:
+    Type: Number
+    Description: "Length of each period in seconds - i.e. how often a datapoint is calculated"
+    Default: 60
+  5XXApiGwErrorAlarmMinInvocationCount:
+    Type: Number
+    Description: "Minimum number of requests within a period for data to be evaluated"
+    Default: 4
+  5XXApiGwErrorAlarmMinErrorCount:
+    Type: Number
+    Description: "Minimum number of 5XX errors within a period for data to be evaluated"
+    Default: 2
+
+  #######################################################
+  ## 5XXApiGwErrorCriticalAlarm Optional Configuration ##
+  #######################################################
+  5XXApiGwErrorCriticalAlarmEvaluationPeriods:
+    Type: Number
+    Description: "Number of periods to evaluate"
+    Default: 5
+  5XXApiGwErrorCriticalAlarmDatapointsToAlarm:
+    Type: Number
+    Description: "Number of periods (within evaluation period) that must be breaching threshold to alarm"
+    Default: 2
+  5XXApiGwErrorCriticalAlarmThreshold:
+    Type: Number
+    Description: "Threshold for each period - i.e. percentage of requests that are 5XX errors"
+    Default: 80
+  5XXApiGwErrorCriticalAlarmPeriod:
+    Type: Number
+    Description: "Length of each period in seconds - i.e. how often a datapoint is calculated"
+    Default: 60
+  5XXApiGwErrorCriticalAlarmMinInvocationCount:
+    Type: Number
+    Description: "Minimum number of requests within a period for data to be evaluated"
+    Default: 10
+  5XXApiGwErrorCriticalAlarmMinErrorCount:
+    Type: Number
+    Description: "Minimum number of 5XX errors within a period for data to be evaluated"
+    Default: 2
+
+  ################################################
+  ## LambdaThrottleAlarm Optional Configuration ##
+  ################################################
+  LambdaThrottleAlarmEvaluationPeriods:
+    Type: Number
+    Description: "Number of periods to evaluate"
+    Default: 1
+  LambdaThrottleAlarmDatapointsToAlarm:
+    Type: Number
+    Description: "Number of periods (within evaluation period) that must be breaching threshold to alarm"
+    Default: 1
+  LambdaThrottleAlarmThreshold:
+    Type: Number
+    Description: "Threshold for each period - i.e. count of lambda throttles"
+    Default: 1
+  LambdaThrottleAlarmPeriod:
+    Type: Number
+    Description: "Length of each period in seconds - i.e. how often a datapoint is calculated"
+    Default: 60
+
+  ###################################################################
+  ## LambdaConcurrencyThresholdReachedAlarm Optional Configuration ##
+  ###################################################################
+  LambdaConcurrencyThresholdReachedAlarmEvaluationPeriods:
+    Type: Number
+    Description: "Number of periods to evaluate"
+    Default: 15
+  LambdaConcurrencyThresholdReachedAlarmDatapointsToAlarm:
+    Type: Number
+    Description: "Number of periods (within evaluation period) that must be breaching threshold to alarm"
+    Default: 12
+  LambdaConcurrencyThresholdReachedAlarmThreshold:
+    Type: Number
+    Description: "Threshold for each period - i.e. count of lambda concurrency threshold reached"
+    Default: 3
+  LambdaConcurrencyThresholdReachedAlarmPeriod:
+    Type: Number
+    Description: "Length of each period in seconds - i.e. how often a datapoint is calculated"
+    Default: 60
+
+Conditions:
+  Create5XXApiGwErrorAlarm: !Equals [!Ref Enable5XXApiGwErrorAlarm, 'true']
+  Create5XXApiGwErrorCriticalAlarm: !Equals [!Ref Enable5XXApiGwErrorCriticalAlarm, 'true']
+  CreateLambdaThrottleAlarm: !Equals [!Ref EnableLambdaThrottleAlarm, 'true']
+  CreateLambdaConcurrencyThresholdReachedAlarm: !Equals [!Ref EnableLambdaConcurrencyThresholdReachedAlarm, 'true']
+
+Resources:
+  5XXApiGwErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: Create5XXApiGwErrorAlarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-5XXApiGwErrorAlarm"
+      AlarmDescription: !Sub "There has been a small proportion of 5XX errors on the ${MainStackName}-${FunctionName} endpoint. ${SupportManualURL}"
+      ActionsEnabled: true
+      OKActions: [!Ref WarningAlarmTopic]
+      AlarmActions: [!Ref WarningAlarmTopic]
+      InsufficientDataActions: [ ]
+      EvaluationPeriods: !Ref 5XXApiGwErrorAlarmEvaluationPeriods
+      DatapointsToAlarm: !Ref 5XXApiGwErrorCriticalAlarmDatapointsToAlarm
+      Threshold: !Ref 5XXApiGwErrorCriticalAlarmThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: !Sub IF(invocations<${5XXApiGwErrorAlarmMinInvocationCount} || error<${5XXApiGwErrorAlarmMinErrorCount},0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: Method
+                  Value: !Ref ApiGatewayResourceMethod
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: !Ref 5XXApiGwErrorCriticalAlarmPeriod
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: Method
+                  Value: !Ref ApiGatewayResourceMethod
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: !Ref 5XXApiGwErrorCriticalAlarmPeriod
+            Stat: Sum
+
+  5XXApiGwErrorCriticalAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: Create5XXApiGwErrorCriticalAlarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-5XXApiGwErrorCriticalAlarm"
+      AlarmDescription: !Sub "There has been a significant proportion of 5XX errors on the ${MainStackName}-${FunctionName} endpoint. ${SupportManualURL}"
+      ActionsEnabled: true
+      AlarmActions: [!Ref CriticalAlarmTopic]
+      OKActions: [!Ref CriticalAlarmTopic]
+      InsufficientDataActions: [ ]
+      EvaluationPeriods: !Ref 5XXApiGwErrorCriticalAlarmEvaluationPeriods
+      DatapointsToAlarm: !Ref 5XXApiGwErrorCriticalAlarmDatapointsToAlarm
+      Threshold: !Ref 5XXApiGwErrorCriticalAlarmThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: !Sub IF(invocations<${5XXApiGwErrorCriticalAlarmMinInvocationCount} || error<${5XXApiGwErrorCriticalAlarmMinErrorCount},0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: Method
+                  Value: !Ref ApiGatewayResourceMethod
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: !Ref 5XXApiGwErrorCriticalAlarmPeriod
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: Method
+                  Value: !Ref ApiGatewayResourceMethod
+                - Name: ApiName
+                  Value: !Ref ApiGatewayName
+                - Name: Stage
+                  Value: !Ref Environment
+                - Name: Resource
+                  Value: !Ref ApiGatewayResourcePath
+            Period: !Ref 5XXApiGwErrorCriticalAlarmPeriod
+            Stat: Sum
+
+  LambdaThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLambdaThrottleAlarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions: [!Ref CriticalAlarmTopic]
+      OKActions: [!Ref CriticalAlarmTopic]
+      InsufficientDataActions: []
+      AlarmDescription: !Sub "Trigger if the ${MainStackName}-${FunctionName} lambda throttles. ${SupportManualURL}"
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-throttles"
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FunctionName
+      TreatMissingData: notBreaching
+      Period: !Ref LambdaThrottleAlarmPeriod # This is the minimum value for the AWS Namespace
+      EvaluationPeriods: !Ref LambdaThrottleAlarmEvaluationPeriods
+      DatapointsToAlarm: !Ref LambdaThrottleAlarmDatapointsToAlarm
+      Threshold: !Ref LambdaThrottleAlarmThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+
+  LambdaConcurrencyThresholdReachedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLambdaConcurrencyThresholdReachedAlarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${FunctionName}-ConcurrencyThresholdReached"
+      AlarmDescription: !Sub ${Environment} - ${FunctionName} - Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions: [!Ref CriticalAlarmTopic]
+      OKActions: [!Ref CriticalAlarmTopic]
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FunctionName
+      Period: !Ref LambdaConcurrencyThresholdReachedAlarmPeriod
+      EvaluationPeriods: !Ref LambdaConcurrencyThresholdReachedAlarmEvaluationPeriods
+      DatapointsToAlarm: !Ref LambdaConcurrencyThresholdReachedAlarmDatapointsToAlarm
+      Threshold: !Ref LambdaConcurrencyThresholdReachedAlarmThreshold  # TODO: check this alarm actually only fires when threshold reached?
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching

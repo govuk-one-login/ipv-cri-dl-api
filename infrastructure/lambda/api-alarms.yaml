@@ -1,0 +1,178 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "Digital Identity CRI Shared Alarm Template - For CRI API stack"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Required general configuration
+        Parameters:
+          - Environment
+          - MainStackName
+          - CriticalAlarmTopic
+          - WarningAlarmTopic
+          - SupportManualURL
+
+      - Label:
+          default: Optional LambdaErrorsAlarm configuration
+        Parameters:
+          - LambdaErrorsAlarmEvaluationPeriods
+          - LambdaErrorsAlarmDatapointsToAlarm
+          - LambdaErrorsAlarmThreshold
+          - LambdaErrorsAlarmPeriod
+
+      - Label:
+          default: Optional APIGW5XXErrorsAlarm configuration
+        Parameters:
+          - APIGW5XXErrorsAlarmEvaluationPeriods
+          - APIGW5XXErrorsAlarmDatapointsToAlarm
+          - APIGW5XXErrorsAlarmThreshold
+          - APIGW5XXErrorsAlarmPeriod
+
+Parameters:
+  Environment:
+    Type: String
+    Description: "Environment name"
+  MainStackName:
+    Type: String
+    Description: "Name of the main (parent) stack"
+  CriticalAlarmTopic:
+    Type: String
+    Description: "SNS topic ARN for critical alarms, ensure this is correct for enviornment"
+  WarningAlarmTopic:
+    Type: String
+    Default: ""
+    Description: "SNS topic for warning alarms, ensure this is correct for enviornment"
+  SupportManualURL:
+    Type: String
+    Description: "URL for the support manual"
+  PublicApiGatewayName:
+    Type: String
+    Description: "Name of the Public API Gateway"
+  PrivateApiGatewayName:
+    Type: String
+    Description: "Name of the Private API Gateway"
+
+  #################################################
+  ## Optional (en/dis)-abling of specific alarms ##
+  #################################################
+  EnableLambdaErrorsAlarm:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Description: "Enable creation of LambdaErrorsAlarm"
+    Default: "true"
+  EnableAPIGW5XXErrorsAlarm:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Description: "Enable creation of APIGW5XXErrorsAlarm"
+    Default: "true"
+
+  ##############################################
+  ## LambdaErrorsAlarm Optional Configuration ##
+  ##############################################
+  LambdaErrorsAlarmEvaluationPeriods:
+    Type: Number
+    Description: "Number of periods to evaluate"
+    Default: 3
+  LambdaErrorsAlarmDatapointsToAlarm:
+    Type: Number
+    Description: "Number of periods (within evaluation period) that must be breaching threshold to alarm"
+    Default: 3
+  LambdaErrorsAlarmThreshold:
+    Type: Number
+    Description: "Number of lambda errors within single period to reach threshold"
+    Default: 1
+  LambdaErrorsAlarmPeriod:
+    Type: Number
+    Description: "Length of each period in seconds - i.e. how often a datapoint is calculated"
+    Default: 300
+
+  ################################################
+  ## APIGW5XXErrorsAlarm Optional Configuration ##
+  ################################################
+  APIGW5XXErrorsAlarmEvaluationPeriods:
+    Type: Number
+    Description: "Number of periods to evaluate"
+    Default: 3
+  APIGW5XXErrorsAlarmDatapointsToAlarm:
+    Type: Number
+    Description: "Number of periods (within evaluation period) that must be breaching threshold to alarm"
+    Default: 3
+  APIGW5XXErrorsAlarmThreshold:
+    Type: Number
+    Description: "Number of 5XX errors within single period to reach threshold"
+    Default: 5
+  APIGW5XXErrorsAlarmPeriod:
+    Type: Number
+    Description: "Length of each period in seconds - i.e. how often a datapoint is calculated"
+    Default: 300
+
+Conditions:
+  CreateLambdaErrorsAlarm: !Equals [!Ref EnableLambdaErrorsAlarm, 'true']
+  CreateAPIGW5XXErrorsAlarm: !Equals [!Ref EnableAPIGW5XXErrorsAlarm, 'true']
+
+Resources:
+  LambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateLambdaErrorsAlarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${Environment}-Lambda-errors."
+      AlarmDescription: !Sub "${MainStackName} ${Environment} lambda errors. Runbook: ${SupportManualURL}"
+      ActionsEnabled: true
+      AlarmActions: [!Ref CriticalAlarmTopic]
+      OKActions: [!Ref CriticalAlarmTopic]
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions: []
+      Period: !Ref LambdaErrorsAlarmPeriod
+      DatapointsToAlarm: !Ref APIGW5XXErrorsAlarmDatapointsToAlarm
+      EvaluationPeriods: !Ref LambdaErrorsAlarmEvaluationPeriods
+      Threshold: !Ref LambdaErrorsAlarmThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  APIGW5XXErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateAPIGW5XXErrorsAlarm
+    Properties:
+      AlarmName: !Sub "${MainStackName}-${Environment}-API-GW-5XX-errors."
+      AlarmDescription: !Sub "${MainStackName} ${Environment} API Gateway 5XX errors. Runbook: ${SupportManualURL}"
+      ActionsEnabled: true
+      AlarmActions: [!Ref CriticalAlarmTopic]
+      OKActions: [!Ref CriticalAlarmTopic]
+      InsufficientDataActions: []
+      DatapointsToAlarm: !Ref APIGW5XXErrorsAlarmDatapointsToAlarm
+      EvaluationPeriods: !Ref APIGW5XXErrorsAlarmEvaluationPeriods
+      Threshold: !Ref APIGW5XXErrorsAlarmThreshold
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: e1
+          Label: Expression1
+          ReturnData: true
+          Expression: SUM(METRICS())
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PublicApiGatewayName
+            Period: !Ref APIGW5XXErrorsAlarmPeriod
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PrivateApiGatewayName
+            Period: !Ref APIGW5XXErrorsAlarmPeriod
+            Stat: Sum

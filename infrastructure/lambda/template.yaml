@@ -1649,7 +1649,7 @@ Resources:
 
   PersonInfoFunctionAlarms:
     Type: AWS::Serverless::Application
-    Condition: AlarmsEnabled
+    # Condition: AlarmsEnabled
     Properties:
       Location: ./lambda-alarms.yaml
       Parameters:

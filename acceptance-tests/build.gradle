@@ -21,6 +21,8 @@ dependencies {
 			libs.aws.lambda.java.events,
 			libs.aws.sdk.dynamodb,
 			libs.aws.sdk.secretsmanager,
+			libs.aws.sdk.cloudwatchlogs,
+			libs.aws.sdk.cloudformation,
 			libs.aws.sdk.crt.client,
 			libs.cri.common.lib,
 			platform(libs.jackson.bom),
@@ -67,6 +69,7 @@ tasks.register('cucumber', JavaExec) {
 	mainClass = "io.cucumber.core.cli.Main"
 	classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
 	systemProperty 'log4j.configurationFile', "${projectDir}/src/test/resources/log4j2.xml"
+	systemProperty 'suite.start.epoch.ms', System.currentTimeMillis()
 	args = [
 		'--plugin',
 		'pretty',

@@ -13,13 +13,16 @@ Feature: Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVLA LicenceNumber
 
-  @smoke-build @stub @uat @traffic
+  @smoke-build @stub @uat @traffic @cloudwatch_validation
   Scenario Outline: DVLA - Happy path
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue and waits for page navigation
     Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number DECER607085K99AE same as given Driving Licence
+    And the "DrivingPermitCheckingFunctionLogGroup" lambda logs should contain "Document verified"
+    And the "IssueCredentialFunctionLogGroup" lambda logs should contain "Sending AuditEvent VC_ISSUED"
+    And the "PersonInfoFunctionLogGroup" lambda logs should contain "GOVUK_SIGNIN_JOURNEY_ID attached to logs"
 
     Examples:
       | DrivingLicenceSubject             |

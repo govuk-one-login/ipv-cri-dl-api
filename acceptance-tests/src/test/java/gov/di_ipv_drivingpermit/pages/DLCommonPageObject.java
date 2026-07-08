@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 import static gov.di_ipv_drivingpermit.pages.Headers.IPV_CORE_STUB;
@@ -36,6 +37,9 @@ public class DLCommonPageObject extends UniversalSteps {
 
     private static final String STUB_VC_PAGE_TITLE = "IPV Core Stub Credential Result - GOV.UK";
     private static final String STUB_ERROR_PAGE_TITLE = "IPV Core Stub - GOV.UK";
+
+    private static String vcTxn;
+    private static Instant feTestStartTime;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
     public WebElement visitCredentialIssuers;
@@ -144,9 +148,42 @@ public class DLCommonPageObject extends UniversalSteps {
         } else {
             assertExpectedPage(STUB_VC_PAGE_TITLE, true);
             assertURLContains("callback");
+            feTestStartTime = Instant.now().minusSeconds(30);
             BrowserUtils.waitForVisibility(viewResponse, MAX_WAIT_SEC);
             viewResponse.click();
+            extractAndStoreTxnFromVc();
         }
+    }
+
+    private void extractAndStoreTxnFromVc() {
+        try {
+            BrowserUtils.waitForVisibility(jsonPayload, MAX_WAIT_SEC);
+            String payloadText = jsonPayload.getText();
+            JsonNode vcNode = getJsonNode(payloadText, "vc");
+            if (vcNode != null) {
+                List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+                JsonNode txnNode = evidence.get(0).get("txn");
+                if (txnNode != null && !txnNode.isNull()) {
+                    vcTxn = txnNode.asText();
+                    LOGGER.info("Captured txn from VC: '{}'", vcTxn);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Could not extract txn from VC: {}", e.getMessage());
+        }
+    }
+
+    public static void resetFeTestContext() {
+        vcTxn = null;
+        feTestStartTime = null;
+    }
+
+    public static String getVcTxn() {
+        return vcTxn;
+    }
+
+    public static Instant getFeTestStartTime() {
+        return feTestStartTime;
     }
 
     // -----------------------

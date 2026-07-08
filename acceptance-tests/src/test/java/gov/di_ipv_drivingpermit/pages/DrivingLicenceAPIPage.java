@@ -37,6 +37,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.text.ParseException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -66,6 +67,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     private static Boolean retry;
     private static String drivingLicenceCheckResponse;
+    private static Instant testStartTime;
     private static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.MAPPER;
 
     private final ConfigurationService configurationService =
@@ -325,6 +327,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                 OBJECT_MAPPER.readValue(sessionResponse, new TypeReference<>() {});
         sessionId = deserialisedResponse.get("session_id");
         state = deserialisedResponse.get("state");
+        testStartTime = Instant.now().minusSeconds(30);
         // Capture client id for using later in the auth request
         Map<String, String> deserialisedSessionResponse =
                 OBJECT_MAPPER.readValue(sessionRequestBody, new TypeReference<>() {});
@@ -1002,6 +1005,14 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static final String getBasicAuthenticationHeader(String username, String password) {
         String valueToEncode = username + ":" + password;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
+
+    public static String getSessionId() {
+        return sessionId;
+    }
+
+    public static Instant getTestStartTime() {
+        return testStartTime;
     }
 
     private String getAccessTokenRequest(String criId) throws IOException, InterruptedException {

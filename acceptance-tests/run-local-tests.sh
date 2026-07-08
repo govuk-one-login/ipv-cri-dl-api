@@ -13,6 +13,10 @@ then
 fi
 
 ##### Ask fundamental test questions
+read -p "What is your AWS stack name? (leave blank to skip PII scan) [previous=$AWS_STACK_NAME] " AWS_STACK_NAME_NEW
+
+read -p "What is the ECS log group name for PII scanning? (leave blank to skip) [previous=$ECS_LOG_GROUP_NAME] " ECS_LOG_GROUP_NAME_NEW
+
 read -p "What browser do you want to use? [previous=$BROWSER] " BROWSER_NEW
 
 read -p "What environment are you running against? [previous=$ENVIRONMENT] " ENVIRONMENT_NEW
@@ -26,6 +30,8 @@ read -p "Are you including Backend tests? [previous=$BACKEND] " BACKEND_NEW
 read -p "Which tag would you like to run (include the @ in the name)? [previous=$TAG] " TAG_NEW
 
 ##### Update env vars with answers if set
+AWS_STACK_NAME=$([ -z "$AWS_STACK_NAME_NEW" ] && echo "$AWS_STACK_NAME" || echo "$AWS_STACK_NAME_NEW")
+ECS_LOG_GROUP_NAME=$([ -z "$ECS_LOG_GROUP_NAME_NEW" ] && echo "$ECS_LOG_GROUP_NAME" || echo "$ECS_LOG_GROUP_NAME_NEW")
 BROWSER=$([[ -z "$BROWSER_NEW" ]] && echo "$BROWSER" || echo "$BROWSER_NEW")
 ENVIRONMENT=$([[ -z "$ENVIRONMENT_NEW" ]] && echo "$ENVIRONMENT" || echo "$ENVIRONMENT_NEW")
 LOCAL=$([ -z "$LOCAL_NEW" ] && echo "$LOCAL" || echo "$LOCAL_NEW")
@@ -35,6 +41,12 @@ TAG=$([ -z "$TAG_NEW" ] && echo "$TAG" || echo "$TAG_NEW")
 
 ##### Export browser for test run
 export BROWSER=${BROWSER}
+
+##### Export AWS stack name
+export AWS_STACK_NAME=${AWS_STACK_NAME}
+
+##### Export ECS log group name (optional)
+export ECS_LOG_GROUP_NAME=${ECS_LOG_GROUP_NAME}
 
 ##### Export environment for test run
 export ENVIRONMENT=${ENVIRONMENT}
@@ -101,9 +113,15 @@ echo "BACKEND=${BACKEND}" >> test-args.conf
 echo "API_GATEWAY_ID_PRIVATE=${API_GATEWAY_ID_PRIVATE}" >> test-args.conf
 echo "API_GATEWAY_ID_PUBLIC=${API_GATEWAY_ID_PUBLIC}" >> test-args.conf
 echo "TAG=${TAG}" >> test-args.conf
+echo "AWS_STACK_NAME=${AWS_STACK_NAME}" >> test-args.conf
+echo "ECS_LOG_GROUP_NAME=${ECS_LOG_GROUP_NAME}" >> test-args.conf
 
 
 ###### Run tests
 actestPath="${PWD}"
-cd ../ && AC_TEST_ONLY=true ./gradlew clean cucumber -P tags="${TAG}"
+if [ -n "${AWS_STACK_NAME}" ]; then
+  cd ../ && aws-vault exec "${AWS_PROFILE:-dl-dev}" -- bash -c "AC_TEST_ONLY=true ./gradlew clean cucumber -P tags='${TAG}'"
+else
+  cd ../ && AC_TEST_ONLY=true ./gradlew clean cucumber -P tags="${TAG}"
+fi
 cd "${actestPath}" || exit

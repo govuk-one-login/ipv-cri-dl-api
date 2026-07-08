@@ -13,7 +13,7 @@ Feature: DVA Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVA LicenceNumber
 
-  @smoke-build @stub @uat @traffic
+  @smoke-build @stub @uat @traffic @cloudwatch_validation
   Scenario Outline: DVA - Happy path
     Given User enters DVA data as a <DVADrivingLicenceSubject>
     When User clicks on continue and waits for page navigation
@@ -21,6 +21,8 @@ Feature: DVA Driving Licence Test
     And JSON payload should contain validity score 2, strength score 3 and type IdentityCheck
     And JSON response should contain personal number 12345678 same as given Driving Licence
     And JSON response should contain JTI field
+    And the "DrivingPermitCheckingFunctionLogGroup" lambda logs should contain "Document verified"
+    And the "IssueCredentialFunctionLogGroup" lambda logs should contain "Sending AuditEvent VC_ISSUED"
 
     Examples:
       | DVADrivingLicenceSubject             |

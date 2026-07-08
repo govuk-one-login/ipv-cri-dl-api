@@ -13,6 +13,10 @@ then
 fi
 
 ##### Ask fundamental test questions
+read -p "What is your AWS stack name? [previous=$AWS_STACK_NAME] " AWS_STACK_NAME_NEW
+
+read -p "What is your AWS profile? [previous=$AWS_PROFILE] " AWS_PROFILE_NEW
+
 read -p "What browser do you want to use? [previous=$BROWSER] " BROWSER_NEW
 
 read -p "What environment are you running against? [previous=$ENVIRONMENT] " ENVIRONMENT_NEW
@@ -26,6 +30,8 @@ read -p "Are you including Backend tests? [previous=$BACKEND] " BACKEND_NEW
 read -p "Which tag would you like to run (include the @ in the name)? [previous=$TAG] " TAG_NEW
 
 ##### Update env vars with answers if set
+AWS_STACK_NAME=$([ -z "$AWS_STACK_NAME_NEW" ] && echo "$AWS_STACK_NAME" || echo "$AWS_STACK_NAME_NEW")
+AWS_PROFILE=$([ -z "$AWS_PROFILE_NEW" ] && echo "$AWS_PROFILE" || echo "$AWS_PROFILE_NEW")
 BROWSER=$([[ -z "$BROWSER_NEW" ]] && echo "$BROWSER" || echo "$BROWSER_NEW")
 ENVIRONMENT=$([[ -z "$ENVIRONMENT_NEW" ]] && echo "$ENVIRONMENT" || echo "$ENVIRONMENT_NEW")
 LOCAL=$([ -z "$LOCAL_NEW" ] && echo "$LOCAL" || echo "$LOCAL_NEW")
@@ -35,6 +41,12 @@ TAG=$([ -z "$TAG_NEW" ] && echo "$TAG" || echo "$TAG_NEW")
 
 ##### Export browser for test run
 export BROWSER=${BROWSER}
+
+##### Export AWS stack name
+export AWS_STACK_NAME=${AWS_STACK_NAME}
+
+##### Export AWS profile
+export AWS_PROFILE=${AWS_PROFILE}
 
 ##### Export environment for test run
 export ENVIRONMENT=${ENVIRONMENT}
@@ -101,6 +113,8 @@ echo "BACKEND=${BACKEND}" >> test-args.conf
 echo "API_GATEWAY_ID_PRIVATE=${API_GATEWAY_ID_PRIVATE}" >> test-args.conf
 echo "API_GATEWAY_ID_PUBLIC=${API_GATEWAY_ID_PUBLIC}" >> test-args.conf
 echo "TAG=${TAG}" >> test-args.conf
+echo "AWS_STACK_NAME=${AWS_STACK_NAME}" >> test-args.conf
+echo "AWS_PROFILE=${AWS_PROFILE}" >> test-args.conf
 
 
 ###### Run tests

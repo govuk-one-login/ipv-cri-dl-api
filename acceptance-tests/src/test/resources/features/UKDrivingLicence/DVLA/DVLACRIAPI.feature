@@ -62,6 +62,8 @@ Feature: DrivingLicence CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
     And Driving Licence VC should contain JTI field
+    And the "DrivingPermitCheckingFunctionLogGroup" lambda logs should contain "Document verified"
+    And the "IssueCredentialFunctionLogGroup" lambda logs should contain "Sending AuditEvent VC_ISSUED"
 
   @pre-merge
   Scenario: DVLA Password rotation check

@@ -2,6 +2,7 @@ package gov.di_ipv_drivingpermit.step_definitions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import gov.di_ipv_drivingpermit.pages.DLCommonPageObject;
+import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -10,6 +11,11 @@ import io.cucumber.java.en.When;
 import java.io.IOException;
 
 public class DLCommonStepDefs extends DLCommonPageObject {
+
+    @Before
+    public static void resetFeTestContext() {
+        DLCommonPageObject.resetFeTestContext();
+    }
 
     @Given("I navigate to the IPV Core Stub")
     public void navigateToStub() {

@@ -59,6 +59,8 @@ aws-sdk-lambda = { module = "software.amazon.awssdk:lambda" }
 aws-sdk-sqs = { module = "software.amazon.awssdk:sqs" }
 aws-sdk-acm = { module = "software.amazon.awssdk:acm" }
 aws-sdk-secretsmanager = { module = "software.amazon.awssdk:secretsmanager" }
+aws-sdk-cloudwatchlogs = { module = "software.amazon.awssdk:cloudwatchlogs" }
+aws-sdk-cloudformation = { module = "software.amazon.awssdk:cloudformation" }
 aws-cdk-lib = { module = "software.amazon.awscdk:aws-cdk-lib", version.ref = "aws_cdk_lib" }
 
 # Shared

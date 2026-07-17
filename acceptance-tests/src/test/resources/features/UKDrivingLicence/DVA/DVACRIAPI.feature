@@ -46,7 +46,7 @@ Feature: DVA CRI API
       | context       | personalNumber | expiryDate | issueDate  | issuedBy | fullAddress | JSONPayloadRequest                     | cri_internal_error_code | cri_internal_error_message  |
       | check_details | 66778899       | 2042-10-01 | 2018-04-19 | DVA      |             | DVAAuthSourceInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
 
-  @pre-merge
+  @pre-merge @cloudwatch_validation
   Scenario: DVA Driving Licence Happy path
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -57,6 +57,9 @@ Feature: DVA CRI API
     Then User requests Driving Licence CRI VC
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
+    And the "DrivingPermitCheckingFunctionLogGroup" lambda logs should contain "Document verified"
+    And the "IssueCredentialFunctionLogGroup" lambda logs should contain "Sending AuditEvent VC_ISSUED"
+    And the "PersonInfoFunctionLogGroup" lambda logs should contain "GOVUK_SIGNIN_JOURNEY_ID attached to logs"
 
   @pre-merge
   Scenario: DVA Driving Licence Retry Journey Happy Path

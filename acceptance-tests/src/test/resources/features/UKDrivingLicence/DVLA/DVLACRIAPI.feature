@@ -50,7 +50,7 @@ Feature: DrivingLicence CRI API
       | context       | personalNumber   | expiryDate | issueDate  | issueNumber | issuedBy | fullAddress | JSONPayloadRequest            | cri_internal_error_code | cri_internal_error_message  |
       | check_details | DOE99751010AL9OD | 2022-02-02 | 2012-02-02 | 13          | DVLA     |             | DVLAInvalidAddressJsonPayload | 1001                    | Form Data failed validation |
 
-  @pre-merge
+  @pre-merge @cloudwatch_validation
   Scenario: DVLA Driving Licence Happy path
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint
@@ -62,6 +62,9 @@ Feature: DrivingLicence CRI API
     And Driving Licence VC should contain validityScore 2 and strengthScore 3
     And Driving Licence VC should contain checkMethod data and identityCheckPolicy published in success checkDetails
     And Driving Licence VC should contain JTI field
+    And the "DrivingPermitCheckingFunctionLogGroup" lambda logs should contain "Document verified"
+    And the "IssueCredentialFunctionLogGroup" lambda logs should contain "Sending AuditEvent VC_ISSUED"
+    And the "PersonInfoFunctionLogGroup" lambda logs should contain "GOVUK_SIGNIN_JOURNEY_ID attached to logs"
 
   @pre-merge
   Scenario: DVLA Password rotation check

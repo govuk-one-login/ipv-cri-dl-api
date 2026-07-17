@@ -28,6 +28,8 @@ else
   export ENVIRONMENT="${ENVIRONMENT}"
 fi
 
+export AWS_STACK_NAME="${STACK_NAME}"
+
 echo "ENVIRONMENT ${ENVIRONMENT}"
 echo "STACK_NAME ${STACK_NAME}"
 
@@ -66,6 +68,12 @@ if [ "${STACK_NAME}" != "local" ]; then
 
     eval $(echo "export ${NAME}=${VALUE}")
   done
+
+  ECS_LOG_GROUP_SSM=$(aws ssm get-parameter --name "/tests/$STACK_NAME/ECS_LOG_GROUP_NAME" --region eu-west-2 2>/dev/null || true)
+  if [ -n "$ECS_LOG_GROUP_SSM" ]; then
+    export ECS_LOG_GROUP_NAME=$(echo "$ECS_LOG_GROUP_SSM" | jq -r '.Parameter.Value')
+    echo "ECS_LOG_GROUP_NAME ${ECS_LOG_GROUP_NAME}"
+  fi
 else
   export JOURNEY_TAG="${TEST_TAG}"
 fi

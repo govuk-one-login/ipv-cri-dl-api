@@ -31,19 +31,19 @@ wiremock_version = "3.13.2"
 passay_version = "1.6.6"
 
 # Unit tests
-junit = "6.0.3"
+junit = "6.1.2"
 mockito = "5.23.0"
 webcompere = "2.1.8"
 
 # Contract tests
 pact_provider = "4.6.19"
-commons_io = "2.21.0"
+commons_io = "2.22.0"
 
 # AC tests
-cucumber = "7.33.0"
-selenium = "4.40.0"
-axe_core_selenium = "4.11.0"
-restassured =  "5.5.6"
+cucumber = "7.34.4"
+selenium = "4.46.0"
+axe_core_selenium = "4.12.0"
+restassured =  "6.0.1"
 aws_cdk_lib = "2.120.0"
 
 [libraries]

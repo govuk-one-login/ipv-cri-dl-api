@@ -72,12 +72,14 @@ Feature: DVA Auth Source Driving Licence Test
     And I check the page title is We need to check your driving licence details – GOV.UK One Login
     And User clicks the DVA consent checkbox
     When User clicks on continue and waits for page navigation
-    Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
-    And JSON response should contain error description Authorization permission denied and status code as 302
+    Then I navigate to the Driving Licence verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 0, strength score 3 and type IdentityCheck
+    And JSON response should contain personal number <personalNumber> same as given Driving Licence
+    And JSON response should contain JTI field
 
     Examples:
-      | contextValue  | DVADrivingLicenceAuthSourceSubject   |
-      | check_details | DVAAuthSourceInvalidBillyJsonPayload |
+      | contextValue  | DVADrivingLicenceAuthSourceSubject   | personalNumber |
+      | check_details | DVAAuthSourceInvalidBillyJsonPayload | 55667788       |
 
   @uat
   Scenario Outline: DVA Auth Source - Negative Scenario UAT Stub - Postcode does not match the DVA Stub expected value

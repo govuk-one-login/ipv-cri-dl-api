@@ -141,12 +141,13 @@ public class DvaThirdPartyDocumentGateway implements ThirdPartyAPIService {
 
         if (drivingPermitConfigurationService.isDvaPerformanceStub()) {
             try {
-                request.addHeader(
-                        "request-hash",
+                String requestHash =
                         new RequestHashValidator.HashFactory()
                                 .getHash(
                                         dvaPayload,
-                                        drivingPermitConfigurationService.isDvaPerformanceStub()));
+                                        drivingPermitConfigurationService.isDvaPerformanceStub());
+                LOGGER.info("DVA Stub - requestHash {}", requestHash);
+                request.addHeader("request-hash", requestHash);
                 boolean additionalHeaderRequired =
                         drivingPermitConfigurationService.isDvaPerformanceStub();
                 request.addHeader("has-ca", String.valueOf(additionalHeaderRequired));

@@ -60,7 +60,7 @@ Feature: DVLA Auth Source Driving Licence Test
       |              | DVLAAuthSourceValidKennethJsonPayload | DECER607085K99AE | DrivingLicenceSubjectHappyKenneth |
 
   @smoke-build @stub @uat
-  Scenario Outline: DVLA Auth Source - Happy path
+  Scenario Outline: DVLA Auth Source - Validation Test - Invalid Response from DVLA
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
     And I enter the shared claims raw JSON <DVLADrivingLicenceAuthSourceSubject> in the Input shared claims raw JSON

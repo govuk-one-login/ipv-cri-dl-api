@@ -21,6 +21,8 @@ dependencies {
 			libs.aws.lambda.java.events,
 			libs.aws.sdk.dynamodb,
 			libs.aws.sdk.secretsmanager,
+			libs.aws.sdk.cloudwatchlogs,
+			libs.aws.sdk.cloudformation,
 			libs.aws.sdk.crt.client,
 			libs.cri.common.lib,
 			platform(libs.jackson.bom),

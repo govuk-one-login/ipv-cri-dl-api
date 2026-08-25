@@ -28,6 +28,8 @@ else
   export ENVIRONMENT="${ENVIRONMENT}"
 fi
 
+export AWS_STACK_NAME="${STACK_NAME}"
+
 echo "ENVIRONMENT ${ENVIRONMENT}"
 echo "STACK_NAME ${STACK_NAME}"
 
@@ -65,6 +67,16 @@ if [ "${STACK_NAME}" != "local" ]; then
     NAME=$(echo "$PARAMETER" | jq '.Parameter.Name' | cut -d "/" -f4 | sed 's/.$//')
 
     eval $(echo "export ${NAME}=${VALUE}")
+  done
+
+  LOG_GROUP_LOGICAL_IDS=(DrivingPermitCheckingFunction IssueCredentialFunction PersonInfoFunction)
+  for LOGICAL_ID in "${LOG_GROUP_LOGICAL_IDS[@]}"; do
+    LOG_GROUP_SSM=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/logGroup/${LOGICAL_ID}" --region eu-west-2 2>/dev/null || true)
+    if [ -n "$LOG_GROUP_SSM" ]; then
+      logGroupName=$(echo "$LOG_GROUP_SSM" | jq -r '.Parameter.Value')
+      export "LOG_GROUP_${LOGICAL_ID}=${logGroupName}"
+      echo "LOG_GROUP_${LOGICAL_ID}=${logGroupName}"
+    fi
   done
 else
   export JOURNEY_TAG="${TEST_TAG}"

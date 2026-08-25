@@ -1526,6 +1526,30 @@ Resources:
       Value: !ImportValue core-infrastructure-CriVcSigningKey1Id
       Description: Verifiable Credential Key Id
 
+  DrivingPermitCheckingFunctionLogGroupParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/tests/${AWS::StackName}/logGroup/DrivingPermitCheckingFunction"
+      Type: String
+      Value: !Sub "/aws/lambda/${DrivingPermitCheckingFunction}"
+      Description: CloudWatch log group name for the DrivingPermitChecking lambda
+
+  IssueCredentialFunctionLogGroupParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/tests/${AWS::StackName}/logGroup/IssueCredentialFunction"
+      Type: String
+      Value: !Sub "/aws/lambda/${IssueCredentialFunction}"
+      Description: CloudWatch log group name for the IssueCredential lambda
+
+  PersonInfoFunctionLogGroupParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/tests/${AWS::StackName}/logGroup/PersonInfoFunction"
+      Type: String
+      Value: !Sub "/aws/lambda/${PersonInfoFunction}"
+      Description: CloudWatch log group name for the PersonInfo lambda
+
   DVLAPasswordSecret:
     Type: 'AWS::SecretsManager::Secret'
     Properties:

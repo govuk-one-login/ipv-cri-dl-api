@@ -97,4 +97,9 @@ public class DLCommonStepDefs extends DLCommonPageObject {
     public void navigateToDrivingLicenceOnTestEnv() {
         navigateToDrivingLicenceCRIOnTestEnv();
     }
+
+    @And("I click the Go to Driving Licence CRI button")
+    public void clickGotoDrivingLicenceCRI() {
+        clickDrivingLicenceCRI();
+    }
 }

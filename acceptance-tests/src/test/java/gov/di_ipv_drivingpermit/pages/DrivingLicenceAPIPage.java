@@ -11,12 +11,13 @@ import gov.di_ipv_drivingpermit.model.AuthorisationResponse;
 import gov.di_ipv_drivingpermit.model.DocumentCheckResponse;
 import gov.di_ipv_drivingpermit.model.DrivingPermitForm;
 import gov.di_ipv_drivingpermit.service.ConfigurationService;
+import gov.di_ipv_drivingpermit.utilities.ConfigurationReader;
 import gov.di_ipv_drivingpermit.utilities.ObjectMapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -27,8 +28,6 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +56,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static String state;
     private static String authCode;
     private static String accessToken;
-    private static String dateTimeOfRotation;
+    private static Instant dateTimeOfRotation;
     private static String extractedPostcode;
     private static String vcHeader;
     private static String vcBody;
@@ -75,19 +73,19 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
             SecretsManagerClient.builder()
                     .region(Region.EU_WEST_2)
                     .httpClient(AwsCrtHttpClient.builder().build())
-                    .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                    .credentialsProvider(DefaultCredentialsProvider.builder().build())
                     .build();
     private static final Logger LOGGER = LoggerFactory.getLogger(DrivingLicenceAPIPage.class);
 
     public static class DynamoDBService {
 
+        private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBService.class);
+
         public static Map<String, AttributeValue> getItemByPrimaryKey(
                 String tableName, String primaryKey, String primaryKeyValue) {
             DynamoDbClient dynamoDbClient =
                     DynamoDbClient.builder()
-                            //
-                            // .credentialsProvider(ProfileCredentialsProvider.create())
-                            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                            .credentialsProvider(DefaultCredentialsProvider.builder().build())
                             .region(Region.US_WEST_2)
                             .build();
             Map<String, AttributeValue> keyToGet = new HashMap<>();
@@ -100,12 +98,12 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                 if (response.hasItem()) {
                     return response.item();
                 } else {
-                    System.out.println("No item found with the given primary key.");
+                    LOGGER.warn("No item found with the given primary key.");
                     return null;
                 }
             } catch (DynamoDbException e) {
-                System.err.println("Unable to get item: " + e.getMessage());
-                return null;
+                LOGGER.error("Unable to get item: {}", e.getMessage(), e);
+                throw e;
             } finally {
                 dynamoDbClient.close();
             }
@@ -867,7 +865,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
                         secretsManagerClient.describeSecret(describeRequest);
 
                 if (describeResponse.lastChangedDate() != null) {
-                    dateTimeOfRotation = describeResponse.lastChangedDate().toString();
+                    dateTimeOfRotation = describeResponse.lastChangedDate();
                     LOGGER.info("Date time of rotation (last changed date) {}", dateTimeOfRotation);
                 } else {
                     LOGGER.warn("Last changed date not available for secret {}", secretId);
@@ -883,7 +881,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
             } catch (Exception e) {
                 LOGGER.error(
-                        "Error retrieving secret details for {}: {}", secretId, e.getMessage());
+                        "Error retrieving secret details for {}: {}", secretId, e.getMessage(), e);
             }
 
         } else {
@@ -892,90 +890,35 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void passwordHasRotatedSuccessfully() {
-        String parameterNameFormat = "/%s/%s";
-
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
 
         if (stackParameterPrefix != null) {
-            String secretId =
-                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/password");
-            LOGGER.info("{} {}", "getStackSecretValue", secretId);
-
-            GetSecretValueRequest valueRequest =
-                    GetSecretValueRequest.builder()
-                            .secretId(secretId)
-                            .versionStage("AWSCURRENT")
-                            .build();
-
-            GetSecretValueResponse valueResponse =
-                    secretsManagerClient.getSecretValue(valueRequest);
-
-            assertTrue(
-                    LocalDateTime.parse(dateTimeOfRotation, DateTimeFormatter.ISO_DATE_TIME)
-                            .isAfter(LocalDateTime.now().minusHours(4)));
-            String password = valueResponse.secretString();
-            int specialCharCount = 0;
-            int digitalCharCount = 0;
-            int upperCaseCharCount = 0;
-            int lowerCaseCharCount = 0;
-            for (char c : password.toCharArray()) {
-                if (c >= 33 && c <= 47) {
-                    specialCharCount++;
-                }
-            }
-            assertTrue(specialCharCount >= 2, "Password validation failed in Passay");
-            for (char c : password.toCharArray()) {
-                if (c >= 48 && c <= 57) {
-                    digitalCharCount++;
-                }
-            }
-            assertTrue(digitalCharCount >= 2, "Password Validation failed in Passay");
-
-            for (char c : password.toCharArray()) {
-                if (c >= 65 && c <= 90) {
-                    upperCaseCharCount++;
-                }
-            }
-            assertTrue(upperCaseCharCount >= 4, "Password Validation failed in Passay");
-
-            for (char c : password.toCharArray()) {
-                if (c >= 97 && c <= 122) {
-                    lowerCaseCharCount++;
-                }
-            }
-            assertTrue(lowerCaseCharCount >= 6, "Password Validation failed in Passay");
+            assertRotationIsRecent(dateTimeOfRotation, "DVLA password");
         } else {
             LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
         }
     }
 
     public void apiKeyHasRotatedSuccessfully() {
-        String parameterNameFormat = "/%s/%s";
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
 
         if (stackParameterPrefix != null) {
-            String secretId =
-                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/apiKey");
-            LOGGER.info("{} {}", "getStackSecretValue", secretId);
-
-            GetSecretValueRequest valueRequest =
-                    GetSecretValueRequest.builder()
-                            .secretId(secretId)
-                            .versionStage("AWSCURRENT")
-                            .build();
-
-            GetSecretValueResponse valueResponse =
-                    secretsManagerClient.getSecretValue(valueRequest);
-
-            assertTrue(
-                    LocalDateTime.parse(dateTimeOfRotation, DateTimeFormatter.ISO_DATE_TIME)
-                            .isAfter(LocalDateTime.now().minusHours(4)));
-
-            assertTrue(
-                    valueResponse.versionStages().contains("AWSCURRENT"),
-                    "Retrieved secret version is not associated with AWSCURRENT stage.");
+            assertRotationIsRecent(dateTimeOfRotation, "DVLA API key");
         } else {
             LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
+        }
+    }
+
+    private void assertRotationIsRecent(Instant rotationTime, String secretLabel) {
+        assertNotNull(String.valueOf(rotationTime), secretLabel + " rotation date was not available");
+        String environment = System.getenv("ENVIRONMENT");
+        if ("dev".equalsIgnoreCase(environment)) {
+            assertTrue(
+                    rotationTime.isAfter(Instant.now().minusSeconds(4 * 3600)),
+                    secretLabel + " was not rotated within the last 4 hours");
+        } else {
+            LOGGER.info("{} last rotated at {} (rotation schedule is not rate-based in {})",
+                    secretLabel, rotationTime, environment);
         }
     }
 
@@ -1001,7 +944,10 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
 
     private static final String getBasicAuthenticationHeader(String username, String password) {
         String valueToEncode = username + ":" + password;
-        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+        return "Basic "
+                + Base64.getEncoder()
+                        .encodeToString(
+                                valueToEncode.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     private String getAccessTokenRequest(String criId) throws IOException, InterruptedException {

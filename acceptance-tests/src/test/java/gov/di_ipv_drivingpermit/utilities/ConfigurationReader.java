@@ -37,4 +37,11 @@ public class ConfigurationReader {
     public static boolean noChromeSandbox() {
         return "true".equalsIgnoreCase(System.getenv("NO_CHROME_SANDBOX"));
     }
+
+    public static boolean isSecretRotationCheckEnabled() {
+        String stackName = System.getenv("AWS_STACK_NAME");
+        return stackName != null
+                && !stackName.isEmpty()
+                && "true".equals(System.getenv("ENABLE_SECRET_ROTATION_CHECK"));
+    }
 }

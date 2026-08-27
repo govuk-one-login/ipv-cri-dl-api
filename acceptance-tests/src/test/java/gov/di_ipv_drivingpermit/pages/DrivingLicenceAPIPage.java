@@ -14,6 +14,7 @@ import gov.di_ipv_drivingpermit.service.ConfigurationService;
 import gov.di_ipv_drivingpermit.utilities.ObjectMapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assumptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -37,8 +38,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +58,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     private static String state;
     private static String authCode;
     private static String accessToken;
-    private static String dateTimeOfRotation;
+    private static Instant dateTimeOfRotation;
     private static String extractedPostcode;
     private static String vcHeader;
     private static String vcBody;
@@ -852,131 +852,115 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
     }
 
     public void getLastTestedTime(String secretName) {
-        String parameterNameFormat = "/%s/%s";
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
 
-        if (stackParameterPrefix != null) {
-            String secretId = String.format(parameterNameFormat, stackParameterPrefix, secretName);
-            LOGGER.info("Attempting to describe secret: {}", secretId);
+        Assumptions.assumeTrue(
+                stackParameterPrefix != null && !stackParameterPrefix.isBlank(),
+                "Skipping rotation check — AWS_STACK_NAME not set");
 
-            try {
-                DescribeSecretRequest describeRequest =
-                        DescribeSecretRequest.builder().secretId(secretId).build();
+        String secretId = String.format("/%s/%s", stackParameterPrefix, secretName);
+        LOGGER.info("Attempting to describe secret: {}", secretId);
 
-                DescribeSecretResponse describeResponse =
-                        secretsManagerClient.describeSecret(describeRequest);
+        try {
+            DescribeSecretRequest describeRequest =
+                    DescribeSecretRequest.builder().secretId(secretId).build();
 
-                if (describeResponse.lastChangedDate() != null) {
-                    dateTimeOfRotation = describeResponse.lastChangedDate().toString();
-                    LOGGER.info("Date time of rotation (last changed date) {}", dateTimeOfRotation);
-                } else {
-                    LOGGER.warn("Last changed date not available for secret {}", secretId);
-                }
-                LOGGER.info("Rotation Enabled: {}", describeResponse.rotationEnabled());
-                LOGGER.info("Next Rotation Date: {}", describeResponse.nextRotationDate());
-                if (describeResponse.lastRotatedDate() != null) {
-                    LOGGER.info("Last Rotated Date: {}", describeResponse.lastRotatedDate());
-                }
-                if (describeResponse.tags() != null && !describeResponse.tags().isEmpty()) {
-                    LOGGER.info("Tags: {}", describeResponse.tags());
-                }
+            DescribeSecretResponse describeResponse =
+                    secretsManagerClient.describeSecret(describeRequest);
 
-            } catch (Exception e) {
-                LOGGER.error(
-                        "Error retrieving secret details for {}: {}", secretId, e.getMessage());
+            if (describeResponse.lastChangedDate() != null) {
+                dateTimeOfRotation = describeResponse.lastChangedDate();
+                LOGGER.info("Last changed date {}", dateTimeOfRotation);
+            } else {
+                LOGGER.warn("Last changed date not available for secret {}", secretId);
+            }
+            LOGGER.info("Rotation Enabled: {}", describeResponse.rotationEnabled());
+            LOGGER.info("Next Rotation Date: {}", describeResponse.nextRotationDate());
+            if (describeResponse.lastRotatedDate() != null) {
+                LOGGER.info("Last Rotated Date: {}", describeResponse.lastRotatedDate());
+            }
+            if (describeResponse.tags() != null && !describeResponse.tags().isEmpty()) {
+                LOGGER.info("Tags: {}", describeResponse.tags());
             }
 
-        } else {
-            LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
+        } catch (Exception e) {
+            LOGGER.error("Error retrieving secret details for {}: {}", secretId, e.getMessage());
         }
     }
 
     public void passwordHasRotatedSuccessfully() {
-        String parameterNameFormat = "/%s/%s";
-
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
 
         if (stackParameterPrefix != null) {
-            String secretId =
-                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/password");
-            LOGGER.info("{} {}", "getStackSecretValue", secretId);
-
-            GetSecretValueRequest valueRequest =
-                    GetSecretValueRequest.builder()
-                            .secretId(secretId)
-                            .versionStage("AWSCURRENT")
-                            .build();
+            String secretId = String.format("/%s/DVLA/password", stackParameterPrefix);
+            LOGGER.info("getStackSecretValue {}", secretId);
 
             GetSecretValueResponse valueResponse =
-                    secretsManagerClient.getSecretValue(valueRequest);
+                    secretsManagerClient.getSecretValue(
+                            GetSecretValueRequest.builder()
+                                    .secretId(secretId)
+                                    .versionStage("AWSCURRENT")
+                                    .build());
 
-            assertTrue(
-                    LocalDateTime.parse(dateTimeOfRotation, DateTimeFormatter.ISO_DATE_TIME)
-                            .isAfter(LocalDateTime.now().minusHours(4)));
+            assertRotationIsRecent(dateTimeOfRotation, "DVLA password");
+
             String password = valueResponse.secretString();
-            int specialCharCount = 0;
-            int digitalCharCount = 0;
-            int upperCaseCharCount = 0;
-            int lowerCaseCharCount = 0;
+            int specialCharCount = 0,
+                    digitalCharCount = 0,
+                    upperCaseCharCount = 0,
+                    lowerCaseCharCount = 0;
             for (char c : password.toCharArray()) {
-                if (c >= 33 && c <= 47) {
-                    specialCharCount++;
-                }
+                if (c >= 33 && c <= 47) specialCharCount++;
+                if (c >= 48 && c <= 57) digitalCharCount++;
+                if (c >= 65 && c <= 90) upperCaseCharCount++;
+                if (c >= 97 && c <= 122) lowerCaseCharCount++;
             }
-            assertTrue(specialCharCount >= 2, "Password validation failed in Passay");
-            for (char c : password.toCharArray()) {
-                if (c >= 48 && c <= 57) {
-                    digitalCharCount++;
-                }
-            }
-            assertTrue(digitalCharCount >= 2, "Password Validation failed in Passay");
-
-            for (char c : password.toCharArray()) {
-                if (c >= 65 && c <= 90) {
-                    upperCaseCharCount++;
-                }
-            }
-            assertTrue(upperCaseCharCount >= 4, "Password Validation failed in Passay");
-
-            for (char c : password.toCharArray()) {
-                if (c >= 97 && c <= 122) {
-                    lowerCaseCharCount++;
-                }
-            }
-            assertTrue(lowerCaseCharCount >= 6, "Password Validation failed in Passay");
+            assertTrue(
+                    specialCharCount >= 2,
+                    "Password validation failed: insufficient special characters");
+            assertTrue(digitalCharCount >= 2, "Password validation failed: insufficient digits");
+            assertTrue(
+                    upperCaseCharCount >= 4,
+                    "Password validation failed: insufficient uppercase characters");
+            assertTrue(
+                    lowerCaseCharCount >= 6,
+                    "Password validation failed: insufficient lowercase characters");
         } else {
             LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
         }
     }
 
     public void apiKeyHasRotatedSuccessfully() {
-        String parameterNameFormat = "/%s/%s";
         String stackParameterPrefix = System.getenv("AWS_STACK_NAME");
 
         if (stackParameterPrefix != null) {
-            String secretId =
-                    String.format(parameterNameFormat, stackParameterPrefix, "DVLA/apiKey");
-            LOGGER.info("{} {}", "getStackSecretValue", secretId);
-
-            GetSecretValueRequest valueRequest =
-                    GetSecretValueRequest.builder()
-                            .secretId(secretId)
-                            .versionStage("AWSCURRENT")
-                            .build();
+            String secretId = String.format("/%s/DVLA/apiKey", stackParameterPrefix);
+            LOGGER.info("getStackSecretValue {}", secretId);
 
             GetSecretValueResponse valueResponse =
-                    secretsManagerClient.getSecretValue(valueRequest);
+                    secretsManagerClient.getSecretValue(
+                            GetSecretValueRequest.builder()
+                                    .secretId(secretId)
+                                    .versionStage("AWSCURRENT")
+                                    .build());
 
-            assertTrue(
-                    LocalDateTime.parse(dateTimeOfRotation, DateTimeFormatter.ISO_DATE_TIME)
-                            .isAfter(LocalDateTime.now().minusHours(4)));
-
+            assertRotationIsRecent(dateTimeOfRotation, "DVLA API key");
             assertTrue(
                     valueResponse.versionStages().contains("AWSCURRENT"),
                     "Retrieved secret version is not associated with AWSCURRENT stage.");
         } else {
             LOGGER.info("IGNORING TEST AS IT WAS RUN LOCALLY WITHOUT AWS CONTEXT");
         }
+    }
+
+    private void assertRotationIsRecent(Instant rotationTime, String secretLabel) {
+        assertNotNull(
+                String.valueOf(rotationTime), secretLabel + " rotation date was not available");
+        assertTrue(
+                rotationTime.isAfter(Instant.now().minusSeconds(4 * 3600)),
+                secretLabel
+                        + " was not rotated within the last 4 hours. Last rotation: "
+                        + rotationTime);
     }
 
     private String createRequest(String baseUrl, String criId, String jsonString)
@@ -999,7 +983,7 @@ public class DrivingLicenceAPIPage extends DrivingLicencePageObject {
         return sendHttpRequest(request).body();
     }
 
-    private static final String getBasicAuthenticationHeader(String username, String password) {
+    private static String getBasicAuthenticationHeader(String username, String password) {
         String valueToEncode = username + ":" + password;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }

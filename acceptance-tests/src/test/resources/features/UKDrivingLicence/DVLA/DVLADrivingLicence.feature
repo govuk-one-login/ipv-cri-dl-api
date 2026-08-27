@@ -179,7 +179,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
 
-  @stub
+  @dev
   Scenario: DVLA - Password rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
     When User clicks on continue and waits for page navigation
@@ -187,7 +187,7 @@ Feature: Driving Licence Test
     Then The secret has been created
     Then The DVLA password should be valid and rotated within the specified window
 
-  @stub
+  @dev
   Scenario: DVLA - Api Key rotation check
     Given User enters DVLA data as a DrivingLicenceSubjectHappyKenneth
     When User clicks on continue and waits for page navigation

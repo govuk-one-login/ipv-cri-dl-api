@@ -70,6 +70,12 @@ Feature: DrivingLicence CRI API
     Then The DVLA password should be valid and rotated within the specified window
 
   @pre-merge
+  Scenario: DVLA Key rotation check
+    Given Driving Licence CRI is functioning as expected for CRI Id driving-licence-cri-dev
+    Then The DVLA API Key secret has been created
+    Then The DVLA API Key should be valid and rotated within the specified window
+
+  @pre-merge
   Scenario: DVLA Driving Licence Retry Journey Happy Path
     Given Driving Licence user has the user identity in the form of a signed JWT string for CRI Id driving-licence-cri-dev and row number 6
     And Driving Licence user sends a POST request to session endpoint

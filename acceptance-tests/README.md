@@ -12,6 +12,12 @@ For first-time setup, run `./run-local-tests.sh` which will guide you through co
 
 To run tests directly: `./gradlew cucumber -P tags=@dl_CRI`
 
+There are several tests tagged with the `@dev` tag, these are Dev only tests which do not run on the pre-merge checks or the Build/ Staging Pieplines.
+To run these tests locally check the requirements of each test. i.e. the DVLA Password and Key Rotation tests require you to be logged into AWS with the associated account.
+And to have the AWS_STACK_NAME set in the `test-args.conf` when executing the tests.
+Tests that return a 302 tagged with the `@dev` tag are not intended to be run against the Build Environment as they will trigger alerts.
+These can be safetly run against the Dev Environment or against a local stack.
+
 ### Environment variables
 
 |         Variable         | Required |                            Description                             |

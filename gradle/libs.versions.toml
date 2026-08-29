@@ -28,7 +28,7 @@ bouncycastle_bcpkix_version = "1.84"
 wiremock_version = "3.13.2"
 
 # passwordRenewal lambda
-passay_version = "1.6.6"
+passay_version = "2.0.0"
 
 # Unit tests
 junit = "6.0.3"

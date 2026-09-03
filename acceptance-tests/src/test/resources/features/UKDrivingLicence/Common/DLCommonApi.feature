@@ -13,3 +13,15 @@ Feature: Driving License Test Common - API
       | endpoint_name     |
       | /token            |
       | /credential/issue |
+
+  @stub @uat
+  Scenario Outline: Driving Licence Auth Source - Negative Scenario - No Shared Claims sent in request to Driving Licence CRI
+    Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
+    And I enter the context value <contextValue> in the Input context value as a string
+    And I click the Go to Driving Licence CRI button
+    Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
+    And JSON response should contain error description Unexpected server error and status code as 302
+
+    Examples:
+      | contextValue  |
+      | check_details |

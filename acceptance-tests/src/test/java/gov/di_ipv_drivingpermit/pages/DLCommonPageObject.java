@@ -123,6 +123,10 @@ public class DLCommonPageObject extends UniversalSteps {
         selectInputContextValue.sendKeys(contextValue);
     }
 
+    public void clickDrivingLicenceCRI() {
+        BrowserUtils.clickAndWaitForNavigation(searchButtonRawJson);
+    }
+
     public void enterSharedClaimsRawJSONValue(String jsonFileName) {
         String sharedClaimsRawJson = getJsonPayload(jsonFileName);
         if (sharedClaimsRawJson != null) {

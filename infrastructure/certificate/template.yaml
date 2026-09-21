@@ -197,6 +197,14 @@ Resources:
       KeyUsage: ENCRYPT_DECRYPT
       Origin: EXTERNAL
 
+  ThirdDvaEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms encryption key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: ENCRYPT_DECRYPT
+      Origin: EXTERNAL
+
   SecondaryDvaEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
@@ -217,6 +225,12 @@ Resources:
       AliasName: !Sub alias/${AWS::StackName}/acm-secondary-encryption-key
       TargetKeyId: !Ref SecondaryDvaEncryptionKey
 
+  ThirdDvaEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/acm-third-encryption-key
+      TargetKeyId: !Ref ThirdDvaEncryptionKey
+
   DvaSigningKey:
     Type: AWS::KMS::Key
     Properties:
@@ -226,6 +240,14 @@ Resources:
       Origin: EXTERNAL
 
   SecondaryDvaSigningKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: acm kms signing key created with cli
+      KeySpec: RSA_2048
+      KeyUsage: SIGN_VERIFY
+      Origin: EXTERNAL
+
+  ThirdDvaSigningKey:
     Type: AWS::KMS::Key
     Properties:
       Description: acm kms signing key created with cli
@@ -244,6 +266,12 @@ Resources:
     Properties:
       AliasName: !Sub alias/${AWS::StackName}/secondary-acm-signing-key
       TargetKeyId: !Ref SecondaryDvaSigningKey
+
+  ThirdDvaSigningKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${AWS::StackName}/third-acm-signing-key
+      TargetKeyId: !Ref ThirdDvaSigningKey
 
 ####################################################################
 #                                                                  #
@@ -314,6 +342,13 @@ Outputs:
       Name:
         Fn::Sub: ${AWS::StackName}-SecondaryDvaSigningKeyId
 
+  ThirdDvaSigningKeyIdOutput:
+    Description: DVA signing key ID
+    Value: !GetAtt ThirdDvaSigningKey.KeyId
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ThirdDvaSigningKeyId
+
   DvaEncryptionKeyIdOutput:
     Description: DVA encryption key ID
     Value: !GetAtt DvaEncryptionKey.KeyId
@@ -327,6 +362,13 @@ Outputs:
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-SecondaryDvaEncryptionKeyId
+
+  ThirdDvaEncryptionKeyIdOutput:
+    Description: DVA encryption key ID
+    Value: !GetAtt ThirdDvaEncryptionKey.KeyId
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ThirdDvaEncryptionKeyId
 
   DvaSigningKeyArnOutput:
     Description: DVA signing jey ID
@@ -342,6 +384,13 @@ Outputs:
       Name:
         Fn::Sub: ${AWS::StackName}-SecondaryDvaSigningKeyArn
 
+  ThirdDvaSigningKeyArnOutput:
+    Description: DVA signing key ID
+    Value: !GetAtt ThirdDvaSigningKey.Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ThirdDvaSigningKeyArn
+
   DvaEncryptionKeyArnOutput:
     Description: DVA encryption key ID
     Value: !GetAtt DvaEncryptionKey.Arn
@@ -355,3 +404,10 @@ Outputs:
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-SecondaryDvaEncryptionKeyArn
+
+  ThirdDvaEncryptionKeyArnOutput:
+    Description: DVA encryption key ID
+    Value: !GetAtt ThirdDvaEncryptionKey.Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ThirdDvaEncryptionKeyArn

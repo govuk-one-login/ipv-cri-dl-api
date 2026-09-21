@@ -121,6 +121,11 @@ Conditions:
       - !Equals [ !Ref Environment, "staging" ]
       - !Equals [ !Ref Environment, "production" ]
 
+  UseThirdDvaKeys: !Not
+  - !Or
+    - !Equals [!Ref Environment, "dev"]
+    - !Equals [!Ref Environment, "build"]
+
 Globals:
   Function:
     CodeSigningConfigArn: !If
@@ -529,8 +534,14 @@ Resources:
             - IsCAEnvironment
             - Fn::ImportValue: acm-infra-DLCRIMtlsCertificateArn
             - !Ref "AWS::NoValue"
-          PRIMARY_SIGNING_KEY_ID: !ImportValue acm-infra-ThirdDvaSigningKeyId
-          PRIMARY_ENCRYPTION_KEY_ID: !ImportValue acm-infra-ThirdDvaEncryptionKeyId
+          PRIMARY_SIGNING_KEY_ID: !If
+            - UseThirdDvaKeys
+            - !ImportValue acm-infra-ThirdDvaSigningKeyId
+            - !ImportValue acm-infra-DvaSigningKeyId
+          PRIMARY_ENCRYPTION_KEY_ID: !If
+            - UseThirdDvaKeys
+            - !ImportValue acm-infra-ThirdDvaEncryptionKeyId
+            - !ImportValue acm-infra-DvaEncryptionKeyId
           SECONDARY_SIGNING_KEY_ID: !ImportValue acm-infra-SecondaryDvaSigningKeyId
           SECONDARY_ENCRYPTION_KEY_ID: !ImportValue acm-infra-SecondaryDvaEncryptionKeyId
           SIGNING_CERT_SHA: !FindInMap [signingCertSha256, Environment, !Ref 'Environment']

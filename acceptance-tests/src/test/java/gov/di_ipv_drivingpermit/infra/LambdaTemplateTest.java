@@ -1466,8 +1466,7 @@ class LambdaTemplateTest {
                 "Assertion Passed: All relevant AWS::CloudWatch::Alarm resources checked for Condition: 'AlarmsEnabled' or 'UseCanaryDeploymentAlarms'.");
     }
 
-    //    @Test
-    //    Current Fails as some alarms do not have a AlarmName
+    @Test
     @DisplayName(
             "All AWS::CloudWatch::Alarm resources should have 'AlarmName' starting with '${AWS::StackName}-'")
     void allCloudWatchAlarmResourcesShouldHaveAlarmNameWithStackNamePrefix() {
@@ -1522,15 +1521,15 @@ class LambdaTemplateTest {
 
     @Test
     @DisplayName(
-            "All AWS::CloudWatch::Alarm resources should contain an 'AlarmDescription' property")
-    void allCloudWatchAlarmResourcesShouldContainAlarmDescription() {
+            "All AWS::CloudWatch::Alarm resources should reference '${SupportManualURL}' in 'AlarmDescription'")
+    void allCloudWatchAlarmResourcesShouldContainSupportManualPlaceholderInAlarmDescription() {
         Map<String, Map<String, Object>> alarmProperties =
                 getAllResourceProperties("AWS::CloudWatch::Alarm");
         assertFalse(
                 alarmProperties.isEmpty(),
                 "Expected at least one AWS::CloudWatch::Alarm resource in the template.");
 
-        boolean allAlarmDescriptionsExist = true;
+        boolean allAlarmDescriptionsContainPlaceholder = true;
         StringBuilder failureMessages = new StringBuilder();
 
         for (Map.Entry<String, Map<String, Object>> entry : alarmProperties.entrySet()) {
@@ -1540,25 +1539,25 @@ class LambdaTemplateTest {
             Optional<Object> alarmDescriptionOptional = getProperty(properties, "AlarmDescription");
 
             if (alarmDescriptionOptional.isEmpty()) {
-                allAlarmDescriptionsExist = false;
+                allAlarmDescriptionsContainPlaceholder = false;
                 failureMessages.append(
                         String.format(
                                 "CloudWatch Alarm resource '%s' does not have an 'AlarmDescription' property.%n",
                                 logicalId));
-            } else {
-                System.out.println(
-                        "Found CloudWatch Alarm resource '"
-                                + logicalId
-                                + "' with AlarmDescription.");
+            } else if (!alarmDescriptionOptional.get().toString().contains("SupportManualURL")) {
+                allAlarmDescriptionsContainPlaceholder = false;
+                failureMessages.append(
+                        String.format(
+                                "CloudWatch Alarm resource '%s' 'AlarmDescription' does not reference '${SupportManualURL}'.%n",
+                                logicalId));
             }
         }
-
         assertTrue(
-                allAlarmDescriptionsExist,
-                "One or more AWS::CloudWatch::Alarm resources failed the 'AlarmDescription' existence check:\n"
+                allAlarmDescriptionsContainPlaceholder,
+                "One or more AWS::CloudWatch::Alarm resources failed the '${SupportManualURL}' placeholder check:\n"
                         + failureMessages);
         System.out.println(
-                "Assertion Passed: All relevant AWS::CloudWatch::Alarm resources checked for 'AlarmDescription' property existence.");
+                "Assertion Passed: All relevant AWS::CloudWatch::Alarm resources checked for '${SupportManualURL}' placeholder in 'AlarmDescription' property.");
     }
 
     @Test

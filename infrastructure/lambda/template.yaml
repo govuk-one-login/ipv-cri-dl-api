@@ -187,7 +187,7 @@ Globals:
 Mappings:
   StaticVariables:
     Urls:
-      SupportManualURL: "https://team-manual.account.gov.uk/teams/CRI-Lime-team/Supporting-CRI-Lime/"
+      SupportManualURL: "https://team-manual.account.gov.uk/teams/CRI-Lime-team/supporting-cri-lime/"
 
   EnvironmentConfiguration:
     dev:
@@ -1634,7 +1634,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} - Common API Session Lambda concurrency threshold reached
+      AlarmDescription: !Sub
+        - "Trigger if the ${CommonStackName}-SessionFunctionTS lambda concurrency threshold is reached in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
+      AlarmName: !Sub "${AWS::StackName}-CommonAPISessionLambda-concurrency-threshold-reached"
       ActionsEnabled: true
       AlarmActions:
         - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
@@ -1685,8 +1688,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving licence - Session lambda alias-based decryption failure
-      AlarmDescription: !Sub Driving licence ${Environment} - Common API Session Lambda all aliases unavailable for decryption
+      AlarmName: !Sub "${AWS::StackName}-CommonAPISessionLambda-alias-based-decryption-failure"
+      AlarmDescription: !Sub
+        - "Trigger if the ${CommonStackName}-SessionFunctionTS lambda has an alias-based decryption failure in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
         - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
@@ -1710,8 +1715,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving Licence - Session lambda Error verifying JWT
-      AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the session lambda.
+      AlarmName: !Sub "${AWS::StackName}-CommonAPISessionLambda-failed-to-verify-jwt"
+      AlarmDescription: !Sub
+        - "Trigger if the ${CommonStackName}-SessionFunctionTS lambda fails to verify a JWT in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
         - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
@@ -1735,7 +1742,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} - Common API Authorization Lambda concurrency threshold reached
+      AlarmDescription: !Sub
+        - "Trigger if the ${CommonStackName}-AuthorizationFunctionTS lambda concurrency threshold is reached in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
+      AlarmName: !Sub "${AWS::StackName}-CommonAPIAuthorizationLambda-concurrency-threshold-reached"
       ActionsEnabled: true
       AlarmActions:
         - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
@@ -1786,7 +1796,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} - Common API AccessToken Lambda concurrency threshold reached
+      AlarmDescription: !Sub
+        - "Trigger if the ${CommonStackName}-AccessTokenFunctionTS lambda concurrency threshold is reached in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
+      AlarmName: !Sub "${AWS::StackName}-CommonAPIAccessTokenLambda-concurrency-threshold-reached"
       ActionsEnabled: true
       AlarmActions:
         - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
@@ -1837,8 +1850,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub ${AWS::StackName}-${Environment} - Driving Licence - Access Token lambda Error verifying JWT
-      AlarmDescription: !Sub Driving Licence ${Environment} - Common API - Errors verifying JWTs that have been been received by the token lambda.
+      AlarmName: !Sub "${AWS::StackName}-CommonAPIAccessTokenLambda-failed-to-verify-jwt"
+      AlarmDescription: !Sub
+        - "Trigger if the ${CommonStackName}-AccessTokenFunctionTS lambda fails to verify a JWT in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
         - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
@@ -1866,7 +1881,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} - DrivingPermitCheck Lambda concurrency threshold reached
+      AlarmDescription: !Sub
+        - "Trigger if the ${DrivingPermitCheckingFunction} lambda concurrency threshold is reached in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
+      AlarmName: !Sub "${AWS::StackName}-DLDrivingPermitCheckLambda-concurrency-threshold-reached"
       ActionsEnabled: true
       AlarmActions:
         - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
@@ -1917,7 +1935,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} - IssueCredential Lambda concurrency threshold reached
+      AlarmDescription: !Sub
+        - "Trigger if the ${IssueCredentialFunction} lambda concurrency threshold is reached in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
+      AlarmName: !Sub "${AWS::StackName}-DLIssueCredentialLambda-concurrency-threshold-reached"
       ActionsEnabled: true
       AlarmActions:
         - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
@@ -1968,7 +1989,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} lambda errors
+      AlarmDescription: !Sub
+        - "Trigger if a Driving Licence lambda has errors in ${Environment}. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
+      AlarmName: !Sub "${AWS::StackName}-DLLambda-errors"
       ActionsEnabled: true
       AlarmActions:
         - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
@@ -1994,8 +2018,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Authenticate Token Request Denied Alarm"
-      AlarmDescription: !Sub Driving Licence ${Environment} DVLA Token endpoint returned a 400/401 response to a token request (failure to authenticate)
+      AlarmName: !Sub "${AWS::StackName}-DVLAAuthenticateTokenRequestDeniedAlarm"
+      AlarmDescription: !Sub
+        - "Driving Licence ${Environment} DVLA Token endpoint returned a 400/401 response to a token request (failure to authenticate). ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
         - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
@@ -2019,8 +2045,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Api Key Rotation Failure Alarm"
-      AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the API Key used to perform document matches.
+      AlarmName: !Sub "${AWS::StackName}-DVLAApiKeyRotationFailureAlarm"
+      AlarmDescription: !Sub
+        - "Driving Licence ${Environment} DVLA has failed on attempt and retry to update the API Key used to perform document matches. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue slack-notifications-CriticalAlertsTopicArn
@@ -2044,8 +2072,10 @@ Resources:
       Type: AWS::CloudWatch::Alarm
       Condition: AlarmsEnabled
       Properties:
-        AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - DVLA Password Rotation Failure Alarm"
-        AlarmDescription: !Sub Driving Licence ${Environment} DVLA has failed on attempt and retry to update the Password used to perform document matches.
+        AlarmName: !Sub "${AWS::StackName}-DVLAPasswordRotationFailureAlarm"
+        AlarmDescription: !Sub
+          - "Driving Licence ${Environment} DVLA has failed on attempt and retry to update the Password used to perform document matches. ${SupportManualURL}"
+          - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
         ActionsEnabled: true
         AlarmActions:
           - !ImportValue slack-notifications-CriticalAlertsTopicArn
@@ -2116,8 +2146,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment} - Driving Licence - Certificate expiry Alarm"
-      AlarmDescription: !Sub Driving Licence ${Environment} DVA certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
+      AlarmName: !Sub "${AWS::StackName}-CertificateExpiryAlarm"
+      AlarmDescription: !Sub
+        - "Driving Licence ${Environment} DVA certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
         - !ImportValue slack-notifications-CriticalAlertsTopicArn
@@ -2145,7 +2177,10 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Driving Licence ${Environment} API Gateway 5XX errors
+      AlarmName: !Sub "${AWS::StackName}-DLAPIGateway5XXErrors"
+      AlarmDescription: !Sub
+        - "Driving Licence ${Environment} API Gateway 5XX errors. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
         - !If [IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn]
@@ -3333,7 +3368,10 @@ Resources:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
-      AlarmDescription: !Sub "PersonInfo Lambda error."
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionCanaryErrors"
+      AlarmDescription: !Sub
+        - "PersonInfo Lambda error. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       MetricName: Errors
       Dimensions:
         - Name: FunctionName
@@ -3359,7 +3397,10 @@ Resources:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
-      AlarmDescription: !Sub "PersonInfoFunction Lambda returning 5xx response."
+      AlarmName: !Sub "${AWS::StackName}-PersonInfoFunctionCanary5xxErrors"
+      AlarmDescription: !Sub
+        - "PersonInfoFunction Lambda returning 5xx response. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3389,7 +3430,10 @@ Resources:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
-      AlarmDescription: !Sub "DrivingPermitChecking Lambda error."
+      AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunctionCanaryErrors"
+      AlarmDescription: !Sub
+        - "DrivingPermitChecking Lambda error. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       MetricName: Errors
       Dimensions:
         - Name: FunctionName
@@ -3415,7 +3459,10 @@ Resources:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
-      AlarmDescription: !Sub "DrivingPermitCheckingFunction Lambda returning 5xx response."
+      AlarmName: !Sub "${AWS::StackName}-DrivingPermitCheckingFunctionCanary5xxErrors"
+      AlarmDescription: !Sub
+        - "DrivingPermitCheckingFunction Lambda returning 5xx response. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -3445,7 +3492,10 @@ Resources:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
-      AlarmDescription: !Sub "IssueCredential Lambda error."
+      AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunctionCanaryErrors"
+      AlarmDescription: !Sub
+        - "IssueCredential Lambda error. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       MetricName: Errors
       Dimensions:
         - Name: FunctionName
@@ -3471,7 +3521,10 @@ Resources:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
       OKActions:
         - !ImportValue slack-notifications-WarningAlertsTopicArn
-      AlarmDescription: !Sub "IssueCredentialFunction Lambda returning 5xx response."
+      AlarmName: !Sub "${AWS::StackName}-IssueCredentialFunctionCanary5xxErrors"
+      AlarmDescription: !Sub
+        - "IssueCredentialFunction Lambda returning 5xx response. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:

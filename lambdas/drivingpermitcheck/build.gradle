@@ -18,13 +18,11 @@ dependencies {
 			project(":lib-dva"),
 			project(":lib-dvla"),
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.sdk.crt.client,
 			libs.aws.sdk.dynamodb.enhanced,
 			libs.aws.sdk.kms,
 			libs.aws.sdk.acm,
 			libs.aws.sdk.secretsmanager,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson,
 			libs.nimbus.oauth,
 			libs.apache.httpcomponents.httpcore,
@@ -32,13 +30,10 @@ dependencies {
 
 	testImplementation testFixtures(project(":lib")),
 			testFixtures(this.project),
-			platform(libs.junit.platform.bom),
-			libs.bundles.unit.testing,
 			libs.bouncycastle.bcpkix,
 			libs.wiremock
 
 	testFixturesImplementation project(":lib"), project(":lib-dvla"),
 			libs.cri.common.lib,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson
 }

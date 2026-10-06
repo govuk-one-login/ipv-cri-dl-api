@@ -12,19 +12,11 @@ dependencies {
 			libs.powertools.logging.log4j,
 			libs.limeade,
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.sdk.dynamodb,
 			libs.aws.sdk.dynamodb.enhanced,
 			libs.aws.sdk.sqs,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson,
 			libs.nimbus.oauth,
-			libs.apache.httpcomponents.httpcore,
-			libs.apache.httpcomponents.httpclient
-
-	testImplementation platform(libs.aws.sdk.bom),
-			platform(libs.junit.platform.bom),
-			libs.bundles.unit.testing,
 			libs.apache.httpcomponents.httpcore,
 			libs.apache.httpcomponents.httpclient
 

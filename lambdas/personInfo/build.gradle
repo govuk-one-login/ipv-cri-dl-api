@@ -14,14 +14,11 @@ dependencies {
 			project(":lib"),
 			libs.limeade,
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.lambda.java.core,
 			libs.aws.sdk.crt.client,
 			libs.aws.sdk.dynamodb.enhanced,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson,
 			libs.nimbus.oauth
 
-	testImplementation testFixtures(project(":lib")),
-			libs.bundles.unit.testing
+	testImplementation testFixtures(project(":lib"))
 }

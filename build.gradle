@@ -115,6 +115,7 @@ subprojects {
 			// These clients are excluded as we are using the aws-crt client exclusively
 			// https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/
 			exclude group: "software.amazon.awssdk", module: "apache-client"
+			exclude group: "software.amazon.awssdk", module: "apache5-client"
 			exclude group: "software.amazon.awssdk", module: "netty-nio-client"
 			exclude group: "software.amazon.awssdk", module: "url-connection-client"
 
@@ -130,6 +131,14 @@ subprojects {
 		}
 
 		dependencies {
+			// align jackson/aws sdk/log4j/opentelemetry versions in every module
+			implementation platform(libs.aws.sdk.bom)
+			implementation platform(libs.jackson.bom)
+			implementation platform(libs.log4j.bom)
+			implementation platform(libs.opentelemetry.bom.alpha)
+			aspect platform(libs.aws.sdk.bom)
+			aspect platform(libs.jackson.bom)
+
 			mockitoAgent platform(libs.mockito.bom)
 			mockitoAgent(libs.mockito.core) {
 				transitive = false
@@ -140,6 +149,15 @@ subprojects {
 			testImplementation libs.bundles.unit.testing
 
 			testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+		}
+
+		plugins.withId('java-test-fixtures') {
+			dependencies {
+				testFixturesImplementation platform(libs.aws.sdk.bom)
+				testFixturesImplementation platform(libs.jackson.bom)
+				testFixturesImplementation platform(libs.log4j.bom)
+				testFixturesImplementation platform(libs.opentelemetry.bom.alpha)
+			}
 		}
 
 		// Use a common log4j2.xml for all subprojects

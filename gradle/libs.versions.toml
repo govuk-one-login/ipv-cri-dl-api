@@ -5,16 +5,16 @@ sonarqube = "7.5.0.8588"
 post_compile_weaving = "9.2.0"
 
 # Lambdas
-aws_sdk = "2.42.34"
+aws_sdk = "2.55.2"
 aws_lambda_events = "3.16.0"
 aws_lambda_core = "1.4.0" # https://github.com/aws/aws-lambda-java-libs
 cri_common_lib = "9.2.3"
-limeade = "1.2.2"
+limeade = "1.2.4"
 nimbusds_oauth = "11.29.2"
 aspect_jrt = "1.9.25.1"
 aws_powertools = "2.10.0"
-jackson = "2.22.2"
-jackson_jr = "2.22.2"
+jackson = "2.22.3"
+log4j = "2.26.1"
 
 # Lambdas Apache HTTP Client https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
 apache_httpcomponents_httpcore = "4.4.16"
@@ -24,7 +24,7 @@ apache_httpcomponents_httpclient = "4.5.14"
 opentelemetry_bom_alpha = "2.28.1-alpha"
 
 # DVA ACM
-bouncycastle_bcpkix_version = "1.85"
+bouncycastle = "1.86"
 wiremock_version = "3.13.2"
 
 # passwordRenewal lambda
@@ -36,7 +36,7 @@ mockito = "5.23.0"
 webcompere = "2.1.8"
 
 # Contract tests
-pact_provider = "4.6.19"
+pact_provider = "4.7.5"
 commons_io = "2.21.0"
 
 # AC tests
@@ -77,7 +77,7 @@ jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml" }
 
 # Smaller less heavy version of jackson ( #via aws-sdk-bom )
-jackson-jr-objects = { module = "com.fasterxml.jackson.jr:jackson-jr-objects", version.ref = "jackson_jr" }
+jackson-jr-objects = { module = "com.fasterxml.jackson.jr:jackson-jr-objects", version.ref = "jackson" }
 
 # OAuth
 nimbus-oauth = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbusds_oauth" }
@@ -96,12 +96,16 @@ powertools-metrics = { module = "software.amazon.lambda:powertools-metrics", ver
 powertools-parameters-ssm = { module = "software.amazon.lambda:powertools-parameters-ssm", version.ref = "aws_powertools" }
 powertools-parameters-secrets = { module = "software.amazon.lambda:powertools-parameters-secrets", version.ref = "aws_powertools" }
 
+log4j-bom = { module = "org.apache.logging.log4j:log4j-bom", version.ref = "log4j" }
+
 # Apache HTTP
 apache-httpcomponents-httpcore = { module = "org.apache.httpcomponents:httpcore", version.ref = "apache_httpcomponents_httpcore" }
 apache-httpcomponents-httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "apache_httpcomponents_httpclient" }
 
 # DVA ACM
-bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle_bcpkix_version" }
+bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-bcutil = { module = "org.bouncycastle:bcutil-jdk18on", version.ref = "bouncycastle" }
 wiremock = { module = "org.wiremock:wiremock", version.ref = "wiremock_version" }
 
 # passwordRenewal lambda

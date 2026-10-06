@@ -15,11 +15,8 @@ dependencies {
 			project(":lib"),
 			project(":lib-dva"),
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.lambda.java.core,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson
 
-	testImplementation testFixtures(project(":lib")),
-			libs.bundles.unit.testing
+	testImplementation testFixtures(project(":lib"))
 }

@@ -15,16 +15,13 @@ dependencies {
 			project(":lib"),
 			project(":lib-dvla"),
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.lambda.java.core,
 			libs.aws.lambda.java.events,
 			libs.aws.sdk.dynamodb.enhanced,
 			libs.aws.sdk.secretsmanager,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson,
 			libs.apache.httpcomponents.httpcore,
 			libs.apache.httpcomponents.httpclient
 
-	testImplementation testFixtures(project(":lib")),
-			libs.bundles.unit.testing
+	testImplementation testFixtures(project(":lib"))
 }

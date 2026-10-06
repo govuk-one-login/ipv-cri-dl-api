@@ -1,8 +1,8 @@
 plugins {
-	id "java-library"
-	id "idea"
-	id "jacoco"
-	id 'java-test-fixtures'
+	alias(libs.plugins.idea)
+	alias(libs.plugins.java.library)
+	alias(libs.plugins.java.test.fixtures)
+	alias(libs.plugins.jacoco)
 }
 
 dependencies {
@@ -12,21 +12,15 @@ dependencies {
 			project(":lib"),
 			libs.limeade,
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.sdk.kms,
 			libs.aws.sdk.acm,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson,
 			libs.nimbus.oauth,
 			libs.bouncycastle.bcpkix,
 			libs.apache.httpcomponents.httpcore,
 			libs.apache.httpcomponents.httpclient
 
-	testImplementation testFixtures(project(":lib")),
-			platform(libs.junit.platform.bom),
-			libs.bundles.unit.testing,
-			platform(libs.jackson.bom),
-			libs.bundles.jackson
+	testImplementation testFixtures(project(":lib"))
 
 	testFixturesImplementation testFixtures(project(":lib")),
 			libs.aspectjrt

@@ -1,7 +1,7 @@
 plugins {
-	id "java"
-	id "idea"
-	id "jacoco"
+	alias(libs.plugins.idea)
+	alias(libs.plugins.java)
+	alias(libs.plugins.jacoco)
 }
 
 dependencies {
@@ -13,7 +13,6 @@ dependencies {
 			project(":lib"),
 			libs.limeade,
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.sdk.lambda,
 			libs.aws.sdk.dynamodb.enhanced,
 			libs.aws.sdk.kms,
@@ -21,14 +20,24 @@ dependencies {
 			libs.aws.sdk.crt.client,
 			libs.aws.lambda.java.core,
 			libs.aws.lambda.java.events,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson,
-			platform(libs.opentelemetry.bom.alpha),
 			libs.opentelemetry.aws.sdk,
 			libs.nimbus.oauth
 
 	testImplementation testFixtures(project(":lib")),
-			platform(libs.junit.platform.bom),
-			libs.bundles.unit.testing,
 			libs.bundles.pact
+
+	constraints {
+		// TODO: remove this forced version of bouncycastle when the pact provider is updated
+		def reason = 'override vulnerable bouncycastle version present in pact provider to 1.86'
+		testImplementation(libs.bouncycastle.bcprov) {
+			because reason
+		}
+		testImplementation(libs.bouncycastle.bcpkix) {
+			because reason
+		}
+		testImplementation(libs.bouncycastle.bcutil) {
+			because reason
+		}
+	}
 }

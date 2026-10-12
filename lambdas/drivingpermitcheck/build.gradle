@@ -30,8 +30,7 @@ dependencies {
 
 	testImplementation testFixtures(project(":lib")),
 			testFixtures(this.project),
-			libs.bouncycastle.bcpkix,
-			libs.wiremock
+			libs.bouncycastle.bcpkix
 
 	testFixturesImplementation project(":lib"), project(":lib-dvla"),
 			libs.cri.common.lib,

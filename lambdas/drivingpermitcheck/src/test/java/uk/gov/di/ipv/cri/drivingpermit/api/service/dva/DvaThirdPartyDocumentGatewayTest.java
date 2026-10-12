@@ -1,23 +1,23 @@
 package uk.gov.di.ipv.cri.drivingpermit.api.service.dva;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.http.Body;
-import com.github.tomakehurst.wiremock.http.ContentTypeHeader;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.ssl.SSLContexts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
@@ -61,8 +61,13 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -79,16 +84,12 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -119,37 +120,6 @@ class DvaThirdPartyDocumentGatewayTest {
     @Mock private EventProbe mockEventProbe;
 
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-    @RegisterExtension static WireMockExtension wm1;
-
-    static {
-        try {
-            wm1 =
-                    WireMockExtension.newInstance()
-                            .options(
-                                    wireMockConfig()
-                                            .httpsPort(8443)
-                                            .httpDisabled(true)
-                                            .keystorePath("utils/v2/certs/wiremock-DVA-cert.jks")
-                                            .keystorePassword("password")
-                                            .keyManagerPassword("password")
-                                            .keystoreType("JKS")
-                                            .needClientAuth(true)
-                                            // Only works with absolute file path
-                                            .trustStorePath(
-                                                    "src/test/resources/utils/v2/certs/mykeystore.jks")
-                                            .trustStorePassword(
-                                                    Files.readAllLines(
-                                                                    Paths.get(
-                                                                            "src/test/resources/utils/v2/certs/mykeystore-pass.txt"))
-                                                            .get(0))
-                                            .trustStoreType("JKS")
-                                            .stubRequestLoggingDisabled(false))
-                            .build();
-        } catch (IOException e) {
-            fail(e);
-        }
-    }
 
     @BeforeEach
     void setUp() {
@@ -858,16 +828,15 @@ class DvaThirdPartyDocumentGatewayTest {
         environmentVariables.set("SQS_AUDIT_EVENT_QUEUE_URL", "arn-for-sqs");
         environmentVariables.set("HAS_CA", true);
 
-        wm1.stubFor(
-                post("/api/ukverify")
-                        .willReturn(
-                                aResponse()
-                                        .withResponseBody(
-                                                Body.ofBinaryOrText(
-                                                        SAMPLE_PAYLOAD.getBytes(),
-                                                        new ContentTypeHeader(
-                                                                "application/jwt")))));
+        HttpsServer dvaStubServer = startDvaStubServer(SAMPLE_PAYLOAD.getBytes());
+        try {
+            performRealThirdPartyDocumentCheck();
+        } finally {
+            dvaStubServer.stop(0);
+        }
+    }
 
+    private void performRealThirdPartyDocumentCheck() throws Exception {
         DrivingPermitForm drivingPermitForm = DrivingPermitFormTestDataGenerator.generateDva();
 
         ServiceFactory serviceFactory = new ServiceFactory();
@@ -946,7 +915,7 @@ class DvaThirdPartyDocumentGatewayTest {
     void shouldCreateTrustStoreFromAcm() throws Exception {
         Certificate tlsRootCert = KeyCertHelper.getDecodedX509Certificate(ACM_ROOT_CERT);
 
-        // Utility used to make cert into JKS for wiremock
+        // Utility used to make cert into JKS for the DVA stub server
         try (FileOutputStream fos =
                 new FileOutputStream("src/test/resources/utils/v2/certs/mykeystore.jks")) {
             KeyStore trustStore = createTrustStore(new Certificate[] {tlsRootCert});
@@ -960,6 +929,49 @@ class DvaThirdPartyDocumentGatewayTest {
         }
         assertTrue(
                 Files.exists(Paths.get("src/test/resources/utils/v2/certs/mykeystore-pass.txt")));
+    }
+
+    private static HttpsServer startDvaStubServer(byte[] responseBody)
+            throws IOException, GeneralSecurityException {
+        Path certsDir = Paths.get("src/test/resources/utils/v2/certs");
+        char[] password = "password".toCharArray(); // pragma: allowlist secret
+
+        char[] trustStorePassword =
+                Files.readAllLines(certsDir.resolve("mykeystore-pass.txt"))
+                        .getFirst()
+                        .toCharArray();
+        SSLContext sslContext =
+                SSLContexts.custom()
+                        .loadKeyMaterial(
+                                certsDir.resolve("dva-stub-server.jks").toFile(),
+                                password,
+                                password)
+                        .loadTrustMaterial(
+                                certsDir.resolve("mykeystore.jks").toFile(), trustStorePassword)
+                        .build();
+
+        HttpsServer server = HttpsServer.create(new InetSocketAddress("localhost", 8443), 0);
+        server.setHttpsConfigurator(
+                new HttpsConfigurator(sslContext) {
+                    @Override
+                    public void configure(HttpsParameters params) {
+                        SSLParameters sslParameters = getSSLContext().getDefaultSSLParameters();
+                        sslParameters.setNeedClientAuth(true);
+                        params.setSSLParameters(sslParameters);
+                    }
+                });
+        server.createContext(
+                "/api/ukverify",
+                httpExchange -> {
+                    httpExchange.getRequestBody().readAllBytes();
+                    httpExchange.getResponseHeaders().add("Content-Type", "application/jwt");
+                    httpExchange.sendResponseHeaders(200, responseBody.length);
+                    try (OutputStream os = httpExchange.getResponseBody()) {
+                        os.write(responseBody);
+                    }
+                });
+        server.start();
+        return server;
     }
 
     private static Stream<Integer> getRetryStatusCodes() {

@@ -92,11 +92,12 @@ class ApiKeyRenewalHandlerTest {
     void recordsAnErrorAndRethrowsWhenRotationFails() throws Exception {
         RuntimeException failure = new RuntimeException("rotation failed");
         doThrow(failure).when(apiKeyRotationService).rotate(SECRET_ID);
+        SecretsManagerRotationEvent finishSecret = event("finishSecret");
 
         ApiKeyRotationException thrown =
                 assertThrows(
                         ApiKeyRotationException.class,
-                        () -> handler.handleRequest(event("finishSecret"), context));
+                        () -> handler.handleRequest(finishSecret, context));
 
         assertSame(failure, thrown.getCause());
         verify(eventProbe).counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_ERROR);

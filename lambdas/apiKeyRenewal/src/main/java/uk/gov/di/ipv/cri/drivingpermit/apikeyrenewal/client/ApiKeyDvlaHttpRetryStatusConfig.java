@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.event.service;
+package uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.client;
 
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.drivingpermit.library.service.HttpRetryStatusConfig;
@@ -11,7 +11,7 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_API_KEY_HTTP_RETRYER_SEND_MAX_RETRIES;
 
 @ExcludeFromGeneratedCoverageReport
-public class ChangeApiKeyHttpRetryStatusConfig implements HttpRetryStatusConfig {
+public class ApiKeyDvlaHttpRetryStatusConfig implements HttpRetryStatusConfig {
 
     @Override
     public boolean shouldHttpClientRetry(int statusCode) {

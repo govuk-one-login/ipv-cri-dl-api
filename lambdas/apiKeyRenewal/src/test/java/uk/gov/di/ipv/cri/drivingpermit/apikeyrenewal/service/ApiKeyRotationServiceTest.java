@@ -38,14 +38,10 @@ class ApiKeyRotationServiceTest {
     private static final String NEW_API_KEY = "new_api_key"; // pragma: allowlist secret
     private static final String PENDING_API_KEY = "pending_api_key"; // pragma: allowlist secret
 
-    @Mock
-    private ApiKeySecretsManagerClient apiKeySecretsManagerClient;
-    @Mock
-    private ApiKeyDvlaHttpClient apiKeyDvlaHttpClient;
-    @Mock
-    private TokenRequestService tokenRequestService;
-    @Mock
-    private ApiKeyVerificationService apiKeyVerificationService;
+    @Mock private ApiKeySecretsManagerClient apiKeySecretsManagerClient;
+    @Mock private ApiKeyDvlaHttpClient apiKeyDvlaHttpClient;
+    @Mock private TokenRequestService tokenRequestService;
+    @Mock private ApiKeyVerificationService apiKeyVerificationService;
 
     private ApiKeyRotationService service;
 
@@ -153,8 +149,8 @@ class ApiKeyRotationServiceTest {
         @Test
         void doesNotPromoteItWhenVerificationFails() throws Exception {
             doThrow(
-                    new OAuthErrorResponseException(
-                            401, ERROR_INVOKING_THIRD_PARTY_API_KEY_ENDPOINT))
+                            new OAuthErrorResponseException(
+                                    401, ERROR_INVOKING_THIRD_PARTY_API_KEY_ENDPOINT))
                     .when(apiKeyVerificationService)
                     .verify(PENDING_API_KEY);
 

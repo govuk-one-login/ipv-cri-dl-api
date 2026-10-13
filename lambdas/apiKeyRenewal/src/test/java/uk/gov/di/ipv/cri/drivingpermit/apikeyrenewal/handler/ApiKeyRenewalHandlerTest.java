@@ -43,12 +43,9 @@ class ApiKeyRenewalHandlerTest {
     @SystemStub
     private final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Mock
-    private ApiKeyRotationService apiKeyRotationService;
-    @Mock
-    private EventProbe eventProbe;
-    @Mock
-    private Context context;
+    @Mock private ApiKeyRotationService apiKeyRotationService;
+    @Mock private EventProbe eventProbe;
+    @Mock private Context context;
 
     private ApiKeyRenewalHandler handler;
 
@@ -56,14 +53,18 @@ class ApiKeyRenewalHandlerTest {
     void setUp() throws Exception {
         environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
 
-        try (
-                var _ = mockConstruction(ClientProviderFactory.class);
+        try (var _ = mockConstruction(ClientProviderFactory.class);
                 var _ = mockConstruction(DvlaConfiguration.class);
                 var _ = mockConstruction(TokenRequestService.class);
                 var _ = mockConstruction(DriverMatchService.class);
-                var _ = mockConstruction(ApiKeyRotationService.class, withSettings().defaultAnswer(delegatesTo(apiKeyRotationService)));
-                var _ = mockConstruction(EventProbe.class, withSettings().defaultAnswer(delegatesTo(eventProbe)))
-        ) {
+                var _ =
+                        mockConstruction(
+                                ApiKeyRotationService.class,
+                                withSettings().defaultAnswer(delegatesTo(apiKeyRotationService)));
+                var _ =
+                        mockConstruction(
+                                EventProbe.class,
+                                withSettings().defaultAnswer(delegatesTo(eventProbe)))) {
             handler = new ApiKeyRenewalHandler();
         }
     }

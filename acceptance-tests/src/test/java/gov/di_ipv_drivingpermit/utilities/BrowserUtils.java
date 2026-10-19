@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -29,8 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 import static gov.di_ipv_drivingpermit.pages.UniversalSteps.MAX_WAIT_SEC;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class BrowserUtils {
 
@@ -548,18 +545,6 @@ public class BrowserUtils {
 
     public static void logFeatureSetTag(final String featureSet) {
         LOGGER.info("Feature set tag was : {}", featureSet);
-    }
-
-    public static void checkOkHttpResponseOnLink(String link) {
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(link)).GET().build();
-        HttpResponse<String> httpResponse = null;
-        try {
-            httpResponse = sendHttpRequest(request);
-            int statusCode = httpResponse.statusCode();
-            assertEquals(200, statusCode);
-        } catch (IOException | InterruptedException _) {
-            fail("Failed to get 200 back on request to url");
-        }
     }
 
     public static HttpResponse<String> sendHttpRequest(HttpRequest request)

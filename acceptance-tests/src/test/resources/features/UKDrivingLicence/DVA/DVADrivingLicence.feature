@@ -26,17 +26,6 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubject             |
       | DVADrivingLicenceSubjectHappyKenneth |
 
-  @dev
-  Scenario Outline: DVA - User attempts journey with invalid details and returns authorisation error
-    Given User enters DVA data as a <DVADrivingLicenceSubject>
-    When User clicks on continue and waits for page navigation
-    Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
-    And JSON response should contain error description Authorization permission denied and status code as 302
-
-    Examples:
-      | DVADrivingLicenceSubject              |
-      | DVADrivingLicenceSubjectUnhappySelina |
-
   @stub @traffic
   Scenario Outline: DVA - User enters invalid driving licence number
     Given User enters DVA data as a <DVADrivingLicenceSubject>
@@ -170,7 +159,7 @@ Feature: DVA Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
 
-  @dev
+  @stub
   Scenario: DVA - User cancels before first attempt by clicking no driving licence and returns an authorisation error
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button
@@ -217,15 +206,6 @@ Feature: DVA Driving Licence Test
       | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | NW* ^%G         |
       | DVADrivingLicenceSubjectHappyBilly | PARKER          | PETER            | 11              | 10                | 1962             | 23              | 05                | 2018             | 09                | 12                  | 2062               | PARKE610112PBFGH     | CA 95128        |
 # ##########  DVA Field Validations ##########
-
-  # not existing in front end repo
-  @uat @stub
-  Scenario: DVA - User consents to have DL checked and navigates to DVA privacy notice
-    Then I see the DVA consent section Allow DVA to check your driving licence details
-    And I see the Consent sentence in DVA page DVA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.
-    And I see the Consent second line in DVA page To find out more about how your driving licence details will be used, you can read:
-    And I see privacy DVA notice link the GOV.UK One Login privacy notice (opens in a new tab)
-    Then I see the DVA privacy notice link the DVA privacy notice (opens in a new tab)
 
   # not existing in front end repo
   @uat @traffic

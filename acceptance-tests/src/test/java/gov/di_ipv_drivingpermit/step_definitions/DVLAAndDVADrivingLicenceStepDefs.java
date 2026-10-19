@@ -107,23 +107,6 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
         BrowserUtils.clickAndWaitForNavigation(back);
     }
 
-    @Then("^I see the consent section (.*)$")
-    public void iSeeTheConsentSectionAllowDVLAToCheckYourDrivingLicenceDetails(
-            String consentSection) {
-        assertConsentSection(consentSection);
-    }
-
-    @Then("^I see privacy notice link (.*)$")
-    public void iSeePrivacyNoticeLinkTheGOVUKOneLoginPrivacyNotice(String oneLoginPrivacyLink) {
-        assertOneLoginPrivacyLink(oneLoginPrivacyLink);
-    }
-
-    @Then("^I see the DVLA privacy notice link (.*)$")
-    public void iSeeTheDVLAPrivacyNoticeLinkTheDVLAPrivacyNoticeOpensInANewTab(
-            String dvlaPrivacyLink) {
-        assertDVLAPrivacyLink(dvlaPrivacyLink);
-    }
-
     @And("I should see DVLA as an option")
     public void i_should_see_DVLA_as_an_option() {
         Assert.assertTrue(new DrivingLicencePageObject().optionDVLA.isDisplayed());
@@ -132,16 +115,5 @@ public class DVLAAndDVADrivingLicenceStepDefs extends DrivingLicencePageObject {
     @And("I see a form requesting DVLA LicenceNumber")
     public void i_see_a_form_requesting_DVLA_LicenceNumber() {
         Assert.assertTrue(new DrivingLicencePageObject().licenceNumber.isDisplayed());
-    }
-
-    @And("^I see the sentence (.*)$")
-    public void iSeeTheContentForDVLA(String contentDVLA) {
-        assertDVLAContent(contentDVLA);
-    }
-
-    @And("^I see the second line (.*)$")
-    public void iSeeTheLineToFindOutMoreAboutHowYourDrivingLicenceDetailsWillBeUsedYouCanRead(
-            String contentDVLALine2) {
-        assertDVLAContentLineTwo(contentDVLALine2);
     }
 }

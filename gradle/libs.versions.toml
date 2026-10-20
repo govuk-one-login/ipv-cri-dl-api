@@ -40,9 +40,9 @@ commons_io = "2.22.0"
 
 # AC tests
 cucumber = "8.0.4"
-selenium = "4.50.0"
-axe_core_selenium = "4.13.0"
-restassured =  "6.0.1"
+selenium = "4.51.0"
+axe_core_selenium = "4.14.0"
+restassured =  "6.2.0"
 aws_cdk_lib = "2.120.0"
 
 [libraries]

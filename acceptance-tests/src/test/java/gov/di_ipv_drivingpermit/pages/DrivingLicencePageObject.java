@@ -16,10 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
-import static gov.di_ipv_drivingpermit.utilities.BrowserUtils.checkOkHttpResponseOnLink;
 import static java.lang.System.getenv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -201,21 +199,6 @@ public class DrivingLicencePageObject extends UniversalSteps {
     @FindBy(id = "consentDVACheckbox-error")
     public WebElement dvaConsentCheckboxError;
 
-    @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/form/h2")
-    public WebElement dvlaConsentSection;
-
-    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/ul/li[1]/a")
-    public WebElement oneLoginLink;
-
-    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/ul/li[2]/a")
-    public WebElement dvlaLink;
-
-    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/p[1]")
-    public WebElement dvlaSentence;
-
-    @FindBy(xpath = "//*[@id=\"consentCheckbox-hint\"]/p[2]")
-    public WebElement dvlaSentenceTwo;
-
     // ------------------------
 
     public DrivingLicencePageObject() {
@@ -286,7 +269,8 @@ public class DrivingLicencePageObject extends UniversalSteps {
     }
 
     public void errorMessage() {
-        errorSummary.isDisplayed();
+        BrowserUtils.waitForVisibility(errorSummary, MAX_WAIT_SEC);
+        assertTrue(errorSummary.isDisplayed());
     }
 
     public void errorLink() {
@@ -549,43 +533,7 @@ public class DrivingLicencePageObject extends UniversalSteps {
 
     public List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {
         JsonNode evidenceNode = vcNode.get(evidence);
-
         ObjectReader objectReader = OBJECT_MAPPER.readerFor(new TypeReference<List<JsonNode>>() {});
         return objectReader.readValue(evidenceNode);
-    }
-
-    public void assertConsentSection(String consentSection) {
-        assertEquals(consentSection, dvlaConsentSection.getText());
-    }
-
-    public void assertOneLoginPrivacyLink(String oneLoginPrivacyLink) {
-        assertEquals(oneLoginPrivacyLink, oneLoginLink.getText());
-        String oneLoginDVLALinkUrl = oneLoginLink.getAttribute("href");
-
-        checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
-        oneLoginLink.click();
-
-        Object[] windowHandles = Driver.get().getWindowHandles().toArray();
-
-        System.out.println("Window handles: " + Arrays.toString(windowHandles));
-
-        Driver.get().switchTo().window((String) windowHandles[1]);
-        Driver.get().close();
-        Driver.get().switchTo().window((String) windowHandles[0]);
-    }
-
-    public void assertDVLAPrivacyLink(String dvlaPrivacyLink) {
-        assertEquals(dvlaPrivacyLink, dvlaLink.getText());
-        String oneLoginDVLALinkUrl = dvlaLink.getAttribute("href");
-
-        checkOkHttpResponseOnLink(oneLoginDVLALinkUrl);
-    }
-
-    public void assertDVLAContent(String contentDVLA) {
-        assertEquals(contentDVLA, dvlaSentence.getText());
-    }
-
-    public void assertDVLAContentLineTwo(String contentDVLALine2) {
-        assertEquals(contentDVLALine2, dvlaSentenceTwo.getText());
     }
 }

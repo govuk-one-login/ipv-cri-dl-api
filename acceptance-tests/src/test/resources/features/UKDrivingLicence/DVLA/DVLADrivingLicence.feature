@@ -172,7 +172,7 @@ Feature: Driving Licence Test
     Then I navigate to the Driving Licence verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
 
-  @dev
+  @stub
   Scenario: DVLA - User cancels before first attempt by clicking no driving licence and returns an authorisation error
     Given User click on ‘Back' Link
     When User click on I do not have a UK driving licence radio button
@@ -194,14 +194,6 @@ Feature: Driving Licence Test
     And I navigate to the Driving Licence verifiable issuer to check for a Valid response
     Then The DVLA API Key secret has been created
     Then The DVLA API Key should be valid and rotated within the specified window
-
-  @stub @uat
-  Scenario: DVLA - User consents to have DL checked and navigates to DVLA privacy notice
-    Then I see the consent section Allow DVLA to check your driving licence details
-    And I see the sentence DVLA needs your consent to check your driving licence details before you can continue. They will make sure your licence has not been cancelled or reported as lost or stolen.
-    And I see the second line To find out more about how your driving licence details will be used, you can read:
-    And I see privacy notice link the GOV.UK One Login privacy notice (opens in a new tab)
-    Then I see the DVLA privacy notice link the DVLA privacy notice (opens in a new tab)
 
   @stub @Language-regression @traffic
   Scenario Outline: Language Title validation

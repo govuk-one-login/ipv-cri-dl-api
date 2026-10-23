@@ -1062,7 +1062,7 @@ Resources:
     Properties:
       Timeout: 120 # seconds
       CodeUri: lambdas/apiKeyRenewal
-      Handler: uk.gov.di.ipv.cri.drivingpermit.event.handler.ApiKeyRenewalHandler::handleRequest
+      Handler: uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.handler.ApiKeyRenewalHandler::handleRequest
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-apiKeyRenewal"
@@ -2061,10 +2061,10 @@ Resources:
       Dimensions:
         - Name: Service
           Value: !Sub "${CriIdentifier}-apiKeyRenewal"
-      Period: 60
-      EvaluationPeriods: 2
-      DatapointsToAlarm: 2
-      Threshold: 2
+      Period: 3600
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 

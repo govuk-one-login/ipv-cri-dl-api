@@ -22,6 +22,7 @@ import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.client.ApiKeyDvlaHttpClient
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.client.ApiKeySecretsManagerClient;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.exception.ApiKeyRotationException;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.model.ApiKeyRotationConfig;
+import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.model.ApiKeyRotationOutcome;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.model.ApiKeyVerificationConfig;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.model.aws.SecretRotationStep;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.service.ApiKeyRotationService;
@@ -38,6 +39,7 @@ import java.time.Duration;
 
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_API_KEY_CHECK_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_API_KEY_CHECK_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_API_KEY_PROMOTED_UNVERIFIED;
 
 public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotationEvent, String> {
 
@@ -115,8 +117,16 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
 
         try {
             LOGGER.info("API key rotation started");
-            apiKeyRotationService.rotate(input.getSecretId());
-            LOGGER.info("API key rotation completed");
+            ApiKeyRotationOutcome outcome =
+                    apiKeyRotationService.rotate(
+                            input.getSecretId(), input.getClientRequestToken());
+            LOGGER.atInfo()
+                    .setMessage("API key rotation completed")
+                    .addKeyValue("outcome", outcome)
+                    .log();
+            if (outcome == ApiKeyRotationOutcome.PROMOTED_UNVERIFIED) {
+                eventProbe.counterMetric(LAMBDA_API_KEY_PROMOTED_UNVERIFIED);
+            }
             return completedOk();
         } catch (Exception e) {
             LOGGER.error("API key rotation failed", e);

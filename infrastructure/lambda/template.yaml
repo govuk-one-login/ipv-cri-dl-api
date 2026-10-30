@@ -1088,7 +1088,8 @@ Resources:
             - Sid: UpdateSecretsPolicy
               Effect: Allow
               Action:
-                - 'secretsmanager:UpdateSecret'
+                - 'secretsmanager:DescribeSecret'
+                - 'secretsmanager:UpdateSecretVersionStage'
               Resource:
                 - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/${AWS::StackName}/DVLA/apiKey*"
         - Statement:
@@ -2047,7 +2048,7 @@ Resources:
     Properties:
       AlarmName: !Sub "${AWS::StackName}-DVLAApiKeyRotationFailureAlarm"
       AlarmDescription: !Sub
-        - "Driving Licence ${Environment} DVLA has failed on attempt and retry to update the API Key used to perform document matches. ${SupportManualURL}"
+        - "Driving Licence ${Environment} DVLA API key rotation failed before the new key was promoted. The previous key is still in use and may stop working. Check the key renewal logs. ${SupportManualURL}"
         - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
       ActionsEnabled: true
       AlarmActions:
@@ -2056,6 +2057,33 @@ Resources:
         - !ImportValue slack-notifications-CriticalAlertsTopicArn
       InsufficientDataActions: [ ]
       MetricName: lambda_api_key_check_completed_error
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-apiKeyRenewal"
+      Period: 3600
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DVLAApiKeyPromotedUnverifiedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-DVLAApiKeyPromotedUnverifiedAlarm"
+      AlarmDescription: !Sub
+        - "Driving Licence ${Environment} DVLA issued a new API key that could not be verified within 5 minutes. Check that document matches are succeeding. ${SupportManualURL}"
+        - SupportManualURL: !FindInMap [ StaticVariables, Urls, SupportManualURL ]
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
+      OKActions:
+        - !If [ IsProdEnvironment, !ImportValue slack-notifications-PagerDutySNSTopicArn, !ImportValue slack-notifications-CriticalAlertsTopicArn ]
+      InsufficientDataActions: [ ]
+      MetricName: lambda_api_key_promoted_unverified
       Namespace: !Sub "${CriIdentifier}"
       Statistic: Sum
       Dimensions:

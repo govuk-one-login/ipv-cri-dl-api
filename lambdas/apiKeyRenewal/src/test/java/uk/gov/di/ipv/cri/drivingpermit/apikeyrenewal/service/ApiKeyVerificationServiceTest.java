@@ -79,7 +79,7 @@ class ApiKeyVerificationServiceTest {
         when(driverMatchService.performMatch(any(), any(), any(), any()))
                 .thenThrow(matchUnavailable())
                 .thenThrow(keyRejected())
-                .thenReturn(null);
+                .thenReturn(null); // success
 
         apiKeyVerificationService.verify("new_api_key");
 

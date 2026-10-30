@@ -28,6 +28,8 @@ public class Definitions {
     // New Api Key Metric
     public static final String LAMBDA_API_KEY_CHECK_COMPLETED_ERROR =
             "lambda_api_key_check_completed_error";
+    public static final String LAMBDA_API_KEY_PROMOTED_UNVERIFIED =
+            "lambda_api_key_promoted_unverified";
 
     // Runtime Capture of colds starts as custom metric for monitoring
     public static final String LAMBDA_DRIVING_PERMIT_CHECK_FUNCTION_INIT_DURATION =

@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.drivingpermit.event.endpoints;
+package uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
@@ -15,7 +15,6 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.drivingpermit.event.service.ChangeApiKeyHttpRetryStatusConfig;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.drivingpermit.library.exceptions.OAuthErrorResponseException;
@@ -44,27 +43,26 @@ import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpo
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.ThirdPartyAPIEndpointMetric.DVLA_CHANGE_API_KEY_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
 
 @ExtendWith(MockitoExtension.class)
-class ChangeApiKeyServiceTest {
+class ApiKeyDvlaHttpClientTest {
 
-    private static final String TEST_END_POINT = "http://127.0.0.1";
+    private static final String TEST_ENDPOINT = "https://dvla.example.com";
 
     @Mock private DvlaConfiguration mockDvlaConfiguration;
     @Mock private HttpRetryer mockHttpRetryer;
     @Mock private RequestConfig mockRequestConfig;
     @Mock private EventProbe mockEventProbe;
 
-    private ChangeApiKeyService changeApiKeyService;
-    private ObjectMapper realObjectMapper;
+    private ApiKeyDvlaHttpClient apiKeyDvlaHttpClient;
 
     @BeforeEach
     void setUp() {
-        realObjectMapper = new ObjectMapper();
+        ObjectMapper realObjectMapper = new ObjectMapper();
 
-        when(mockDvlaConfiguration.getChangeApiKeyEndpoint())
-                .thenReturn(TEST_END_POINT + "/apiKey");
+        when(mockDvlaConfiguration.getChangeApiKeyEndpoint()).thenReturn(TEST_ENDPOINT + "/apiKey");
+        when(mockDvlaConfiguration.getApiKey()).thenReturn("existing_api_key");
 
-        changeApiKeyService =
-                new ChangeApiKeyService(
+        apiKeyDvlaHttpClient =
+                new ApiKeyDvlaHttpClient(
                         mockDvlaConfiguration,
                         mockHttpRetryer,
                         mockRequestConfig,
@@ -84,12 +82,10 @@ class ChangeApiKeyServiceTest {
                         200, null, "{\"newApiKey\": \"test_api_key_response\"}", false);
 
         when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
-                        httpRequestCaptor.capture(), any(ChangeApiKeyHttpRetryStatusConfig.class)))
+                        httpRequestCaptor.capture(), any(ApiKeyDvlaHttpRetryStatusConfig.class)))
                 .thenReturn(changeApiKeyResponse);
 
-        String newApiKey =
-                changeApiKeyService.sendApiKeyChangeRequest(
-                        "existing_api_key", "authorizationToken");
+        String newApiKey = apiKeyDvlaHttpClient.requestNewApiKey("authorizationToken");
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
         inOrderMockEventProbeSequence
@@ -118,7 +114,7 @@ class ChangeApiKeyServiceTest {
         doThrow(exceptionCaught)
                 .when(mockHttpRetryer)
                 .sendHTTPRequestRetryIfAllowed(
-                        any(HttpPost.class), any(ChangeApiKeyHttpRetryStatusConfig.class));
+                        any(HttpPost.class), any(ApiKeyDvlaHttpRetryStatusConfig.class));
 
         OAuthErrorResponseException expectedReturnedException =
                 new OAuthErrorResponseException(
@@ -128,9 +124,7 @@ class ChangeApiKeyServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () ->
-                                changeApiKeyService.sendApiKeyChangeRequest(
-                                        "existing_api_key", "authorizationToken"),
+                        () -> apiKeyDvlaHttpClient.requestNewApiKey("authorizationToken"),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
@@ -138,7 +132,7 @@ class ChangeApiKeyServiceTest {
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(1))
                 .sendHTTPRequestRetryIfAllowed(
-                        any(HttpPost.class), any(ChangeApiKeyHttpRetryStatusConfig.class));
+                        any(HttpPost.class), any(ApiKeyDvlaHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
@@ -167,7 +161,7 @@ class ChangeApiKeyServiceTest {
 
         // HttpClient response
         when(mockHttpRetryer.sendHTTPRequestRetryIfAllowed(
-                        httpRequestCaptor.capture(), any(ChangeApiKeyHttpRetryStatusConfig.class)))
+                        httpRequestCaptor.capture(), any(ApiKeyDvlaHttpRetryStatusConfig.class)))
                 .thenReturn(changeApiKeyResponse);
 
         OAuthErrorResponseException expectedReturnedException =
@@ -178,9 +172,7 @@ class ChangeApiKeyServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () ->
-                                changeApiKeyService.sendApiKeyChangeRequest(
-                                        "existing_api_key", "authorizationToken"),
+                        () -> apiKeyDvlaHttpClient.requestNewApiKey("authorizationToken"),
                         "Expected OAuthErrorResponseException");
 
         // (Post) Token
@@ -188,7 +180,7 @@ class ChangeApiKeyServiceTest {
         inOrderMockHttpRetryerSequence
                 .verify(mockHttpRetryer, times(1))
                 .sendHTTPRequestRetryIfAllowed(
-                        any(HttpPost.class), any(ChangeApiKeyHttpRetryStatusConfig.class));
+                        any(HttpPost.class), any(ApiKeyDvlaHttpRetryStatusConfig.class));
         verifyNoMoreInteractions(mockHttpRetryer);
 
         InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
@@ -222,5 +214,7 @@ class ChangeApiKeyServiceTest {
 
         assertNotNull(httpHeadersKV.get("Content-Type"));
         assertEquals("application/json", httpHeadersKV.get("Content-Type"));
+        assertEquals("existing_api_key", httpHeadersKV.get("X-API-Key"));
+        assertEquals("authorizationToken", httpHeadersKV.get("Authorization"));
     }
 }

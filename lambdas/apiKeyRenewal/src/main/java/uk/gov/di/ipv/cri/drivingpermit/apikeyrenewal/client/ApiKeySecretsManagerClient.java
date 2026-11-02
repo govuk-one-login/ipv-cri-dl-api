@@ -57,15 +57,7 @@ public class ApiKeySecretsManagerClient {
     }
 
     public void promoteToCurrent(String secretId, String versionId) {
-        String currentVersionId =
-                versionStages(secretId).entrySet().stream()
-                        .filter(
-                                version ->
-                                        version.getValue()
-                                                .contains(SecretVersionStage.CURRENT.value()))
-                        .map(Map.Entry::getKey)
-                        .findFirst()
-                        .orElse(null);
+        String outgoingVersionId = findVersionIdLabelledCurrent(secretId).orElse(null);
 
         secretsManagerClient.updateSecretVersionStage(
                 updateRequest ->
@@ -73,8 +65,19 @@ public class ApiKeySecretsManagerClient {
                                 .secretId(secretId)
                                 .versionStage(SecretVersionStage.CURRENT.value())
                                 .moveToVersionId(versionId)
-                                .removeFromVersionId(currentVersionId));
+                                .removeFromVersionId(outgoingVersionId));
         LOGGER.info("Moved {} to the new API key version", SecretVersionStage.CURRENT.value());
+    }
+
+    private Optional<String> findVersionIdLabelledCurrent(String secretId) {
+        return versionStages(secretId).entrySet().stream()
+                .filter(
+                        versionIdToStages ->
+                                versionIdToStages
+                                        .getValue()
+                                        .contains(SecretVersionStage.CURRENT.value()))
+                .map(Map.Entry::getKey)
+                .findFirst();
     }
 
     private Map<String, List<String>> versionStages(String secretId) {

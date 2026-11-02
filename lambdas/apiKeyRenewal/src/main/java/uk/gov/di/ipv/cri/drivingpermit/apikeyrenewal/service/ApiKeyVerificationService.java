@@ -6,6 +6,7 @@ import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.account.ipv.cri.lime.limeade.util.timing.SleepHelper;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.model.ApiKeyTestIdentity;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.model.ApiKeyVerificationConfig;
+import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.exception.DVLAMatchUnauthorizedException;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.TokenRequestService;
@@ -20,23 +21,26 @@ public class ApiKeyVerificationService {
             Strategy.NO_CHANGE; // setting to default until test strategy approach agreed
 
     private final ApiKeyVerificationConfig config;
+    private final DvlaConfiguration dvlaConfiguration;
     private final TokenRequestService tokenRequestService;
     private final DriverMatchService driverMatchService;
     private final SleepHelper sleepHelper;
 
     public ApiKeyVerificationService(
             ApiKeyVerificationConfig config,
+            DvlaConfiguration dvlaConfiguration,
             TokenRequestService tokenRequestService,
             DriverMatchService driverMatchService,
             SleepHelper sleepHelper) {
         this.config = config;
+        this.dvlaConfiguration = dvlaConfiguration;
         this.tokenRequestService = tokenRequestService;
         this.driverMatchService = driverMatchService;
         this.sleepHelper = sleepHelper;
     }
 
     public void verify(String apiKey) throws OAuthErrorResponseException {
-        String tokenValue = tokenRequestService.requestToken(true, STRATEGY);
+        String tokenRequestPassword = dvlaConfiguration.getPassword();
         Duration delay = config.initialDelay();
 
         for (int attempt = 1; ; attempt++) {
@@ -47,6 +51,13 @@ public class ApiKeyVerificationService {
             sleepHelper.busyWaitMilliseconds(Math.toIntExact(delay.toMillis()));
 
             try {
+                // tokens have a `custom:apiKey` claim that links them to the active API key so we
+                // always request a new token on each verification attempt.
+                // we use `performNewTokenRequest` here as it doesn't write to dynamo
+                String tokenValue =
+                        tokenRequestService
+                                .performNewTokenRequest(tokenRequestPassword, STRATEGY)
+                                .getIdToken();
                 driverMatchService.performMatch(
                         ApiKeyTestIdentity.drivingPermitForm(), tokenValue, apiKey, STRATEGY);
                 LOGGER.atInfo()

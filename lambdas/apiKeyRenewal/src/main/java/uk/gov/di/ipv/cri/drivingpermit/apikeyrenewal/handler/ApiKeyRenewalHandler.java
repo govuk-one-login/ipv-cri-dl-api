@@ -90,6 +90,7 @@ public class ApiKeyRenewalHandler implements RequestHandler<SecretsManagerRotati
         ApiKeyVerificationService apiKeyVerificationService =
                 new ApiKeyVerificationService(
                         VERIFICATION_CONFIG,
+                        dvlaConfiguration,
                         tokenRequestService,
                         driverMatchService,
                         new SleepHelper(VERIFICATION_CONFIG.maxDelay().toMillis()));

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -13,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.exception.ApiKeyRotationException;
+import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.model.ApiKeyRotationOutcome;
 import uk.gov.di.ipv.cri.drivingpermit.apikeyrenewal.service.ApiKeyRotationService;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.configuration.DvlaConfiguration;
 import uk.gov.di.ipv.cri.drivingpermit.library.dvla.service.endpoints.DriverMatchService;
@@ -30,15 +32,18 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_API_KEY_CHECK_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_API_KEY_CHECK_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.drivingpermit.library.metrics.Definitions.LAMBDA_API_KEY_PROMOTED_UNVERIFIED;
 
 @ExtendWith({SystemStubsExtension.class, MockitoExtension.class})
 class ApiKeyRenewalHandlerTest {
 
     private static final String SECRET_ID =
             "arn:aws:secretsmanager:eu-west-2:123456789012:secret:/stack-name/DVLA/apiKey-AbC123";
+    private static final String CLIENT_REQUEST_TOKEN = "rotation-token";
 
     @SystemStub
     private final EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -79,11 +84,28 @@ class ApiKeyRenewalHandlerTest {
         verify(eventProbe).counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_OK);
     }
 
-    @Test
-    void rotatesTheSecretOnFinishStep() throws Exception {
+    @ParameterizedTest
+    @EnumSource(
+            value = ApiKeyRotationOutcome.class,
+            names = {"DISABLED", "ALREADY_CURRENT", "PROMOTED_VERIFIED"})
+    void rotatesTheSecretForThisRotationOnFinishStep(ApiKeyRotationOutcome outcome)
+            throws Exception {
+        when(apiKeyRotationService.rotate(SECRET_ID, CLIENT_REQUEST_TOKEN)).thenReturn(outcome);
+
         assertEquals("Success", handler.handleRequest(event("finishSecret"), context));
 
-        verify(apiKeyRotationService).rotate(SECRET_ID);
+        verify(eventProbe).counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_OK);
+        verifyNoMoreInteractions(eventProbe);
+    }
+
+    @Test
+    void recordsAnUnverifiedPromotionAndStillSucceeds() throws Exception {
+        when(apiKeyRotationService.rotate(SECRET_ID, CLIENT_REQUEST_TOKEN))
+                .thenReturn(ApiKeyRotationOutcome.PROMOTED_UNVERIFIED);
+
+        assertEquals("Success", handler.handleRequest(event("finishSecret"), context));
+
+        verify(eventProbe).counterMetric(LAMBDA_API_KEY_PROMOTED_UNVERIFIED);
         verify(eventProbe).counterMetric(LAMBDA_API_KEY_CHECK_COMPLETED_OK);
         verifyNoMoreInteractions(eventProbe);
     }
@@ -91,7 +113,7 @@ class ApiKeyRenewalHandlerTest {
     @Test
     void recordsAnErrorAndRethrowsWhenRotationFails() throws Exception {
         RuntimeException failure = new RuntimeException("rotation failed");
-        doThrow(failure).when(apiKeyRotationService).rotate(SECRET_ID);
+        doThrow(failure).when(apiKeyRotationService).rotate(SECRET_ID, CLIENT_REQUEST_TOKEN);
         SecretsManagerRotationEvent finishSecret = event("finishSecret");
 
         ApiKeyRotationException thrown =
@@ -107,7 +129,7 @@ class ApiKeyRenewalHandlerTest {
     private static SecretsManagerRotationEvent event(String step) {
         SecretsManagerRotationEvent event = new SecretsManagerRotationEvent();
         event.setSecretId(SECRET_ID);
-        event.setClientRequestToken("rotation-token");
+        event.setClientRequestToken(CLIENT_REQUEST_TOKEN);
         event.setStep(step);
         return event;
     }

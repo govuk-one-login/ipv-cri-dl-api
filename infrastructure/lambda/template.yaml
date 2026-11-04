@@ -64,7 +64,7 @@ Parameters:
   LogGroupRetentionInDays:
     Description: "Retention for all log groups"
     Type: Number
-    Default: "30"
+    Default: "365"
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. This value is picked up from the LambdaCanaryDeployment on the pipeline "
     Type: String

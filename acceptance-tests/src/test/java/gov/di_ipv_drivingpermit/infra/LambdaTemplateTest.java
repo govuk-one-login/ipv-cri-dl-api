@@ -1691,7 +1691,7 @@ class LambdaTemplateTest {
 
     @Test
     @DisplayName(
-            "All AWS::CloudWatch::Alarm resources should have 'Period' set to 60, 300 or 900 (direct or nested)")
+            "All AWS::CloudWatch::Alarm resources should have 'Period' set to 60, 300, 900 or 3600 (direct or nested)")
     void allCloudWatchAlarmResourcesShouldHaveAllowedPeriod() {
         Map<String, Map<String, Object>> alarmProperties =
                 getAllResourceProperties("AWS::CloudWatch::Alarm");
@@ -1701,7 +1701,7 @@ class LambdaTemplateTest {
 
         boolean allPeriodsAreValid = true;
         StringBuilder failureMessages = new StringBuilder();
-        final Set<Integer> allowedPeriods = Set.of(60, 300, 900);
+        final Set<Integer> allowedPeriods = Set.of(60, 300, 900, 3600);
 
         for (Map.Entry<String, Map<String, Object>> entry : alarmProperties.entrySet()) {
             String logicalId = entry.getKey();

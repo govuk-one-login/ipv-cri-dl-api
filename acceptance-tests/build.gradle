@@ -47,6 +47,9 @@ test {
 }
 
 tasks.register("infra-test", Test) {
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+
 	useJUnitPlatform {
 		includeTags "InfraTest"
 	}

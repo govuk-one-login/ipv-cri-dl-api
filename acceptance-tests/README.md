@@ -35,3 +35,8 @@ And to have the AWS_STACK_NAME set in the `test-args.conf` when executing the te
 | `API_GATEWAY_ID_PUBLIC`  | No       | Required when `BACKEND=yes`                                        |
 
 Speak to a member of the test team for credential values. When running in the pipeline these will be taken from AWS.
+
+Cucumber reports are available following pre-merge workflow execution for a PR.
+Within the Run pre-merge integration tests step, a link will be created to download the zip file for the cucumber report.
+
+When running the pre-merge tests locally a cucumber report will be generated in the `acceptance-tests/target/cucumber-report`

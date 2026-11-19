@@ -46,7 +46,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Traffic test image build and push (build)
-        uses: govuk-one-login/devplatform-upload-action-ecr@256c057b61bb6795fccf00a439a895c678525863 # v1.7.1
+        uses: govuk-one-login/devplatform-upload-action-ecr@ff8f2582dca8f03810142612ac7734c66c1b3345 # v1.7.2
         with:
           artifact-bucket-name: ""
           container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}
@@ -59,7 +59,7 @@ jobs:
           push-latest-tag: "true"
 
       - name: Test image build and push (build)
-        uses: govuk-one-login/devplatform-upload-action-ecr@256c057b61bb6795fccf00a439a895c678525863 # v1.7.1
+        uses: govuk-one-login/devplatform-upload-action-ecr@ff8f2582dca8f03810142612ac7734c66c1b3345 # v1.7.2
         with:
           artifact-bucket-name: ""
           container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}
@@ -72,7 +72,7 @@ jobs:
           push-latest-tag: "true"
 
       - name: Test image build and push (staging)
-        uses: govuk-one-login/devplatform-upload-action-ecr@256c057b61bb6795fccf00a439a895c678525863 # v1.7.1
+        uses: govuk-one-login/devplatform-upload-action-ecr@ff8f2582dca8f03810142612ac7734c66c1b3345 # v1.7.2
         with:
           artifact-bucket-name: ""
           container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}

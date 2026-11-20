@@ -1,7 +1,7 @@
 @QualityGateSmokeTest @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: DVLA Auth Source Driving Licence Test
 
-  @smoke-build @stub @uat @traffic
+  @smoke-build @stub @uat_to_be_fixed @traffic
   Scenario Outline: DVLA Auth Source - Happy path
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string
@@ -36,7 +36,7 @@ Feature: DVLA Auth Source Driving Licence Test
       | check_detail  | DVLAAuthSourceValidKennethJsonPayload |
       | invalid_value | DVLAAuthSourceValidKennethJsonPayload |
 
-  @stub @uat @traffic
+  @stub @uat_to_be_fixed @traffic
   Scenario Outline: DVLA Auth Source - Validation Test - Missing context field directs to default DVLA journey
     Given I navigate to the IPV Core Stub and select Driving Licence CRI for the testEnvironment
     And I enter the context value <contextValue> in the Input context value as a string

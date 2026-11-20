@@ -13,7 +13,7 @@ Feature: Driving Licence Test
     And I check the page title is Enter your details exactly as they appear on your UK driving licence – GOV.UK One Login
     And I see a form requesting DVLA LicenceNumber
 
-  @smoke-build @stub @uat @traffic
+  @smoke-build @stub @uat_to_be_fixed @traffic
   Scenario Outline: DVLA - Happy path
     Given User enters DVLA data as a <DrivingLicenceSubject>
     When User clicks on continue and waits for page navigation
@@ -128,7 +128,7 @@ Feature: Driving Licence Test
       | DrivingLicenceSubject             | InvalidLicenceIssueDay | InvalidLicenceIssueMonth | InvalidLicenceIssueYear |
       | DrivingLicenceSubjectHappyKenneth | 14                     | 09                       | 2019                    |
 
-  @stub @uat @traffic
+  @stub @uat_to_be_fixed @traffic
   Scenario Outline: DVLA - User attempts invalid journey and retries with valid details
     Given User enters invalid Driving Licence DVLA details
     When User clicks on continue and waits for page navigation

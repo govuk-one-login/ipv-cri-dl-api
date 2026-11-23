@@ -24,7 +24,7 @@ apache_httpcomponents_httpclient = "4.5.14"
 opentelemetry_bom_alpha = "2.28.1-alpha"
 
 # DVA ACM
-bouncycastle = "1.86"
+bouncycastle = "1.87"
 
 # passwordRenewal lambda
 passay_version = "1.6.6"
